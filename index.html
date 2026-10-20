@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Meme Village: THE VILLAGE MODEL</title>
+<meta name="description" content="A 12-week RTS-style strategy game about imitation, rivalry, and trust in a small village. Choose who the village copies. Live with what spreads.">
+<meta property="og:title" content="Meme Village: THE VILLAGE MODEL">
+<meta property="og:description" content="A 12-week strategy game about imitation, rivalry, and trust. People copy what they admire. Choose the models, and live with what spreads.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://dillingerstaffing.github.io/meme-village/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Meme Village: THE VILLAGE MODEL">
+<meta name="twitter:description" content="A 12-week strategy game about imitation, rivalry, and trust in a small village.">
+<style>
+:root{
+  --bg:#0a0e13; --panel:#12181f; --panel2:#171f28; --glass:rgba(18,24,31,.92);
+  --line:#2b3745; --line2:#3a4a5e; --ink:#ece5d3; --ink2:#a89e86; --ink3:#6f7b8a;
+  --gold:#e3aa3d; --gold2:#f5c86a; --teal:#5cc9a7; --rust:#e0684b; --red:#d84f4f;
+  --green:#7fc45e; --amber:#e8b93e; --violet:#9a86e0;
+  --shadow:0 10px 30px rgba(0,0,0,.5), 0 2px 6px rgba(0,0,0,.4);
+  --rad:6px;
+}
+*{box-sizing:border-box}
+html,body{overflow-x:clip}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;font-size:15.5px;line-height:1.45;
+  background-image:radial-gradient(1200px 600px at 50% -10%, #1b2836 0%, var(--bg) 60%)}
+button{font:inherit;cursor:pointer;border-radius:var(--rad)}
+button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+h1,h2,h3{font-family:"Segoe UI",system-ui,sans-serif;letter-spacing:.02em}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+.wrap{max-width:1340px;margin:0 auto;padding:10px 12px 34px}
+
+/* ===== Top HUD ===== */
+.hud{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;
+  background:linear-gradient(180deg,#18222e,#10161e);border:1px solid var(--line2);border-radius:8px;
+  padding:9px 14px;box-shadow:var(--shadow);position:sticky;top:8px;z-index:30}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.crest{width:40px;height:40px;flex:none}
+.brand .kick{font-size:10px;letter-spacing:.28em;color:var(--gold);font-weight:700;text-transform:uppercase}
+.brand h1{margin:0;font-size:21px;letter-spacing:.14em;font-weight:800;line-height:1}
+.brand h1 span{color:var(--gold)}
+.season{display:flex;flex-direction:column;gap:4px;align-items:center}
+.season .pips{display:flex;gap:3px}
+.season .pip{width:22px;height:8px;border-radius:2px;background:#26313f;border:1px solid var(--line)}
+.season .pip.done{background:var(--teal);border-color:var(--teal)}
+.season .pip.now{background:var(--gold);border-color:var(--gold2);box-shadow:0 0 8px rgba(227,170,61,.7)}
+.season .lab{font-size:10.5px;letter-spacing:.18em;color:var(--ink2);text-transform:uppercase}
+.hudbtns{display:flex;gap:7px;flex-wrap:wrap}
+.hbtn{background:#1a232f;border:1px solid var(--line2);color:var(--ink);padding:7px 12px;font-weight:600;font-size:13.5px}
+.hbtn:hover{border-color:var(--gold);color:var(--gold2)}
+.weekchip{font-family:ui-monospace,Menlo,monospace;font-size:13px;border:1px solid var(--gold);color:var(--gold2);
+  padding:7px 11px;border-radius:var(--rad);background:rgba(227,170,61,.08);white-space:nowrap}
+
+/* ===== Layout ===== */
+.grid{display:grid;grid-template-columns:288px minmax(0,1fr) 302px;gap:12px;margin-top:12px;align-items:start}
+@media (max-width:1080px){.grid{grid-template-columns:1fr 1fr}.centercol{grid-column:1/-1;order:-1}}
+@media (max-width:680px){.grid{grid-template-columns:1fr}}
+.panel{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);padding:13px 14px}
+.panel h2{margin:0 0 9px;font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink2);font-weight:700;display:flex;justify-content:space-between;align-items:baseline}
+.panel h2 .tag{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:var(--ink3);letter-spacing:0;text-transform:none}
+
+/* Stats */
+.stat{margin:0 0 10px}
+.stat .row{display:flex;justify-content:space-between;align-items:baseline;font-size:13.5px}
+.stat .name{font-weight:700;letter-spacing:.04em}
+.stat .hint{color:var(--ink3);font-size:11px;font-weight:400;margin-left:4px}
+.stat .val{font-family:ui-monospace,Menlo,monospace;font-size:13px}
+.delta{font-family:ui-monospace,Menlo,monospace;font-size:11px;margin-left:5px}
+.delta.up{color:var(--green)} .delta.down{color:var(--red)}
+.bar{height:10px;border:1px solid var(--line2);background:#0b0f14;border-radius:3px;overflow:hidden;margin-top:3px;position:relative}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#3f7d63,var(--teal));transition:width .7s cubic-bezier(.2,.8,.2,1)}
+.bar.warn i{background:linear-gradient(90deg,#a67c22,var(--amber))}
+.bar.crit i{background:linear-gradient(90deg,#93322b,var(--red))}
+.bar .thresh{position:absolute;top:-2px;bottom:-2px;width:2px;background:rgba(236,229,211,.35)}
+.momentum{border-top:1px dashed var(--line);padding-top:9px;margin-top:4px}
+.momentum .pips{display:flex;gap:5px;margin-top:5px}
+.momentum .mpip{flex:1;height:9px;border-radius:2px;background:#26313f;border:1px solid var(--line)}
+.momentum .mpip.on{background:linear-gradient(90deg,#b57f22,var(--gold));border-color:var(--gold);box-shadow:0 0 7px rgba(227,170,61,.5)}
+.small{font-size:12px;color:var(--ink2)}
+
+/* Field actions */
+.factions{display:grid;gap:8px;margin-top:4px}
+.faction{text-align:left;background:#0e141b;border:1px solid var(--line2);color:var(--ink);padding:9px 11px;width:100%}
+.faction:hover:not(:disabled){border-color:var(--teal)}
+.faction:disabled{opacity:.42;cursor:not-allowed}
+.faction .ft{font-weight:700;font-size:14px;display:flex;justify-content:space-between}
+.faction .ft .cost{color:var(--gold2);font-family:ui-monospace,monospace;font-size:11.5px}
+.faction .fd{color:var(--ink2);font-size:12.5px;display:block;margin-top:1px}
+
+/* ===== Scene ===== */
+.stage{position:relative;border:1px solid var(--line2);border-radius:8px;overflow:hidden;box-shadow:var(--shadow);background:#0b0f14}
+.stage svg{display:block;width:100%;height:auto}
+.stage .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 90% at 50% 40%, transparent 55%, rgba(4,8,12,.55) 100%)}
+.stage .phase{position:absolute;left:12px;top:10px;background:rgba(8,12,17,.66);border:1px solid var(--line2);
+  border-radius:4px;padding:4px 10px;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold2);backdrop-filter:blur(3px)}
+.stage .hintline{position:absolute;right:12px;bottom:10px;background:rgba(8,12,17,.66);border:1px solid var(--line);
+  border-radius:4px;padding:4px 10px;font-size:11.5px;color:var(--ink2);backdrop-filter:blur(3px)}
+.token{cursor:pointer}
+.token .halo{fill:none;stroke-width:2.5;opacity:.95}
+.token .face{stroke:#0a0e13;stroke-width:1.6}
+.token text{font-family:"Segoe UI",system-ui,sans-serif;font-weight:800;fill:#fff;text-anchor:middle;pointer-events:none;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+.token .nm{font-size:10.5px;letter-spacing:.02em}
+.token.sel .halo{stroke:var(--gold2);stroke-width:3.5}
+.pulse{fill:none;stroke:var(--gold2);stroke-width:2;pointer-events:none}
+@keyframes smokeUp{0%{transform:translateY(0) scale(.6);opacity:.55}100%{transform:translateY(-34px) scale(1.5);opacity:0}}
+.smoke{fill:#cfd6dd;opacity:0;animation:smokeUp 3.6s linear infinite}
+@keyframes wheelSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.wheel{transform-origin:center;transform-box:fill-box;animation:wheelSpin 14s linear infinite}
+@keyframes flowMove{to{stroke-dashoffset:-28}}
+.riverflow{stroke-dasharray:7 7;animation:flowMove 2.6s linear infinite}
+@keyframes sway{0%,100%{transform:rotate(-1.6deg)}50%{transform:rotate(1.6deg)}}
+.flag{transform-origin:left center;transform-box:fill-box;animation:sway 3.2s ease-in-out infinite}
+@keyframes snowfall{0%{transform:translateY(-8px);opacity:0}15%{opacity:.9}100%{transform:translateY(120px);opacity:0}}
+.snow{fill:#eef4fa;animation:snowfall 5s linear infinite}
+@keyframes bannerIn{0%{opacity:0;transform:scale(.92);letter-spacing:.5em}18%{opacity:1;transform:scale(1)}80%{opacity:1}100%{opacity:0;transform:scale(1.02)}}
+.weekbanner{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;pointer-events:none;background:radial-gradient(60% 45% at 50% 50%, rgba(5,8,11,.72), transparent 75%)}
+.weekbanner.show{display:flex;animation:bannerIn 2.1s ease forwards}
+.weekbanner .bw{font-family:ui-monospace,Menlo,monospace;color:var(--gold2);letter-spacing:.34em;font-size:13px}
+.weekbanner .bt{font-size:clamp(24px,4.6vw,44px);font-weight:800;letter-spacing:.1em;color:#fff;text-align:center;padding:0 12px;text-shadow:0 4px 24px rgba(0,0,0,.8)}
+
+/* ===== Command card ===== */
+.cmd{margin-top:12px;border-top:3px solid var(--gold)}
+.cmd .wk{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.cmd h2{font-size:clamp(20px,3vw,26px);margin:3px 0 5px;letter-spacing:.01em;text-transform:none;color:var(--ink)}
+.cmd p.report{margin:0;font-size:15.5px;color:#d9d2bd;max-width:75ch}
+.cmd .intel{margin-top:8px;font-size:12.5px;color:var(--ink2);border-left:3px solid var(--line2);padding:2px 0 2px 10px}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:13px}
+@media (max-width:680px){.choices{grid-template-columns:1fr}}
+.choice{text-align:left;background:linear-gradient(180deg,#1b2531,#131a23);border:1px solid var(--line2);color:var(--ink);padding:11px 13px;width:100%;position:relative}
+.choice:hover{border-color:var(--gold);background:linear-gradient(180deg,#222f3f,#16202b);transform:translateY(-1px)}
+.choice .ct{font-weight:700;font-size:15px;display:block;padding-right:86px}
+.choice .cd{color:var(--ink2);font-size:13px;display:block;margin-top:2px}
+.choice .kw{position:absolute;top:10px;right:11px;font-family:ui-monospace,monospace;font-size:9.5px;letter-spacing:.12em;
+  padding:3px 7px;border-radius:3px;border:1px solid var(--line2);color:var(--ink2);text-transform:uppercase}
+.choice .kw.shared{color:var(--teal);border-color:var(--teal)}
+.choice .kw.order{color:var(--amber);border-color:var(--amber)}
+.choice .kw.transparent{color:#8fd0ff;border-color:#8fd0ff}
+.choice .kw.blame{color:var(--red);border-color:var(--red)}
+.choice .kw.recognize{color:var(--gold2);border-color:var(--gold)}
+.choice .kw.gamble{color:var(--violet);border-color:var(--violet)}
+.choice .kw.conceal{color:#c9a0dc;border-color:#c9a0dc}
+.outcome{border:1px solid var(--teal);background:linear-gradient(180deg,rgba(92,201,167,.09),rgba(92,201,167,.03));padding:12px 14px;border-radius:var(--rad);margin-top:13px}
+.outcome h3{margin:0 0 6px;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--teal)}
+.outcome p{margin:0 0 6px;font-size:14.5px}
+.outcome ul{margin:4px 0 0;padding-left:18px;font-size:14px;color:#d9d2bd}
+.outcome li{margin:3px 0}
+.nextrow{margin-top:13px;display:flex;gap:8px;flex-wrap:wrap}
+.btn{background:#1a232f;border:1px solid var(--line2);color:var(--ink);padding:9px 16px;font-weight:700}
+.btn:hover{border-color:var(--gold)}
+.btn.primary{background:linear-gradient(180deg,#c98f2b,var(--gold) 45%,#a97a24);border-color:#7c5c1a;color:#171106}
+.btn.primary:hover{filter:brightness(1.1);color:#171106}
+
+/* Inspector */
+.portraitbox{display:flex;gap:12px;align-items:flex-start}
+.portraitbox svg{flex:none;border-radius:8px;border:1px solid var(--line2);background:#0b0f14}
+.insp h3{margin:0;font-size:18px}
+.insp .role{color:var(--gold2);font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
+.insp .kv{margin:5px 0;font-size:13.5px}
+.insp .kv b{color:var(--ink2);font-weight:600}
+.chip{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;padding:2px 8px;border-radius:20px;border:1px solid var(--line2);color:var(--ink2)}
+.chip.coop{color:var(--teal);border-color:var(--teal)} .chip.riv{color:var(--red);border-color:var(--red)}
+.chip.wd{color:#c9a0dc;border-color:#c9a0dc} .chip.str{color:var(--amber);border-color:var(--amber)}
+.minibar{height:7px;border:1px solid var(--line2);background:#0b0f14;border-radius:3px;overflow:hidden}
+.minibar i{display:block;height:100%;background:var(--teal)}
+.minibar.vis i{background:var(--gold)}
+.note{font-size:12.5px;color:var(--ink2);border-top:1px dashed var(--line);padding-top:7px;margin-top:8px}
+
+/* Models board */
+.mrow{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px dashed var(--line);font-size:13.5px}
+.mrow:last-child{border-bottom:0}
+.mrow .dot{width:10px;height:10px;border-radius:50%;flex:none}
+.mrow .mn{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mrow .mv{font-family:ui-monospace,monospace;font-size:11.5px;color:var(--ink2)}
+.mtag{font-size:9.5px;font-weight:800;letter-spacing:.1em;color:#171106;background:var(--gold);border-radius:3px;padding:2px 5px}
+
+/* Log */
+.log{list-style:none;margin:0;padding:0;font-size:13px;max-height:300px;overflow:auto}
+.log li{border-bottom:1px dashed var(--line);padding:6px 0;color:#cfc8b2}
+.log li:first-child{padding-top:0}
+.log .lw{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:var(--gold);font-weight:700;letter-spacing:.08em}
+.log .delayed{color:var(--rust)}
+.log .good{color:var(--teal)} .log .bad{color:var(--red)}
+
+/* Overlays */
+.overlay{position:fixed;inset:0;background:rgba(4,7,10,.78);display:none;align-items:center;justify-content:center;padding:14px;z-index:60;backdrop-filter:blur(4px)}
+.overlay.open{display:flex}
+.modal{background:linear-gradient(180deg,#171f28,#10161d);border:1px solid var(--line2);max-width:680px;width:100%;max-height:88vh;overflow:auto;padding:22px;box-shadow:var(--shadow);border-radius:8px}
+.modal h2{margin:0 0 8px;font-size:22px;letter-spacing:.04em;text-transform:none;color:var(--ink)}
+.modal h3{margin:15px 0 4px;font-size:15px;color:var(--gold2)}
+.modal p,.modal li{font-size:14.5px;color:#d9d2bd}
+.modal ul{padding-left:18px}
+.titleart{font-size:clamp(30px,6vw,52px);font-weight:800;letter-spacing:.1em;line-height:1.02;margin:2px 0}
+.titleart span{color:var(--gold)}
+.pickgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:8px}
+@media (max-width:680px){.pickgrid{grid-template-columns:1fr}}
+.pick{text-align:left;background:#0e141b;border:1px solid var(--line2);color:var(--ink);padding:12px;width:100%}
+.pick:hover{border-color:var(--gold)}
+.pick.sel{border-color:var(--gold);background:rgba(227,170,61,.1);box-shadow:0 0 0 1px var(--gold)}
+.pick .pt{font-weight:800;font-size:15px;display:block}
+.pick .pd{color:var(--ink2);font-size:12.5px;display:block;margin-top:3px}
+.pickrow{display:flex;gap:9px;margin-top:8px;flex-wrap:wrap}
+.pickrow .pick{flex:1;min-width:150px}
+
+/* Ending */
+.stamp{display:inline-block;border:2.5px solid var(--gold);color:var(--gold2);font-weight:800;letter-spacing:.14em;text-transform:uppercase;padding:6px 14px;transform:rotate(-1.6deg);border-radius:4px;margin:8px 0 10px;font-size:15px;background:rgba(227,170,61,.07)}
+.medals{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}
+.medal{border:1px solid var(--gold);color:var(--gold2);border-radius:20px;padding:4px 11px;font-size:12px;font-weight:700;background:rgba(227,170,61,.08)}
+.grades{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+@media (max-width:680px){.grades{grid-template-columns:repeat(2,1fr)}}
+.grade{background:#0e141b;border:1px solid var(--line);border-radius:var(--rad);padding:8px 11px;font-size:13px}
+.grade b{font-family:ui-monospace,monospace;float:right;font-size:16px;color:var(--gold2)}
+footer{margin-top:16px;font-size:12px;color:var(--ink3);border-top:1px dashed var(--line);padding-top:10px;max-width:110ch}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hud">
+  <div class="brand">
+    <svg class="crest" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" fill="none" stroke="#e3aa3d" stroke-width="2.5"/><path d="M14 32 L24 12 L34 32 Z" fill="none" stroke="#5cc9a7" stroke-width="2.5"/><circle cx="24" cy="27" r="3.4" fill="#e3aa3d"/></svg>
+    <div>
+      <div class="kick">Trauma Team International &middot; Field Posting 7</div>
+      <h1>THE VILLAGE <span>MODEL</span></h1>
+    </div>
+  </div>
+  <div class="season" aria-label="Season progress">
+    <div class="pips" id="seasonPips"></div>
+    <div class="lab" id="seasonLab">Meme Village &middot; Twelve Weeks</div>
+  </div>
+  <div class="hudbtns">
+    <span class="weekchip" id="weekChip">WEEK 1 / 12</span>
+    <button class="hbtn" id="helpBtn" type="button">How it works</button>
+    <button class="hbtn" id="soundBtn" type="button" aria-pressed="false">Sound: off</button>
+    <button class="hbtn" id="pauseBtn" type="button">Pause</button>
+    <button class="hbtn" id="restartBtn" type="button">Restart</button>
+  </div>
+</header>
+
+<div class="grid">
+  <aside style="display:flex;flex-direction:column;gap:12px">
+    <section class="panel" aria-label="Village statistics">
+      <h2>Village Ledger <span class="tag">0 to 100</span></h2>
+      <div id="stats"></div>
+      <div class="momentum">
+        <div class="row" style="display:flex;justify-content:space-between;font-size:13px"><span style="font-weight:700">Custom</span><span class="small" id="customLab">no streak yet</span></div>
+        <div class="pips" id="customPips"><div class="mpip"></div><div class="mpip"></div><div class="mpip"></div></div>
+        <div class="small" style="margin-top:5px">Weeks where trust and cohesion both hold build Custom. Custom absorbs the first points of trust and cohesion damage each week. The village is forming habits, one way or another.</div>
+      </div>
+    </section>
+    <section class="panel" aria-label="Field actions">
+      <h2>Field Actions <span class="tag" id="chargeLab">3 charges</span></h2>
+      <div class="factions" id="factions"></div>
+      <div class="small" style="margin-top:7px">One field action per week, spent before you commit to an intervention. Small, human, and not repeatable on command.</div>
+    </section>
+  </aside>
+
+  <main class="centercol">
+    <div class="stage">
+      <svg id="scene" viewBox="0 0 800 470" role="img" aria-label="Illustrated map of Meme Village"></svg>
+      <div class="vig"></div>
+      <div class="phase" id="phaseLab">Spring &middot; Weeks 1 to 3</div>
+      <div class="hintline">Click a resident on the map to inspect them</div>
+      <div class="weekbanner" id="weekBanner"><div class="bw" id="bannerWeek">WEEK 1</div><div class="bt" id="bannerTitle"></div></div>
+    </div>
+    <section class="panel cmd" id="cmdPanel" aria-live="polite"></section>
+  </main>
+
+  <aside style="display:flex;flex-direction:column;gap:12px">
+    <section class="panel insp" aria-label="Resident inspector">
+      <h2>Inspector <span class="tag">resident file</span></h2>
+      <div id="inspector"><p class="small" style="margin:0">No resident selected. Click anyone on the map, or anyone on the influence board, to open their file: role, trait, aspiration, stance, wellbeing, and who they are watching.</p></div>
+    </section>
+    <section class="panel" aria-label="Influence board">
+      <h2>Influence Board <span class="tag">visibility</span></h2>
+      <div id="models"></div>
+      <div class="small" style="margin-top:7px">Visibility 60 or more makes a model: their stance spreads. Models are made here, and unmade. Watch who is rising.</div>
+    </section>
+  </aside>
+</div>
+
+<section class="panel" style="margin-top:12px" aria-label="Event history">
+  <h2>Field Log <span class="tag">everything, in order</span></h2>
+  <ul class="log" id="log"></ul>
+</section>
+
+<footer>
+  THE VILLAGE MODEL is a fictional strategy game about imitation, inspired by Rene Girard's mimetic theory. It is a model of a system, with all the limits that implies, not a guide to handling real people. Every intervention can fail. The ones that work by fear or blame send their bill later, and this game keeps the receipts.
+</footer>
+</div>
+
+<div class="overlay open" id="startOverlay" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+  <div class="modal" style="max-width:760px">
+    <div class="kick" style="font-size:10.5px;letter-spacing:.28em;color:var(--gold);font-weight:700">TRAUMA TEAM INTERNATIONAL &middot; FIELD POSTING 7 &middot; MEME VILLAGE</div>
+    <div class="titleart" id="startTitle">THE VILLAGE<br><span>MODEL</span></div>
+    <p>Twelve weeks in an isolated village that runs on imitation. You cannot order people to be good. You can only choose what gets seen, praised, funded, and blamed, and then live with what spreads. Keep the services running and the trust alive until the winter count. Output bought with fear gets the ending it earned.</p>
+    <h3>Choose the posting charter</h3>
+    <div class="pickgrid" id="charterPick"></div>
+    <h3>Choose the season</h3>
+    <div class="pickrow" id="diffPick">
+      <button class="pick sel" type="button" data-diff="standard"><span class="pt">Standard Season</span><span class="pd">A hard year, honestly dealt. The village starts wary but intact.</span></button>
+      <button class="pick" type="button" data-diff="hard"><span class="pt">Hard Winter</span><span class="pd">For repeat planners. Lower trust, thinner stores, sharper pressure, colder dice.</span></button>
+    </div>
+    <div class="nextrow" style="margin-top:18px"><button class="btn primary" id="beginBtn" type="button" style="font-size:16px;padding:12px 22px">Begin Week 1</button></div>
+    <p class="small">Every season shuffles the order of events, jitters the starting ledger, and lets crises write their own weeks. No two villages imitate alike.</p>
+  </div>
+</div>
+
+<div class="overlay" id="helpOverlay" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+  <div class="modal">
+    <h2 id="helpTitle">How the village works</h2>
+    <p>People here do not invent most of their desires. They borrow them. A resident watches someone they admire, sees what that person wants and how they act, and starts wanting it too. That is imitation, and it is neither good nor bad by itself. It is just how this village runs.</p>
+    <h3>Models are made, not born</h3>
+    <p>Anyone whose visibility reaches 60 becomes a model: their stance starts spreading to the people who admire them. Mara, Jonah, and Priya start near that line. Public recognition pushes visibility up. Blame, strain, and neglect push it down, and a model who drops under 30 stops being watched. Elevate the careful and you get a careful village. Elevate the cornered and you get corner-cutting at scale.</p>
+    <h3>Rivalry</h3>
+    <p>When many people copy the same desire and the prize is scarce (one banner, first place in a queue, the only oven slot), imitation turns into rivalry. The model stops being an example and becomes an obstacle.</p>
+    <h3>Shared projects and Custom</h3>
+    <p>A shared project points imitation at cooperation instead of a prize. Hold trust and cohesion steady week after week and the village builds Custom: a streak that absorbs the first points of trust and cohesion damage. Habits, once formed, protect themselves.</p>
+    <h3>Scapegoating</h3>
+    <p>Blaming one resident for a shared failure works, briefly. Tension drops because everyone else agrees on whose fault it is. Then the bill arrives: trust falls, the targeted person's wellbeing falls, they withdraw, and the village learns that blame is how problems get solved here. Use it three times and the ending writes itself.</p>
+    <h3>Crises write their own weeks</h3>
+    <p>Let scarcity or rivalry run past 65 and the season interrupts your plans with a crisis week. Let a resident's wellbeing collapse and the village notices the empty chair. The ledger is not decoration. It is the schedule.</p>
+    <h3>Uncertainty</h3>
+    <p>No intervention guarantees its result. Risky choices name the stat they ride on. High trust makes open books work. Low cohesion makes shared crews fragile. The dice are visible in the outcome text, never hidden.</p>
+    <h3>Winning</h3>
+    <p>There is no score to maximize. At the winter count the village is judged whole: services running, trust intact, people still choosing their own norms. Commendations record how you did it, not just that you did.</p>
+    <div class="nextrow"><button class="btn primary" id="helpClose" type="button">Back to the village</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="pauseOverlay" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
+  <div class="modal">
+    <h2 id="pauseTitle">Paused</h2>
+    <p>The village holds its breath. Nothing moves while you think.</p>
+    <div class="nextrow"><button class="btn primary" id="resumeBtn" type="button">Resume</button>
+    <button class="btn" id="restartBtn2" type="button">Restart instead</button></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ================= SCENE ================= */
+var PHASES = [
+  {name:"Spring", lab:"Spring &middot; Weeks 1 to 3", sky:["#8ec9e8","#dff0e2"], hill:"#7d9264", field:"#8aa864", ground:"#77975a", tint:"rgba(0,0,0,0)"},
+  {name:"Summer", lab:"Summer &middot; Weeks 4 to 6", sky:["#6db6e8","#e8f3d8"], hill:"#74915c", field:"#7fa055", ground:"#6d8f52", tint:"rgba(255,190,60,.05)"},
+  {name:"Autumn", lab:"Autumn &middot; Weeks 7 to 9", sky:["#7d9fc4","#f0dfba"], hill:"#7d7f52", field:"#b08d4a", ground:"#8a7a48", tint:"rgba(214,120,40,.10)"},
+  {name:"Winter", lab:"Winter &middot; Weeks 10 to 12", sky:["#5f7ea6","#dfe9f2"], hill:"#6d7f88", field:"#c8cfd2", ground:"#aebbc0", tint:"rgba(190,215,240,.16)"}
+];
+function buildScene(){
+  var s = "";
+  s += '<defs>'
+    + '<linearGradient id="skyG" x1="0" y1="0" x2="0" y2="1"><stop id="skyS1" offset="0" stop-color="#8ec9e8"/><stop id="skyS2" offset="1" stop-color="#dff0e2"/></linearGradient>'
+    + '<linearGradient id="rivG" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7fc4de"/><stop offset="1" stop-color="#4d94b8"/></linearGradient>'
+    + '<radialGradient id="sunG"><stop offset="0" stop-color="#fff3c4"/><stop offset="1" stop-color="#f5c86a" stop-opacity="0"/></radialGradient>'
+    + '</defs>';
+  s += '<rect x="0" y="0" width="800" height="470" fill="url(#skyG)"/>';
+  s += '<circle cx="690" cy="62" r="58" fill="url(#sunG)"/><circle cx="690" cy="62" r="24" fill="#f7d774"/>';
+  s += '<path id="hillBack" d="M0 268 Q140 210 300 244 Q470 278 620 236 Q730 208 800 240 L800 320 L0 320 Z" fill="#7d9264" opacity=".8"/>';
+  s += '<path id="ground" d="M0 300 Q200 282 420 296 Q640 310 800 292 L800 470 L0 470 Z" fill="#77975a"/>';
+  /* river */
+  s += '<path d="M706 296 Q742 350 736 400 Q732 440 748 470 L800 470 L800 292 Q752 288 706 296 Z" fill="url(#rivG)" opacity=".9"/>';
+  s += '<path class="riverflow" d="M742 306 Q766 356 758 404 Q754 438 766 466" fill="none" stroke="#dff4ff" stroke-width="2.4" opacity=".65"/>';
+  /* fields */
+  var plots = [[28,368,150,360,168,428,36,438],[176,364,300,358,312,424,190,430]];
+  plots.forEach(function(p,i){
+    s += '<polygon id="field'+i+'" points="'+p[0]+','+p[1]+' '+p[2]+','+p[3]+' '+p[4]+','+p[5]+' '+p[6]+','+p[7]+'" fill="#8aa864" stroke="rgba(40,60,30,.35)"/>';
+    for(var rI=1;rI<=3;rI++){ var t=rI/4; s += '<line x1="'+(p[0]+(p[6]-p[0])*t)+'" y1="'+(p[1]+(p[7]-p[1])*t)+'" x2="'+(p[2]+(p[4]-p[2])*t)+'" y2="'+(p[3]+(p[5]-p[3])*t)+'" stroke="rgba(46,70,32,.4)" stroke-width="2"/>'; }
+  });
+  /* paths */
+  s += '<path d="M120 470 Q300 400 430 372 Q560 348 660 300" fill="none" stroke="#c9b083" stroke-width="13" opacity=".55" stroke-linecap="round"/>';
+  /* trees */
+  function tree(x,y,sc){ return '<g transform="translate('+x+','+y+') scale('+sc+')"><rect x="-3" y="0" width="6" height="16" fill="#6b4a2e"/><circle cx="0" cy="-8" r="15" fill="#4e7040"/><circle cx="-11" cy="-2" r="10" fill="#5d8149"/><circle cx="11" cy="-2" r="10" fill="#446636"/></g>'; }
+  s += tree(52,300,1)+tree(96,282,.8)+tree(610,180,1.05)+tree(648,150,.75)+tree(352,196,.85)+tree(742,180,.9)+tree(560,300,.7);
+  /* houses */
+  function house(x,y,w,h,wall,roof){ return '<g><rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+wall+'" stroke="rgba(20,20,20,.25)"/><polygon points="'+(x-5)+','+y+' '+(x+w+5)+','+y+' '+(x+w/2)+','+(y-20)+'" fill="'+roof+'"/><rect x="'+(x+w/2-6)+'" y="'+(y+h-18)+'" width="12" height="18" fill="#5a4230"/><rect x="'+(x+7)+'" y="'+(y+8)+'" width="11" height="11" fill="#f7d774" opacity=".85"/></g>'; }
+  s += house(70,330,52,36,"#d9c49a","#8a4f35");            /* tomas house */
+  s += house(586,318,54,38,"#cdb894","#74513a");
+  s += house(238,352,50,34,"#d3bd92","#7c4a30");
+  /* school on the hill */
+  s += '<g><rect x="262" y="128" width="78" height="46" fill="#e3d3ac" stroke="rgba(20,20,20,.25)"/><polygon points="256,128 346,128 301,104" fill="#96502f"/><rect x="293" y="148" width="16" height="26" fill="#5a4230"/><rect x="272" y="138" width="14" height="12" fill="#bfe0ee"/><rect x="316" y="138" width="14" height="12" fill="#bfe0ee"/><rect x="301" y="92" width="3" height="14" fill="#4a3826"/><polygon class="flag" points="304,92 322,97 304,102" fill="#e0684b"/></g>';
+  /* clinic */
+  s += '<g><rect x="138" y="238" width="86" height="52" fill="#eef0e8" stroke="rgba(20,20,20,.25)"/><polygon points="132,238 230,238 181,212" fill="#7a4a34"/><rect x="172" y="262" width="16" height="28" fill="#5a4230"/><rect x="150" y="248" width="15" height="13" fill="#bfe0ee"/><rect x="198" y="248" width="15" height="13" fill="#bfe0ee"/><rect x="176" y="218" width="10" height="26" fill="#d84f4f"/><rect x="168" y="226" width="26" height="10" fill="#d84f4f"/></g>';
+  /* bakery with smoke */
+  s += '<g><rect x="330" y="256" width="72" height="46" fill="#e0c193" stroke="rgba(20,20,20,.25)"/><polygon points="324,256 408,256 369,232" fill="#8a5636"/><rect x="382" y="218" width="11" height="22" fill="#9a8d7c"/><circle class="smoke" cx="387" cy="210" r="6"/><circle class="smoke" cx="387" cy="210" r="8" style="animation-delay:1.2s"/><circle class="smoke" cx="387" cy="210" r="5" style="animation-delay:2.4s"/><rect x="356" y="276" width="18" height="26" fill="#5a4230"/><rect x="340" y="264" width="16" height="12" fill="#f7d774" opacity=".9"/></g>';
+  /* storehouse */
+  s += '<g><rect x="486" y="228" width="76" height="50" fill="#c9a97e" stroke="rgba(20,20,20,.25)"/><polygon points="480,228 568,228 527,204" fill="#6e4a30"/><rect x="514" y="250" width="22" height="28" fill="#4e3620"/><line x1="492" y1="240" x2="556" y2="240" stroke="rgba(60,40,20,.4)" stroke-width="3"/></g>';
+  /* mill by the river */
+  s += '<g><rect x="622" y="238" width="62" height="56" fill="#d8c096" stroke="rgba(20,20,20,.25)"/><polygon points="616,238 690,238 653,212" fill="#7c4a30"/><g class="wheel"><circle cx="653" cy="272" r="21" fill="none" stroke="#5a4230" stroke-width="5"/><line x1="632" y1="272" x2="674" y2="272" stroke="#5a4230" stroke-width="4"/><line x1="653" y1="251" x2="653" y2="293" stroke="#5a4230" stroke-width="4"/><line x1="638" y1="257" x2="668" y2="287" stroke="#5a4230" stroke-width="3"/><line x1="668" y1="257" x2="638" y2="287" stroke="#5a4230" stroke-width="3"/></g></g>';
+  /* well */
+  s += '<g><ellipse cx="450" cy="368" rx="17" ry="6" fill="#8d99a0"/><rect x="436" y="344" width="4" height="24" fill="#5a4230"/><rect x="460" y="344" width="4" height="24" fill="#5a4230"/><polygon points="430,346 470,346 450,332" fill="#7c4a30"/><line x1="450" y1="346" x2="450" y2="358" stroke="#3c2c1c" stroke-width="2"/><rect x="444" y="358" width="12" height="9" fill="#7a6a52"/></g>';
+  /* season tint + snow + dynamic layers */
+  s += '<rect id="tintRect" x="0" y="0" width="800" height="470" fill="rgba(0,0,0,0)" pointer-events="none"/>';
+  var snow = '<g id="snowG" style="display:none">';
+  for(var sn=0; sn<16; sn++){ snow += '<circle class="snow" cx="'+(30+sn*48)+'" cy="'+(10+(sn%4)*22)+'" r="'+(2+(sn%3))+'" style="animation-delay:'+(sn*0.37)+'s;animation-duration:'+(4+(sn%3))+'s"/>'; }
+  snow += '</g>';
+  s += snow;
+  s += '<g id="links"></g><g id="pulses"></g><g id="tokens"></g>';
+  document.getElementById("scene").innerHTML = s;
+}
+function setPhase(week){
+  var ph = PHASES[Math.min(3, Math.floor((week-1)/3))];
+  document.getElementById("skyS1").setAttribute("stop-color", ph.sky[0]);
+  document.getElementById("skyS2").setAttribute("stop-color", ph.sky[1]);
+  document.getElementById("hillBack").setAttribute("fill", ph.hill);
+  document.getElementById("ground").setAttribute("fill", ph.ground);
+  document.getElementById("field0").setAttribute("fill", ph.field);
+  document.getElementById("field1").setAttribute("fill", ph.field);
+  document.getElementById("tintRect").setAttribute("fill", ph.tint);
+  document.getElementById("snowG").style.display = (ph.name==="Winter") ? "" : "none";
+  document.getElementById("phaseLab").innerHTML = ph.lab;
+  return ph;
+}
+
+/* ================= DATA ================= */
+var STATDEF = [
+  {k:"productivity", n:"Productivity", hint:"work done"},
+  {k:"trust", n:"Trust", hint:"in neighbors, TTI"},
+  {k:"cohesion", n:"Cohesion", hint:"across groups"},
+  {k:"rivalry", n:"Rivalry", hint:"lower is better", bad:true},
+  {k:"scarcity", n:"Scarcity", hint:"lower is better", bad:true},
+  {k:"autonomy", n:"Autonomy", hint:"own norms"}
+];
+/* hair: 0 cap, 1 bun, 2 short, 3 beard, 4 long */
+var RESIDENTS = [
+  {id:"mara",  name:"Mara Voss",     role:"Repair Lead",   trait:"Fixes first, talks later",       asp:"A clinic roof that holds",     admires:"jonah", rival:"felix", x:196, y:196, stance:"Cooperative", vis:66, skin:"#c98a5e", hair:0, hairC:"#2e2018", shirt:"#a34d24"},
+  {id:"jonah", name:"Jonah Reyes",   role:"Clinic Medic",  trait:"Calm when others are not",       asp:"Two trained apprentices",      admires:"priya", rival:null,    x:128, y:300, stance:"Cooperative", vis:60, skin:"#8a5a34", hair:2, hairC:"#16120e", shirt:"#3f6d5a"},
+  {id:"priya", name:"Priya Nair",    role:"Teacher",       trait:"Turns arguments into lists",     asp:"A school room open all week",  admires:"mara",  rival:null,    x:302, y:88,  stance:"Cooperative", vis:60, skin:"#a06a3c", hair:1, hairC:"#100d0a", shirt:"#5a5f9e"},
+  {id:"tomas", name:"Tomas Hale",    role:"Farmer",        trait:"Guards the seed store like kin", asp:"A full granary by winter",     admires:"mara",  rival:"abel",  x:96,  y:398, stance:"Self-reliant", vis:34, skin:"#d9a878", hair:3, hairC:"#6e5636", shirt:"#6d8f52"},
+  {id:"ines",  name:"Ines Duarte",   role:"Baker",         trait:"Feeds whoever shows up",         asp:"A second oven",                admires:"priya", rival:null,    x:368, y:222, stance:"Cooperative", vis:38, skin:"#b57a48", hair:4, hairC:"#3a2415", shirt:"#c9862b"},
+  {id:"felix", name:"Felix Grant",   role:"Miller",        trait:"Counts everything twice",        asp:"Millstones that outlast him",  admires:"jonah", rival:"mara",  x:652, y:196, stance:"Self-reliant", vis:30, skin:"#e0b184", hair:2, hairC:"#8a8a86", shirt:"#707a84"},
+  {id:"rosa",  name:"Rosa Lindqvist",role:"Weaver",        trait:"Mends nets, coats, and feuds",   asp:"Winter cloth for every house", admires:"ines",  rival:null,    x:612, y:296, stance:"Cooperative", vis:26, skin:"#e8bd93", hair:1, hairC:"#c8b294", shirt:"#96688a"},
+  {id:"abel",  name:"Abel Osei",     role:"Water Keeper",  trait:"Walks the pipe line daily",      asp:"A second well",                admires:"mara",  rival:"tomas", x:452, y:322, stance:"Self-reliant", vis:32, skin:"#6e4526", hair:2, hairC:"#0e0c0a", shirt:"#3e6d8e"},
+  {id:"nadia", name:"Nadia Farrell", role:"Storekeeper",   trait:"Keeps the ration book fair",     asp:"A ledger nobody questions",    admires:"priya", rival:null,    x:524, y:194, stance:"Self-reliant", vis:28, skin:"#caa06a", hair:4, hairC:"#7a4a22", shirt:"#8e3f3a"},
+  {id:"bram",  name:"Bram Kessler",  role:"Young Runner",  trait:"Fast feet, wants to be noticed", asp:"A place on the repair crew",   admires:"mara",  rival:null,    x:404, y:330, stance:"Self-reliant", vis:20, skin:"#dbAC7d", hair:2, hairC:"#a8783c", shirt:"#4a7a9e"}
+];
+var CHARTERS = [
+  {id:"openbooks", name:"Open Books", desc:"Everything published, everything argued in daylight. Transparency choices land harder. Concealment costs more when it surfaces.",
+   mods:{transparent:{trust:2}, conceal:{trust:-2}}},
+  {id:"hearth", name:"Shared Hearth", desc:"The village that works together eats together. Shared projects bind tighter. Quotas and orders chafe more.",
+   mods:{shared:{cohesion:2}, order:{trust:-2}}},
+  {id:"quietorder", name:"Quiet Order", desc:"Decisions from the posting office, calmly enforced. Orders produce more. Every order also quietly spends the village's say in things.",
+   mods:{order:{productivity:2, autonomy:-1}}}
+];
+var FACTIONS = [
+  {id:"feast", name:"Feast Day", desc:"Open the stores for one long table on the green.", fx:{scarcity:-4, cohesion:4, productivity:-2}},
+  {id:"audit", name:"Open Audit", desc:"Read the TTI ledger aloud, every line, questions after.", fx:{trust:5, rivalry:-2}},
+  {id:"stories", name:"Night of Stories", desc:"No work talk. The old people tell the village to itself.", fx:{autonomy:3, cohesion:2, trust:1}}
+];
+
+
+/* ================= EVENTS ================= */
+/* choice fields: t title, d detail, tag (charter keyword), fx, vis, stance, sg (scapegoat id),
+   why[], delay {in, text, fx}, gamble {stat, dc, invert, ok{fx,text}, bad{fx,text}} */
+var EVENT_OPEN = { title:"The Clinic Roof Leaks",
+  report:"Rain came through the clinic roof in the night. Buckets under the drips, medicine moved twice. Mara can fix it, but the repair crew is two hands short and everyone is watching who gets asked, and who gets thanked.",
+  choices:[
+   {t:"Fund the repair as a shared project, and thank Mara in public", tag:"shared",
+    d:"Materials from stores, every household sends one pair of hands, Mara leads.",
+    fx:{productivity:6, cohesion:5, trust:3, scarcity:-2}, vis:{mara:14}, stance:{mara:"Cooperative"},
+    why:["Mara becomes more visible as a model, doing the work where everyone can see it."]},
+   {t:"Set a strict repair deadline with daily quotas", tag:"order",
+    d:"The roof gets fixed on schedule or names get read out at the noticeboard.",
+    fx:{productivity:8, autonomy:-5, trust:-3}, stance:{mara:"Strained"},
+    why:["Quotas get roofs fixed. They also teach people that work here is done under watch."],
+    delay:{in:1, text:"The quota habit lingers after the roof is done. People wait to be told.", fx:{autonomy:-3}}},
+   {t:"Quietly pay two outsiders from the reserve fund", tag:"quiet",
+    d:"Fast and clean, but the village notices money moved without a word.",
+    fx:{productivity:5, scarcity:3, trust:-4},
+    gamble:{stat:"trust", dc:45, ok:{fx:{trust:3}, text:"Trust held. People assumed the reserve was used exactly for this."},
+            bad:{fx:{trust:-4, cohesion:-3}, text:"Trust was too thin. The quiet payment reads as favoritism, and the story grows in the telling."}}},
+   {t:"Blame Bram for the unfinished repairs from last month", tag:"blame",
+    d:"He was on the crew. A name for the failure would calm the muttering fast.",
+    fx:{rivalry:-4, trust:-3}, sg:"bram",
+    why:["One name absorbs the anger. The roof still leaks, but the argument stops, for now."],
+    delay:{in:2, text:"Bram stops volunteering for crew work. Nobody blames him out loud anymore. They just stopped asking him.", fx:{productivity:-4, cohesion:-3}}}
+  ]};
+
+var EVENT_POOL = [
+{ title:"The Late Rains",
+  report:"The rains are three weeks late and the lower fields are behind. Tomas has a planting plan and a guarded look. If the village plants together it plants fast. If it plants by household, the strong fields finish first.",
+  choices:[
+   {t:"Plant in shared crews, field by field, shares posted", tag:"shared",
+    d:"Slow to organize, fast once moving. Everyone sees who worked and who ate.",
+    fx:{productivity:5, cohesion:6, scarcity:-3},
+    gamble:{stat:"cohesion", dc:45, ok:{fx:{productivity:3}, text:"Cohesion carried it. Crews from different groups actually mixed, and finished ahead of the plan."},
+            bad:{fx:{cohesion:-4, rivalry:3}, text:"Cohesion was too thin. Two crews argued over the order of fields and one walked off at midday."}}},
+   {t:"Back Tomas publicly and follow his plan exactly", tag:"recognize",
+    d:"His seed ledger is the best in the village. Give him the floor and the authority.",
+    fx:{productivity:6, trust:2}, vis:{tomas:16},
+    why:["Public backing raises Tomas's standing. People start watching how he works, not just what he grows."],
+    delay:{in:1, text:"Households that followed Tomas's spacing get visibly better stands. His plan becomes the village default.", fx:{productivity:3}}},
+   {t:"Impose a planting target and inspect every field", tag:"order",
+    d:"Numbers on the board, daily. Nobody plants late on your watch.",
+    fx:{productivity:7, autonomy:-6, trust:-2},
+    why:["Targets move hands. They also move decisions out of the village and into your notebook."]},
+   {t:"Conceal the shortfall forecast and project confidence", tag:"conceal",
+    d:"The numbers say the harvest may fall short. Panic helps no one, you tell yourself.",
+    fx:{trust:2, rivalry:-2},
+    why:["Calm weeks, borrowed against the truth."],
+    delay:{in:2, text:"The shortfall arrives and everyone does the arithmetic on when you knew. Concealment is remembered longer than the shortage.", fx:{trust:-9, cohesion:-4}}}
+  ]},
+{ title:"The Ration Book Dispute",
+  report:"A queue argument at the storehouse: two households say Nadia's ration book favors her cousins. Nadia says the book is open to anyone. It is, technically. Nobody has ever actually read it.",
+  choices:[
+   {t:"Publish the full ledger and hold an open reading", tag:"transparent",
+    d:"Every line read out on the green, every question answered, however long it takes.",
+    fx:{trust:7, cohesion:3, productivity:-2},
+    gamble:{stat:"trust", dc:40, ok:{fx:{trust:3}, text:"It worked because some trust remained to build on. The book was fair, and now it is seen to be fair."},
+            bad:{fx:{rivalry:4}, text:"Old suspicions did not die under the reading. Every line became a new argument about the past."}},
+    why:["Transparency is a behavior too. Nadia's open book becomes the standard other keepers get measured against."]},
+   {t:"Back Nadia's judgment and close the matter", tag:"order",
+    d:"She is fair, you say so, and the queue moves on. Her authority, your word behind it.",
+    fx:{productivity:3, trust:-2, autonomy:-3},
+    why:["Closing a question by authority settles the queue and unsettles everyone who had a question."]},
+   {t:"Give extra rations to the loudest households this once", tag:"quiet",
+    d:"Peace at the storehouse door, bought by the sack.",
+    fx:{rivalry:6, scarcity:2, trust:-4},
+    why:["The village learns the going rate for volume. Next week's queue will be louder."],
+    delay:{in:1, text:"Three more households arrive with grievances, each a little louder than the last.", fx:{rivalry:3, productivity:-2}}},
+   {t:"Blame Nadia for running a confusing book", tag:"blame",
+    d:"A new keeper, a clean start, and the argument ends today.",
+    fx:{rivalry:-3, cohesion:-3}, sg:"nadia",
+    why:["The book was fair. That fact does not travel as fast as the blame did."],
+    delay:{in:2, text:"The new keeper keeps two books: the real one, and the one that cannot get her blamed. Rations slow down.", fx:{productivity:-5, trust:-4}}}
+  ]},
+{ title:"Ines and the Soup Rota",
+  report:"Ines has started a free soup rota for households with sickness or new babies. No one asked her to. Half the village has quietly joined in, and the other half is quietly asking why nobody asked them.",
+  choices:[
+   {t:"Recognize Ines in public and put stores behind the rota", tag:"recognize",
+    d:"Name what she built, fund it lightly, and let her run it her way.",
+    fx:{cohesion:6, trust:4, scarcity:-3}, vis:{ines:24},
+    why:["Recognition raises Ines's standing fast. Her habit, feed first and ask later, starts getting copied at kitchen doors."],
+    delay:{in:1, text:"Two more rotas appear, one for repairs and one for night watches. Nobody ordered them.", fx:{cohesion:3, productivity:2}}},
+   {t:"Make the rota an official duty with assigned shifts", tag:"order",
+    d:"Fair, scheduled, and no longer voluntary. Everyone serves, like it or not.",
+    fx:{productivity:4, cohesion:-3, autonomy:-5},
+    why:["Turning a gift into a duty keeps the soup and loses the giving. People serve their shift and stop seeing each other."]},
+   {t:"Quietly supply the rota and stay out of its way", tag:"quiet",
+    d:"Flour and salt appear at the bakery. No announcement, no credit claimed.",
+    fx:{cohesion:3, scarcity:-2, autonomy:3},
+    why:["Help without a spotlight. The rota stays theirs, which is exactly why it keeps working."]},
+   {t:"Charge the rota against the bakery's flour allowance", tag:"order",
+    d:"Rules are rules. Unofficial projects do not get unofficial flour.",
+    fx:{rivalry:3, trust:-5, scarcity:1}, stance:{priya:"Strained"},
+    why:["The rota shrinks to two households. The lesson copied this week is: do not start things."]}
+  ]},
+{ title:"The Cracked Millstone",
+  report:"Felix found a crack across the main millstone. Ground slow, it may last the season. Ground fast, it may split, and a new stone costs more than the reserve holds. Felix is taking it personally, which is to say, correctly.",
+  choices:[
+   {t:"Open a shared mill fund, every household a small share", tag:"shared",
+    d:"Posted on the board, coin by coin. The mill belongs to everyone who grinds.",
+    fx:{cohesion:5, scarcity:-2, productivity:-2},
+    gamble:{stat:"cohesion", dc:50, ok:{fx:{scarcity:-3}, text:"Shares came in faster than asked. The fund closes the season with a small surplus."},
+            bad:{fx:{rivalry:3}, text:"Shares came in unevenly and everyone knows whose were late. The fund works and the resentment keeps its own ledger."}}},
+   {t:"Recognize Felix's careful method as the village standard", tag:"recognize",
+    d:"Public thanks, and his grinding schedule becomes the rule for all.",
+    fx:{productivity:3, trust:3}, vis:{felix:22},
+    why:["Recognition makes carefulness visible. Younger hands copy Felix's checking habit, twice around the stone before the grain goes in."],
+    delay:{in:2, text:"The stone holds the whole season. Careful, it turns out, was a technology.", fx:{productivity:4, scarcity:-2}}},
+   {t:"Order full-speed grinding to build a flour reserve", tag:"order",
+    d:"Flour in store is safety. The stone is a stone.",
+    fx:{productivity:6, scarcity:-3},
+    gamble:{stat:"scarcity", dc:55, invert:true, ok:{fx:{productivity:2}, text:"The gamble landed. The stone held and the reserve is real."},
+            bad:{fx:{productivity:-9, scarcity:6}, text:"On a wet Tuesday the stone split down the crack. Hand grinding for a month, and everyone remembers whose order it was."}}},
+   {t:"Blame Felix for neglecting the stone", tag:"blame",
+    d:"Someone must answer for a crack this size.",
+    fx:{rivalry:-3, trust:-4}, sg:"felix",
+    why:["Felix reported the crack himself, early, which is the only reason there is a choice at all. Remember that when he stops reporting things."],
+    delay:{in:1, text:"A small fault at the mill goes unreported for nine days. Nobody wants to be the next name on the board.", fx:{productivity:-4}}}
+  ]},
+{ title:"The Banner",
+  report:"The two repair crews have started competing for a 'best crew' banner someone hung at the green. Output is up. So are the accusations: hoarded tools, cherry-picked jobs, a ladder that walked. Mara is enjoying it more than she admits.",
+  choices:[
+   {t:"Replace the banner with one shared goal: every roof sound by frost", tag:"shared",
+    d:"The contest ends. The work, reframed, does not.",
+    fx:{rivalry:-6, cohesion:5, productivity:1}, stance:{mara:"Cooperative"},
+    why:["A shared finish line points imitation at the work instead of at each other. Mara models it first, loudly, which helps."]},
+   {t:"Keep the contest, but judge it on helping the other crew", tag:"recognize",
+    d:"Points for lent tools, taught skills, and finished assists. Same banner, new desire.",
+    fx:{rivalry:-3, cohesion:4, productivity:3},
+    gamble:{stat:"cohesion", dc:45, ok:{fx:{rivalry:-2}, text:"The crews gamed it beautifully: real help, competitively delivered. You will take it."},
+            bad:{fx:{rivalry:3}, text:"The crews gamed it literally: staged assists, counted loudly. The banner survives, the spirit files a complaint."}}},
+   {t:"Let the contest run and say nothing", tag:"quiet",
+    d:"It is only a banner. Villages have survived worse than pride.",
+    fx:{productivity:4, rivalry:5},
+    why:["Silence is also a signal. What leadership ignores, the village treats as endorsed."],
+    delay:{in:1, text:"A job done badly in a hurry, to beat the other crew's time, has to be done twice.", fx:{productivity:-4, rivalry:2}}},
+   {t:"Award the banner early to Mara's crew to end the argument", tag:"order",
+    d:"Decisive. Final. Nobody will argue with a settled result, surely.",
+    fx:{rivalry:4, trust:-4, autonomy:-2}, vis:{mara:10},
+    why:["Mara gets more visible and more resented in the same hour. Being the favorite is its own kind of target."]}
+  ]},
+{ title:"Sickness in Two Houses",
+  report:"A fever is moving through two households on the lane. Jonah knows what to do and cannot be in both houses, or awake forever. People are scared, and scared people look for either a leader or a cause.",
+  choices:[
+   {t:"Have Jonah train two apprentices in public, on the green", tag:"recognize",
+    d:"Skills taught in the open, where fear can watch competence happen.",
+    fx:{productivity:3, trust:5, cohesion:4}, vis:{jonah:16}, stance:{jonah:"Cooperative"},
+    why:["Jonah's standing rises, and what spreads is a skill, not a rumor."],
+    delay:{in:2, text:"The apprentices handle a night fever alone, correctly. The village's idea of itself shifts a little.", fx:{trust:3, productivity:2}}},
+   {t:"Order a strict quarantine, enforced at the lane", tag:"order",
+    d:"No visits, food left at the boundary stone, names posted for compliance.",
+    fx:{productivity:-2, autonomy:-6, trust:-3, scarcity:1}, stance:{jonah:"Strained"},
+    why:["The fever fades, and so does some of the lane's sense that their neighbors are neighbors. Orders teach too."]},
+   {t:"Conceal the sickness and treat it quietly", tag:"conceal",
+    d:"Two sick houses is not an epidemic. Why hand fear a megaphone.",
+    fx:{trust:1},
+    gamble:{stat:"trust", dc:55, ok:{fx:{cohesion:2}, text:"It stayed small, and stayed quiet. This time, concealment and discretion look the same from outside."},
+            bad:{fx:{trust:-8, rivalry:3}, text:"A third house sickened and the lane learned it from a child, not from you. The cover story is now the story."}}},
+   {t:"Blame Abel's water for the fever", tag:"blame",
+    d:"The pipe line is his charge. A cause with a name is a comfort of a kind.",
+    fx:{rivalry:-4, cohesion:-4}, sg:"abel",
+    why:["The water tests clean, later, in private. The blame was public. Guess which one the village keeps."],
+    delay:{in:1, text:"Abel shortens his pipe walks. Why inspect carefully for people who have already decided.", fx:{scarcity:3, productivity:-2}}}
+  ]},
+{ title:"The Trader at the Gate",
+  report:"A trader offers cloth, tools, and lamp oil for a quarter of the seed reserve, prices fair by any market's measure. The seed reserve is next year's food. The cloth is this winter's warmth. Both facts are true at the same time.",
+  choices:[
+   {t:"Put it to a village vote, with the numbers read aloud first", tag:"vote",
+    d:"Your job: honest figures. Their job: the decision. Whatever it costs you in control.",
+    fx:{autonomy:7, trust:4, productivity:-2},
+    gamble:{stat:"autonomy", dc:50, ok:{fx:{cohesion:3}, text:"The village voted to trade a smaller share and keep the rest. Deciding together turned out to be a skill they had kept."},
+            bad:{fx:{rivalry:4}, text:"The vote split the village down an old line, and the losing side counts the cloth bales in other people's windows."}}},
+   {t:"Refuse the trade and tighten seed discipline", tag:"order",
+    d:"Seed is sacred. Post the rule and the reason, and hold it.",
+    fx:{scarcity:-2, productivity:2, autonomy:-3, trust:-1},
+    why:["A clear no, explained once, is bearable. The cold households will test that theory in January."]},
+   {t:"Trade the quarter and publish every term", tag:"transparent",
+    d:"The deal, the prices, and the remaining reserve, all on the board.",
+    fx:{scarcity:-4, trust:3},
+    why:["Warmth now, seed risk shared openly later. Publishing the terms makes the risk a village fact, not a TTI secret."],
+    delay:{in:2, text:"Spring planting runs lean but sufficient, because everyone knew the number all winter and planted like it.", fx:{productivity:2}}},
+   {t:"Let Tomas decide alone, since seed is his charge", tag:"order",
+    d:"Fast and expert. Also: whatever he chooses, he chooses in front of everyone.",
+    fx:{productivity:2, autonomy:-4, rivalry:3}, vis:{tomas:12},
+    why:["Handing one man a village-sized decision raises his standing and his target profile in the same act. Half the village copies his caution. The other half resents it."]}
+  ]},
+{ title:"Seats in the School Room",
+  report:"Priya can reopen the school room with seats for half the children. Every household has a reason its child should be first. Priya has a list, a headache, and a request: do not make her the wall everyone pushes against.",
+  choices:[
+   {t:"Run open classes in shifts, designed by Priya, announced as hers", tag:"recognize",
+    d:"Morning and afternoon cohorts, her method, her credit.",
+    fx:{productivity:2, cohesion:4, trust:3}, vis:{priya:14}, stance:{priya:"Cooperative"},
+    why:["Priya's standing rises, and the behavior spreading is how she runs the room: turns, lists, no favorites with surnames."],
+    delay:{in:1, text:"Parents start running the lane's disputes the way Priya runs the room. Turns. Lists. It is almost funny how well it works.", fx:{cohesion:3, rivalry:-2}}},
+   {t:"Allocate seats by public lottery", tag:"vote",
+    d:"Names from a hat on the green. Luck is the one allocator nobody can accuse of cousins.",
+    fx:{trust:4, autonomy:2, rivalry:-2},
+    gamble:{stat:"trust", dc:45, ok:{fx:{cohesion:2}, text:"The draw was watched by forty people and believed by nearly all of them. A fair procedure is a kind of public works."},
+            bad:{fx:{rivalry:3}, text:"The draw was fair and is widely believed to have been rigged. Belief, not fairness, is what a lottery actually produces."}}},
+   {t:"Give first seats to the children of essential workers", tag:"order",
+    d:"Clinics and mills before comfort. Defensible, and everyone will defend against it.",
+    fx:{productivity:4, rivalry:5, cohesion:-3},
+    why:["A hierarchy of need, announced by you, becomes a hierarchy of worth by Friday. Households start competing to be classified essential."]},
+   {t:"Blame Priya for not finding a bigger room", tag:"blame",
+    d:"The shortage lands on the teacher, where shortages are traditionally left.",
+    fx:{rivalry:-2, trust:-4}, sg:"priya", stance:{priya:"Strained"},
+    why:["Priya is a model. Blaming a model teaches the whole village the lesson at model volume."],
+    delay:{in:2, text:"Priya stops proposing things. The room runs, the ideas stop arriving, and the village is poorer in a way no ledger shows.", fx:{productivity:-4, cohesion:-3}}}
+  ]}
+];
+
+EVENT_POOL.push(
+{ title:"The Storm and the Pipe Line",
+  report:"A storm tore two joints out of the pipe line above the village. Water is rationed by the bucket until it is fixed. The fix needs a day of everyone, or a week of Abel, or money the reserve does not quite have.",
+  choices:[
+   {t:"Call an all-hands repair day and work the line together", tag:"shared",
+    d:"Every household on the hill, food pooled at noon, done by dark if it can be.",
+    fx:{productivity:6, cohesion:6, scarcity:-4}, stance:{abel:"Cooperative"}, vis:{abel:10},
+    gamble:{stat:"cohesion", dc:40, ok:{fx:{trust:3}, text:"They came. All of them, including the two households that feud over the fence line, who shared a wrench by noon."},
+            bad:{fx:{productivity:-3}, text:"Turnout was thin and the thinness was noticed. A shared day shows you the cohesion you actually have."}}},
+   {t:"Recognize Abel's daily walks and fund his repair plan", tag:"recognize",
+    d:"He knew the weak joints by name. Say so, and resource the man who walked the line.",
+    fx:{productivity:4, trust:3, scarcity:-2}, vis:{abel:22},
+    why:["Abel's quiet diligence becomes visible. Two younger residents start walking routes of their own. Diligence is contagious when it is seen."],
+    delay:{in:1, text:"A weak joint Abel flagged in his report gets fixed before it fails. Prevention is invisible, so you write it in the log yourself.", fx:{scarcity:-2}}},
+   {t:"Hire an outside crew against next season's stores", tag:"quiet",
+    d:"Professionals, a contract, and a debt denominated in grain.",
+    fx:{productivity:5, scarcity:4, autonomy:-2},
+    why:["The water returns and the village learns that big problems are solved by people from elsewhere. Some of them start believing it about everything."]},
+   {t:"Impose strict bucket rationing until Abel finishes alone", tag:"order",
+    d:"Order, queues, and a posted schedule. He will get there. Eventually.",
+    fx:{scarcity:2, autonomy:-5, rivalry:3, trust:-2},
+    why:["A week of queues teaches the village to watch each other's buckets. That watching does not stop when the water does."]}
+  ]},
+{ title:"The Rumor About TTI",
+  report:"The rumor, by the time it reaches you, is fully formed: TTI favors the upper lane, the stores prove it, and someone sensible is nodding along. The stores prove no such thing. Proving a negative, in a village, is a social task, not an arithmetic one.",
+  choices:[
+   {t:"Open the TTI books and hold a meeting that runs as long as it needs", tag:"transparent",
+    d:"Your own ledger this time, not Nadia's. Questions until there are none left.",
+    fx:{trust:8, cohesion:3, productivity:-3, autonomy:2},
+    gamble:{stat:"trust", dc:35, ok:{fx:{trust:3}, text:"Some trust remained, and it compounded. The meeting ends with the rumor's own carriers correcting it at the bakery."},
+            bad:{fx:{rivalry:3}, text:"The books were clean and the meeting still split. At very low trust, evidence is just another claim from the accused."}}},
+   {t:"Deny it flatly and change nothing", tag:"order",
+    d:"A statement on the board. No meeting, no books, no dignity lent to gossip.",
+    fx:{trust:-4, rivalry:3},
+    why:["A denial without a look inside is a claim, and claims are cheap this year. The rumor does not die. It gets quieter and older, which is worse."]},
+   {t:"Quietly send extra stores to the upper lane to calm them", tag:"conceal",
+    d:"It will settle the loudest voices. It will also, if noticed, prove the rumor.",
+    fx:{scarcity:2},
+    gamble:{stat:"trust", dc:60, ok:{fx:{rivalry:-2}, text:"Nobody noticed, or nobody said. The lane calms. You add a line to your private list of things that worked and should not have."},
+            bad:{fx:{trust:-9, cohesion:-4}, text:"It was noticed by Thursday. You have now done the thing, and been caught doing the thing, and the rumor is a memory now, which is stronger."}}},
+   {t:"Name Bram as the rumor's source and sanction him", tag:"blame",
+    d:"He does run every message in the village. It is even plausible.",
+    fx:{rivalry:-5, trust:-3}, sg:"bram",
+    why:["Plausible is doing a lot of work in that sentence. The village relaxes. Bram, who carried the fever medicine in week 7, eats alone."],
+    delay:{in:1, text:"Messages start arriving late, or not at all. A sanctioned runner is a slow village.", fx:{productivity:-4, cohesion:-2}}}
+  ]},
+{ title:"The Night Watch",
+  report:"Tools have started walking off from the green at night: a saw, two hammers, a coil of good rope. Nobody is going hungry enough to steal, which somehow makes it worse. The village wants a watch. The village also wants to sleep.",
+  choices:[
+   {t:"Draw the watch by lot, one household a night, captains rotating", tag:"vote",
+    d:"Everyone's burden, nobody's job. The lot is drawn on the green where all can see.",
+    fx:{autonomy:4, cohesion:4, productivity:-2},
+    why:["A burden drawn by lot is a burden nobody chose and nobody resents. The rota becomes a small nightly institution."],
+    delay:{in:1, text:"The thefts stop, and the watch stays, mostly as an excuse to walk and talk after dark.", fx:{cohesion:2}}},
+   {t:"Recognize Abel to organize the watch his way", tag:"recognize",
+    d:"He already walks the village at dawn. Give the night to a man with routes in his bones.",
+    fx:{productivity:3, trust:3, scarcity:-2}, vis:{abel:20},
+    why:["Abel's diligence, made official and visible, starts being treated as the standard for every rota in the village."]},
+   {t:"Run TTI patrols and log every movement after dark", tag:"order",
+    d:"Thorough, documented, and felt in every kitchen window it passes.",
+    fx:{productivity:2, autonomy:-6, trust:-3, rivalry:2},
+    why:["The tools stop walking. So does everyone else. A village that feels watched starts watching back."]},
+   {t:"Blame Bram, who is out at all hours anyway", tag:"blame",
+    d:"He runs messages at night. He has no alibi because running is the job.",
+    fx:{rivalry:-4, trust:-3}, sg:"bram",
+    why:["The runner with no alibi is the oldest story there is. The thefts, awkwardly, continue for two more nights."],
+    delay:{in:1, text:"A second saw walks off, and now the village has a thief and a punished innocent, which is worse arithmetic than before.", fx:{trust:-4, rivalry:2}}}
+  ]},
+{ title:"Rosa's Feast",
+  report:"Rosa proposes a feast: one long table on the green, every household contributing, stores making up the difference. The stores are not fat. Neither, lately, is the village's mood. She says a village that never eats together will not stay one. She is not wrong. She is also not holding the ledger.",
+  choices:[
+   {t:"Fund the feast from stores and let Rosa run it", tag:"recognize",
+    d:"Her table, her rules: everyone seated, nobody served last twice.",
+    fx:{scarcity:4, cohesion:7, trust:3}, vis:{rosa:24},
+    why:["Rosa's standing jumps. Her instinct, mend the social cloth first, gets watched and copied by every host in the village."],
+    delay:{in:1, text:"Two feuding households who sat together at the long table are seen sharing a fence repair. Nobody comments. Everybody notices.", fx:{rivalry:-3}}},
+   {t:"Hold the feast by household contribution only", tag:"shared",
+    d:"No stores touched. What arrives is what is eaten, and everyone sees who brought what.",
+    fx:{cohesion:5, scarcity:0},
+    gamble:{stat:"cohesion", dc:50, ok:{fx:{trust:2}, text:"The table filled. The poor households brought labor and were seated like kings, by Rosa's quiet arrangement."},
+            bad:{fx:{rivalry:3}, text:"The table showed the village's gaps in serving dishes. Two households ate lightly and left early, and remembered."}}},
+   {t:"Cancel the feast and bank the stores against winter", tag:"order",
+    d:"Prudent, defensible, and felt in the chest anyway.",
+    fx:{scarcity:-3, productivity:2, cohesion:-4, trust:-2},
+    why:["A cancelled feast is also a lesson, and it spreads: joy here requires permission and a surplus. People stop proposing things."]},
+   {t:"Blame Rosa for dreaming while stores run thin", tag:"blame",
+    d:"Someone has to defend the ledger, and she made herself the argument.",
+    fx:{rivalry:-3, cohesion:-3}, sg:"rosa",
+    why:["The weaver who mends the village's feuds gets filed as a problem. The mending, predictably, slows."],
+    delay:{in:2, text:"A torn sailcloth and two cold households wait on mending that used to take a day. Withdrawal is quiet and total.", fx:{scarcity:2, cohesion:-2}}}
+  ]},
+{ title:"The Broken Cart",
+  report:"The supply cart's axle split on the ridge road. Half the winter order, salt, lamp oil, tool steel, sits under a tarpaulin two hours away, and the weather is reading the same sky you are. The trader waits with the cart. His patience has a price curve.",
+  choices:[
+   {t:"Send shared hauling crews and carry it down in relays", tag:"shared",
+    d:"Every household lends backs. Two days of sore shoulders, village property again.",
+    fx:{productivity:5, cohesion:5, scarcity:-2},
+    gamble:{stat:"cohesion", dc:45, ok:{fx:{trust:2}, text:"The relays turned into a procession by the second day. People carried each other's loads in both senses, and said so."},
+            bad:{fx:{productivity:-3}, text:"Turnout thinned on day two and the loads that arrived were the light ones. The rest waited out a rain."}}},
+   {t:"Pay the trader's cousin and his mules to haul it", tag:"quiet",
+    d:"Expensive, immediate, and nobody's shoulders but his.",
+    fx:{productivity:4, scarcity:5, autonomy:-1},
+    why:["The goods arrive and the village files the method away: problems leave when money does. The reserve disagrees, silently."]},
+   {t:"Set a strict carrier rota with loads weighed and posted", tag:"order",
+    d:"Fair by the kilogram. Nobody carries light, nobody carries twice.",
+    fx:{productivity:4, autonomy:-4, rivalry:2, scarcity:-2},
+    why:["Weighed fairness works and feels like accounting. The village complies and keeps its own, unweighed, accounts."]},
+   {t:"Blame Felix: his axle pin should have been caught at inspection", tag:"blame",
+    d:"Pins are mill work, mill work is Felix, and the village wants a short story.",
+    fx:{rivalry:-3, trust:-3}, sg:"felix",
+    why:["The pin was within tolerance, which the report says on page two, in the part nobody reads aloud."],
+    delay:{in:1, text:"Inspections at the mill become theatrical: everything checked, nothing reported early. Early is where blame lives now.", fx:{productivity:-3}}}
+  ]},
+{ title:"The New Family",
+  report:"A family of four came down the ridge road at dusk: two adults, two children, everything they own in a handcart, from a valley that flooded twice this year. They are asking for one winter of shelter, and work for it. The village is watching you watch them.",
+  choices:[
+   {t:"House them in the school room and let Priya organize their welcome", tag:"recognize",
+    d:"Lessons shift to mornings. The children join the benches. The village gains four pairs of hands.",
+    fx:{cohesion:5, productivity:3, trust:2, scarcity:2}, vis:{priya:12},
+    why:["Priya's standing rises as the welcome's face. How she does it, names learned first, jobs matched to hands, gets copied at every door."],
+    delay:{in:2, text:"The father's ridge-road repair work, done without being asked twice, becomes the village's favorite story about itself.", fx:{cohesion:3, productivity:2}}},
+   {t:"Rotate their lodging household to household, a week each", tag:"shared",
+    d:"No single house carries it. Everyone hosts, everyone knows them by name by midwinter.",
+    fx:{cohesion:6, autonomy:2, scarcity:2},
+    why:["Guests who eat at every table stop being a question and become neighbors with an unusual first month."]},
+   {t:"Give them supplies and see them to the next valley", tag:"order",
+    d:"Generous by the sack. Final by the road. The village keeps its rooms and its arithmetic.",
+    fx:{scarcity:-2, trust:-4, cohesion:-3},
+    why:["The send-off was kind and is remembered as a door closing. The next strangers will be met by a village that has practiced this."]},
+   {t:"Blame Nadia for the word that reached the valley", tag:"blame",
+    d:"Someone told them Meme Village had room. Storekeepers talk to traders. It is even a theory.",
+    fx:{rivalry:-3, trust:-3}, sg:"nadia",
+    why:["The theory is nonsense and everyone half-knows it, which makes it perfect: it explains the discomfort and costs only Nadia."],
+    delay:{in:1, text:"Nadia stops passing news from traders altogether. The village's early warnings dry up with its welcome.", fx:{productivity:-3}}}
+  ]},
+{ title:"The Falling Well",
+  report:"Abel's morning measure says the well is dropping faster than the season explains. Not empty. Not close to fine. Every bucket from now on is a small decision, and the village can feel its own thirst becoming an argument.",
+  choices:[
+   {t:"Dig the second well as a shared project, Abel directing", tag:"shared",
+    d:"The work he has wanted for years, done by everyone, owned by everyone.",
+    fx:{productivity:4, cohesion:5, scarcity:-6}, vis:{abel:16}, stance:{abel:"Cooperative"},
+    gamble:{stat:"cohesion", dc:45, ok:{fx:{scarcity:-2}, text:"They struck good water on the fourth day, and the cheer was heard at the mill."},
+            bad:{fx:{productivity:-3}, text:"The first shaft came up dry and had to be re-sited. The water came, later and dearer than promised."}},
+    why:["A shared well is a monument to a method: problems get dug at together. Abel's standing climbs with every bucket of spoil."]},
+   {t:"Impose a strict bucket rota until the rains decide", tag:"order",
+    d:"Measured, posted, enforced. Thirst by schedule.",
+    fx:{scarcity:-3, autonomy:-5, rivalry:3, trust:-2},
+    why:["Queues at a well are never only about water. The village learns to count each other's buckets, and keeps counting."]},
+   {t:"Hire the drilling crew from the town, on credit", tag:"quiet",
+    d:"Machines, a contract, and a debt that outlives the thirst.",
+    fx:{scarcity:-5, productivity:3},
+    why:["The water is deep and immediate. So is the lesson: the village's hardest problems are solved by invoices now."],
+    delay:{in:2, text:"The first repayment comes due in grain, in the lean month, as agreed and as resented.", fx:{scarcity:3, rivalry:2}}},
+   {t:"Conceal the readings and quietly cut the clinic's reserve use", tag:"conceal",
+    d:"No panic, no queues, no announcement. Just less water where nobody counts it.",
+    fx:{scarcity:-2, trust:1},
+    gamble:{stat:"trust", dc:50, ok:{fx:{cohesion:1}, text:"The rains came before the questions did. This time, quiet management and luck are indistinguishable."},
+            bad:{fx:{trust:-8, cohesion:-3}, text:"Jonah counted. Medics count everything. The concealment, not the water, becomes the story of the month."}}}
+  ]},
+{ title:"The Ledger Error",
+  report:"Felix, checking his flour tally against the storehouse book, found it: six weeks of small over-issues to the upper lane. Nadia's hand, Nadia's error, and by every account an honest one, the kind tired people make in lamplight. Felix has brought it to you, not to the green. What happens next is a decision about what this village does with mistakes.",
+  choices:[
+   {t:"Publish the correction and make restitution from the reserve", tag:"transparent",
+    d:"The error, the fix, and the repayment, all on the board in Nadia's own hand.",
+    fx:{trust:6, scarcity:1, productivity:-2}, vis:{nadia:8},
+    why:["A keeper who publishes her own error becomes the standard. Nadia's standing, oddly, rises: the village trusts the book more than before it was wrong."],
+    delay:{in:1, text:"Two other small errors surface on their own, reported by their own keepers. Correction has become the local custom.", fx:{trust:3}}},
+   {t:"Let Nadia announce it herself, in her own words, at the green", tag:"recognize",
+    d:"You carry the ledger out. She does the talking. The village hears it from the person it happened in.",
+    fx:{trust:5, autonomy:3, cohesion:2}, vis:{nadia:16},
+    why:["Owning a mistake in public, unforced, is the most imitated behavior there is. Watch for it all month."]},
+   {t:"Correct it quietly and adjust the coming rations", tag:"conceal",
+    d:"The numbers heal. Nobody's name is involved. Nobody learns anything either.",
+    fx:{scarcity:1, productivity:2},
+    gamble:{stat:"trust", dc:55, ok:{fx:{trust:1}, text:"It stayed a numbers matter. Felix keeps his counsel, which is its own fact about the village now."},
+            bad:{fx:{trust:-6, rivalry:3}, text:"Felix mentioned it at the mill, because millers count and talk. A quiet fix, discovered, reads as a cover-up with two authors."}}},
+   {t:"Blame Felix for snooping through a book that was not his", tag:"blame",
+    d:"The error was real. So is the principle that books have keepers.",
+    fx:{rivalry:-2, trust:-4}, sg:"felix",
+    why:["The village learns the week's real lesson in one afternoon: errors are safer than the people who find them."],
+    delay:{in:2, text:"The next error, and there is always a next one, is found by nobody, because nobody looks anymore.", fx:{scarcity:3, productivity:-2}}}
+  ]}
+);
+
+var EVENT_FINALE = { title:"The Winter Count",
+  report:"Last week. The stores are counted, the roofs are checked, and the number is the number: enough, if nothing goes wrong, and winter always sends something. The village looks at you. For once, you have the strong sense they are also looking at each other.",
+  choices:[
+   {t:"Let the village set its own winter plan, and sign it as witness", tag:"vote",
+    d:"Their priorities, their tradeoffs, your name only as the one who watched them decide.",
+    fx:{autonomy:8, trust:4, cohesion:3},
+    gamble:{stat:"autonomy", dc:45, ok:{fx:{productivity:3}, text:"The plan they wrote is better than yours on two points you had not seen. A winter of their own design gets defended like a home."},
+            bad:{fx:{scarcity:3}, text:"Their plan is kinder than the arithmetic allows. You sign anyway, and order the extra watch shifts yourself, quietly."}}},
+   {t:"Set the winter plan at TTI, with every number published", tag:"transparent",
+    d:"Your plan, your reasoning, all of it on the board for anyone to argue with.",
+    fx:{productivity:5, trust:3, autonomy:-3, scarcity:-3},
+    why:["A plan people can inspect is not the same as a plan people own, and it is not nothing either."]},
+   {t:"Keep tight central control until spring", tag:"order",
+    d:"Rations, schedules, and permissions run through your office. Safety first, questions in writing.",
+    fx:{productivity:4, scarcity:-3, autonomy:-8, trust:-3}, stance:{mara:"Strained", jonah:"Strained", priya:"Strained"},
+    why:["The models strain under it in public. What the village copies this winter is compliance, and compliance needs a watcher, forever."]},
+   {t:"Find who is responsible for the gap and say so at the count", tag:"blame",
+    d:"The number is short of the plan. Plans do not fall short by themselves. People do.",
+    fx:{rivalry:-3, trust:-5}, sg:"tomas",
+    why:["The gap becomes a person by supper. Winter will be warmer in the houses that agree, and colder in Tomas's, in every sense that matters."],
+    delay:{in:1, text:"Tomas's seed ledger, the best in the village, is kept closed this winter. What is his is his.", fx:{productivity:-4, scarcity:2}}}
+  ]};
+
+var EVENT_HUNGER = { title:"CRISIS: The Thin Week", crisis:true,
+  report:"The stores have crossed the line everyone privately drew. Meals are visibly smaller in three houses and secretly smaller in the rest. This is no longer a management problem. What the village does this week is what it will remember about itself.",
+  choices:[
+   {t:"Open the seed reserve, partially, and say exactly what it costs spring", tag:"transparent",
+    d:"Eat next year's margin now, in daylight, with the number on the board.",
+    fx:{scarcity:-10, trust:3},
+    why:["An honest cut, announced, is bearable. Hunger plus secrets is the combination that breaks villages."],
+    delay:{in:2, text:"Spring planting runs tight because of the opened reserve. Everyone knew the price in advance, and pays it without a feud.", fx:{productivity:-3}}},
+   {t:"Run shared kitchens until the stores recover", tag:"shared",
+    d:"One pot per lane, everyone eating in sight of everyone. Nothing hides, nothing hoards.",
+    fx:{scarcity:-6, cohesion:6, productivity:-3},
+    why:["Shared hunger is a different substance from private hunger. The kitchens become the village's living rooms for a month."]},
+   {t:"Impose strict rationing by household size, enforced", tag:"order",
+    d:"Measured at the storehouse door. No exceptions with surnames.",
+    fx:{scarcity:-7, autonomy:-6, rivalry:3, trust:-2},
+    why:["The ration holds the line and teaches the queue to watch itself. People eat, and count each other eating."]},
+   {t:"Blame the hoarders, and name Tomas first", tag:"blame",
+    d:"His store is the fullest because his harvest was the best. In a thin week, that is an accusation.",
+    fx:{rivalry:-4, scarcity:-2}, sg:"tomas",
+    why:["The fullest store gets opened by shame, and the village eats. Next season, watch how many full stores get built where anyone can see them."],
+    delay:{in:1, text:"Tomas plants a smaller surplus plot this year. Prudence, like everything else here, is copied.", fx:{productivity:-4, scarcity:2}}}
+  ]};
+
+var EVENT_FEUD = { title:"CRISIS: The Feud", crisis:true,
+  report:"Tomas and Abel's old argument, water rights versus fence lines, came off the simmer in front of half the village. Tools were set down. Sides are being chosen at kitchen tables tonight, along lines that have nothing to do with water or fences. Unchecked, this becomes the village's organizing principle.",
+  choices:[
+   {t:"Have Priya mediate in public, both men heard in full", tag:"recognize",
+    d:"Her room, her rules: turns, lists, no leaving early. The village watches fairness happen.",
+    fx:{rivalry:-8, cohesion:5, trust:3}, vis:{priya:14},
+    gamble:{stat:"cohesion", dc:45, ok:{fx:{rivalry:-2}, text:"It held. The settlement was nobody's victory, which is precisely why both men could carry it home."},
+            bad:{fx:{rivalry:3}, text:"The mediation produced a settlement on paper and a rematch in every retelling. Some feuds feed on audiences."}},
+    why:["Mediation, modeled in public by a rising model, becomes a technology the village owns. Two later disputes go to Priya before they go anywhere else."]},
+   {t:"Send both crews to rebuild the disputed fence together", tag:"shared",
+    d:"The fence that started it, rebuilt by the two of them, with the whole village bringing lunch.",
+    fx:{rivalry:-6, cohesion:5, productivity:-2},
+    why:["Shared work is the oldest solvent there is. It is hard to keep a feud warm with the other man's hands on your fence post."]},
+   {t:"Separate the two by decree and assign their crews apart", tag:"order",
+    d:"No shared jobs, no shared water hours. Peace by partition.",
+    fx:{rivalry:-4, autonomy:-4, cohesion:-4, productivity:-2},
+    why:["Partition ends the shouting and builds the wall it claims to prevent. The village now has a geography of the feud."]},
+   {t:"Rule for Tomas and blame Abel for starting it", tag:"blame",
+    d:"One verdict, one villain, quiet by Friday. Probably.",
+    fx:{rivalry:-5, trust:-3}, sg:"abel",
+    why:["A feud settled by blaming one side teaches both sides the same lesson: win the referee, not the argument."],
+    delay:{in:2, text:"The feud goes quiet and underground, where it does its real work: two households no longer trade, lend, or marry plans.", fx:{cohesion:-4, productivity:-2}}}
+  ]};
+
+function makeChairEvent(r){
+  return { title:"CRISIS: The Empty Chair", crisis:true,
+    report: r.name + " has stopped showing up: not at work, not at the green, not at the long table. The duties are being quietly covered and the absence is being loudly not discussed. A village that loses a person by inches will lose the habit of noticing, and that habit is load-bearing.",
+    choices:[
+     {t:"Go to their door yourself, ask what they need, and carry it back", tag:"quiet",
+      d:"No announcement. One visitor, one conversation, help shaped to the actual problem.",
+      fx:{trust:5, cohesion:4, productivity:-2}, chairHeal:r.id,
+      why:["Being fetched back by name, rather than summoned by notice, is a story the whole village will hear by supper, in the good version."]},
+     {t:"Hold their place publicly: duties shared, chair kept, return unpenalized", tag:"shared",
+      d:"The village says it out loud: the place is theirs when they come back to it.",
+      fx:{cohesion:5, trust:3, productivity:-3}, chairHeal:r.id,
+      why:["A kept chair is a public argument that people here are not interchangeable. Other strained residents breathe a little easier."]},
+     {t:"Post a return-to-duty notice with a date", tag:"order",
+      d:"Clear, fair, and the same for everyone. The noticeboard does not do exceptions.",
+      fx:{productivity:2, autonomy:-4, trust:-2},
+      gamble:{stat:"trust", dc:50, ok:{fx:{productivity:2}, text:"They returned on the date, stiffly, and the stiffness faded. Sometimes a clear line is a handrail."},
+              bad:{fx:{cohesion:-3}, text:"The date passed. A public deadline makes a private struggle into a public verdict, and the verdict was absence."}}},
+     {t:"Blame them at the green for letting the village down", tag:"blame",
+      d:"Others are carrying their load. Saying so plainly might shame them back, or finish the job.",
+      fx:{rivalry:-3, trust:-4}, sg:r.id,
+      why:["Shame is a door that locks from the outside. Whatever return was still possible gets smaller today."]}
+    ]};
+}
+
+/* ================= ENGINE ================= */
+var S = null;
+var KW = {shared:["Shared project","shared"], order:["Order","order"], transparent:["Open books","transparent"],
+  conceal:["Conceal","conceal"], recognize:["Recognize","recognize"], vote:["Village decides","vote"],
+  quiet:["Quiet move","quiet"], blame:["Blame","blame"], gamble:["Gamble","gamble"]};
+var STANCE_COLOR = {"Cooperative":"#5cc9a7","Self-reliant":"#8fa3b8","Rivalrous":"#d84f4f","Strained":"#e8b93e","Withdrawn":"#9a86e0"};
+function clamp(v){ return Math.max(0, Math.min(100, Math.round(v))); }
+function jit(n){ return Math.round((Math.random()*2-1)*n); }
+function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+function res(id){ if(!S) return null; for(var i=0;i<S.residents.length;i++) if(S.residents[i].id===id) return S.residents[i]; return null; }
+function baseRes(id){ for(var i=0;i<RESIDENTS.length;i++) if(RESIDENTS[i].id===id) return RESIDENTS[i]; return null; }
+
+function freshState(charterId, diff){
+  var hard = diff==="hard";
+  var st = {
+    week:1, over:false, paused:false, started:true, charter:charterId, hard:hard,
+    stats:{ productivity:52+jit(3), trust:(hard?46:55)+jit(3), cohesion:50+jit(3), rivalry:32+jit(3), scarcity:(hard?50:42)+jit(3), autonomy:55+jit(3) },
+    lastDelta:{}, scapegoats:0, sgNames:[], selected:null, custom:0,
+    residents: RESIDENTS.map(function(r){ return Object.assign({}, r, {well:72+jit(6), model:(r.vis>=60), visibility:r.vis, lastNote:""}); }),
+    pending:[], log:[], lastWhy:[], lastCopies:[], copiesTotal:0, copiesCoop:0,
+    charges:3, actedThisWeek:false, committed:false,
+    deck: shuffle(EVENT_POOL.slice()), usedHunger:false, usedFeud:false, usedChair:false, ev:null, ending:null
+  };
+  return st;
+}
+function charter(){ for(var i=0;i<CHARTERS.length;i++) if(CHARTERS[i].id===S.charter) return CHARTERS[i]; return CHARTERS[0]; }
+
+function applyFx(fx, soften){
+  if(!fx) return 0;
+  var absorbed = 0;
+  for(var k in fx){
+    if(!S.stats.hasOwnProperty(k)) continue;
+    var d = fx[k];
+    if(soften && d<0 && (k==="trust"||k==="cohesion") && S.custom>0){ var ab = Math.min(S.custom, -d); d += ab; absorbed += ab; }
+    S.stats[k] = clamp(S.stats[k]+d);
+    S.lastDelta[k] = (S.lastDelta[k]||0) + fx[k];
+  }
+  return absorbed;
+}
+function logLine(week, text){ S.log.unshift({week:week, text:text}); }
+
+function setupWeek(){
+  if(S.week===1){ S.ev = EVENT_OPEN; return; }
+  if(S.week===12){ S.ev = EVENT_FINALE; return; }
+  if(!S.usedHunger && S.stats.scarcity>=65){ S.usedHunger = true; S.ev = EVENT_HUNGER; logLine(S.week, "<span class='bad'><b>Crisis week:</b> scarcity crossed 65. Hunger writes its own week.</span>"); return; }
+  if(!S.usedFeud && S.stats.rivalry>=65){ S.usedFeud = true; S.ev = EVENT_FEUD; logLine(S.week, "<span class='bad'><b>Crisis week:</b> rivalry crossed 65. The feud takes the schedule.</span>"); return; }
+  if(!S.usedChair){
+    var low = null;
+    S.residents.forEach(function(r){ if(r.well<=25 && (!low || r.well<low.well)) low = r; });
+    if(low){ S.usedChair = true; S.ev = makeChairEvent(low); logLine(S.week, "<span class='bad'><b>Crisis week:</b> " + low.name + "'s wellbeing collapsed. The village notices the empty chair.</span>"); return; }
+  }
+  S.ev = S.deck.length ? S.deck.pop() : EVENT_POOL[S.week % EVENT_POOL.length];
+}
+
+function imitationStep(why){
+  var copied = [];
+  S.residents.forEach(function(r){
+    if(r.stance==="Withdrawn") return;
+    var m = res(r.admires);
+    if(!m || m.stance===r.stance) return;
+    var p = 0.10 + (m.visibility/100)*0.42 + (S.stats.trust/100)*0.14 + (m.model?0.13:0);
+    if(m.stance==="Cooperative") p += 0.07;
+    if(m.stance==="Strained") p -= 0.05;
+    if(S.hard) p -= 0.03;
+    if(Math.random() < Math.max(0.04, Math.min(0.9, p))){
+      copied.push({who:r, model:m, from:r.stance});
+      r.stance = m.stance;
+      S.copiesTotal++;
+      if(m.stance==="Cooperative") S.copiesCoop++;
+      r.lastNote = "Copied " + m.name + "'s " + m.stance.toLowerCase() + " stance in week " + S.week + ".";
+    }
+  });
+  copied.slice(0,3).forEach(function(c){
+    why.push(c.who.name.split(" ")[0] + " copied " + c.model.name.split(" ")[0] + "'s " + c.model.stance.toLowerCase() + " stance. Admiration plus visibility (" + c.model.visibility + "): watched behavior is the kind that spreads.");
+  });
+  /* dynamic models */
+  S.residents.forEach(function(r){
+    var isM = r.visibility>=60;
+    if(isM && !r.model){ r.model = true; r.lastNote = "Became a model in week " + S.week + ": visibility crossed 60."; why.push(r.name + " is now a model. Enough of the village is watching that their stance will spread on its own."); logLine(S.week, "<span class='good'><b>New model:</b> " + r.name + " (visibility " + r.visibility + "). Their stance now spreads.</span>"); }
+    if(!isM && r.model && r.visibility<30){ r.model = false; r.lastNote = "Stopped being watched in week " + S.week + "."; why.push(r.name + " is no longer a model. Visibility fell under 30, and unwatched behavior does not spread."); logLine(S.week, "<b>Model faded:</b> " + r.name + " is no longer watched."); }
+  });
+  var counts = {};
+  S.residents.forEach(function(r){ counts[r.stance]=(counts[r.stance]||0)+1; });
+  if((counts["Rivalrous"]||0) >= 4){ applyFx({rivalry:3}, false); why.push("Four or more residents are rivalrous at once. When a stance becomes the local weather, rivalry feeds on itself."); }
+  if((counts["Cooperative"]||0) >= 6){ applyFx({cohesion:2}, false); why.push("Cooperation is now the majority stance. It costs people less to cooperate with cooperators, so the stance holds itself up."); }
+  if((counts["Withdrawn"]||0) >= 3){ applyFx({productivity:-2, cohesion:-2}, false); why.push("Three or more residents have withdrawn. Withdrawn people do not spread behavior, including the good kind."); }
+  S.lastCopies = copied.map(function(c){ return {x1:c.model.x, y1:c.model.y, x2:c.who.x, y2:c.who.y}; });
+  return copied;
+}
+
+function choose(idx){
+  if(!S || S.over || S.paused || S.committed) return;
+  S.committed = true;
+  var ev = S.ev, ch = ev.choices[idx];
+  var trustBefore = S.stats.trust, cohBefore = S.stats.cohesion;
+  S.lastDelta = {};
+  var why = (ch.why||[]).slice();
+  var lines = [];
+  blip(520, .06);
+
+  if(ch.stance){ for(var mid in ch.stance){ var mr = res(mid); if(mr){ mr.stance = ch.stance[mid]; mr.lastNote = "Set to " + ch.stance[mid].toLowerCase() + " by events in week " + S.week + "."; } } }
+  if(ch.vis){ for(var vid in ch.vis){ var vr = res(vid); if(vr){ vr.visibility = clamp(vr.visibility + ch.vis[vid]); } } }
+
+  var absorbed = applyFx(ch.fx, true);
+  var ch2 = charter();
+  if(ch.tag && ch2.mods && ch2.mods[ch.tag]){
+    applyFx(ch2.mods[ch.tag], false);
+    why.push("Charter, " + ch2.name + ": this kind of move lands differently under the charter the village signed up to.");
+  }
+  if(absorbed>0) lines.push("Custom absorbed " + absorbed + " point" + (absorbed===1?"":"s") + " of the damage to trust and cohesion. Formed habits are doing quiet work.");
+
+  if(ch.sg){
+    var target = res(ch.sg);
+    S.scapegoats++;
+    if(target){ S.sgNames.push(target.name); target.well = clamp(target.well - 22); target.stance = "Withdrawn"; target.visibility = clamp(target.visibility - 10); target.lastNote = "Blamed for a collective failure in week " + S.week + ". Withdrew."; }
+    lines.push("Blaming " + (target?target.name:"a resident") + " lowered visible tension right away. It also taught the village a method, and cost " + (target?target.name.split(" ")[0]:"the target") + " dearly.");
+    why.push("Scapegoating works by agreement: everyone else's conflict gets parked inside one person's name. The relief is real. So is the invoice, and it arrives in trust and in the target's withdrawal.");
+  }
+  if(ch.chairHeal){ var hr = res(ch.chairHeal); if(hr){ hr.well = clamp(hr.well + 30); if(hr.stance==="Withdrawn") hr.stance = "Self-reliant"; hr.lastNote = "Brought back, personally, in week " + S.week + "."; } }
+
+  if(ch.gamble){
+    var g = ch.gamble, statVal = S.stats[g.stat];
+    var p = g.invert ? (0.85 - statVal/100) : (0.35 + (statVal - g.dc)/100);
+    if(S.hard) p -= 0.06;
+    p = Math.max(0.12, Math.min(0.9, p));
+    var ok = Math.random() < p;
+    var rr = ok ? g.ok : g.bad;
+    applyFx(rr.fx, true);
+    lines.push((ok ? "It landed. " : "It did not land. ") + rr.text + " (This rode on the village's " + g.stat + ", at " + statVal + ", odds near " + Math.round(p*100) + "%.)");
+  }
+  if(ch.delay){ S.pending.push({due:S.week + ch.delay.in, text:ch.delay.text, fx:ch.delay.fx}); }
+
+  if(lines.length===0) lines.push("The decision is made on the green, in front of everyone. What it teaches takes longer to see.");
+  var copied = imitationStep(why);
+  if(copied.length===0 && !ch.sg){ why.push("No stance changed hands this week. Imitation needs a visible model and a reason to bother; one of the two was missing."); }
+
+  /* wellbeing drift */
+  S.residents.forEach(function(r){
+    if(r.stance==="Withdrawn") r.well = clamp(r.well - 3);
+    else if(r.stance==="Cooperative") r.well = clamp(r.well + 1);
+    if(r.well<=25 && !r.warned){ r.warned = true; logLine(S.week, "<span class='bad'><b>Wellbeing warning:</b> " + r.name + " is near the edge. If it collapses, the village gets an empty chair.</span>"); }
+  });
+
+  /* custom streak */
+  if(S.stats.trust >= trustBefore && S.stats.cohesion >= cohBefore){ if(S.custom<3){ S.custom++; } }
+  else S.custom = 0;
+
+  S.lastWhy = why;
+  logLine(S.week, "<b>" + ev.title + ":</b> " + ch.t + ".");
+  renderAll();
+  animatePulses();
+
+  var panel = document.getElementById("cmdPanel");
+  var html = "<div class='wk'>Week " + S.week + " of 12 &middot; Outcome</div><h2>" + ev.title + "</h2>";
+  html += "<div class='outcome'><h3>What happened</h3>";
+  lines.forEach(function(l){ html += "<p>" + l + "</p>"; });
+  html += "<h3 style='margin-top:10px'>Why this changed</h3><ul>";
+  why.forEach(function(w){ html += "<li>" + w + "</li>"; });
+  html += "</ul></div>";
+  html += (S.week >= 12)
+    ? "<div class='nextrow'><button class='btn primary' id='finishBtn' type='button'>Read the winter verdict</button></div>"
+    : "<div class='nextrow'><button class='btn primary' id='nextBtn' type='button'>Begin week " + (S.week+1) + "</button></div>";
+  panel.innerHTML = html;
+  var nb = document.getElementById("nextBtn"), fb = document.getElementById("finishBtn");
+  if(nb) nb.addEventListener("click", nextWeek);
+  if(fb) fb.addEventListener("click", finish);
+  panel.scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+function nextWeek(){
+  S.week++;
+  S.lastDelta = {};
+  S.actedThisWeek = false; S.committed = false;
+  var notes = [];
+  var due = S.pending.filter(function(p){ return p.due <= S.week; });
+  S.pending = S.pending.filter(function(p){ return p.due > S.week; });
+  due.forEach(function(p){ applyFx(p.fx, false); logLine(S.week, "<span class='delayed'>Delayed consequence:</span> " + p.text, true); });
+  /* season pressure */
+  var pr = {};
+  if(S.week>=9) pr.scarcity = S.hard?4:2; else if(S.week>=5) pr.scarcity = S.hard?2:1;
+  if(S.stats.productivity<35) pr.scarcity = (pr.scarcity||0)+2;
+  if(S.stats.rivalry>=55) pr.rivalry = 1;
+  if(pr.scarcity || pr.rivalry){
+    applyFx(pr, false);
+    notes.push("Season pressure: " + [pr.scarcity?("scarcity +" + pr.scarcity + " as winter closes in"):"", pr.rivalry?("rivalry +1, grudges keep"):""].filter(Boolean).join("; ") + ".");
+    logLine(S.week, "<i>" + notes[0] + "</i>");
+  }
+  setupWeek();
+  renderAll();
+  renderEvent();
+  showBanner();
+  blip(392, .08);
+}
+
+function useFaction(id){
+  if(!S || S.over || S.paused || S.committed || S.actedThisWeek || S.charges<=0) return;
+  var f = null; FACTIONS.forEach(function(x){ if(x.id===id) f = x; });
+  if(!f) return;
+  S.charges--; S.actedThisWeek = true;
+  S.lastDelta = {};
+  applyFx(f.fx, false);
+  logLine(S.week, "<b>Field action, " + f.name + ":</b> " + f.desc);
+  renderAll();
+  blip(660, .05);
+}
+
+function finish(){
+  S.lastDelta = {};
+  S.pending.forEach(function(p){ applyFx(p.fx, false); logLine(12, "<span class='delayed'>Still landing as winter closes:</span> " + p.text, true); });
+  S.pending = [];
+  S.over = true;
+  var s = S.stats, ending;
+  if(S.scapegoats >= 3 || (S.scapegoats >= 2 && s.rivalry >= 55)){
+    ending = {name:"The Blame Cycle", body:"The village runs, after a fashion, on a single reliable technology: a name for every failure. " + S.sgNames.join(", ") + " carried the blame this season, and carrying it changed them and everyone who watched. Services limp on. Trust does not. The next failure is already looking for its name, and the village is getting faster at finding one."};
+  } else if(s.scarcity >= 68 || s.cohesion <= 26){
+    ending = {name:"Quiet Breakdown", body:"No single disaster did it. The needs outgrew the cooperation, week by week, until households quietly stopped planning together and started planning around each other. The village is still on the map. As a village, it is running on memory."};
+  } else if(s.productivity >= 58 && s.trust >= 52 && s.cohesion >= 52 && s.autonomy >= 48){
+    ending = {name:"Mutual Aid", body:"The work gets done, and it gets done by people who chose each other's company to do it. The models modeled repair, teaching, and calm, and the village copied the right things often enough that cooperation is now just the local custom. TTI's best decision all season was becoming less necessary."};
+  } else if(s.autonomy >= 62 && s.trust >= 55){
+    ending = {name:"The Village Chooses", body:"Output is not the highest it could have been, and the village would like it noted that this was, in part, the point. They set their own priorities, kept their own books, and argued their own arguments to their own conclusions. You leave behind something better than a serviced village: a self-governing one."};
+  } else if(s.productivity >= 52 && (s.trust < 48 || s.autonomy < 42)){
+    ending = {name:"Order at a Price", body:"The roofs hold, the mill turns, the ledgers balance. Ask the village how it is and you get a pause first. The season's output was bought with watchfulness and blame and borrowed authority, and the receipt is written in the two numbers you stopped looking at. Order, yes. At a price, also yes."};
+  } else if(s.autonomy >= 55 && s.cohesion >= 45){
+    ending = {name:"The Village Chooses", body:"It is not the tidiest season on record. It is, recognizably, theirs. The village ends the twelve weeks arguing, deciding, and copying each other in more or less equal measure, which is another way of saying it ends them alive and self-directed."};
+  } else if(s.productivity >= 48){
+    ending = {name:"Order at a Price", body:"The essential work mostly got done, and the village mostly complied, and both of those 'mostly's are doing heavy work. What was modeled this season was endurance under direction. It functions. It does not flourish, and it knows the difference even if the report does not say so."};
+  } else {
+    ending = {name:"Quiet Breakdown", body:"The season ends with the essentials unfinished and the village's belief in itself thinner than its stores. Nothing dramatic happened, which was the problem: twelve small weeks of drift compound like interest."};
+  }
+  S.ending = ending;
+  var medals = [];
+  if(S.scapegoats===0) medals.push("Spotless Ledger: nobody was blamed");
+  if(s.scarcity<=28) medals.push("Full Granary");
+  if(s.autonomy>=68) medals.push("Self-Governing");
+  if(s.rivalry<=22) medals.push("Peacemaker");
+  if(s.productivity>=70) medals.push("Iron Season");
+  if(s.trust>=65) medals.push("Every Voice Heard");
+  if(res("mara").model && res("jonah").model && res("priya").model) medals.push("Three Models Standing");
+  if(S.copiesCoop>=8) medals.push("Cooperation Went Viral");
+  logLine(12, "<b>Winter verdict: " + ending.name + ".</b>");
+  renderAll();
+  var panel = document.getElementById("cmdPanel");
+  var html = "<div class='wk'>End of Week 12 &middot; Final Report" + (S.hard ? " &middot; Hard Winter" : "") + " &middot; Charter: " + charter().name + "</div>";
+  html += "<h2>The Winter Verdict</h2><span class='stamp'>" + ending.name + "</span>";
+  html += "<p class='report'>" + ending.body + "</p>";
+  if(medals.length){ html += "<div class='medals'>" + medals.map(function(m){ return "<span class='medal'>" + m + "</span>"; }).join("") + "</div>"; }
+  html += "<p><b>Season record:</b> " + S.copiesTotal + " times a resident copied a watched stance, " + S.copiesCoop + " of them cooperative. Scapegoating used " + S.scapegoats + " time" + (S.scapegoats===1?"":"s") + (S.scapegoats? " (" + S.sgNames.join(", ") + ")" : "") + ". Field charges left: " + S.charges + ".</p>";
+  html += "<div class='grades'>";
+  STATDEF.forEach(function(d){
+    var v = s[d.k], eff = d.bad ? 100-v : v;
+    var g = eff>=75?"S":eff>=60?"A":eff>=45?"B":eff>=30?"C":"D";
+    html += "<div class='grade'>" + d.n + "<b>" + g + "</b><br><span class='mono' style='color:var(--ink2)'>" + v + " / 100</span></div>";
+  });
+  html += "</div>";
+  html += "<div class='nextrow'><button class='btn primary' id='againBtn' type='button'>Play another season</button></div>";
+  panel.innerHTML = html;
+  document.getElementById("againBtn").addEventListener("click", toLobby);
+  panel.scrollIntoView({behavior:"smooth", block:"start"});
+  blip(784, .15);
+}
+
+/* ================= RENDERING ================= */
+function renderStats(){
+  var el = document.getElementById("stats");
+  var html = "";
+  STATDEF.forEach(function(d){
+    var v = S.stats[d.k];
+    var good = d.bad ? (v <= 35) : (v >= 55);
+    var mid = d.bad ? (v <= 58) : (v >= 36);
+    var cls = good ? "" : (mid ? "warn" : "crit");
+    var dl = S.lastDelta[d.k] || 0, dHtml = "";
+    if(dl !== 0){ var improved = d.bad ? dl < 0 : dl > 0; dHtml = "<span class='delta " + (improved?"up":"down") + "'>" + (dl>0?"+":"") + dl + "</span>"; }
+    var th = d.bad ? 65 : 25;
+    html += "<div class='stat'><div class='row'><span class='name'>" + d.n + "<span class='hint'>" + d.hint + "</span></span><span class='val'>" + v + dHtml + "</span></div><div class='bar " + cls + "'><i style='width:" + v + "%'></i><span class='thresh' style='left:" + th + "%'></span></div></div>";
+  });
+  el.innerHTML = html;
+  document.getElementById("weekChip").textContent = "WEEK " + Math.min(S.week,12) + " / 12" + (S.over ? " · DONE" : "");
+  var pips = "";
+  for(var i=1;i<=12;i++){ pips += "<div class='pip" + (i<S.week||S.over?" done":"") + (i===S.week&&!S.over?" now":"") + "'></div>"; }
+  document.getElementById("seasonPips").innerHTML = pips;
+  var ph = PHASES[Math.min(3, Math.floor((S.week-1)/3))];
+  document.getElementById("seasonLab").textContent = "Meme Village · " + ph.name + (S.hard ? " · Hard Winter" : "") + " · Charter: " + charter().name;
+  var cp = document.getElementById("customPips").children;
+  for(var c=0;c<3;c++){ cp[c].className = "mpip" + (c<S.custom?" on":""); }
+  document.getElementById("customLab").textContent = S.custom===0 ? "no streak yet" : ("streak " + S.custom + " · absorbs " + S.custom + " dmg");
+  document.getElementById("chargeLab").textContent = S.charges + " charge" + (S.charges===1?"":"s");
+}
+function renderFactions(){
+  var el = document.getElementById("factions");
+  el.innerHTML = FACTIONS.map(function(f){
+    var dis = (S.charges<=0 || S.actedThisWeek || S.committed || S.over) ? " disabled" : "";
+    return "<button class='faction' type='button' data-f='" + f.id + "'" + dis + "><span class='ft'>" + f.name + "<span class='cost'>1 CHARGE</span></span><span class='fd'>" + f.desc + "</span></button>";
+  }).join("");
+  el.querySelectorAll(".faction").forEach(function(b){ b.addEventListener("click", function(){ useFaction(b.getAttribute("data-f")); }); });
+}
+function stanceChip(st){
+  var cls = st==="Cooperative"?"coop":st==="Rivalrous"?"riv":st==="Withdrawn"?"wd":st==="Strained"?"str":"";
+  return "<span class='chip " + cls + "'>" + st + "</span>";
+}
+function hairPath(r, cx, cy, rad){
+  var c = r.hairC;
+  if(r.hair===0) return "<path d='M " + (cx-rad) + " " + cy + " A " + rad + " " + rad + " 0 0 1 " + (cx+rad) + " " + cy + " L " + (cx+rad) + " " + (cy-rad*0.28) + " A " + rad + " " + (rad*0.72) + " 0 0 0 " + (cx-rad) + " " + (cy-rad*0.28) + " Z' fill='" + c + "'/>";
+  if(r.hair===1) return "<circle cx='" + cx + "' cy='" + (cy-rad-2) + "' r='" + (rad*0.34) + "' fill='" + c + "'/>" + hairPath(Object.assign({}, r, {hair:0}), cx, cy, rad);
+  if(r.hair===3) return hairPath(Object.assign({}, r, {hair:2}), cx, cy, rad) + "<path d='M " + (cx-rad*0.82) + " " + (cy+rad*0.3) + " A " + (rad*0.9) + " " + (rad*0.8) + " 0 0 0 " + (cx+rad*0.82) + " " + (cy+rad*0.3) + " L " + (cx+rad*0.6) + " " + (cy+rad*0.95) + " A " + (rad*0.62) + " " + (rad*0.5) + " 0 0 1 " + (cx-rad*0.6) + " " + (cy+rad*0.95) + " Z' fill='" + c + "'/>";
+  if(r.hair===4) return "<rect x='" + (cx-rad-3) + "' y='" + (cy-rad*0.4) + "' width='7' height='" + (rad*1.5) + "' rx='3' fill='" + c + "'/><rect x='" + (cx+rad-4) + "' y='" + (cy-rad*0.4) + "' width='7' height='" + (rad*1.5) + "' rx='3' fill='" + c + "'/>" + hairPath(Object.assign({}, r, {hair:0}), cx, cy, rad);
+  return "<path d='M " + (cx-rad) + " " + (cy-rad*0.1) + " A " + rad + " " + rad + " 0 0 1 " + (cx+rad) + " " + (cy-rad*0.1) + " L " + (cx+rad) + " " + (cy-rad*0.42) + " A " + rad + " " + (rad*0.66) + " 0 0 0 " + (cx-rad) + " " + (cy-rad*0.42) + " Z' fill='" + c + "'/>";
+}
+function portraitSVG(r, size){
+  var mouth = r.well>=55 ? "<path d='M42 56 Q50 61 58 56' stroke='#5a3a26' stroke-width='2.2' fill='none' stroke-linecap='round'/>"
+    : r.well>=30 ? "<line x1='43' y1='57' x2='57' y2='57' stroke='#5a3a26' stroke-width='2.2' stroke-linecap='round'/>"
+    : "<path d='M42 59 Q50 54 58 59' stroke='#5a3a26' stroke-width='2.2' fill='none' stroke-linecap='round'/>";
+  return "<svg width='" + size + "' height='" + size + "' viewBox='0 0 100 100' aria-hidden='true'>"
+    + "<rect width='100' height='100' fill='#1b2531'/>"
+    + "<circle cx='50' cy='118' r='52' fill='" + r.shirt + "' opacity='.28'/>"
+    + "<path d='M18 100 L27 72 Q50 60 73 72 L82 100 Z' fill='" + r.shirt + "'/>"
+    + "<rect x='44' y='56' width='12' height='12' fill='" + r.skin + "'/>"
+    + "<circle cx='50' cy='42' r='19' fill='" + r.skin + "'/>"
+    + hairPath(r, 50, 42, 19)
+    + "<circle cx='43' cy='43' r='2' fill='#1c150e'/><circle cx='57' cy='43' r='2' fill='#1c150e'/>"
+    + mouth + "</svg>";
+}
+var SVGNS = "http://www.w3.org/2000/svg";
+function renderTokens(){
+  var layer = document.getElementById("tokens");
+  while(layer.firstChild) layer.removeChild(layer.firstChild);
+  S.residents.forEach(function(r){
+    var g = document.createElementNS(SVGNS, "g");
+    g.setAttribute("class", "token" + (S.selected===r.id ? " sel" : ""));
+    g.setAttribute("transform", "translate(" + r.x + "," + r.y + ")");
+    g.setAttribute("tabindex", "0"); g.setAttribute("role", "button");
+    g.setAttribute("aria-label", r.name + ", " + r.role + ", stance " + r.stance + (r.model ? ", a model" : ""));
+    var s = "";
+    if(r.model) s += "<circle r='20' fill='none' stroke='#e3aa3d' stroke-width='1.6' stroke-dasharray='3.5 3' opacity='.95'/>";
+    s += "<circle class='halo' r='15.5' fill='" + STANCE_COLOR[r.stance] + "' fill-opacity='.28' stroke='" + STANCE_COLOR[r.stance] + "'/>";
+    s += "<circle class='face' r='12' fill='" + r.skin + "'/>";
+    s += hairPath(r, 0, 0, 12);
+    s += "<text y='5' font-size='10.5'>" + r.name.charAt(0) + "</text>";
+    s += "<rect x='-13' y='23' width='26' height='4' rx='2' fill='rgba(5,8,10,.65)'/><rect x='-13' y='23' width='" + (26*r.well/100) + "' height='4' rx='2' fill='" + (r.well>=40?"#7fc45e":"#d84f4f") + "'/>";
+    s += "<text class='nm' y='-24' style='paint-order:stroke;stroke:rgba(5,8,10,.8);stroke-width:3.5'>" + r.name.split(" ")[0] + "</text>";
+    g.innerHTML = s;
+    g.addEventListener("click", function(){ selectResident(r.id); });
+    g.addEventListener("keydown", function(e){ if(e.key==="Enter" || e.key===" "){ e.preventDefault(); selectResident(r.id); } });
+    layer.appendChild(g);
+  });
+  renderLinks();
+}
+function renderLinks(){
+  var layer = document.getElementById("links");
+  while(layer.firstChild) layer.removeChild(layer.firstChild);
+  if(!S.selected) return;
+  var r = res(S.selected);
+  if(!r) return;
+  function line(to, color, dash){
+    if(!to) return;
+    var l = document.createElementNS(SVGNS, "line");
+    l.setAttribute("x1", r.x); l.setAttribute("y1", r.y); l.setAttribute("x2", to.x); l.setAttribute("y2", to.y);
+    l.setAttribute("stroke", color); l.setAttribute("stroke-width", "2"); l.setAttribute("opacity", ".8");
+    if(dash) l.setAttribute("stroke-dasharray", "5 4");
+    layer.appendChild(l);
+  }
+  line(res(r.admires), "#5cc9a7", false);
+  line(res(r.rival), "#d84f4f", true);
+  S.residents.forEach(function(o){ if(o.admires===r.id) line(o, "#e3aa3d", false); });
+}
+function animatePulses(){
+  var layer = document.getElementById("pulses");
+  if(!layer || !S.lastCopies.length) return;
+  S.lastCopies.forEach(function(c, i){
+    var dot = document.createElementNS(SVGNS, "circle");
+    dot.setAttribute("r", "4.5"); dot.setAttribute("class", "pulse");
+    dot.setAttribute("cx", c.x1); dot.setAttribute("cy", c.y1);
+    layer.appendChild(dot);
+    var t0 = performance.now() + i*200, dur = 700;
+    function step(now){
+      var t = (now - t0)/dur;
+      if(t < 0){ requestAnimationFrame(step); return; }
+      if(t >= 1){ if(dot.parentNode) dot.parentNode.removeChild(dot); return; }
+      dot.setAttribute("cx", c.x1 + (c.x2-c.x1)*t);
+      dot.setAttribute("cy", c.y1 + (c.y2-c.y1)*t);
+      dot.setAttribute("opacity", String(1-t*0.5));
+      requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  });
+}
+function selectResident(id){
+  S.selected = id;
+  renderTokens();
+  renderInspector();
+}
+function renderInspector(){
+  var el = document.getElementById("inspector");
+  if(!S.selected){ return; }
+  var r = res(S.selected);
+  if(!r) return;
+  var adm = res(r.admires), rv = res(r.rival);
+  var admirers = S.residents.filter(function(o){ return o.admires===r.id; }).map(function(o){ return o.name.split(" ")[0]; });
+  var html = "<div class='portraitbox'>" + portraitSVG(r, 92) + "<div><div class='role'>" + r.role + (r.model ? " &middot; <span style='color:var(--gold)'>MODEL</span>" : "") + "</div><h3>" + r.name + "</h3>"
+    + "<div style='margin-top:4px'>" + stanceChip(r.stance) + "</div>"
+    + "<p class='kv'><b>Trait:</b> " + r.trait + "</p><p class='kv'><b>Aspiration:</b> " + r.asp + "</p></div></div>";
+  html += "<p class='kv' style='margin-top:9px'><b>Wellbeing</b> " + r.well + " / 100</p><div class='minibar'><i style='width:" + r.well + "%;background:" + (r.well>=40?"var(--teal)":"var(--red)") + "'></i></div>";
+  html += "<p class='kv' style='margin-top:7px'><b>Visibility</b> " + r.visibility + " / 100" + (r.model ? " (model: stance spreads)" : " (model at 60)") + "</p><div class='minibar vis'><i style='width:" + r.visibility + "%'></i></div>";
+  html += "<p class='kv' style='margin-top:8px'><b>Admires:</b> " + (adm ? adm.name + " (" + adm.stance.toLowerCase() + ")" : "no one in particular") + (rv ? "<br><b>Rivals:</b> " + rv.name : "") + (admirers.length ? "<br><b>Watched by:</b> " + admirers.join(", ") : "") + "</p>";
+  if(r.lastNote) html += "<div class='note'>" + r.lastNote + "</div>";
+  el.innerHTML = html;
+}
+function renderModels(){
+  var el = document.getElementById("models");
+  var sorted = S.residents.slice().sort(function(a,b){ return b.visibility - a.visibility; });
+  el.innerHTML = sorted.map(function(r){
+    return "<div class='mrow' data-id='" + r.id + "' style='cursor:pointer'><span class='dot' style='background:" + STANCE_COLOR[r.stance] + "'></span><span class='mn'>" + r.name + "</span>" + (r.model ? "<span class='mtag'>MODEL</span>" : "") + "<span class='mv'>" + r.visibility + "</span></div>";
+  }).join("");
+  el.querySelectorAll(".mrow").forEach(function(row){ row.addEventListener("click", function(){ selectResident(row.getAttribute("data-id")); }); });
+}
+function renderLog(){
+  var el = document.getElementById("log");
+  if(!S.log.length){ el.innerHTML = "<li>No entries yet. The village is waiting on your first call.</li>"; return; }
+  el.innerHTML = S.log.map(function(e){ return "<li><span class='lw'>WK " + e.week + "</span> " + e.text + "</li>"; }).join("");
+}
+function renderEvent(){
+  var ev = S.ev;
+  setPhase(S.week);
+  var panel = document.getElementById("cmdPanel");
+  var intel = [];
+  if(S.stats.scarcity>=55) intel.push("Scarcity is " + S.stats.scarcity + ". At 65, hunger writes its own week.");
+  if(S.stats.rivalry>=55) intel.push("Rivalry is " + S.stats.rivalry + ". At 65, the feud takes the schedule.");
+  var low = null; S.residents.forEach(function(r){ if(!low || r.well<low.well) low = r; });
+  if(low && low.well<=35) intel.push(low.name + "'s wellbeing is " + low.well + ". At 25 or under, the village gets an empty chair.");
+  if(S.custom>=2) intel.push("Custom is holding at " + S.custom + ": formed habits are absorbing damage before it lands.");
+  var html = "<div class='wk'>Week " + S.week + " of 12 &middot; " + (ev.crisis ? "Crisis" : "Situation Report") + "</div>";
+  html += "<h2>" + ev.title + "</h2><p class='report'>" + ev.report + "</p>";
+  if(intel.length) html += "<div class='intel'>" + intel.join(" ") + "</div>";
+  html += "<div class='choices' role='group' aria-label='Interventions'>";
+  ev.choices.forEach(function(c, i){
+    var kw = c.sg ? KW.blame : (c.gamble ? KW.gamble : (c.tag && KW[c.tag] ? KW[c.tag] : null));
+    html += "<button class='choice' type='button' data-i='" + i + "'><span class='ct'>" + c.t + "</span><span class='cd'>" + c.d + "</span>" + (kw ? "<span class='kw " + kw[1] + "'>" + kw[0] + "</span>" : "") + "</button>";
+  });
+  html += "</div>";
+  panel.innerHTML = html;
+  panel.querySelectorAll(".choice").forEach(function(b){ b.addEventListener("click", function(){ choose(parseInt(b.getAttribute("data-i"),10)); }); });
+}
+function showBanner(){
+  var b = document.getElementById("weekBanner");
+  document.getElementById("bannerWeek").textContent = "WEEK " + S.week + " OF 12";
+  document.getElementById("bannerTitle").textContent = S.ev ? S.ev.title.toUpperCase() : "";
+  b.classList.remove("show");
+  void b.offsetWidth;
+  b.classList.add("show");
+}
+function renderAll(){ renderStats(); renderFactions(); renderTokens(); renderInspector(); renderModels(); renderLog(); setPhase(S.week); }
+
+/* ================= SOUND ================= */
+var AC = null;
+function blip(freq, dur){
+  if(!S || !S.soundOn) return;
+  try{
+    if(!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
+    var o = AC.createOscillator(), g = AC.createGain();
+    o.frequency.value = freq; o.type = "sine";
+    g.gain.setValueAtTime(.06, AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(.0001, AC.currentTime + dur);
+    o.connect(g); g.connect(AC.destination); o.start(); o.stop(AC.currentTime + dur);
+  }catch(e){}
+}
+
+/* ================= LOBBY / CONTROLS ================= */
+var pickCharter = "openbooks", pickDiff = "standard";
+function buildLobby(){
+  var el = document.getElementById("charterPick");
+  el.innerHTML = CHARTERS.map(function(c){
+    return "<button class='pick" + (c.id===pickCharter?" sel":"") + "' type='button' data-c='" + c.id + "'><span class='pt'>" + c.name + "</span><span class='pd'>" + c.desc + "</span></button>";
+  }).join("");
+  el.querySelectorAll(".pick").forEach(function(b){ b.addEventListener("click", function(){ pickCharter = b.getAttribute("data-c"); buildLobby(); }); });
+  document.querySelectorAll("#diffPick .pick").forEach(function(b){
+    b.classList.toggle("sel", b.getAttribute("data-diff")===pickDiff);
+    b.onclick = function(){ pickDiff = b.getAttribute("data-diff"); buildLobby(); };
+  });
+}
+function begin(){
+  S = freshState(pickCharter, pickDiff);
+  S.soundOn = document.getElementById("soundBtn").getAttribute("aria-pressed")==="true";
+  document.getElementById("startOverlay").classList.remove("open");
+  logLine(1, "<b>Season begins.</b> Charter: " + charter().name + (S.hard ? " · Hard Winter" : "") + ". Twelve weeks to the winter count.");
+  setupWeek();
+  renderAll();
+  renderEvent();
+  showBanner();
+}
+function toLobby(){
+  document.getElementById("pauseOverlay").classList.remove("open");
+  document.getElementById("startOverlay").classList.add("open");
+}
+document.getElementById("beginBtn").addEventListener("click", begin);
+document.getElementById("pauseBtn").addEventListener("click", function(){ if(S){ S.paused = true; document.getElementById("pauseOverlay").classList.add("open"); } });
+document.getElementById("resumeBtn").addEventListener("click", function(){ if(S) S.paused = false; document.getElementById("pauseOverlay").classList.remove("open"); });
+document.getElementById("restartBtn").addEventListener("click", toLobby);
+document.getElementById("restartBtn2").addEventListener("click", toLobby);
+document.getElementById("helpBtn").addEventListener("click", function(){ document.getElementById("helpOverlay").classList.add("open"); });
+document.getElementById("helpClose").addEventListener("click", function(){ document.getElementById("helpOverlay").classList.remove("open"); });
+document.getElementById("soundBtn").addEventListener("click", function(){
+  var b = document.getElementById("soundBtn");
+  var on = b.getAttribute("aria-pressed")!=="true";
+  b.setAttribute("aria-pressed", String(on));
+  b.textContent = "Sound: " + (on ? "on" : "off");
+  if(S) S.soundOn = on;
+});
+document.addEventListener("keydown", function(e){
+  if(e.key==="Escape"){ document.getElementById("helpOverlay").classList.remove("open"); if(S) S.paused = false; document.getElementById("pauseOverlay").classList.remove("open"); }
+});
+buildScene();
+buildLobby();
+S = freshState("openbooks", "standard");
+setupWeek();
+renderAll();
+renderEvent();
+if(location.hash==="#play"){ begin(); }
+</script>
+</body>
+</html>
