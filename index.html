@@ -223,13 +223,13 @@ function sph(r,c,x,y,z,parent){
 
 /* ================= WORLD ================= */
 var STATION3 = {
-  clinic:{name:"Clinic", icon:"✚", x:-24, z:-13, work:[[-27,-10],[-21,-10],[-24,-9.4]], hit:[-24,-12,13,11]},
-  fields:{name:"Fields", icon:"🌿", x:-22, z:15, work:[[-28,12],[-22,15],[-16,12],[-25,18],[-19,18]], hit:[-22,15,21,13]},
-  store:{name:"Storehouse", icon:"📦", x:24, z:-13, work:[[20.5,-8.6],[24,-8.2],[27.5,-8.6]], hit:[24,-12,15,11]},
+  clinic:{name:"Clinic", icon:"✚", x:-28, z:-15, work:[[-31,-12],[-25,-12],[-28,-11.4]], hit:[-28,-14,13,11]},
+  fields:{name:"Fields", icon:"🌿", x:-30, z:16, work:[[-36,13],[-30,16],[-24,13],[-33,19],[-27,19]], hit:[-30,16,21,13]},
+  store:{name:"Storehouse", icon:"📦", x:28, z:-15, work:[[24.5,-10.6],[28,-10.2],[31.5,-10.6]], hit:[28,-14,15,11]},
   green:{name:"The Green", icon:"🌳", x:0, z:7, work:[[-3,5],[3,5],[-3,10],[3,10],[0,12]], hit:[0,7,17,13]},
-  mill:{name:"Mill", icon:"🌾", x:24, z:14, work:[[20.5,12.6],[24,12],[27.5,12.6]], hit:[24,15,14,11]},
-  school:{name:"School", icon:"📚", x:-35, z:-13, work:[[-32,-10.2],[-35,-9.6],[-38,-10.2]], hit:[-35,-13,9,9]},
-  well:{name:"Well", icon:"💧", x:10, z:-3, work:[[8.4,-1.6],[11.6,-1.6]], hit:[10,-3,6,6]},
+  mill:{name:"Mill", icon:"🌾", x:32, z:26, work:[[28.5,23.6],[32,23],[35.5,23.6]], hit:[32,25,14,11]},
+  school:{name:"School", icon:"📚", x:-40, z:-14, work:[[-37,-11.2],[-40,-10.6],[-43,-11.2]], hit:[-40,-14,9,9]},
+  well:{name:"Well", icon:"💧", x:10, z:40, work:[[8.4,38.6],[11.6,38.6]], hit:[10,40,6,6]},
   home:{name:"Home", icon:"🏠", x:0, z:0, work:[], hit:[0,0,0,0]}
 };
 var roofPlanks = [], roofHole = null, storedCrates = [], cropMesh = null, cropData = [], flourSacks = [];
@@ -239,8 +239,13 @@ var orderPings = [], selLine = null;
 var mouseX = -1, mouseY = -1, mouseIn = false, ptrDown = false, mouseT = 0, mouseBtn = 0;
 var FINE_POINTER = !!(window.matchMedia && matchMedia("(pointer:fine)").matches);
 function buildWorld(){
-  scene.background = new THREE.Color(0x9fd3e8);
-  scene.fog = new THREE.Fog(0x9fd3e8, 90, 190);
+  try {
+    var skc = document.createElement("canvas"); skc.width = 2; skc.height = 256;
+    var skx = skc.getContext && skc.getContext("2d");
+    if(skx){ var grd = skx.createLinearGradient(0, 0, 0, 256); grd.addColorStop(0, "#6fb6e6"); grd.addColorStop(0.55, "#a8d8f0"); grd.addColorStop(1, "#e8f6ee"); skx.fillStyle = grd; skx.fillRect(0, 0, 2, 256); scene.background = new THREE.CanvasTexture(skc); }
+    else scene.background = new THREE.Color(0x9fd3e8);
+  } catch(e) { scene.background = new THREE.Color(0x9fd3e8); }
+  scene.fog = new THREE.Fog(0xcfe9f2, 90, 190);
   var hemi = new THREE.HemisphereLight(0xcfe8ff, 0x5d7a45, 0.75); scene.add(hemi);
   sunLight = new THREE.DirectionalLight(0xffe9bb, 1.05);
   sunLight.position.set(30, 42, 18);
@@ -260,7 +265,7 @@ function buildWorld(){
       for(var ni = 0; ni < 9000; ni++){ gx.fillStyle = Math.random() < 0.5 ? "rgba(60,90,40,0.10)" : "rgba(200,230,150,0.08)"; gx.fillRect(Math.random()*1024, Math.random()*768, 2.5, 2.5); }
       for(var bi = 0; bi < 260; bi++){ gx.fillStyle = "rgba(52,84,36,0.15)"; gx.beginPath(); gx.arc(Math.random()*1024, Math.random()*768, 6 + Math.random()*15, 0, 6.29); gx.fill(); }
       var W2C = function(x, z){ return [(x + 60) / 120 * 1024, (z + 45) / 90 * 768]; };
-      var paths = [[0,7,-24,-13],[0,7,-22,15],[0,7,24,-13],[0,7,24,14],[0,7,-35,-13],[0,7,10,-3],[-24,-13,-22,15],[24,-13,24,14],[-30,4,0,7],[-10,-20,0,7],[30,-19,24,-13],[4,18,-22,15],[31,8,24,14]];
+      var paths = [[0,7,-28,-15],[0,7,-30,16],[0,7,28,-15],[0,7,32,26],[0,7,-40,-14],[0,7,10,24],[10,24,10,40],[-28,-15,-30,16],[28,-15,32,26],[0,-19,28,-15],[0,-19,-28,-15],[-16,-24,0,7],[18,-24,28,-15],[24,4,32,26],[10,33,10,40]];
       gx.lineCap = "round";
       paths.forEach(function(p){ var a2 = W2C(p[0], p[1]), b2 = W2C(p[2], p[3]); gx.strokeStyle = "rgba(168,138,92,0.55)"; gx.lineWidth = 13; gx.beginPath(); gx.moveTo(a2[0], a2[1]); gx.lineTo(b2[0], b2[1]); gx.stroke(); gx.strokeStyle = "rgba(192,162,106,0.5)"; gx.lineWidth = 8; gx.beginPath(); gx.moveTo(a2[0], a2[1]); gx.lineTo(b2[0], b2[1]); gx.stroke(); });
       groundMat = new THREE.MeshLambertMaterial({map:new THREE.CanvasTexture(gc)});
@@ -269,79 +274,86 @@ function buildWorld(){
   var ground = new THREE.Mesh(new THREE.PlaneGeometry(120, 90), groundMat);
   ground.rotation.x = -Math.PI/2; ground.receiveShadow = true; scene.add(ground);
   var pathMat = mat(0xcdb483, 1);
-  [[0,4,26,3.2],[ -13,-6,3.2,20],[13,-6,3.2,20],[0,-11,30,3.2],[-11,11,20,3]].forEach(function(p){
+  [[0,4,26,3.2],[0,-14,3.2,26],[0,-19,58,3.2],[10,22,3.2,17],[26,6,3.2,36]].forEach(function(p){
     var m = new THREE.Mesh(new THREE.PlaneGeometry(p[2], p[3]), pathMat);
     m.rotation.x = -Math.PI/2; m.position.set(p[0], 0.02, p[1]); m.receiveShadow = true; scene.add(m);
   });
   /* river strip */
-  var river = new THREE.Mesh(new THREE.PlaneGeometry(10, 90), mat(0x5d9ec4, 0.35));
-  river.rotation.x = -Math.PI/2; river.position.set(46, 0.03, 0); scene.add(river);
+  var river = new THREE.Mesh(new THREE.PlaneGeometry(120, 9), mat(0x5d9ec4, 0.35));
+  river.rotation.x = -Math.PI/2; river.position.set(0, 0.03, 40.5); scene.add(river);
+  box(5, 0.32, 13.5, 0x9a7448, 10, 0.2, 39.5, scene);
+  box(0.24, 0.9, 13.5, 0x6b4a2e, 7.9, 0.6, 39.5, scene); box(0.24, 0.9, 13.5, 0x6b4a2e, 12.1, 0.6, 39.5, scene);
+  for(var bp = 0; bp < 4; bp++){ box(0.8, 0.1, 0.3, 0x7ab3d9, -40 + bp * 27, 0.07, 38.6 + (bp % 2) * 3.4, scene); }
   /* hills */
-  [[-55,-38,16],[0,-46,20],[55,-36,15],[-58,10,12],[58,16,13]].forEach(function(h){
+  [[-55,-38,16],[0,-46,20],[55,-36,15],[-58,10,12],[58,-14,13]].forEach(function(h){
     var m = sph(h[2], 0x6d9153, h[0], -h[2]*0.45, h[1], scene); m.scale.y = 0.55;
   });
   /* fields soil + crops */
-  box(21, 0.24, 13, 0x7a5c38, -22, 0.12, 15, scene);
+  box(13, 0.24, 13, 0x7a5c38, -34, 0.12, 16, scene);
+  box(11, 0.4, 13, 0x84643c, -23.5, 0.2, 16, scene);
   var cropGeo = new THREE.ConeGeometry(0.32, 0.9, 6);
   cropMesh = new THREE.InstancedMesh(cropGeo, mat(0x86b95e, 0.8), 60);
   cropMesh.castShadow = true;
   var dummy = new THREE.Object3D();
   for(var i=0;i<60;i++){
-    var cx = -31 + (i%10)*1.9, cz = 10.4 + Math.floor(i/10)*1.9;
+    var cx = -38.5 + (i%10)*1.9, cz = 11.4 + Math.floor(i/10)*1.9;
     cropData.push({x:cx, z:cz, s:0.35 + Math.random()*0.2});
     dummy.position.set(cx, 0.55, cz); dummy.scale.setScalar(cropData[i].s); dummy.updateMatrix();
     cropMesh.setMatrixAt(i, dummy.matrix);
   }
   scene.add(cropMesh);
-  buildBuilding(-24,-15, 12, 7.5, 0xe9e2d2, 0x9e4f36, "clinic");
-  buildBuilding(24,-15, 12, 7.5, 0xd9b98a, 0x7c4a30, "store");
-  buildBuilding(-33, 1, 7, 5.4, 0xe3cf9f, 0x8a4f35, "house");
-  buildBuilding(-12,-23, 7, 5.4, 0xdfc9a8, 0x74543a, "house");
-  buildBuilding(14,-23, 7, 5.4, 0xe8d9b0, 0x8a4f35, "house");
-  buildBuilding(33, 3, 7, 5.4, 0xdcc39a, 0x6e4f30, "house");
-  buildBuilding(6, 21, 7, 5.4, 0xe3cf9f, 0x7c4a30, "house");
-  buildBuilding(24, 17, 10, 7, 0xd9c9a8, 0x7c4a30, "mill");
-  buildBuilding(-36, -16, 7, 5.6, 0xe8e2cc, 0x5a6d8e, "school");
+  buildBuilding(-28,-17, 12, 7.5, 0xe9e2d2, 0x9e4f36, "clinic");
+  buildBuilding(28,-17, 12, 7.5, 0xd9b98a, 0x7c4a30, "store");
+  buildBuilding(-44, 6, 7, 5.4, 0xe3cf9f, 0x8a4f35, "house");
+  buildBuilding(-16,-26, 7, 5.4, 0xdfc9a8, 0x74543a, "house");
+  buildBuilding(2,-28, 7, 5.4, 0xe8d9b0, 0x8a4f35, "house");
+  buildBuilding(42, 18, 7, 5.4, 0xdcc39a, 0x6e4f30, "house");
+  buildBuilding(20, 40, 7, 5.4, 0xe3cf9f, 0x7c4a30, "house");
+  buildBuilding(32, 29, 10, 7, 0xd9c9a8, 0x7c4a30, "mill");
+  buildBuilding(-41, -16, 7, 5.6, 0xe8e2cc, 0x5a6d8e, "school");
   /* windmill blades on the mill front */
-  millBlades = new THREE.Group(); millBlades.position.set(24, 7.6, 20.6); scene.add(millBlades);
+  millBlades = new THREE.Group(); millBlades.position.set(32, 7.6, 32.6); scene.add(millBlades);
   for(var bl=0; bl<4; bl++){ var blade = box(0.28, 3.4, 0.08, 0xe8e2cc, 0, 1.5, 0, millBlades); var holder = new THREE.Group(); holder.rotation.z = bl * Math.PI/2; millBlades.add(holder); holder.add(blade); blade.position.set(0, 1.5, 0); }
-  sph(0.3, 0x7c4a30, 24, 7.6, 20.7, scene);
+  sph(0.3, 0x7c4a30, 32, 7.6, 32.7, scene);
   /* school flag */
-  cyl(0.05, 0.05, 3.6, 0x6b4a2e, -32.8, 1.8, -12.2, scene, 6);
-  box(1.1, 0.6, 0.05, 0x5a6d8e, -32.2, 3.2, -12.2, scene);
+  cyl(0.05, 0.05, 3.6, 0x6b4a2e, -37.8, 1.8, -12.2, scene, 6);
+  box(1.1, 0.6, 0.05, 0x5a6d8e, -37.2, 3.2, -12.2, scene);
   /* clinic cross + scaffold + roof hole */
   var crossM = mat(0xd84040, 0.6);
-  box(0.5, 1.9, 0.24, crossM, -24, 6.4, -10.9, scene); box(1.3, 0.5, 0.24, crossM, -24, 6.4, -10.9, scene);
-  box(0.18, 4.6, 0.18, 0x8a6a42, -28.5, 2.3, -9.6, scene); box(0.18, 4.6, 0.18, 0x8a6a42, -19.5, 2.3, -9.6, scene);
-  box(9.6, 0.16, 0.5, 0xa87f52, 0, 4.55, 0, scene).position.set(-24, 4.55, -9.6);
-  roofHole = box(4.8, 0.08, 2.5, 0x241a12, -24, 6.3, -13.05, scene);
+  box(0.5, 1.9, 0.24, crossM, -28, 6.4, -12.9, scene); box(1.3, 0.5, 0.24, crossM, -28, 6.4, -12.9, scene);
+  box(0.18, 4.6, 0.18, 0x8a6a42, -32.5, 2.3, -11.6, scene); box(0.18, 4.6, 0.18, 0x8a6a42, -23.5, 2.3, -11.6, scene);
+  box(9.6, 0.16, 0.5, 0xa87f52, 0, 4.55, 0, scene).position.set(-28, 4.55, -11.6);
+  roofHole = box(4.8, 0.08, 2.5, 0x241a12, -28, 6.3, -15.05, scene);
   roofHole.rotation.x = -0.59;
   for(var p=0;p<6;p++){
-    var plank = box(1.45, 0.1, 2.3, 0xc79a5e, -26.4 + p*1.58, 6.38, -12.95, scene);
+    var plank = box(1.45, 0.1, 2.3, 0xc79a5e, -30.4 + p*1.58, 6.38, -14.95, scene);
     plank.rotation.x = -0.59;
     plank.visible = p<2; roofPlanks.push(plank);
   }
   /* storehouse crate stack (grows) */
   for(var cix=0;cix<12;cix++){
-    var cr = box(0.9, 0.9, 0.9, 0xa87f52, 21.6 + (cix%4)*1.05, 0.45 + Math.floor(cix/4)*0.95, -10.6, scene);
+    var cr = box(0.9, 0.9, 0.9, 0xa87f52, 25.6 + (cix%4)*1.05, 0.45 + Math.floor(cix/4)*0.95, -12.6, scene);
     cr.visible = false; storedCrates.push(cr);
   }
   /* mill flour sacks (grow with the milling) */
   for(var fx2=0;fx2<6;fx2++){
-    var sk = box(0.8, 0.55, 0.55, 0xe6dcc3, 20.6 + (fx2%3)*0.95, 0.28 + Math.floor(fx2/3)*0.58, 16.8, scene);
+    var sk = box(0.8, 0.55, 0.55, 0xe6dcc3, 28.6 + (fx2%3)*0.95, 0.28 + Math.floor(fx2/3)*0.58, 24.6, scene);
     sk.visible = false; flourSacks.push(sk);
   }
   /* wood pile + crate pile */
   for(var w=0;w<5;w++) box(2.6, 0.22, 0.5, 0xb5854e, -15.5, 0.15 + w*0.24, -9.5, scene);
   for(var cp=0;cp<4;cp++) box(0.9, 0.9, 0.9, 0x9a7448, 16.5 + (cp%2)*1.0, 0.45 + Math.floor(cp/2)*0.95, -9.8, scene);
   /* well */
-  cyl(1.1, 1.25, 0.9, 0x8d99a0, 10, 0.45, -3, scene); cyl(0.09, 0.09, 1.8, 0x6b4a2e, 9.1, 0.9, -3, scene); cyl(0.09, 0.09, 1.8, 0x6b4a2e, 10.9, 0.9, -3, scene);
-  var wroof = box(2.6, 0.14, 1.6, 0x7c4a30, 10, 1.95, -3, scene); wroof.rotation.z = 0.0;
+  cyl(1.1, 1.25, 0.9, 0x8d99a0, 10, 0.45, 40, scene); cyl(0.09, 0.09, 1.8, 0x6b4a2e, 9.1, 0.9, 40, scene); cyl(0.09, 0.09, 1.8, 0x6b4a2e, 10.9, 0.9, 40, scene);
+  var wroof = box(2.6, 0.14, 1.6, 0x7c4a30, 10, 1.95, 40, scene); wroof.rotation.z = 0.0;
   /* the green: big tree, benches, fire pit */
   cyl(0.5, 0.7, 3.4, 0x6b4a2e, 0, 1.7, 3.4, scene);
   sph(3.1, 0x4e7d3d, 0, 5.4, 3.4, scene); sph(2.2, 0x5d8a49, -2, 4.4, 3.4, scene); sph(2.2, 0x557f42, 2.1, 4.5, 3.6, scene);
   [[-3.4,7],[3.4,7],[0,11.5]].forEach(function(b){ box(2.2, 0.18, 0.55, 0x8a6a42, b[0], 0.55, b[1], scene); box(0.16,0.55,0.5, 0x6b4a2e, b[0]-0.9, 0.27, b[1], scene); box(0.16,0.55,0.5, 0x6b4a2e, b[0]+0.9, 0.27, b[1], scene); });
   cyl(0.85, 1.0, 0.4, 0x777777, 0, 0.2, 7, scene);
+  cyl(1.6, 1.8, 0.5, 0x8d99a0, 7.5, 0.25, 11, scene); cyl(0.22, 0.3, 1.1, 0x8d99a0, 7.5, 0.8, 11, scene);
+  var fwater = new THREE.Mesh(new THREE.CircleGeometry(1.45, 20), mat(0x7ab3d9, 0.4)); fwater.rotation.x = -Math.PI/2; fwater.position.set(7.5, 0.52, 11); scene.add(fwater);
+  var fjet = sph(0.16, new THREE.MeshBasicMaterial({color:0xbfe2f2, transparent:true, opacity:0.75}), 7.5, 1.6, 11, scene); fjet.scale.y = 2.6;
   fireCore = sph(0.34, new THREE.MeshBasicMaterial({color:0xff9a3c}), 0, 0.55, 7, scene);
   fireLight = new THREE.PointLight(0xff8f3f, 0.9, 12); fireLight.position.set(0, 1.2, 7); scene.add(fireLight);
   /* trees (instanced) */
@@ -356,7 +368,7 @@ function buildWorld(){
   scene.add(trunkI); scene.add(folI);
   /* objective beacon: gold ring + light pillar on the week's target */
   objRing = new THREE.Mesh(new THREE.TorusGeometry(3.4, 0.22, 10, 40), new THREE.MeshBasicMaterial({color:0xf5c86a, transparent:true, opacity:0.9}));
-  objRing.rotation.x = Math.PI/2; objRing.position.set(-24, 1.2, -12); scene.add(objRing)
+  objRing.rotation.x = Math.PI/2; objRing.position.set(-28, 1.2, -14); scene.add(objRing)
   var coachMat = new THREE.MeshBasicMaterial({color:0xf0a51e});
   var coneGeo = new THREE.ConeGeometry(1.2, 2.4, 4);
   coachStation = new THREE.Mesh(coneGeo, coachMat); coachStation.rotation.x = Math.PI; coachStation.visible = false; scene.add(coachStation);
@@ -386,16 +398,16 @@ function buildBuilding(x, z, w, h, wallC, roofC, kind){
 
 /* ================= RESIDENTS ================= */
 var RES3 = [
-  {id:"mara", name:"Mara Voss", role:"Repair Lead", aff:"clinic", home:[-30,4], admires:"jonah", vis:66, disp:"Diligent", skin:0xc98a5e, hair:0, hairC:0x2e2018, shirt:0xa34d24},
-  {id:"jonah", name:"Jonah Reyes", role:"Medic", aff:"clinic", home:[-29,6], admires:"priya", vis:60, disp:"Helpful", skin:0x8a5a34, hair:2, hairC:0x16120e, shirt:0x3f6d5a},
-  {id:"priya", name:"Priya Nair", role:"Teacher", aff:"school", home:[-10,-20], admires:"mara", vis:60, disp:"Helpful", skin:0xa06a3c, hair:1, hairC:0x100d0a, shirt:0x5a5f9e},
-  {id:"tomas", name:"Tomas Hale", role:"Farmer", aff:"fields", home:[4,18], admires:"mara", vis:34, disp:"Diligent", skin:0xd9a878, hair:3, hairC:0x6e5636, shirt:0x6d8f52},
-  {id:"ines", name:"Ines Duarte", role:"Baker", aff:"store", home:[12,-20], admires:"priya", vis:38, disp:"Helpful", skin:0xb57a48, hair:4, hairC:0x3a2415, shirt:0xc9862b},
-  {id:"felix", name:"Felix Grant", role:"Miller", aff:"mill", home:[30,6], admires:"jonah", vis:30, disp:"Diligent", skin:0xe0b184, hair:2, hairC:0x8a8a86, shirt:0x707a84},
-  {id:"rosa", name:"Rosa Lindqvist", role:"Weaver", aff:"green", home:[31,8], admires:"ines", vis:26, disp:"Helpful", skin:0xe8bd93, hair:1, hairC:0xc8b294, shirt:0x96688a},
-  {id:"abel", name:"Abel Osei", role:"Water Keeper", aff:"well", home:[8,18], admires:"mara", vis:32, disp:"Diligent", skin:0x6e4526, hair:2, hairC:0x0e0c0a, shirt:0x3e6d8e},
-  {id:"nadia", name:"Nadia Farrell", role:"Storekeeper", aff:"store", home:[30,-19], admires:"priya", vis:28, disp:"Helpful", skin:0xcaa06a, hair:4, hairC:0x7a4a22, shirt:0x8e3f3a},
-  {id:"bram", name:"Bram Kessler", role:"Runner", aff:"green", home:[-9,-19], admires:"mara", vis:20, disp:"Selfish", skin:0xdbac7d, hair:2, hairC:0xa8783c, shirt:0x4a7a9e}
+  {id:"mara", name:"Mara Voss", role:"Repair Lead", aff:"clinic", home:[-16,-24], admires:"jonah", vis:66, disp:"Diligent", skin:0xc98a5e, hair:0, hairC:0x2e2018, shirt:0xa34d24},
+  {id:"jonah", name:"Jonah Reyes", role:"Medic", aff:"clinic", home:[-27,-11], admires:"priya", vis:60, disp:"Helpful", skin:0x8a5a34, hair:2, hairC:0x16120e, shirt:0x3f6d5a},
+  {id:"priya", name:"Priya Nair", role:"Teacher", aff:"school", home:[17,-24], admires:"mara", vis:60, disp:"Helpful", skin:0xa06a3c, hair:1, hairC:0x100d0a, shirt:0x5a5f9e},
+  {id:"tomas", name:"Tomas Hale", role:"Farmer", aff:"fields", home:[-33,24], admires:"mara", vis:34, disp:"Diligent", skin:0xd9a878, hair:3, hairC:0x6e5636, shirt:0x6d8f52},
+  {id:"ines", name:"Ines Duarte", role:"Baker", aff:"store", home:[24,-11], admires:"priya", vis:38, disp:"Helpful", skin:0xb57a48, hair:4, hairC:0x3a2415, shirt:0xc9862b},
+  {id:"felix", name:"Felix Grant", role:"Miller", aff:"mill", home:[40,16], admires:"jonah", vis:30, disp:"Diligent", skin:0xe0b184, hair:2, hairC:0x8a8a86, shirt:0x707a84},
+  {id:"rosa", name:"Rosa Lindqvist", role:"Weaver", aff:"green", home:[-3,-25], admires:"ines", vis:26, disp:"Helpful", skin:0xe8bd93, hair:1, hairC:0xc8b294, shirt:0x96688a},
+  {id:"abel", name:"Abel Osei", role:"Water Keeper", aff:"well", home:[13,36], admires:"mara", vis:32, disp:"Diligent", skin:0x6e4526, hair:2, hairC:0x0e0c0a, shirt:0x3e6d8e},
+  {id:"nadia", name:"Nadia Farrell", role:"Storekeeper", aff:"store", home:[33,-24], admires:"priya", vis:28, disp:"Helpful", skin:0xcaa06a, hair:4, hairC:0x7a4a22, shirt:0x8e3f3a},
+  {id:"bram", name:"Bram Kessler", role:"Runner", aff:"green", home:[20,38], admires:"mara", vis:20, disp:"Selfish", skin:0xdbac7d, hair:2, hairC:0xa8783c, shirt:0x4a7a9e}
 ];
 var DISPO3 = {"Diligent":{icon:"⚒", col:"#e8b34b"}, "Helpful":{icon:"♥", col:"#5cc9a7"}, "Selfish":{icon:"✦", col:"#6fb3e8"}, "Withdrawn":{icon:"☾", col:"#a78fe0"}};
 function makeFigure(d){
@@ -519,7 +531,7 @@ function newSlice(){
   var bram = agent0(g, "bram"); bram.x = -16; bram.z = -4; bram.state = "act"; bram.stationId = "green"; bram.actT = 30; bram.root.position.set(bram.x, 0, bram.z);
   var rosa = agent0(g, "rosa"); rosa.x = 2; rosa.z = 8; rosa.state = "act"; rosa.stationId = "green"; rosa.actT = 5; rosa.root.position.set(rosa.x, 0, rosa.z);
   var tomas = agent0(g, "tomas"); tomas.x = -22; tomas.z = 15; tomas.state = "act"; tomas.stationId = "fields"; tomas.root.position.set(tomas.x, 0, tomas.z);
-  var ines = agent0(g, "ines"); ines.x = 24; ines.z = -8.2; ines.state = "act"; ines.stationId = "store"; ines.root.position.set(ines.x, 0, ines.z);
+  var ines = agent0(g, "ines"); ines.x = 28; ines.z = -10.2; ines.state = "act"; ines.stationId = "store"; ines.root.position.set(ines.x, 0, ines.z);
   return g;
 }
 function agent0(g, id){ for(var i=0;i<g.agents.length;i++) if(g.agents[i].id===id) return g.agents[i]; return null; }
@@ -673,7 +685,7 @@ function stepAgents(dt){
       } else if(st === "store"){
         if(!a.fetch && a.actT <= 0){ a.fetch = "crate-out"; goTo(a, 16.5, -8.8, "store"); }
       } else if(st === "mill"){
-        if(!a.fetch && a.actT <= 0){ a.fetch = "grain-out"; goTo(a, 24, -8.2, "mill"); }
+        if(!a.fetch && a.actT <= 0){ a.fetch = "grain-out"; goTo(a, 28, -10.2, "mill"); }
       } else if(st === "school"){
         a.energy = Math.max(0, a.energy - 0.4*dt);
         wk(a, "school", dt); G.stats.cohesion = Math.min(100, G.stats.cohesion + dt * 0.05);
