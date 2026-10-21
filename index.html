@@ -559,7 +559,7 @@ function goStation(a, stId){
   a.slot = {x:jx, z:jz};
   goTo(a, jx, jz, stId);
 }
-function wk(a, key, amt){ G.weekWork[key] += amt; if(a.driveObj){ G.weekWorkP[key] += amt; if(G.objWorkers) G.objWorkers[a.id] = a.model || ""; } }
+function wk(a, key, amt){ G.weekWork[key] += amt; if(a.driveObj){ var mult = (a.stationId === G.objStation && G.t < (G.pushUntil || 0)) ? 2 : 1; G.weekWorkP[key] += amt * mult; if(G.objWorkers) G.objWorkers[a.id] = a.model || ""; } }
 function decide(a){
   if(a.sick || a.medicTask) return;
   if(a.order){ a.reason = "Your order"; a.driveObj = (a.order === G.objStation); goStation(a, a.order); return; }
@@ -643,7 +643,7 @@ function stepAgents(dt){
         if(m && m.disp !== a.disp){
           a.disp = m.disp; G.copied++; a.vis = Math.min(100, a.vis + 8);
           a.mimicStation = (m.state === "act") ? m.stationId : null; a.mimicFrom = m.name.split(" ")[0];
-          if(a.mimicStation){
+          if(a.mimicStation && !(m.spotUntil && G.t < m.spotUntil)){
             addTension(a, m, 6);
             for(var bi = 0; bi < G.agents.length; bi++){ var b2 = G.agents[bi]; if(b2 !== a && b2 !== m && b2.model === m.id && b2.stationId === a.mimicStation && b2.state === "act"){ addTension(a, b2, 9); break; } }
           }
@@ -962,6 +962,11 @@ function stepSim(dt){
   var inc = (G.incidents || INCIDENTS)[G.week - 1];
   if(inc && !G.incidentDone && !G.incidentOpen && !G.pendingIncident && G.weekTime >= inc.at) triggerIncident(inc);
   if(G.stats.rivalry < 45) G.calmT += dt;
+  if(G.started && !G.over && !G.objComplete && G.pushWeek !== G.week && G.weekTime >= 30){
+    G.pushWeek = G.week; G.pushUntil = G.t + 12;
+    var pst = STATION3[G.objStation];
+    showToast("⏰ Midweek push: driven hands at the " + (pst ? pst.name : "objective") + " count double for 12 seconds");
+  }
   var gNow = 0; G.agents.forEach(function(a){ if(a.stationId === "green" && (a.state === "act" || a.state === "sit" || a.state === "watch")) gNow++; });
   if(gNow > (G.peakGreen || 0)) G.peakGreen = gNow;
   G.imitateT += dt;
@@ -1317,6 +1322,7 @@ function fxTick(dt){
     G.agents.forEach(function(b){ if(b !== selA && b.model === selA.id) netLine(b.x, b.z, selA.x, selA.z, 0xffffff, 0.35); });
   }
   for(var nu = nUsed; nu < netLines.length; nu++) netLines[nu].visible = false;
+  if(objRing) objRing.scale.setScalar(G.t < (G.pushUntil || 0) ? 1.3 : 1);
   if(pipMats.length){ var hands = countHands(G.objStation); pipMats.forEach(function(pm, ix){ pm.opacity = hands > ix ? 0.95 : 0.22; }); }
   for(var oi = orderPings.length - 1; oi >= 0; oi--){
     var op = orderPings[oi];
@@ -1406,7 +1412,7 @@ function tapAt(cx, cy, smart){
     refreshTray(true); return;
   }
   if(G.armed){
-    if(p.agent){ var t = agent(p.agent); t.vis = Math.min(100, t.vis + 26); setBubble(t, "✨", 2.5); G.spotCd = G.t + 20; G.armed = false; showToast("✨ " + t.name.split(" ")[0] + " is watched now"); refreshTray(true); }
+    if(p.agent){ var t = agent(p.agent); t.vis = Math.min(100, t.vis + 26); t.spotUntil = G.t + 20; setBubble(t, "✨", 2.5); G.spotCd = G.t + 20; G.armed = false; showToast("✨ " + t.name.split(" ")[0] + " is watched now"); refreshTray(true); }
     else G.armed = false;
     return;
   }
