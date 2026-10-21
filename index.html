@@ -1392,6 +1392,13 @@ function updateLabels(){
       a.bubbleEl.style.top = (sy - 16) + "px";
       clearLeftHud(a.bubbleEl, sx, sy - 16, hud);
       if(a.bubbleEl.textContent !== bubIcon) a.bubbleEl.textContent = bubIcon;
+      // Wants decay visibly like a Sims need bar: in the last 8s of a want's
+      // life the bubble fades, so urgency reads at a glance with zero reading
+      // instead of the want vanishing silently with a morale hit.
+      if(!evBub && a.want){
+        var rem = a.want.until - G.t, k = Math.max(0, Math.min(1, rem / 8));
+        a.bubbleEl.style.opacity = (0.4 + 0.6 * k).toFixed(2);
+      } else a.bubbleEl.style.opacity = "1";
     }
     var iIcon = intentIcon(a);
     a.intentEl.style.display = behind ? "none" : "block";
