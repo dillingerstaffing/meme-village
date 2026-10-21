@@ -39,7 +39,9 @@ canvas{display:block}
 .ovl .bubble.wantb{border:2px dashed var(--gold);background:rgba(255,244,214,.97)}
 .cbtn.wantpulse{animation:wantp 1s ease-in-out infinite;border-color:var(--gold)}
 @keyframes wantp{0%,100%{box-shadow:0 0 0 0 rgba(232,179,75,0)}50%{box-shadow:0 0 0 3px rgba(232,179,75,.55)}}
-#tray{position:fixed;z-index:10;bottom:0;left:0;right:0;background:linear-gradient(180deg,rgba(14,19,26,.92),rgba(9,12,17,.97));border-top:1px solid var(--line);padding:10px 12px;display:flex;gap:12px;align-items:center;min-height:96px}
+#tray{position:fixed;z-index:10;bottom:0;left:0;right:0;background:linear-gradient(180deg,rgba(14,19,26,.92),rgba(9,12,17,.97));border-top:1px solid var(--line);padding:10px 12px;display:flex;gap:12px;align-items:center;min-height:96px;pointer-events:none}
+#tray button{pointer-events:auto}
+#selInfo .ivlog{pointer-events:auto}
 #selInfo{min-width:170px;max-width:230px}
 #selInfo .nm{font-weight:800;font-size:17px}
 #selInfo .rl{font-size:10.5px;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;font-weight:700}
@@ -1618,6 +1620,8 @@ function hudTick(dt){
   var ahtml = G.alerts.slice(-2).map(function(x){ return "<button class='alert-chip' onclick='__pickAlert(\"" + x.id + "\")'>⚠ <b>" + x.name + "</b> is idle · tap to direct</button>"; }).join("");
   if(alEl.innerHTML !== ahtml) alEl.innerHTML = ahtml;
   refreshTray(false);
+  var trayEl = document.getElementById("tray");
+  if(trayEl){ var tb = (trayEl.offsetHeight + 12) + "px"; if(alEl.style.bottom !== tb) alEl.style.bottom = tb; }
 }
 function intentIcon(a){
   if(a.sick || a.state === "sit") return "✚";
