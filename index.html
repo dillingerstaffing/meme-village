@@ -139,6 +139,7 @@ canvas{display:block}
   <div class="srow"><span class="sl">⚔ Rivalry</span><span class="sb"><i id="bar-riv" style="background:#e05a4e"></i></span><b id="val-riv">18</b></div>
   <div class="srow"><span class="sl">🌾 Scarcity</span><span class="sb"><i id="bar-scar" style="background:#e08a4b"></i></span><b id="val-scar">52</b></div>
   <div class="srow"><span class="sl">🕊 Autonomy</span><span class="sb"><i id="bar-aut" style="background:#6fb3e8"></i></span><b id="val-aut">60</b></div>
+  <div class="srow" id="blameRow" style="display:none"><span class="sl" id="blameLbl">🌩 Blame</span><span class="sb"><i id="blameBar" style="background:#e85a3c"></i></span><b id="blameVal">0</b></div>
 </div>
 <div class="hud" id="topRight">
   <span class="chip" id="weekChip">WEEK 1 · ☀ 0%</span>
@@ -167,7 +168,7 @@ canvas{display:block}
     <p style="color:var(--ink2);margin:0">Ten people, one valley, twelve weeks to winter. They work, rest, watch each other, and copy what they see. You direct them, but you do not control what they become. That part spreads on its own.</p>
     <div class="watch">
       <div>🔨 <b>Every week has an objective.</b> The gold ring marks where it happens.</div>
-      <div>👀 <b>Residents copy visible models.</b> Spotlight the right person and the whole village tilts.</div>
+      <div>👀 <b>Everyone looks up to someone, and copies them.</b> Set the models, and the village follows.</div>
       <div>⚖ <b>Blame works fast and bills later.</b> Choose carefully when things go wrong.</div>
     </div>
     <div id="seasonLine" style="color:var(--ink2);font-size:13px;margin-top:10px"></div>
@@ -235,7 +236,7 @@ var STATION3 = {
 var roofPlanks = [], roofHole = null, storedCrates = [], cropMesh = null, cropData = [], flourSacks = [];
 var fireLight = null, fireCore = null, millBlades = null, objRing = null;
 var pulses = [], coachStation = null, coachAgent = null, pipGroup = null, pipMats = [];
-var orderPings = [], selLine = null;
+var orderPings = [], selLine = null, netLines = null;
 var mouseX = -1, mouseY = -1, mouseIn = false, ptrDown = false, mouseT = 0, mouseBtn = 0;
 var FINE_POINTER = !!(window.matchMedia && matchMedia("(pointer:fine)").matches);
 function buildWorld(){
@@ -449,7 +450,7 @@ function makeAgents(){
       state:"idle", stationId:null, slot:null, actT:0, decideT:Math.random()*2, loafT:0, alerted:false,
       energy:80 - (i%4)*4, morale:72, phase:Math.random()*10, walkPhase:0,
       order:null, carrying:null, bubble:null, bubbleUntil:0, watchOf:null, watchT:0, want:null, wantCd:Math.random()*10, wantPend:null, driveObj:false,
-      idleT:0, sick:false, seed:Math.random()*100
+      idleT:0, sick:false, seed:Math.random()*100, model:d.admires, blamed:0, modelCd:0
     });
     a.tx = a.x; a.tz = a.z;
     a.root.position.set(a.x, 0, a.z);
@@ -514,7 +515,7 @@ function animateAgent(a, dt){
 function newSlice(){
   var g = {t:0, weekTime:0, week:1, speed:1, started:false, over:false, agents:makeAgents(), selected:null,
     roof:30, stores:0, flour:0, copied:0, fieldGrowth:0, growthApplied:-1, incidentOpen:false, incidentDone:false,
-    rosaOutcome:"", imitateT:0, spotCd:0, armed:false, toastUntil:0,
+    rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, blame:0, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0,
     stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
     objStation:"clinic", objComplete:false, objDone:0, scapegoats:0, delays:[],
     weekWork:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0}, weekWorkP:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0},
@@ -558,7 +559,7 @@ function goStation(a, stId){
   a.slot = {x:jx, z:jz};
   goTo(a, jx, jz, stId);
 }
-function wk(a, key, amt){ G.weekWork[key] += amt; if(a.driveObj) G.weekWorkP[key] += amt; }
+function wk(a, key, amt){ G.weekWork[key] += amt; if(a.driveObj){ G.weekWorkP[key] += amt; if(G.objWorkers) G.objWorkers[a.id] = a.model || ""; } }
 function decide(a){
   if(a.sick || a.medicTask) return;
   if(a.order){ a.reason = "Your order"; a.driveObj = (a.order === G.objStation); goStation(a, a.order); return; }
@@ -642,6 +643,10 @@ function stepAgents(dt){
         if(m && m.disp !== a.disp){
           a.disp = m.disp; G.copied++; a.vis = Math.min(100, a.vis + 8);
           a.mimicStation = (m.state === "act") ? m.stationId : null; a.mimicFrom = m.name.split(" ")[0];
+          if(a.mimicStation){
+            addTension(a, m, 6);
+            for(var bi = 0; bi < G.agents.length; bi++){ var b2 = G.agents[bi]; if(b2 !== a && b2 !== m && b2.model === m.id && b2.stationId === a.mimicStation && b2.state === "act"){ addTension(a, b2, 9); break; } }
+          }
           setBubble(a, DISPO3[a.disp].icon, 2.6); spawnPulse(m, a);
           showToast("👀 " + a.name.split(" ")[0] + " copied " + m.name.split(" ")[0] + ": " + DISPO3[a.disp].icon + " " + a.disp);
           refreshTray();
@@ -719,7 +724,40 @@ function stepAgents(dt){
     }
   }
 }
+function pairKey(x, y){ return x < y ? x + "|" + y : y + "|" + x; }
+function addTension(a, b, amt){
+  if(!a || !b || a === b) return;
+  var k = pairKey(a.id, b.id);
+  G.pairs[k] = Math.min(100, (G.pairs[k] || 0) + amt);
+  if(G.pairs[k] >= 70 && (!G.feudCd[k] || G.t > G.feudCd[k])){
+    G.feudCd[k] = G.t + WEEK_LEN;
+    G.pairs[k] = 35;
+    setBubble(a, "⚔", 2.2); setBubble(b, "⚔", 2.2);
+    applyStatMods({rivalry:6, cohesion:-3});
+    G.blame = Math.min(100, (G.blame || 0) + 5);
+    var shared = (a.model && a.model === b.model) ? agent(a.model) : null;
+    showToast("⚔ " + a.name.split(" ")[0] + " and " + b.name.split(" ")[0] + (shared ? " both follow " + shared.name.split(" ")[0] + ", and imitation has turned to rivalry" : " have fallen out over the same work"));
+  }
+}
+function scapegoatCandidate(){
+  var best = null, bs = -1;
+  G.agents.forEach(function(a){ if(a.sick) return; var sc = (a.blamed || 0) * 14 + (62 - a.morale); if(sc > bs){ bs = sc; best = a; } });
+  return best;
+}
 function imitationScan(){
+  G.agents.forEach(function(a){
+    if(!a.model || a.sick || a.medicTask || a.order || a.watchCd > 0) return;
+    if(!(a.state === "idle" || (a.state === "act" && a.stationId === "green") || a.state === "sit")) return;
+    if(a.modelCd && G.t < a.modelCd) return;
+    var m = agent(a.model);
+    if(!m || m === a || m.state !== "act" || m.sick) return;
+    a.modelCd = G.t + 12 + Math.random() * 10;
+    if(Math.random() < 0.55){
+      var d = Math.sqrt((m.x-a.x)*(m.x-a.x) + (m.z-a.z)*(m.z-a.z));
+      if(d > 3.4){ a.pendingWatch = m.id; var vx = a.x - m.x, vz = a.z - m.z, vl = Math.sqrt(vx*vx + vz*vz) || 1; goTo(a, m.x + vx/vl*3.2, m.z + vz/vl*3.2, a.stationId); }
+      else { a.state = "watch"; a.watchOf = m.id; a.watchT = 3.4; setBubble(a, "👀", 1.8); }
+    }
+  });
   G.agents.forEach(function(a){
     if(a.vis >= 60 || a.watchCd > 0 || a.sick || a.medicTask) return;
     if(!(a.state === "idle" || (a.state === "act" && a.stationId === "green") || a.state === "sit")) return;
@@ -739,7 +777,7 @@ function imitationScan(){
 }
 /* ================= INCIDENTS & OBJECTIVES ================= */
 function orderAgent(id, station){ var a = agent(id); if(!a) return; a.order = station; a.fetch = null; a.carrying = null; if(a.state !== "walk"){ a.state = "idle"; a.decideT = 0; } }
-function blameAgent(id){ var a = agent(id); if(!a) return; a.disp = "Withdrawn"; a.morale = Math.max(5, a.morale - 25); a.order = null; setBubble(a, "🔴", 2.5); goStation(a, "home"); G.stats.rivalry = Math.min(100, G.stats.rivalry + 5); }
+function blameAgent(id){ var a = agent(id); if(!a) return; a.blamed = (a.blamed || 0) + 1; G.blame = Math.min(100, (G.blame || 0) + 14); a.disp = "Withdrawn"; a.morale = Math.max(5, a.morale - 25); a.order = null; setBubble(a, "🔴", 2.5); goStation(a, "home"); G.stats.rivalry = Math.min(100, G.stats.rivalry + 5); }
 function sendMedic(patientId){ var j = agent("jonah"), p = agent(patientId); if(!j || !p) return; G.medicPatient = patientId; j.medicTask = 1; j.order = null; j.fetch = null; j.carrying = null; goTo(j, 1.1, 9.0, "green"); showToast("✚ Jonah is on his way"); }
 function recoverPatient(id, morale){ var p = agent(id); if(!p) return; p.sick = false; p.morale = morale; p.state = "idle"; p.decideT = 1; }
 function restPatient(id){ var p = agent(id); if(!p) return; p.order = null; goStation(p, "home"); showToast("🏠 " + p.name.split(" ")[0] + " heads home to rest"); }
@@ -829,16 +867,16 @@ function chooseIncident(i){
 var OBJECTIVES = [
   {station:"clinic", icon:"🔨", title:"Repair the clinic roof", hint:"Planks land as the crew works", metric:function(){ return G.roof; }},
   {station:"store", icon:"📦", title:"Fill the storehouse", hint:"Crates and harvests, all season food", metric:function(){ return G.weekWorkP.stores * 100 / 10; }},
-  {station:"fields", icon:"🌿", title:"Bring in the harvest", hint:"Work the rows while they are ripe", metric:function(){ return G.weekWorkP.harvest * 100 / 6; }},
-  {station:"well", icon:"💧", title:"Water for everyone", hint:"Keep the well rope moving", metric:function(){ return G.weekWorkP.well * 100 / 20; }},
-  {station:"school", icon:"📚", title:"Lessons under the tree", hint:"Time at the school, together", metric:function(){ return G.weekWorkP.school * 100 / 20; }},
+  {station:"green", icon:"🍲", title:"One table, one village", hint:"Six residents on the green at once: send them, or let copying gather them", metric:function(){ return (G.peakGreen || 0) * 100 / 6; }},
+  {station:"fields", icon:"🌿", title:"Many hands, one harvest", hint:"Driven work from three different chains of imitation", metric:function(){ var seen = {}; Object.keys(G.objWorkers || {}).forEach(function(k){ if(G.objWorkers[k]) seen[G.objWorkers[k]] = 1; }); return Math.min(G.weekWorkP.harvest * 100 / 6, Object.keys(seen).length * 100 / 3); }},
   {station:"mill", icon:"🌾", title:"Flour for the winter", hint:"Grain in, flour out", metric:function(){ return G.weekWorkP.mill * 100 / 4; }},
-  {station:"green", icon:"🔥", title:"The village that eats together", hint:"Time on the green, all week", metric:function(){ return G.weekWorkP.green * 100 / 40; }},
+  {station:"green", icon:"🕊", title:"A week without a feud", hint:"Keep rivalry under 45: separate the doubles, cool them on the green", metric:function(){ return (G.calmT || 0) * 100 / WEEK_LEN; }},
+  {station:"green", icon:"🌟", title:"A new model rises", dynModel:true, hintDyn:function(){ var t = G.objTarget ? agent(G.objTarget) : null; return t ? ("Three residents looking up to " + t.name.split(" ")[0] + ": set models, use Spotlight") : "Three residents looking up to the least watched"; }, metric:function(){ if(!G.objTarget) return 0; var n = 0; G.agents.forEach(function(a){ if(a.model === G.objTarget) n++; }); return n * 100 / 3; }},
+  {station:"school", icon:"📚", title:"Lessons under the tree", hint:"Time at the school, together", metric:function(){ return G.weekWorkP.school * 100 / 20; }},
+  {station:"well", icon:"💧", title:"Water for everyone", hint:"Keep the well rope moving, across the bridge", metric:function(){ return G.weekWorkP.well * 100 / 20; }},
   {station:"clinic", icon:"✚", title:"A clinic ready for winter", hint:"Hands at the clinic, all week", metric:function(){ return G.weekWorkP.clinic * 100 / 28; }},
-  {station:"fields", icon:"🌾", title:"The second harvest", hint:"One more pass over the rows", metric:function(){ return G.weekWorkP.harvest * 100 / 8; }},
-  {station:"store", icon:"❄", title:"Stores against the cold", hint:"The count winter will audit", metric:function(){ return G.weekWorkP.stores * 100 / 13; }},
   {station:"green", icon:"🍲", title:"The long table", hint:"Everyone on the green, often", metric:function(){ return G.weekWorkP.green * 100 / 48; }},
-  {station:"store", icon:"📦", title:"The Winter Count", hint:"Final stores before the snow", metric:function(){ return G.weekWorkP.stores * 100 / 10; }}
+  {station:"store", icon:"❄", title:"The Winter Count", hint:"Final stores before the snow", metric:function(){ return G.weekWorkP.stores * 100 / 10; }}
 ];
 function setObjective(){
   var o = (G.objectives || OBJECTIVES)[G.week - 1];
@@ -847,6 +885,7 @@ function setObjective(){
   var st = STATION3[o.station];
   if(objRing && st) objRing.position.set(st.x, 1.2, st.z);
   if(pipGroup && st){ pipGroup.position.set(st.x, 0, st.z); pipGroup.visible = true; }
+  if(o.dynModel){ var lv = null; G.agents.forEach(function(a){ if(!lv || a.vis < lv.vis) lv = a; }); G.objTarget = lv ? lv.id : null; }
 }
 function objectiveTick(){
   if(G.objComplete) return;
@@ -867,6 +906,27 @@ function objectiveTick(){
 function clamp100(v){ return Math.max(0, Math.min(100, v)); }
 function statDrift(dt){
   var s = G.stats, workers = 0, ordered = 0, crowd = {};
+  Object.keys(G.pairs).forEach(function(k){
+    if(G.pairs[k] <= 0) return;
+    var ids = k.split("|"), pa = agent(ids[0]), pb = agent(ids[1]);
+    var cool = (pa && pb && (pa.stationId === "green" || pb.stationId === "green")) ? 2.4 : 0.5;
+    G.pairs[k] = Math.max(0, G.pairs[k] - dt * cool);
+  });
+  if(s.rivalry > 52) G.blame = Math.min(100, (G.blame || 0) + dt * (s.rivalry - 52) * 0.055);
+  else if(s.rivalry < 40) G.blame = Math.max(0, (G.blame || 0) - dt * 0.3);
+  var cand = scapegoatCandidate();
+  if(cand && (G.blame || 0) >= 60 && cand.stationId === "green" && (cand.state === "act" || cand.state === "sit")){
+    G.blame = Math.max(0, G.blame - dt * 3.4);
+    if(G.blame < 60 && !G.mediated){ G.mediated = true; applyStatMods({cohesion:3}); showToast("🌿 The village talked it out on the green"); }
+  }
+  if((G.blame || 0) > 82) G.mediated = false;
+  if(G.started && !G.over && (G.blame || 0) >= 100 && cand){
+    G.blame = 35; G.expelled++;
+    blameAgent(cand.id);
+    applyStatMods({cohesion:7, rivalry:-16, trust:-5});
+    G.delays.push({at: G.t + WEEK_LEN, mods:{trust:-5}, msg:"🕯 The village remembers who it turned on"});
+    showToast("🌩 The village turned on " + cand.name.split(" ")[0] + ". The quiet feels bought.");
+  }
   G.agents.forEach(function(a){
     if(a.state === "act" && a.stationId && a.stationId !== "green" && a.stationId !== "home"){ workers++; if(!a.order) crowd[a.stationId] = (crowd[a.stationId] || 0) + 1; }
     if(a.order) ordered++;
@@ -889,6 +949,7 @@ function endWeek(){
   if(o) showToast(G.objComplete ? ("✓ Week " + G.week + " done: " + o.title + " · " + G.objDone + "/12") : ("Week " + G.week + " ends: " + o.title + " missed"));
   G.week++; G.weekTime = 0; G.incidentDone = false; G.curIncident = null;
   G.weekWork = {stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0}; G.weekWorkP = {stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0};
+  G.calmT = 0; G.peakGreen = 0; G.objWorkers = {};
   G.agents.forEach(function(a){ a.alerted = false; a.loafT = 0; });
   G.fieldGrowth = 0.12; G.growthApplied = -1;
   setObjective();
@@ -900,6 +961,9 @@ function stepSim(dt){
   for(var di = G.delays.length - 1; di >= 0; di--){ if(G.t >= G.delays[di].at){ var dl = G.delays[di]; G.delays.splice(di, 1); applyStatMods(dl.mods); if(dl.msg) showToast(dl.msg); if(dl.fn) dl.fn(); } }
   var inc = (G.incidents || INCIDENTS)[G.week - 1];
   if(inc && !G.incidentDone && !G.incidentOpen && !G.pendingIncident && G.weekTime >= inc.at) triggerIncident(inc);
+  if(G.stats.rivalry < 45) G.calmT += dt;
+  var gNow = 0; G.agents.forEach(function(a){ if(a.stationId === "green" && (a.state === "act" || a.state === "sit" || a.state === "watch")) gNow++; });
+  if(gNow > (G.peakGreen || 0)) G.peakGreen = gNow;
   G.imitateT += dt;
   if(G.imitateT > 2.5){ G.imitateT = 0; imitationScan(); }
   stepAgents(dt);
@@ -952,7 +1016,7 @@ function finishGame(){
   var s = G.stats;
   var avgMorale = Math.round(G.agents.reduce(function(sm, a){ return sm + a.morale; }, 0) / G.agents.length);
   var ending, epi;
-  if(G.scapegoats >= 3 || (G.scapegoats >= 2 && s.rivalry >= 55)){ ending = "The Blame Cycle"; epi = "Every problem found a person, and every person found a door. The village is quiet now, in the way empty places are quiet."; }
+  if(G.scapegoats >= 3 || (G.scapegoats >= 2 && s.rivalry >= 55) || G.expelled >= 2){ ending = "The Blame Cycle"; epi = "Every problem found a person, and every person found a door. The village is quiet now, in the way empty places are quiet."; }
   else if(s.scarcity >= 72 || avgMorale < 38){ ending = "Quiet Breakdown"; epi = "No single disaster. Just a slow thinning, of stores, of hands, of reasons to stay at the table."; }
   else if(G.objDone >= 6 && s.trust >= 54 && s.cohesion >= 54 && s.scarcity < 56){ ending = "Mutual Aid"; epi = "Winter came to a village that had practiced needing each other. The stores were shared, the work was shared, and so was the cold."; }
   else if(s.prod >= 62 && s.autonomy < 42){ ending = "Order at a Price"; epi = "The stores are full and the lanes are swept. Everything got done. Almost nobody remembers choosing any of it."; }
@@ -1065,13 +1129,15 @@ function refreshTray(force){
   }).join("");
   html += "<button class='cbtn" + (cam.follow ? " on" : "") + "' data-o='follow'" + (!a ? " disabled" : "") + "><span class='i'>🎥</span><span class='l'>Follow</span></button>";
   html += "<button class='cbtn" + (G.armed ? " on" : "") + "' data-o='spot'" + (!a || G.spotCd > G.t ? " disabled" : "") + "><span class='i'>✨</span><span class='l'>Spotlight</span></button>";
+  html += "<button class='cbtn" + (G.modelArm ? " on" : "") + "' data-o='model'" + (!a ? " disabled" : "") + "><span class='i'>👁</span><span class='l'>Model</span></button>";
   var cmds = document.getElementById("cmds");
   cmds.innerHTML = html;
   cmds.querySelectorAll(".cbtn").forEach(function(b){
     b.addEventListener("click", function(){
       var o = b.getAttribute("data-o");
       if(o === "follow"){ cam.follow = cam.follow ? null : G.selected; refreshTray(true); return; }
-      if(o === "spot"){ G.armed = true; showToast("✨ Tap a resident to spotlight them"); refreshTray(true); return; }
+      if(o === "spot"){ G.armed = true; G.modelArm = false; showToast("✨ Tap a resident to spotlight them"); refreshTray(true); return; }
+      if(o === "model"){ G.modelArm = true; G.armed = false; showToast("👁 Tap who " + (a ? a.name.split(" ")[0] : "they") + " should look up to"); refreshTray(true); return; }
       setOrder3(o);
     });
   });
@@ -1081,6 +1147,7 @@ function setOrder3(orderId){
   if(!a || a.sick) return;
   if(orderId !== "auto" && a.order === orderId){ refreshTray(true); return; }
   G.firstOrder = true;
+  Object.keys(G.pairs).forEach(function(k){ if(k.split("|").indexOf(a.id) >= 0) G.pairs[k] = Math.max(0, G.pairs[k] - 22); });
   if(a.medicTask){ a.medicTask = 0; var pat = G.medicPatient ? agent(G.medicPatient) : null; if(pat && pat.sick){ pat.sick = false; pat.morale = Math.max(pat.morale, 50); pat.state = "idle"; pat.decideT = 0.5; } G.medicPatient = null; }
   a.order = (orderId === "auto") ? null : orderId;
   a.reason = orderId === "auto" ? "Free will" : "Your order";
@@ -1104,6 +1171,7 @@ function drawMinimap(){
   var X = function(x){ return (x + 60) / 120 * W; }, Y = function(z){ return (z + 45) / 90 * H; };
   c.fillStyle = "#2a3d24"; c.fillRect(0, 0, W, H);
   c.fillStyle = "rgba(119,167,94,0.55)"; c.fillRect(0, 0, W, H);
+  c.fillStyle = "rgba(122,179,217,0.85)"; c.fillRect(0, Y(36), W, H - Y(36));
   Object.keys(STATION3).forEach(function(k){ var st = STATION3[k]; if(k === "home") return; c.fillStyle = (k === G.objStation && !G.objComplete) ? "#e8b34b" : "rgba(240,235,220,0.8)"; c.fillRect(X(st.x) - 3, Y(st.z) - 3, 6, 6); });
   G.agents.forEach(function(a){ c.fillStyle = a.sick ? "#e85a3c" : (a.id === G.selected ? "#ffd75e" : "rgba(255,255,255,0.92)"); c.beginPath(); c.arc(X(a.x), Y(a.z), a.id === G.selected ? 3 : 2, 0, 6.29); c.fill(); });
   c.strokeStyle = "rgba(255,255,255,0.55)"; c.lineWidth = 1;
@@ -1120,7 +1188,7 @@ function hudTick(dt){
   var pct = o ? Math.max(0, Math.min(100, Math.round(o.metric()))) : 0;
   document.getElementById("objK").textContent = "OBJECTIVE · WEEK " + G.week + (G.objComplete ? " · ✓ DONE" : "");
   document.getElementById("objT").textContent = o ? (o.icon + " " + o.title) : "";
-  document.getElementById("objHint").textContent = o ? o.hint : "";
+  document.getElementById("objHint").textContent = o ? (o.hintDyn ? o.hintDyn() : o.hint) : "";
   document.getElementById("objBar").style.width = pct + "%";
   document.getElementById("objPct").textContent = pct + "% · 👥" + countHands(G.objStation);
   var wc2 = {};
@@ -1136,6 +1204,8 @@ function hudTick(dt){
   document.getElementById("weekChip").textContent = "WEEK " + G.week + "/12 · ☀ " + Math.round(G.weekTime / WEEK_LEN * 100) + "%";
   document.getElementById("storesN").textContent = G.stores;
   document.getElementById("copiedN").textContent = G.copied;
+  var bRow = document.getElementById("blameRow");
+  if(bRow){ var bc2 = scapegoatCandidate(); var bShow = (G.blame || 0) >= 25 && !!bc2; bRow.style.display = bShow ? "flex" : "none"; if(bShow){ document.getElementById("blameLbl").textContent = "🌩 " + bc2.name.split(" ")[0]; document.getElementById("blameBar").style.width = Math.round(G.blame) + "%"; document.getElementById("blameVal").textContent = Math.round(G.blame); } }
   var s = G.stats;
   [["prod","prod"],["trust","trust"],["coh","cohesion"],["riv","rivalry"],["scar","scarcity"],["aut","autonomy"]].forEach(function(pr){
     document.getElementById("bar-" + pr[0]).style.width = s[pr[1]] + "%";
@@ -1143,7 +1213,7 @@ function hudTick(dt){
   });
   G.alerts = G.alerts.filter(function(x){ return G.t - x.at < 9; });
   var alEl = document.getElementById("alerts");
-  var ahtml = G.alerts.map(function(x){ return "<button class='alert-chip' onclick='__pickAlert(\"" + x.id + "\")'>⚠ <b>" + x.name + "</b> is idle · tap to direct</button>"; }).join("");
+  var ahtml = G.alerts.slice(-2).map(function(x){ return "<button class='alert-chip' onclick='__pickAlert(\"" + x.id + "\")'>⚠ <b>" + x.name + "</b> is idle · tap to direct</button>"; }).join("");
   if(alEl.innerHTML !== ahtml) alEl.innerHTML = ahtml;
   refreshTray(false);
 }
@@ -1174,6 +1244,8 @@ function pickWantStation(a){
   if(a.disp === "Helpful") c.push(["clinic", 2], ["school", 2]);
   if(a.disp === "Selfish") c.push(["green", 2.4], ["home", 1.6]);
   if(a.disp === "Withdrawn") c.push(["home", 3]);
+  var md = a.model ? agent(a.model) : null;
+  if(md){ if(md.stationId && md.stationId !== "home") c.push([md.stationId, 2.6]); if(md.want) c.push([md.want.station, 2.2]); }
   var tot = 0; c.forEach(function(x){ tot += x[1]; });
   var r = Math.random() * tot;
   for(var i = 0; i < c.length; i++){ r -= c[i][1]; if(r <= 0) return c[i][0]; }
@@ -1192,10 +1264,13 @@ function giveWant(a, station){
   }
 }
 function watchLine(a){
-  var n = 0; G.agents.forEach(function(b){ if(b !== a && (b.watchOf === a.id || b.pendingWatch === a.id)) n++; });
-  if(n > 0) return "👁 Watched by " + n + " · this behavior spreads";
-  if(a.vis >= 60) return "👁 A model · work done in the open gets copied";
-  return "👁 Nobody watching · open work is what spreads";
+  var parts = [];
+  var m = a.model ? agent(a.model) : null;
+  if(m) parts.push("👁 Looks up to " + m.name.split(" ")[0]);
+  var n = 0; G.agents.forEach(function(b){ if(b !== a && b.model === a.id) n++; });
+  if(n > 0) parts.push("model for " + n);
+  else if(a.vis >= 60) parts.push("a public model");
+  return parts.length ? parts.join(" · ") : "👁 Nobody watching · open work is what spreads";
 }
 function countHands(stId){
   if(!stId) return 0;
@@ -1233,6 +1308,15 @@ function fxTick(dt){
     if(p.life <= 0){ scene.remove(p.line); pulses.splice(i, 1); }
     else p.line.material.opacity = Math.min(0.85, p.life);
   }
+  if(!netLines){ netLines = []; for(var nl = 0; nl < 11; nl++){ var nlg = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]); var nlo = new THREE.Line(nlg, new THREE.LineBasicMaterial({color:0xffffff, transparent:true, opacity:0.3})); nlo.visible = false; scene.add(nlo); netLines.push(nlo); } }
+  var nUsed = 0;
+  var selA = G.selected ? agent(G.selected) : null;
+  if(selA){
+    function netLine(x1, z1, x2, z2, col, op){ if(nUsed >= netLines.length) return; var lo = netLines[nUsed++]; var pa2 = lo.geometry.attributes.position.array; pa2[0] = x1; pa2[1] = 2.3; pa2[2] = z1; pa2[3] = x2; pa2[4] = 2.3; pa2[5] = z2; lo.geometry.attributes.position.needsUpdate = true; lo.material.color.setHex(col); lo.material.opacity = op; lo.visible = true; }
+    if(selA.model){ var sm = agent(selA.model); if(sm) netLine(selA.x, selA.z, sm.x, sm.z, 0x37c8d9, 0.95); }
+    G.agents.forEach(function(b){ if(b !== selA && b.model === selA.id) netLine(b.x, b.z, selA.x, selA.z, 0xffffff, 0.35); });
+  }
+  for(var nu = nUsed; nu < netLines.length; nu++) netLines[nu].visible = false;
   if(pipMats.length){ var hands = countHands(G.objStation); pipMats.forEach(function(pm, ix){ pm.opacity = hands > ix ? 0.95 : 0.22; }); }
   for(var oi = orderPings.length - 1; oi >= 0; oi--){
     var op = orderPings[oi];
@@ -1316,6 +1400,11 @@ function pickAt(cx, cy){
 }
 function tapAt(cx, cy, smart){
   var p = pickAt(cx, cy);
+  if(G.modelArm){
+    G.modelArm = false;
+    if(p.agent && G.selected && p.agent !== G.selected){ var me3 = agent(G.selected), nw3 = agent(p.agent); me3.model = nw3.id; me3.modelCd = 0; setBubble(me3, "👁", 2); spawnPulse(nw3, me3); showToast("👁 " + me3.name.split(" ")[0] + " now looks up to " + nw3.name.split(" ")[0]); }
+    refreshTray(true); return;
+  }
   if(G.armed){
     if(p.agent){ var t = agent(p.agent); t.vis = Math.min(100, t.vis + 26); setBubble(t, "✨", 2.5); G.spotCd = G.t + 20; G.armed = false; showToast("✨ " + t.name.split(" ")[0] + " is watched now"); refreshTray(true); }
     else G.armed = false;
@@ -1330,7 +1419,9 @@ function tapAt(cx, cy, smart){
     var nowMs = Date.now();
     if(G.lastTap && G.lastTap.id === p.agent && nowMs - G.lastTap.ms < 380){ cam.follow = (cam.follow === p.agent) ? null : p.agent; G.lastTap = null; G.selected = p.agent; refreshTray(true); return; }
     G.lastTap = {id: p.agent, ms: nowMs};
-    G.selected = p.agent; refreshTray(true); return;
+    G.selected = p.agent;
+    if(!G.hintModel){ G.hintModel = true; var ha = agent(p.agent); if(ha && ha.model){ var hm = agent(ha.model); if(hm) showToast("👁 " + ha.name.split(" ")[0] + " looks up to " + hm.name.split(" ")[0] + ": their work follows the model"); } }
+    refreshTray(true); return;
   }
   if(p.station){
     if(G.selected){ setOrder3(p.station); }
@@ -1461,7 +1552,7 @@ if(ffm){
   updateCamera(0); updateLabels(); refreshTray(true);
   renderer.render(scene, camera);
 }
-window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, select: function(id){ G.selected = id; refreshTray(true); }};
+window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, setModel: function(id, mid){ var a = agent(id); if(a) a.model = mid; }, select: function(id){ G.selected = id; refreshTray(true); }};
 </script>
 </body>
 </html>
