@@ -17,6 +17,8 @@ canvas{display:block}
 #wantStrip{font-size:11.5px;color:var(--ink2);margin-top:4px}
 #objCard.urgent{animation:urgp 1.1s ease-in-out infinite}
 @keyframes urgp{50%{box-shadow:0 0 0 3px rgba(232,90,60,.6)}}
+#objCard.won{animation:objwin 1.15s ease-in-out 2}
+@keyframes objwin{0%,100%{box-shadow:0 0 0 0 rgba(232,179,75,0)}50%{box-shadow:0 0 0 5px rgba(232,179,75,.55)}}
 #objCard .k{font-size:9.5px;letter-spacing:.22em;color:var(--gold);font-weight:800}
 #objCard .t{font-weight:800;font-size:16px;margin:1px 0 5px}
 #objCard .bar{height:10px;background:#05080b;border:1px solid var(--line);border-radius:3px;overflow:hidden}
@@ -817,7 +819,14 @@ function setObjective(){
 function objectiveTick(){
   if(G.objComplete) return;
   var o = (G.objectives || OBJECTIVES)[G.week - 1];
-  if(o && o.metric() >= 100){ G.objComplete = true; G.objDone++; applyStatMods({trust:3, cohesion:3}); showToast("✓ Objective complete: " + o.title); }
+  if(o && o.metric() >= 100){
+    G.objComplete = true; G.objDone++; applyStatMods({trust:3, cohesion:3});
+    showToast("✓ Objective complete: " + o.title);
+    var st = STATION3[o.station];
+    if(st){ for(var ri = 0; ri < 3; ri++) spawnOrderPing(st.x + (ri - 1) * 1.7, st.z, ri * 0.22); }
+    var oc = document.getElementById("objCard");
+    if(oc){ oc.classList.add("won"); G.delays.push({at:G.t + 2.6, fn:function(){ var c2 = document.getElementById("objCard"); if(c2) c2.classList.remove("won"); }}); }
+  }
 }
 function clamp100(v){ return Math.max(0, Math.min(100, v)); }
 function statDrift(dt){
@@ -852,7 +861,7 @@ function endWeek(){
 
 function stepSim(dt){
   G.t += dt; G.weekTime += dt;
-  for(var di = G.delays.length - 1; di >= 0; di--){ if(G.t >= G.delays[di].at){ var dl = G.delays[di]; G.delays.splice(di, 1); applyStatMods(dl.mods); if(dl.msg) showToast(dl.msg); } }
+  for(var di = G.delays.length - 1; di >= 0; di--){ if(G.t >= G.delays[di].at){ var dl = G.delays[di]; G.delays.splice(di, 1); applyStatMods(dl.mods); if(dl.msg) showToast(dl.msg); if(dl.fn) dl.fn(); } }
   var inc = (G.incidents || INCIDENTS)[G.week - 1];
   if(inc && !G.incidentDone && !G.incidentOpen && !G.pendingIncident && G.weekTime >= inc.at) triggerIncident(inc);
   G.imitateT += dt;
@@ -1142,10 +1151,12 @@ function countHands(stId){
   var n = 0; G.agents.forEach(function(a){ if(a.stationId === stId && (a.state === "act" || a.state === "watch")) n++; });
   return n;
 }
-function spawnOrderPing(x, z){
+function spawnOrderPing(x, z, delay){
   var mesh = new THREE.Mesh(new THREE.RingGeometry(0.5, 0.68, 32), new THREE.MeshBasicMaterial({color:0xffc94d, transparent:true, opacity:0.95, side:THREE.DoubleSide}));
   mesh.rotation.x = -Math.PI/2; mesh.position.set(x, 0.12, z); scene.add(mesh);
-  orderPings.push({mesh:mesh, life:0.75});
+  var d = delay || 0;
+  mesh.visible = d <= 0;
+  orderPings.push({mesh:mesh, life:0.75, start:G.t + d});
 }
 function spawnPulse(m, a){
   if(!m || !a) return;
@@ -1173,7 +1184,9 @@ function fxTick(dt){
   }
   if(pipMats.length){ var hands = countHands(G.objStation); pipMats.forEach(function(pm, ix){ pm.opacity = hands > ix ? 0.95 : 0.22; }); }
   for(var oi = orderPings.length - 1; oi >= 0; oi--){
-    var op = orderPings[oi]; op.life -= dt;
+    var op = orderPings[oi];
+    if(op.start && G.t < op.start){ op.mesh.visible = false; continue; }
+    op.mesh.visible = true; op.life -= dt;
     if(op.life <= 0){ scene.remove(op.mesh); orderPings.splice(oi, 1); }
     else { var os = 1 + (0.75 - op.life) * 3.4; op.mesh.scale.set(os, os, 1); op.mesh.material.opacity = op.life / 0.75 * 0.95; }
   }
