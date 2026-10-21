@@ -12,8 +12,11 @@ html,body{overflow:hidden;height:100%}
 body{margin:0;background:#0a0e13;color:var(--ink);font-family:"Segoe UI",system-ui,Roboto,Arial,sans-serif}
 #scene{position:fixed;inset:0;touch-action:none}
 canvas{display:block}
-.hud{position:fixed;z-index:10}
+.hud{position:fixed;z-index:10;pointer-events:none}.hud button{pointer-events:auto}
 #objCard{top:10px;left:10px;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:8px;padding:9px 12px;width:250px;max-width:64vw;backdrop-filter:blur(3px)}
+#wantStrip{font-size:11.5px;color:var(--ink2);margin-top:4px}
+#objCard.urgent{animation:urgp 1.1s ease-in-out infinite}
+@keyframes urgp{50%{box-shadow:0 0 0 3px rgba(232,90,60,.6)}}
 #objCard .k{font-size:9.5px;letter-spacing:.22em;color:var(--gold);font-weight:800}
 #objCard .t{font-weight:800;font-size:16px;margin:1px 0 5px}
 #objCard .bar{height:10px;background:#05080b;border:1px solid var(--line);border-radius:3px;overflow:hidden}
@@ -96,6 +99,10 @@ canvas{display:block}
   #stats{top:auto;bottom:250px;width:150px;padding:6px 8px}
   .srow .sl{width:54px;font-size:9.5px}
   #toast{bottom:auto;top:172px;font-size:12.5px;padding:7px 13px}
+  #stats{bottom:262px;width:140px}
+  .srow .sb{width:36px}
+  #alerts{bottom:206px}
+  #wantStrip{font-size:10.5px}
   #alerts{bottom:158px}
   #tray{padding:8px;gap:8px;min-height:0}
   #selInfo{min-width:102px;max-width:118px}
@@ -104,6 +111,7 @@ canvas{display:block}
   .cbtn{min-width:52px;padding:6px 3px 5px}
   .cbtn .i{font-size:17px}
 }
+@media (max-width:560px){#alerts{bottom:216px}}
 </style>
 </head>
 <body>
@@ -114,6 +122,7 @@ canvas{display:block}
   <div class="t" id="objT">🔨 Repair the clinic roof</div>
   <div class="bar"><i id="objBar"></i></div>
   <div class="s"><span id="objHint">Planks land as the crew works</span><span id="objPct">0%</span></div>
+  <div id="wantStrip"></div>
 </div>
 <div class="hud" id="stats">
   <div class="sh">THE VILLAGE</div>
@@ -405,7 +414,7 @@ function makeAgents(){
       x:d.home[0], z:d.home[1], heading:Math.random()*6.28, tx:0, tz:0,
       state:"idle", stationId:null, slot:null, actT:0, decideT:Math.random()*2, loafT:0, alerted:false,
       energy:80 - (i%4)*4, morale:72, phase:Math.random()*10, walkPhase:0,
-      order:null, carrying:null, bubble:null, bubbleUntil:0, watchOf:null, watchT:0, want:null, wantCd:Math.random()*10, wantPend:null,
+      order:null, carrying:null, bubble:null, bubbleUntil:0, watchOf:null, watchT:0, want:null, wantCd:Math.random()*10, wantPend:null, driveObj:false,
       idleT:0, sick:false, seed:Math.random()*100
     });
     a.tx = a.x; a.tz = a.z;
@@ -474,7 +483,7 @@ function newSlice(){
     rosaOutcome:"", imitateT:0, spotCd:0, armed:false, toastUntil:0,
     stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
     objStation:"clinic", objComplete:false, objDone:0, scapegoats:0, delays:[],
-    weekWork:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0},
+    weekWork:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0}, weekWorkP:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0},
     policy:"hearth", difficulty:"standard", medicPatient:null, pendingIncident:null, curIncident:null, alerts:[], firstOrder:false};
   g.agents.forEach(function(a){
     a.speedNow = 0; a.slot = null; a.fetch = null; a.fetchT = 0; a.watchCd = 0; a.mimicStation = null;
@@ -515,10 +524,11 @@ function goStation(a, stId){
   a.slot = {x:jx, z:jz};
   goTo(a, jx, jz, stId);
 }
+function wk(a, key, amt){ G.weekWork[key] += amt; if(a.driveObj) G.weekWorkP[key] += amt; }
 function decide(a){
   if(a.sick || a.medicTask) return;
-  if(a.order){ a.reason = "Your order"; goStation(a, a.order); return; }
-  if(a.mimicStation){ var ms = a.mimicStation; a.mimicStation = null; a.reason = "Copying " + (a.mimicFrom || "a model"); a.mimicFrom = null; goStation(a, ms); return; }
+  if(a.order){ a.reason = "Your order"; a.driveObj = (a.order === G.objStation); goStation(a, a.order); return; }
+  if(a.mimicStation){ var ms = a.mimicStation; a.mimicStation = null; a.driveObj = (ms === G.objStation); a.reason = "Copying " + (a.mimicFrom || "a model"); a.mimicFrom = null; goStation(a, ms); return; }
   var ads = {
     clinic: G.roof < 100 ? 26 : 13,
     fields: 26,
@@ -529,7 +539,7 @@ function decide(a){
     green: 13 + (100 - a.morale) * 0.28,
     home: (100 - a.energy) * 0.95
   };
-  if(G.objStation && ads[G.objStation] != null) ads[G.objStation] += 40;
+  if(a.want && ads[a.want.station] != null) ads[a.want.station] += 34;
   var fit = {clinic:1, fields:1, store:1, mill:1, school:1, well:1, green:1, home:1};
   if(a.disp === "Diligent"){ fit.clinic = 1.3; fit.fields = 1.3; fit.store = 1.2; fit.mill = 1.25; fit.well = 1.2; fit.green = 0.65; }
   if(a.disp === "Helpful"){ fit.clinic = 1.3; fit.store = 1.3; fit.school = 1.3; fit.green = 1.3; }
@@ -542,7 +552,8 @@ function decide(a){
   var top = scored.slice(0, 3), tot = 0; top.forEach(function(s){ tot += s.sc; });
   var roll = Math.random() * tot, pick = top[0].id;
   for(var i=0;i<top.length;i++){ roll -= top[i].sc; if(roll <= 0){ pick = top[i].id; break; } }
-  a.reason = (pick === G.objStation && !G.objComplete) ? "Drawn to the objective" : (pick === a.aff ? "Own specialty" : "Own idea");
+  a.driveObj = !!(a.want && pick === a.want.station && pick === G.objStation);
+  a.reason = (a.want && pick === a.want.station) ? "Following a want" : (pick === a.aff ? "Own specialty" : "Own idea");
   goStation(a, pick);
 }
 function arrive(a){
@@ -553,9 +564,9 @@ function arrive(a){
   if(a.fetch === "plank-out"){ a.carrying = "plank"; a.fetch = "plank-back"; goTo(a, a.slot.x, a.slot.z, "clinic"); return; }
   if(a.fetch === "plank-back"){ a.carrying = null; a.fetch = null; a.fetchT = 0; G.roof = Math.min(100, G.roof + 2.5); a.state = "act"; a.actT = 6; return; }
   if(a.fetch === "crate-out"){ a.carrying = "crate"; a.fetch = "crate-back"; goTo(a, a.slot.x, a.slot.z, "store"); return; }
-  if(a.fetch === "crate-back"){ a.carrying = null; a.fetch = null; G.stores++; G.weekWork.stores++; if(storedCrates[Math.min(G.stores, 12) - 1]) storedCrates[Math.min(G.stores, 12) - 1].visible = true; a.state = "act"; a.actT = 1.2; return; }
+  if(a.fetch === "crate-back"){ a.carrying = null; a.fetch = null; G.stores++; wk(a, "stores", 1); if(storedCrates[Math.min(G.stores, 12) - 1]) storedCrates[Math.min(G.stores, 12) - 1].visible = true; a.state = "act"; a.actT = 1.2; return; }
   if(a.fetch === "grain-out"){ a.carrying = "crate"; a.fetch = "grain-back"; goTo(a, a.slot.x, a.slot.z, "mill"); return; }
-  if(a.fetch === "grain-back"){ a.carrying = null; a.fetch = null; G.flour++; G.stores++; G.weekWork.stores++; G.weekWork.mill++; a.state = "act"; a.actT = 1.2; return; }
+  if(a.fetch === "grain-back"){ a.carrying = null; a.fetch = null; G.flour++; G.stores++; wk(a, "stores", 1); wk(a, "mill", 1); a.state = "act"; a.actT = 1.2; return; }
   if(a.visitId){ a.visitId = null; a.state = "act"; a.stationId = "green"; a.actT = 3.5; return; }
   if(a.stationId === "home"){ a.state = "sit"; return; }
   a.state = "act"; a.actT = 3.5 + Math.random()*3;
@@ -628,7 +639,7 @@ function stepAgents(dt){
         if(a.carrying !== "plank"){
           var mult = a.disp === "Diligent" ? 1.3 : a.disp === "Helpful" ? 1.05 : 0.6;
           if(a.aff === "clinic") mult *= 1.3;
-          G.roof = Math.min(100, G.roof + dt * 0.8 * mult); G.weekWork.clinic += dt;
+          if(a.driveObj) G.roof = Math.min(100, G.roof + dt * 0.8 * mult); wk(a, "clinic", dt);
           a.fetchT += dt;
           if(a.fetchT > 7 && G.roof < 97 && !a.fetch){ a.fetch = "plank-out"; goTo(a, -15.5, -8.6, "clinic"); }
         }
@@ -636,23 +647,23 @@ function stepAgents(dt){
         a.energy = Math.max(0, a.energy - 0.8*dt);
         G.fieldGrowth = Math.min(1, G.fieldGrowth + dt * 0.006);
         a.harvestT = (a.harvestT || 0) + dt;
-        if(a.harvestT > 12){ a.harvestT = 0; G.stores++; G.weekWork.stores++; G.weekWork.harvest++; setBubble(a, "🌿", 1.6); }
+        if(a.harvestT > 12){ a.harvestT = 0; G.stores++; wk(a, "stores", 1); wk(a, "harvest", 1); setBubble(a, "🌿", 1.6); }
       } else if(st === "store"){
         if(!a.fetch && a.actT <= 0){ a.fetch = "crate-out"; goTo(a, 16.5, -8.8, "store"); }
       } else if(st === "mill"){
         if(!a.fetch && a.actT <= 0){ a.fetch = "grain-out"; goTo(a, 24, -8.2, "mill"); }
       } else if(st === "school"){
         a.energy = Math.max(0, a.energy - 0.4*dt);
-        G.weekWork.school += dt; G.stats.cohesion = Math.min(100, G.stats.cohesion + dt * 0.05);
+        wk(a, "school", dt); G.stats.cohesion = Math.min(100, G.stats.cohesion + dt * 0.05);
       } else if(st === "green"){
         a.morale = Math.min(100, a.morale + 1.1*dt);
-        G.weekWork.green += dt; G.stats.cohesion = Math.min(100, G.stats.cohesion + dt * 0.03);
+        wk(a, "green", dt); G.stats.cohesion = Math.min(100, G.stats.cohesion + dt * 0.03);
         var near = null, nd = 4;
         G.agents.forEach(function(o){ if(o !== a && o.stationId === "green" && (o.state === "act" || o.state === "sit")){ var dd = Math.sqrt((o.x-a.x)*(o.x-a.x) + (o.z-a.z)*(o.z-a.z)); if(dd < nd){ nd = dd; near = o; } } });
         if(near){ var ta = Math.atan2(near.x - a.x, near.z - a.z); var dh2 = ta - a.heading; while(dh2 > Math.PI) dh2 -= 6.283; while(dh2 < -Math.PI) dh2 += 6.283; a.heading += dh2 * Math.min(1, dt*3); }
       } else if(st === "well"){
         a.energy = Math.max(0, a.energy - 0.6*dt);
-        G.weekWork.well += dt;
+        wk(a, "well", dt);
       }
       if(a.energy < 18 && st !== "home"){ setBubble(a, "💤", 1.6); a.order = null; goStation(a, "home"); }
       else if(a.actT <= 0 && st !== "clinic" && st !== "store" && st !== "mill"){ a.state = "idle"; a.decideT = 0.3 + Math.random()*0.7; }
@@ -783,17 +794,17 @@ function chooseIncident(i){
 }
 var OBJECTIVES = [
   {station:"clinic", icon:"🔨", title:"Repair the clinic roof", hint:"Planks land as the crew works", metric:function(){ return G.roof; }},
-  {station:"store", icon:"📦", title:"Fill the storehouse", hint:"Crates and harvests, all season food", metric:function(){ return G.weekWork.stores * 100 / 10; }},
-  {station:"fields", icon:"🌿", title:"Bring in the harvest", hint:"Work the rows while they are ripe", metric:function(){ return G.weekWork.harvest * 100 / 6; }},
-  {station:"well", icon:"💧", title:"Water for everyone", hint:"Keep the well rope moving", metric:function(){ return G.weekWork.well * 100 / 20; }},
-  {station:"school", icon:"📚", title:"Lessons under the tree", hint:"Time at the school, together", metric:function(){ return G.weekWork.school * 100 / 20; }},
-  {station:"mill", icon:"🌾", title:"Flour for the winter", hint:"Grain in, flour out", metric:function(){ return G.weekWork.mill * 100 / 4; }},
-  {station:"green", icon:"🔥", title:"The village that eats together", hint:"Time on the green, all week", metric:function(){ return G.weekWork.green * 100 / 40; }},
-  {station:"clinic", icon:"✚", title:"A clinic ready for winter", hint:"Hands at the clinic, all week", metric:function(){ return G.weekWork.clinic * 100 / 28; }},
-  {station:"fields", icon:"🌾", title:"The second harvest", hint:"One more pass over the rows", metric:function(){ return G.weekWork.harvest * 100 / 8; }},
-  {station:"store", icon:"❄", title:"Stores against the cold", hint:"The count winter will audit", metric:function(){ return G.weekWork.stores * 100 / 13; }},
-  {station:"green", icon:"🍲", title:"The long table", hint:"Everyone on the green, often", metric:function(){ return G.weekWork.green * 100 / 48; }},
-  {station:"store", icon:"📦", title:"The Winter Count", hint:"Final stores before the snow", metric:function(){ return G.weekWork.stores * 100 / 10; }}
+  {station:"store", icon:"📦", title:"Fill the storehouse", hint:"Crates and harvests, all season food", metric:function(){ return G.weekWorkP.stores * 100 / 10; }},
+  {station:"fields", icon:"🌿", title:"Bring in the harvest", hint:"Work the rows while they are ripe", metric:function(){ return G.weekWorkP.harvest * 100 / 6; }},
+  {station:"well", icon:"💧", title:"Water for everyone", hint:"Keep the well rope moving", metric:function(){ return G.weekWorkP.well * 100 / 20; }},
+  {station:"school", icon:"📚", title:"Lessons under the tree", hint:"Time at the school, together", metric:function(){ return G.weekWorkP.school * 100 / 20; }},
+  {station:"mill", icon:"🌾", title:"Flour for the winter", hint:"Grain in, flour out", metric:function(){ return G.weekWorkP.mill * 100 / 4; }},
+  {station:"green", icon:"🔥", title:"The village that eats together", hint:"Time on the green, all week", metric:function(){ return G.weekWorkP.green * 100 / 40; }},
+  {station:"clinic", icon:"✚", title:"A clinic ready for winter", hint:"Hands at the clinic, all week", metric:function(){ return G.weekWorkP.clinic * 100 / 28; }},
+  {station:"fields", icon:"🌾", title:"The second harvest", hint:"One more pass over the rows", metric:function(){ return G.weekWorkP.harvest * 100 / 8; }},
+  {station:"store", icon:"❄", title:"Stores against the cold", hint:"The count winter will audit", metric:function(){ return G.weekWorkP.stores * 100 / 13; }},
+  {station:"green", icon:"🍲", title:"The long table", hint:"Everyone on the green, often", metric:function(){ return G.weekWorkP.green * 100 / 48; }},
+  {station:"store", icon:"📦", title:"The Winter Count", hint:"Final stores before the snow", metric:function(){ return G.weekWorkP.stores * 100 / 10; }}
 ];
 function setObjective(){
   var o = (G.objectives || OBJECTIVES)[G.week - 1];
@@ -832,7 +843,7 @@ function endWeek(){
   if(G.week >= SEASON_WEEKS){ finishGame(); return; }
   if(o) showToast(G.objComplete ? ("✓ Week " + G.week + " done: " + o.title + " · " + G.objDone + "/12") : ("Week " + G.week + " ends: " + o.title + " missed"));
   G.week++; G.weekTime = 0; G.incidentDone = false; G.curIncident = null;
-  G.weekWork = {stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0};
+  G.weekWork = {stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0}; G.weekWorkP = {stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0};
   G.agents.forEach(function(a){ a.alerted = false; a.loafT = 0; });
   G.fieldGrowth = 0.12; G.growthApplied = -1;
   setObjective();
@@ -1023,10 +1034,12 @@ function refreshTray(force){
 function setOrder3(orderId){
   var a = G.selected ? agent(G.selected) : null;
   if(!a || a.sick) return;
+  if(orderId !== "auto" && a.order === orderId){ refreshTray(true); return; }
   G.firstOrder = true;
   if(a.medicTask){ a.medicTask = 0; var pat = G.medicPatient ? agent(G.medicPatient) : null; if(pat && pat.sick){ pat.sick = false; pat.morale = Math.max(pat.morale, 50); pat.state = "idle"; pat.decideT = 0.5; } G.medicPatient = null; }
   a.order = (orderId === "auto") ? null : orderId;
   a.reason = orderId === "auto" ? "Free will" : "Your order";
+  a.driveObj = (orderId === G.objStation);
   a.mimicStation = null; a.visitId = null; a.fetch = null; a.carrying = null; a.pendingWatch = null; a.watchOf = null;
   if(orderId !== "auto" && STATION3[orderId]){ var stp = STATION3[orderId]; spawnOrderPing(stp.x, stp.z); setBubble(a, stp.icon, 1.4); }
   a.state = "idle"; a.decideT = 0;
@@ -1051,6 +1064,15 @@ function hudTick(dt){
   document.getElementById("objHint").textContent = o ? o.hint : "";
   document.getElementById("objBar").style.width = pct + "%";
   document.getElementById("objPct").textContent = pct + "% · 👥" + countHands(G.objStation);
+  var wc2 = {};
+  G.agents.forEach(function(a){ if(a.want) wc2[a.want.station] = (wc2[a.want.station] || 0) + 1; });
+  var wks = Object.keys(wc2).sort(function(x, y){ return wc2[y] - wc2[x]; }).slice(0, 3);
+  var wtop = wks.length ? "💭 Village wants: " + wks.map(function(k){ return STATION3[k].icon + "×" + wc2[k]; }).join(" · ") : "💭 The village is content";
+  var wsEl = document.getElementById("wantStrip");
+  if(wsEl.textContent !== wtop) wsEl.textContent = wtop;
+  var eligHands = 0;
+  G.agents.forEach(function(a){ if(a.driveObj && a.stationId === G.objStation && (a.state === "act" || a.state === "walk")) eligHands++; });
+  document.getElementById("objCard").classList.toggle("urgent", G.started && !G.over && !G.objComplete && G.weekTime > 30 && eligHands === 0);
   document.getElementById("weekChip").textContent = "WEEK " + G.week + "/12 · ☀ " + Math.round(G.weekTime / WEEK_LEN * 100) + "%";
   document.getElementById("storesN").textContent = G.stores;
   document.getElementById("copiedN").textContent = G.copied;
