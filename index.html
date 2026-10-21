@@ -1234,7 +1234,11 @@ function statDrift(dt){
 function endWeek(){
   var o = (G.objectives || OBJECTIVES)[G.week - 1];
   if(G.week >= SEASON_WEEKS){ finishGame(); return; }
-  if(o) showToast(G.objComplete ? ("✓ Week " + G.week + " done: " + o.title + " · " + G.objDone + "/12") : ("Week " + G.week + " ends: " + o.title + " missed"));
+  if(o){
+    if(G.objComplete) showToast("✓ Week " + G.week + " done: " + o.title + " · " + G.objDone + "/12");
+    else if(o.project && G.project && !G.project.done) showToast("Week " + G.week + " ends: " + projectTitle() + " carries on, parts stay filled");
+    else showToast("Week " + G.week + " ends: " + o.title + " missed");
+  }
   G.week++; G.weekTime = 0; G.incidentDone = false; G.curIncident = null;
   G.weekWork = {stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0}; G.weekWorkP = {stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0};
   G.calmT = 0; G.peakGreen = 0; G.objWorkers = {};
