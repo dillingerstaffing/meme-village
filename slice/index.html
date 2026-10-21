@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Meme Village: Vertical Slice (3D)</title>
+<meta name="description" content="Meme Village 3D vertical slice: one week, ten living residents, visible imitation. For review before the full 3D rebuild.">
+<style>
+:root{--panel:rgba(10,14,19,.88);--line:#3b4c63;--ink:#f2ecd9;--ink2:#b6ac8f;--gold:#e8b34b;--teal:#5cc9a7;--red:#e05a4e}
+*{box-sizing:border-box}
+html,body{overflow:hidden;height:100%}
+body{margin:0;background:#0a0e13;color:var(--ink);font-family:"Segoe UI",system-ui,Roboto,Arial,sans-serif}
+#scene{position:fixed;inset:0;touch-action:none}
+canvas{display:block}
+.hud{position:fixed;z-index:10}
+#objCard{top:10px;left:10px;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:8px;padding:9px 12px;width:250px;max-width:64vw;backdrop-filter:blur(3px)}
+#objCard .k{font-size:9.5px;letter-spacing:.22em;color:var(--gold);font-weight:800}
+#objCard .t{font-weight:800;font-size:16px;margin:1px 0 5px}
+#objCard .bar{height:10px;background:#05080b;border:1px solid var(--line);border-radius:3px;overflow:hidden}
+#objCard .bar i{display:block;height:100%;background:linear-gradient(90deg,#b57f22,#f5c86a);width:0%}
+#objCard .s{font-size:11.5px;color:var(--ink2);margin-top:4px;display:flex;justify-content:space-between}
+#topRight{top:10px;right:10px;display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:6px 11px;font-family:ui-monospace,Menlo,monospace;font-size:13px;font-weight:700}
+.chip b{color:var(--gold)}
+#speeds{display:flex;gap:4px}
+.sbtn{background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:7px 12px;font-weight:800;cursor:pointer;font-size:13px}
+.sbtn.on{border-color:var(--gold);color:var(--gold)}
+#sliceTag{top:10px;left:50%;transform:translateX(-50%);background:rgba(90,20,16,.85);border:1px solid var(--red);color:#ffd9d4;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:800;letter-spacing:.18em}
+#toast{bottom:118px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--gold);border-radius:22px;padding:8px 18px;font-size:14px;font-weight:700;display:none;white-space:nowrap;max-width:94vw}
+#tray{position:fixed;z-index:10;bottom:0;left:0;right:0;background:linear-gradient(180deg,rgba(14,19,26,.92),rgba(9,12,17,.97));border-top:1px solid var(--line);padding:10px 12px;display:flex;gap:12px;align-items:center;min-height:96px}
+#selInfo{min-width:170px;max-width:230px}
+#selInfo .nm{font-weight:800;font-size:17px}
+#selInfo .rl{font-size:10.5px;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;font-weight:700}
+#selInfo .st{font-size:12px;color:var(--ink2);margin-top:2px}
+#cmds{display:flex;gap:7px;flex-wrap:wrap}
+.cbtn{background:#131a23;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:9px 6px 7px;min-width:64px;cursor:pointer;text-align:center}
+.cbtn:hover{border-color:var(--gold)}
+.cbtn.on{border-color:var(--teal);background:rgba(92,201,167,.13)}
+.cbtn .i{font-size:21px;display:block}
+.cbtn .l{font-size:10.5px;font-weight:700;color:var(--ink2);display:block;margin-top:1px}
+.cbtn:disabled{opacity:.4;cursor:not-allowed}
+.label{position:fixed;z-index:9;transform:translate(-50%,-100%);pointer-events:none;font-size:12px;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.8);white-space:nowrap;display:none}
+.bubble{position:fixed;z-index:9;transform:translate(-50%,-130%);pointer-events:none;background:rgba(253,251,244,.96);border-radius:10px;padding:3px 8px;font-size:16px;display:none;box-shadow:0 3px 10px rgba(0,0,0,.35)}
+.bubble:after{content:"";position:absolute;left:50%;bottom:-5px;transform:translateX(-50%);border:5px solid transparent;border-top-color:rgba(253,251,244,.96);border-bottom:0}
+#incident{top:64px;left:50%;transform:translateX(-50%);width:520px;max-width:94vw;background:linear-gradient(180deg,#1d2735,#121922);border:1px solid var(--gold);border-radius:11px;padding:14px 16px;display:none;z-index:30;box-shadow:0 18px 50px rgba(0,0,0,.7)}
+#incident .k{font-size:10px;letter-spacing:.24em;color:var(--red);font-weight:800}
+#incident h3{margin:2px 0 3px;font-size:20px}
+#incident p{margin:0 0 11px;color:var(--ink2);font-size:13.5px}
+#incident .opts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media (max-width:560px){#incident .opts{grid-template-columns:1fr}}
+.iopt{background:#0c1219;border:1px solid var(--line);color:var(--ink);padding:10px;border-radius:8px;cursor:pointer;text-align:center}
+.iopt:hover{border-color:var(--gold)}
+.iopt .ii{font-size:24px;display:block}
+.iopt .il{font-weight:800;font-size:13.5px;display:block;margin-top:3px}
+.iopt .ih{font-size:11px;color:var(--ink2);display:block;margin-top:2px}
+.iopt.blame{border-color:#5c2b26}
+.overlay{position:fixed;inset:0;background:rgba(3,5,8,.78);display:none;align-items:center;justify-content:center;padding:14px;z-index:50;backdrop-filter:blur(3px)}
+.overlay.open{display:flex}
+.modal{background:linear-gradient(180deg,#18202b,#0f141b);border:1px solid var(--line);border-radius:12px;max-width:640px;width:100%;padding:24px;max-height:92vh;overflow:auto}
+.modal h2{margin:4px 0 8px;font-size:30px;letter-spacing:.04em}
+.modal h2 span{color:var(--gold)}
+.kick2{font-size:10px;letter-spacing:.26em;color:var(--gold);font-weight:800}
+.watch{display:grid;gap:7px;margin:14px 0;font-size:14.5px}
+.watch div{background:#0c1219;border:1px solid var(--line);border-radius:8px;padding:9px 12px}
+.btn{background:linear-gradient(180deg,#c98f2b,#e8b34b 45%,#a97a24);border:1px solid #7c5c1a;color:#171106;border-radius:8px;padding:12px 22px;font-weight:800;font-size:16px;cursor:pointer}
+.stat-row{display:flex;justify-content:space-between;border-bottom:1px dashed var(--line);padding:6px 0;font-size:14.5px}
+@media (max-width:760px){#selInfo{min-width:118px}#objCard{width:206px}.cbtn{min-width:56px;padding:8px 4px 6px}}
+@media (max-width:560px){
+  #objCard{width:172px;padding:7px 9px}
+  #objCard .t{font-size:13px}
+  #objCard .s{font-size:10px}
+  #topRight{gap:4px}
+  .chip{font-size:11px;padding:5px 8px}
+  .sbtn{padding:6px 9px;font-size:12px}
+  #sliceTag{top:136px;font-size:9px;padding:4px 8px;letter-spacing:.12em}
+  #toast{bottom:auto;top:172px;font-size:12.5px;padding:7px 13px}
+  #tray{padding:8px;gap:8px;min-height:0}
+  #selInfo{min-width:102px;max-width:118px}
+  #selInfo .st{display:none}
+  #selInfo .nm{font-size:14px}
+  .cbtn{min-width:52px;padding:6px 3px 5px}
+  .cbtn .i{font-size:17px}
+}
+</style>
+</head>
+<body>
+<div id="scene"></div>
+
+<div class="hud" id="objCard">
+  <div class="k">OBJECTIVE · WEEK 1</div>
+  <div class="t">🔨 Repair the clinic roof</div>
+  <div class="bar"><i id="objBar"></i></div>
+  <div class="s"><span>Planks land as the crew works</span><span id="objPct">0%</span></div>
+</div>
+<div class="hud" id="sliceTag">VERTICAL SLICE · FOR APPROVAL</div>
+<div class="hud" id="topRight">
+  <span class="chip" id="weekChip">WEEK 1 · ☀ 0%</span>
+  <span class="chip">📦 Stores <b id="storesN">0</b> &nbsp; 👀 Copied <b id="copiedN">0</b></span>
+  <div id="speeds">
+    <button class="sbtn" id="sp0" type="button">❚❚</button>
+    <button class="sbtn on" id="sp1" type="button">1x</button>
+    <button class="sbtn" id="sp2" type="button">2x</button>
+    <button class="sbtn" id="camBtn" type="button" title="Reset camera">🎥</button>
+  </div>
+</div>
+<div class="hud" id="toast"></div>
+<div class="hud" id="incident"></div>
+<div id="labels"></div>
+<div id="tray">
+  <div id="selInfo"><div class="rl">Village</div><div class="nm">No selection</div><div class="st">Tap a resident. Tap a building to send them. Drag to look around.</div></div>
+  <div id="cmds"></div>
+</div>
+
+<div class="overlay open" id="startOverlay">
+  <div class="modal">
+    <div class="kick2">MEME VILLAGE · 3D VERTICAL SLICE · WEEK 1 ONLY</div>
+    <h2>THE VILLAGE <span>MODEL</span></h2>
+    <p style="color:var(--ink2);margin:0">One week in a living 3D village. The test is simple: can you tell what everyone is doing, and why, without reading anything?</p>
+    <div class="watch">
+      <div>🔨 <b>Mara is already repairing the clinic roof.</b> Watch the planks land.</div>
+      <div>👀 <b>Bram is watching her.</b> People here copy what they see. Watch what he does next.</div>
+      <div>👆 <b>You direct:</b> tap a resident, then tap a building. Drag to pan, pinch or scroll to zoom.</div>
+    </div>
+    <button class="btn" id="beginBtn" type="button">Enter the village</button>
+  </div>
+</div>
+
+<div class="overlay" id="endOverlay">
+  <div class="modal" id="endCard"></div>
+</div>
+
+<script src="three.min.js"></script>
+<script>
+"use strict";
+/* ================= CORE ================= */
+var WEEK_LEN = 110;
+var scene, camera, renderer, sunLight;
+var cam = {target:new THREE.Vector3(0,0,4), yaw:0, pitch:0.94, dist:38, follow:null};
+var G = null;
+var MATS = {};
+function mat(c, r){ return new THREE.MeshStandardMaterial({color:c, roughness:(r==null?0.9:r), metalness:0.02}); }
+function box(w,h,d,c,x,y,z,parent,shadow){
+  var m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), (typeof c==="number") ? mat(c) : c);
+  m.position.set(x||0,y||0,z||0);
+  if(shadow!==false){ m.castShadow = true; m.receiveShadow = true; }
+  (parent||scene).add(m); return m;
+}
+function cyl(rt,rb,h,c,x,y,z,parent,seg){
+  var m = new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg||10), (typeof c==="number") ? mat(c) : c);
+  m.position.set(x||0,y||0,z||0);
+  m.castShadow = true; m.receiveShadow = true;
+  (parent||scene).add(m); return m;
+}
+function sph(r,c,x,y,z,parent){
+  var m = new THREE.Mesh(new THREE.SphereGeometry(r,12,10), (typeof c==="number") ? mat(c) : c);
+  m.position.set(x||0,y||0,z||0);
+  m.castShadow = true;
+  (parent||scene).add(m); return m;
+}
+
+/* ================= WORLD ================= */
+var STATION3 = {
+  clinic:{name:"Clinic", icon:"✚", x:-24, z:-13, work:[[-27,-10],[-21,-10],[-24,-9.4]], hit:[-24,-12,15,11]},
+  fields:{name:"Fields", icon:"🌿", x:-22, z:15, work:[[-28,12],[-22,15],[-16,12],[-25,18],[-19,18]], hit:[-22,15,21,13]},
+  store:{name:"Storehouse", icon:"📦", x:24, z:-13, work:[[20.5,-8.6],[24,-8.2],[27.5,-8.6]], hit:[24,-12,15,11]},
+  green:{name:"The Green", icon:"🌳", x:0, z:7, work:[[-3,5],[3,5],[-3,10],[3,10],[0,12]], hit:[0,7,17,13]},
+  well:{name:"Well", icon:"💧", x:10, z:-3, work:[[8.4,-1.6],[11.6,-1.6]], hit:[10,-3,6,6]},
+  home:{name:"Home", icon:"🏠", x:0, z:0, work:[], hit:[0,0,0,0]}
+};
+var roofPlanks = [], roofHole = null, storedCrates = [], cropMesh = null, cropData = [];
+var fireLight = null, fireCore = null;
+function buildWorld(){
+  scene.background = new THREE.Color(0x9fd3e8);
+  scene.fog = new THREE.Fog(0x9fd3e8, 90, 190);
+  var hemi = new THREE.HemisphereLight(0xcfe8ff, 0x5d7a45, 0.75); scene.add(hemi);
+  sunLight = new THREE.DirectionalLight(0xffe9bb, 1.05);
+  sunLight.position.set(30, 42, 18);
+  sunLight.castShadow = true;
+  sunLight.shadow.mapSize.set(2048, 2048);
+  sunLight.shadow.camera.left = -46; sunLight.shadow.camera.right = 46;
+  sunLight.shadow.camera.top = 46; sunLight.shadow.camera.bottom = -46;
+  sunLight.shadow.camera.far = 120;
+  scene.add(sunLight);
+  /* ground + paths */
+  var ground = new THREE.Mesh(new THREE.PlaneGeometry(120, 90), mat(0x77a75e, 1));
+  ground.rotation.x = -Math.PI/2; ground.receiveShadow = true; scene.add(ground);
+  var pathMat = mat(0xcdb483, 1);
+  [[0,4,26,3.2],[ -13,-6,3.2,20],[13,-6,3.2,20],[0,-11,30,3.2],[-11,11,20,3]].forEach(function(p){
+    var m = new THREE.Mesh(new THREE.PlaneGeometry(p[2], p[3]), pathMat);
+    m.rotation.x = -Math.PI/2; m.position.set(p[0], 0.02, p[1]); m.receiveShadow = true; scene.add(m);
+  });
+  /* river strip */
+  var river = new THREE.Mesh(new THREE.PlaneGeometry(10, 90), mat(0x5d9ec4, 0.35));
+  river.rotation.x = -Math.PI/2; river.position.set(46, 0.03, 0); scene.add(river);
+  /* hills */
+  [[-55,-38,16],[0,-46,20],[55,-36,15],[-58,10,12],[58,16,13]].forEach(function(h){
+    var m = sph(h[2], 0x6d9153, h[0], -h[2]*0.45, h[1], scene); m.scale.y = 0.55;
+  });
+  /* fields soil + crops */
+  box(21, 0.24, 13, 0x7a5c38, -22, 0.12, 15, scene);
+  var cropGeo = new THREE.ConeGeometry(0.32, 0.9, 6);
+  cropMesh = new THREE.InstancedMesh(cropGeo, mat(0x86b95e, 0.8), 60);
+  cropMesh.castShadow = true;
+  var dummy = new THREE.Object3D();
+  for(var i=0;i<60;i++){
+    var cx = -31 + (i%10)*1.9, cz = 10.4 + Math.floor(i/10)*1.9;
+    cropData.push({x:cx, z:cz, s:0.35 + Math.random()*0.2});
+    dummy.position.set(cx, 0.55, cz); dummy.scale.setScalar(cropData[i].s); dummy.updateMatrix();
+    cropMesh.setMatrixAt(i, dummy.matrix);
+  }
+  scene.add(cropMesh);
+  buildBuilding(-24,-15, 12, 7.5, 0xe9e2d2, 0x9e4f36, "clinic");
+  buildBuilding(24,-15, 12, 7.5, 0xd9b98a, 0x7c4a30, "store");
+  buildBuilding(-33, 1, 7, 5.4, 0xe3cf9f, 0x8a4f35, "house");
+  buildBuilding(-12,-23, 7, 5.4, 0xdfc9a8, 0x74543a, "house");
+  buildBuilding(14,-23, 7, 5.4, 0xe8d9b0, 0x8a4f35, "house");
+  buildBuilding(33, 3, 7, 5.4, 0xdcc39a, 0x6e4f30, "house");
+  buildBuilding(6, 21, 7, 5.4, 0xe3cf9f, 0x7c4a30, "house");
+  /* clinic cross + scaffold + roof hole */
+  var crossM = mat(0xd84040, 0.6);
+  box(0.5, 1.9, 0.24, crossM, -24, 6.4, -10.9, scene); box(1.3, 0.5, 0.24, crossM, -24, 6.4, -10.9, scene);
+  box(0.18, 4.6, 0.18, 0x8a6a42, -28.5, 2.3, -9.6, scene); box(0.18, 4.6, 0.18, 0x8a6a42, -19.5, 2.3, -9.6, scene);
+  box(9.6, 0.16, 0.5, 0xa87f52, 0, 4.55, 0, scene).position.set(-24, 4.55, -9.6);
+  roofHole = box(4.8, 0.08, 2.5, 0x241a12, -24, 6.3, -13.05, scene);
+  roofHole.rotation.x = -0.59;
+  for(var p=0;p<6;p++){
+    var plank = box(1.45, 0.1, 2.3, 0xc79a5e, -26.4 + p*1.58, 6.38, -12.95, scene);
+    plank.rotation.x = -0.59;
+    plank.visible = p<2; roofPlanks.push(plank);
+  }
+  /* storehouse crate stack (grows) */
+  for(var cix=0;cix<12;cix++){
+    var cr = box(0.9, 0.9, 0.9, 0xa87f52, 21.6 + (cix%4)*1.05, 0.45 + Math.floor(cix/4)*0.95, -10.6, scene);
+    cr.visible = false; storedCrates.push(cr);
+  }
+  /* wood pile + crate pile */
+  for(var w=0;w<5;w++) box(2.6, 0.22, 0.5, 0xb5854e, -15.5, 0.15 + w*0.24, -9.5, scene);
+  for(var cp=0;cp<4;cp++) box(0.9, 0.9, 0.9, 0x9a7448, 16.5 + (cp%2)*1.0, 0.45 + Math.floor(cp/2)*0.95, -9.8, scene);
+  /* well */
+  cyl(1.1, 1.25, 0.9, 0x8d99a0, 10, 0.45, -3, scene); cyl(0.09, 0.09, 1.8, 0x6b4a2e, 9.1, 0.9, -3, scene); cyl(0.09, 0.09, 1.8, 0x6b4a2e, 10.9, 0.9, -3, scene);
+  var wroof = box(2.6, 0.14, 1.6, 0x7c4a30, 10, 1.95, -3, scene); wroof.rotation.z = 0.0;
+  /* the green: big tree, benches, fire pit */
+  cyl(0.5, 0.7, 3.4, 0x6b4a2e, 0, 1.7, 3.4, scene);
+  sph(3.1, 0x4e7d3d, 0, 5.4, 3.4, scene); sph(2.2, 0x5d8a49, -2, 4.4, 3.4, scene); sph(2.2, 0x557f42, 2.1, 4.5, 3.6, scene);
+  [[-3.4,7],[3.4,7],[0,11.5]].forEach(function(b){ box(2.2, 0.18, 0.55, 0x8a6a42, b[0], 0.55, b[1], scene); box(0.16,0.55,0.5, 0x6b4a2e, b[0]-0.9, 0.27, b[1], scene); box(0.16,0.55,0.5, 0x6b4a2e, b[0]+0.9, 0.27, b[1], scene); });
+  cyl(0.85, 1.0, 0.4, 0x777777, 0, 0.2, 7, scene);
+  fireCore = sph(0.34, new THREE.MeshBasicMaterial({color:0xff9a3c}), 0, 0.55, 7, scene);
+  fireLight = new THREE.PointLight(0xff8f3f, 0.9, 12); fireLight.position.set(0, 1.2, 7); scene.add(fireLight);
+  /* trees (instanced) */
+  var trunkI = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.16, 0.24, 1.6, 6), mat(0x6b4a2e), 16);
+  var folI = new THREE.InstancedMesh(new THREE.SphereGeometry(1.35, 8, 7), mat(0x557f42), 16);
+  var d2 = new THREE.Object3D();
+  [[-38,-12],[-38,20],[-6,-30],[22,-30],[38,-20],[38,24],[-14,28],[16,28],[-40,-24],[30,14],[-30,-28],[8,-32],[-44,4],[44,-8],[20,32],[-20,32]].forEach(function(tp, i){
+    d2.position.set(tp[0], 0.8, tp[1]); d2.scale.setScalar(1); d2.updateMatrix(); trunkI.setMatrixAt(i, d2.matrix);
+    d2.position.y = 2.2 + (i%3)*0.3; d2.updateMatrix(); folI.setMatrixAt(i, d2.matrix);
+  });
+  trunkI.castShadow = folI.castShadow = true;
+  scene.add(trunkI); scene.add(folI);
+  /* hit boxes for stations */
+  Object.keys(STATION3).forEach(function(id){
+    var s = STATION3[id];
+    if(!s.hit[2]) return;
+    var hit = new THREE.Mesh(new THREE.BoxGeometry(s.hit[2], 6, s.hit[3]), new THREE.MeshBasicMaterial({visible:false}));
+    hit.position.set(s.hit[0], 2, s.hit[1]); hit.userData.stationId = id;
+    scene.add(hit); s.hitMesh = hit;
+  });
+}
+function buildBuilding(x, z, w, h, wallC, roofC, kind){
+  var g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
+  box(w, h*0.62, 6.4, wallC, 0, h*0.31, 0, g);
+  var roof = new THREE.Mesh(new THREE.ConeGeometry(w*0.72, h*0.42, 4), mat(roofC));
+  roof.position.y = h*0.62 + h*0.21; roof.rotation.y = Math.PI/4; roof.scale.z = 6.4/(w*0.72) * 0.72;
+  roof.castShadow = true; g.add(roof);
+  box(1.3, 2.3, 0.16, 0x5a4230, 0, 1.15, 3.24, g);
+  box(1.1, 1.0, 0.14, new THREE.MeshBasicMaterial({color:0xffe9a3}), -w/4, h*0.38, 3.24, g, false);
+  box(1.1, 1.0, 0.14, new THREE.MeshBasicMaterial({color:0xffe9a3}), w/4, h*0.38, 3.24, g, false);
+  return g;
+}
+
+/* ================= RESIDENTS ================= */
+var RES3 = [
+  {id:"mara", name:"Mara Voss", role:"Repair Lead", aff:"clinic", home:[-30,4], admires:"jonah", vis:66, disp:"Diligent", skin:0xc98a5e, hair:0, hairC:0x2e2018, shirt:0xa34d24},
+  {id:"jonah", name:"Jonah Reyes", role:"Medic", aff:"clinic", home:[-29,6], admires:"priya", vis:60, disp:"Helpful", skin:0x8a5a34, hair:2, hairC:0x16120e, shirt:0x3f6d5a},
+  {id:"priya", name:"Priya Nair", role:"Teacher", aff:"green", home:[-10,-20], admires:"mara", vis:60, disp:"Helpful", skin:0xa06a3c, hair:1, hairC:0x100d0a, shirt:0x5a5f9e},
+  {id:"tomas", name:"Tomas Hale", role:"Farmer", aff:"fields", home:[4,18], admires:"mara", vis:34, disp:"Diligent", skin:0xd9a878, hair:3, hairC:0x6e5636, shirt:0x6d8f52},
+  {id:"ines", name:"Ines Duarte", role:"Baker", aff:"store", home:[12,-20], admires:"priya", vis:38, disp:"Helpful", skin:0xb57a48, hair:4, hairC:0x3a2415, shirt:0xc9862b},
+  {id:"felix", name:"Felix Grant", role:"Miller", aff:"store", home:[30,6], admires:"jonah", vis:30, disp:"Diligent", skin:0xe0b184, hair:2, hairC:0x8a8a86, shirt:0x707a84},
+  {id:"rosa", name:"Rosa Lindqvist", role:"Weaver", aff:"green", home:[31,8], admires:"ines", vis:26, disp:"Helpful", skin:0xe8bd93, hair:1, hairC:0xc8b294, shirt:0x96688a},
+  {id:"abel", name:"Abel Osei", role:"Water Keeper", aff:"well", home:[8,18], admires:"mara", vis:32, disp:"Diligent", skin:0x6e4526, hair:2, hairC:0x0e0c0a, shirt:0x3e6d8e},
+  {id:"nadia", name:"Nadia Farrell", role:"Storekeeper", aff:"store", home:[30,-19], admires:"priya", vis:28, disp:"Helpful", skin:0xcaa06a, hair:4, hairC:0x7a4a22, shirt:0x8e3f3a},
+  {id:"bram", name:"Bram Kessler", role:"Runner", aff:"green", home:[-9,-19], admires:"mara", vis:20, disp:"Selfish", skin:0xdbac7d, hair:2, hairC:0xa8783c, shirt:0x4a7a9e}
+];
+var DISPO3 = {"Diligent":{icon:"⚒", col:"#e8b34b"}, "Helpful":{icon:"♥", col:"#5cc9a7"}, "Selfish":{icon:"✦", col:"#6fb3e8"}, "Withdrawn":{icon:"☾", col:"#a78fe0"}};
+function makeFigure(d){
+  var root = new THREE.Group(); scene.add(root);
+  var legL = new THREE.Group(); legL.position.set(-0.14, 0.98, 0); root.add(legL);
+  var legR = new THREE.Group(); legR.position.set(0.14, 0.98, 0); root.add(legR);
+  box(0.17, 0.95, 0.2, 0x4a4038, 0, -0.47, 0, legL); box(0.17, 0.95, 0.2, 0x4a4038, 0, -0.47, 0, legR);
+  var torsoG = new THREE.Group(); torsoG.position.y = 0.98; root.add(torsoG);
+  box(0.64, 0.72, 0.36, d.shirt, 0, 0.36, 0, torsoG);
+  var armL = new THREE.Group(); armL.position.set(-0.41, 0.64, 0); torsoG.add(armL);
+  var armR = new THREE.Group(); armR.position.set(0.41, 0.64, 0); torsoG.add(armR);
+  box(0.15, 0.66, 0.16, d.shirt, 0, -0.3, 0, armL); box(0.15, 0.66, 0.16, d.shirt, 0, -0.3, 0, armR);
+  box(0.13, 0.14, 0.13, d.skin, 0, -0.66, 0, armL); box(0.13, 0.14, 0.13, d.skin, 0, -0.66, 0, armR);
+  var headG = new THREE.Group(); headG.position.y = 0.86; torsoG.add(headG);
+  sph(0.21, d.skin, 0, 0.1, 0, headG);
+  var hairM = mat(d.hairC);
+  if(d.hair===1){ sph(0.09, hairM, 0, 0.3, -0.03, headG); }
+  if(d.hair===4){ box(0.07, 0.3, 0.07, hairM, -0.2, 0.12, 0, headG); box(0.07, 0.3, 0.07, hairM, 0.2, 0.12, 0, headG); }
+  var cap = sph(0.215, hairM, 0, 0.13, 0, headG); cap.scale.set(1, 0.62, 1);
+  if(d.hair===3){ box(0.3, 0.14, 0.3, hairM, 0, -0.12, 0.1, headG); }
+  var handR = new THREE.Group(); handR.position.set(0, -0.68, 0); armR.add(handR);
+  var hammer = new THREE.Group(); handR.add(hammer);
+  cyl(0.03, 0.03, 0.42, 0x8a6a42, 0, -0.1, 0, hammer, 6); box(0.2, 0.09, 0.09, 0x9aa2a8, 0, -0.3, 0, hammer);
+  hammer.visible = false;
+  var carry = new THREE.Group(); carry.position.set(0, 0.28, 0.5); torsoG.add(carry);
+  var crate = box(0.52, 0.52, 0.52, 0xa87f52, 0, 0, 0, carry); crate.visible = false;
+  var plank = box(1.7, 0.07, 0.3, 0xb5854e, 0, 0.1, 0.1, carry); plank.visible = false;
+  var basket = cyl(0.22, 0.15, 0.26, 0xb5854e, 0, -0.05, 0, carry, 8); basket.visible = false;
+  var hit = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.85, 2.1, 8), new THREE.MeshBasicMaterial({visible:false}));
+  hit.position.y = 1.05; root.add(hit);
+  return {root:root, legL:legL, legR:legR, torsoG:torsoG, armL:armL, armR:armR, headG:headG,
+    props:{hammer:hammer, crate:crate, plank:plank, basket:basket}, hit:hit};
+}
+function makeAgents(){
+  return RES3.map(function(d, i){
+    var f = makeFigure(d);
+    var a = Object.assign({}, d, f, {
+      x:d.home[0], z:d.home[1], heading:Math.random()*6.28, tx:0, tz:0,
+      state:"idle", stationId:null, slot:null, actT:0, decideT:Math.random()*2,
+      energy:80 - (i%4)*4, morale:72, phase:Math.random()*10, walkPhase:0,
+      order:null, carrying:null, bubble:null, bubbleUntil:0, watchOf:null, watchT:0,
+      idleT:0, sick:false, seed:Math.random()*100
+    });
+    a.tx = a.x; a.tz = a.z;
+    a.root.position.set(a.x, 0, a.z);
+    a.hit.userData.agentId = a.id;
+    var label = document.createElement("div"); label.className = "label"; label.id = "lab-" + a.id;
+    var bub = document.createElement("div"); bub.className = "bubble"; bub.id = "bub-" + a.id;
+    document.getElementById("labels").appendChild(label); document.getElementById("labels").appendChild(bub);
+    a.labelEl = label; a.bubbleEl = bub;
+    return a;
+  });
+}
+function agent(id){ for(var i=0;i<G.agents.length;i++) if(G.agents[i].id===id) return G.agents[i]; return null; }
+function setBubble(a, icon, secs){ a.bubble = icon; a.bubbleUntil = G.t + secs; }
+function animateAgent(a, dt){
+  var moving = a.state === "walk";
+  var speedNow = moving ? a.speedNow || 0 : 0;
+  a.walkPhase += dt * (moving ? 6.2 * (speedNow/3.2) : 0);
+  var sw = moving ? Math.sin(a.walkPhase) * 0.55 : 0;
+  var targetY = 0, legLX = sw, legRX = -sw, armLX = -sw*0.7, armRX = sw*0.7;
+  var torsoPitch = moving ? 0.07 : 0, headPitch = 0, headYaw = Math.sin(G.t*0.4 + a.seed)*0.14;
+  a.armL.rotation.z = 0.07; a.armR.rotation.z = -0.07;
+  if(a.state === "act"){
+    var ph = a.phase;
+    if(a.stationId === "clinic"){
+      if(a.carrying === "plank"){ armLX = armRX = -1.05; }
+      else { var strike = Math.pow(Math.max(0, Math.sin(ph*2.4)), 3); armRX = -0.5 - strike*1.15; armLX = -0.25; torsoPitch = 0.14 + strike*0.12; }
+    } else if(a.stationId === "fields"){
+      torsoPitch = 0.38 + Math.sin(ph*1.7)*0.24; armLX = armRX = -0.7 + Math.sin(ph*1.7)*0.3;
+    } else if(a.stationId === "store"){
+      if(a.carrying === "crate"){ armLX = armRX = -1.12; }
+      else { armRX = -0.6 + Math.sin(ph*2)*0.25; armLX = -0.2; }
+    } else if(a.stationId === "well"){
+      armLX = -1.2 + Math.sin(ph*2.2)*0.5; armRX = -1.2 - Math.sin(ph*2.2)*0.5; torsoPitch = 0.12;
+    } else if(a.stationId === "green"){
+      armRX = -0.55 + Math.sin(G.t*2.6 + a.seed)*0.28; a.armR.rotation.z = -0.35 + Math.sin(G.t*1.7 + a.seed)*0.15;
+      headYaw = Math.sin(G.t*0.8 + a.seed)*0.3; torsoPitch = 0.03;
+    }
+  }
+  if(a.state === "watch"){
+    torsoPitch = 0.09; armLX = armRX = 0.05; headYaw = 0;
+    if(a.watchOf){ var m = agent(a.watchOf); if(m){ var ang = Math.atan2(m.x - a.x, m.z - a.z); var rel = ang - a.heading; while(rel > Math.PI) rel -= 6.283; while(rel < -Math.PI) rel += 6.283; headYaw = Math.max(-0.7, Math.min(0.7, rel)); } }
+  }
+  if(a.state === "sit" || a.sick){ targetY = -0.46; legLX = legRX = -1.42; torsoPitch = a.sick ? 0.3 : 0.06; headPitch = a.sick ? 0.38 : 0.08; armLX = armRX = -0.25; }
+  if(a.state === "kneel"){ targetY = -0.52; legLX = -1.5; legRX = 0.55; torsoPitch = 0.32; armRX = -0.95; armLX = -0.4; }
+  a.root.position.y += ((targetY + (moving ? Math.abs(Math.sin(a.walkPhase))*0.05 : 0)) - a.root.position.y) * Math.min(1, dt*10);
+  a.legL.rotation.x = legLX; a.legR.rotation.x = legRX;
+  a.armL.rotation.x = armLX; a.armR.rotation.x = armRX;
+  a.torsoG.rotation.x = torsoPitch;
+  a.headG.rotation.x = headPitch; a.headG.rotation.y = headYaw;
+  a.torsoG.scale.y = 1 + Math.sin(G.t*1.7 + a.seed)*0.012;
+  a.props.hammer.visible = (a.state === "act" && a.stationId === "clinic" && a.carrying !== "plank");
+  a.props.plank.visible = (a.carrying === "plank");
+  a.props.crate.visible = (a.carrying === "crate");
+  a.props.basket.visible = (a.state === "act" && a.stationId === "fields");
+  /* selection ring + model aura */
+  if(a.ring){ a.ring.visible = (G.selected === a.id); a.ring.rotation.z = G.t*0.8; }
+  if(a.aura){ a.aura.visible = a.vis >= 60; a.aura.material.opacity = 0.10 + Math.sin(G.t*2 + a.seed)*0.03; }
+}
+
+/* ================= SLICE SIM ================= */
+function newSlice(){
+  var g = {t:0, weekTime:0, speed:1, started:false, over:false, agents:makeAgents(), selected:null,
+    roof:30, stores:0, copied:0, fieldGrowth:0, growthApplied:-1, incidentOpen:false, incidentDone:false,
+    rosaOutcome:"", imitateT:0, spotCd:0, armed:false, toastUntil:0};
+  g.agents.forEach(function(a){
+    a.speedNow = 0; a.slot = null; a.fetch = null; a.fetchT = 0; a.watchCd = 0; a.mimicStation = null;
+    a.pendingWatch = null; a.medicTask = 0; a.kneelT = 0; a.pendingSick = false; a.visitId = null;
+    var ring = new THREE.Mesh(new THREE.RingGeometry(0.72, 0.92, 28), new THREE.MeshBasicMaterial({color:0xf5c86a, transparent:true, opacity:0.95, side:THREE.DoubleSide}));
+    ring.rotation.x = -Math.PI/2; ring.position.y = 0.06; ring.visible = false; a.root.add(ring); a.ring = ring;
+    var aura = new THREE.Mesh(new THREE.CircleGeometry(2.7, 28), new THREE.MeshBasicMaterial({color:0xe8b34b, transparent:true, opacity:0.1, side:THREE.DoubleSide}));
+    aura.rotation.x = -Math.PI/2; aura.position.y = 0.04; aura.visible = a.vis >= 60; a.root.add(aura); a.aura = aura;
+  });
+  var mara = agent0(g, "mara"); mara.x = -24; mara.z = -9.4; mara.state = "act"; mara.stationId = "clinic"; mara.order = "clinic"; mara.root.position.set(mara.x, 0, mara.z); mara.heading = 3.14;
+  var bram = agent0(g, "bram"); bram.x = -16; bram.z = -4; bram.state = "act"; bram.stationId = "green"; bram.actT = 30; bram.root.position.set(bram.x, 0, bram.z);
+  var rosa = agent0(g, "rosa"); rosa.x = 2; rosa.z = 8; rosa.state = "act"; rosa.stationId = "green"; rosa.actT = 5; rosa.root.position.set(rosa.x, 0, rosa.z);
+  var tomas = agent0(g, "tomas"); tomas.x = -22; tomas.z = 15; tomas.state = "act"; tomas.stationId = "fields"; tomas.root.position.set(tomas.x, 0, tomas.z);
+  var ines = agent0(g, "ines"); ines.x = 24; ines.z = -8.2; ines.state = "act"; ines.stationId = "store"; ines.root.position.set(ines.x, 0, ines.z);
+  return g;
+}
+function agent0(g, id){ for(var i=0;i<g.agents.length;i++) if(g.agents[i].id===id) return g.agents[i]; return null; }
+function stationW(id){ return STATION3[id]; }
+function goTo(a, x, z, stationId){
+  a.tx = x; a.tz = z; a.stationId = stationId || a.stationId; a.state = "walk";
+}
+function goStation(a, stId){
+  if(stId === "home"){ goTo(a, a.home[0] + (Math.random()*2-1), a.home[1] + 2.2, "home"); return; }
+  var s = stationW(stId), w = s.work;
+  var spot = w[Math.floor(Math.random()*w.length)];
+  a.slot = {x:spot[0], z:spot[1]};
+  goTo(a, spot[0], spot[1], stId);
+}
+function decide(a){
+  if(a.sick || a.medicTask) return;
+  if(a.order){ goStation(a, a.order); return; }
+  if(a.mimicStation){ var ms = a.mimicStation; a.mimicStation = null; goStation(a, ms); return; }
+  var ads = {
+    clinic: G.roof < 100 ? 26 : 5,
+    fields: 20 + G.fieldGrowth * -6 + 8,
+    store: 20 - Math.min(10, G.stores),
+    well: 13,
+    green: 13 + (100 - a.morale) * 0.28,
+    home: (100 - a.energy) * 0.95
+  };
+  var fit = {clinic:1, fields:1, store:1, well:1, green:1, home:1};
+  if(a.disp === "Diligent"){ fit.clinic = 1.3; fit.fields = 1.3; fit.store = 1.2; fit.well = 1.2; fit.green = 0.65; }
+  if(a.disp === "Helpful"){ fit.clinic = 1.3; fit.store = 1.3; fit.green = 1.3; }
+  if(a.disp === "Selfish"){ fit.green = 1.5; fit.home = 1.3; fit.fields = 0.5; fit.store = 0.65; fit.clinic = 0.7; fit.well = 0.6; }
+  if(a.disp === "Withdrawn"){ fit.home = 3; fit.clinic = 0.4; fit.fields = 0.3; fit.store = 0.3; fit.green = 0.4; fit.well = 0.3; }
+  fit[a.aff] = (fit[a.aff] || 1) * 1.35;
+  var scored = Object.keys(ads).map(function(id){ return {id:id, sc: ads[id] * fit[id] * (0.85 + Math.random()*0.3)}; }).sort(function(x,y){ return y.sc - x.sc; });
+  var top = scored.slice(0, 3), tot = 0; top.forEach(function(s){ tot += s.sc; });
+  var roll = Math.random() * tot, pick = top[0].id;
+  for(var i=0;i<top.length;i++){ roll -= top[i].sc; if(roll <= 0){ pick = top[i].id; break; } }
+  goStation(a, pick);
+}
+function arrive(a){
+  if(!a.slot) a.slot = {x:a.x, z:a.z};
+  if(a.pendingWatch){ var m = agent(a.pendingWatch); a.pendingWatch = null; if(m){ a.state = "watch"; a.watchOf = m.id; a.watchT = 3.4; setBubble(a, "👀", 1.8); return; } }
+  if(a.medicTask === 1){ a.medicTask = 2; a.state = "kneel"; a.kneelT = 4; return; }
+  if(a.fetch === "plank-out"){ a.carrying = "plank"; a.fetch = "plank-back"; goTo(a, a.slot.x, a.slot.z, "clinic"); return; }
+  if(a.fetch === "plank-back"){ a.carrying = null; a.fetch = null; a.fetchT = 0; G.roof = Math.min(100, G.roof + 2.5); a.state = "act"; a.actT = 6; return; }
+  if(a.fetch === "crate-out"){ a.carrying = "crate"; a.fetch = "crate-back"; goTo(a, a.slot.x, a.slot.z, "store"); return; }
+  if(a.fetch === "crate-back"){ a.carrying = null; a.fetch = null; G.stores++; if(storedCrates[G.stores - 1]) storedCrates[G.stores - 1].visible = true; a.state = "act"; a.actT = 1.2; return; }
+  if(a.pendingSick){ a.pendingSick = false; a.sick = true; a.state = "sit"; openIncident(); return; }
+  if(a.visitId){ a.visitId = null; a.state = "act"; a.stationId = "green"; a.actT = 3.5; return; }
+  if(a.stationId === "home"){ a.state = "sit"; return; }
+  a.state = "act"; a.actT = 3.5 + Math.random()*3;
+}
+function stepAgents(dt){
+  G.agents.forEach(function(a){
+    a.phase += dt;
+    a.watchCd = Math.max(0, a.watchCd - dt);
+    if(a.state === "idle"){ a.idleT += dt; a.decideT -= dt; if(a.decideT <= 0){ decide(a); a.decideT = 1 + Math.random(); } }
+    else a.idleT = 0;
+    if(a.state === "walk"){
+      var dx = a.tx - a.x, dz = a.tz - a.z, d = Math.sqrt(dx*dx + dz*dz);
+      var sp = (a.id === "bram" ? 3.6 : 3.1) * (a.carrying ? 0.82 : 1) * (a.energy < 25 ? 0.8 : 1);
+      a.speedNow = sp;
+      var targetHeading = Math.atan2(dx, dz);
+      var dh = targetHeading - a.heading; while(dh > Math.PI) dh -= 6.283; while(dh < -Math.PI) dh += 6.283;
+      a.heading += dh * Math.min(1, dt*10);
+      a.energy = Math.max(0, a.energy - 0.45*dt);
+      if(d < 0.25){ a.x = a.tx; a.z = a.tz; a.speedNow = 0; arrive(a); }
+      else { a.x += dx/d * sp * dt; a.z += dz/d * sp * dt; }
+    }
+    if(a.state === "watch"){
+      a.watchT -= dt;
+      if(a.watchT < 1.6 && a.bubble !== "💡") setBubble(a, "💡", 1.6);
+      if(a.watchT <= 0){
+        var m = agent(a.watchOf);
+        a.state = "idle"; a.decideT = 0.2; a.watchCd = 25;
+        if(m && m.disp !== a.disp){
+          a.disp = m.disp; G.copied++; a.vis = Math.min(100, a.vis + 8);
+          a.mimicStation = (m.state === "act") ? m.stationId : null;
+          setBubble(a, DISPO3[a.disp].icon, 2.6);
+          showToast("👀 " + a.name.split(" ")[0] + " copied " + m.name.split(" ")[0] + ": " + DISPO3[a.disp].icon + " " + a.disp);
+          refreshTray();
+        }
+        a.watchOf = null;
+      }
+    }
+    if(a.state === "kneel"){
+      a.kneelT -= dt;
+      if(a.kneelT <= 0){
+        a.medicTask = 0; a.state = "idle"; a.decideT = 0.3;
+        var rosa = agent("rosa");
+        if(rosa && rosa.sick){ rosa.sick = false; rosa.morale = 88; rosa.state = "idle"; rosa.decideT = 0.5; setBubble(rosa, "♥", 2.5); }
+      }
+    }
+    if(a.state === "sit"){
+      if(a.stationId === "home"){
+        a.energy = Math.min(100, a.energy + 6*dt); a.morale = Math.min(100, a.morale + 0.4*dt);
+        if(a.sick && a.energy > 55){ a.sick = false; }
+        if(a.energy > 92 && !a.sick){ a.state = "idle"; a.decideT = 0.3; if(a.disp === "Withdrawn" && a.morale > 45) a.disp = "Helpful"; }
+      } else if(a.sick){ /* Rosa, waiting */ }
+      else { a.energy = Math.min(100, a.energy + 2*dt); a.actT -= dt; if(a.actT <= 0){ a.state = "idle"; a.decideT = 0.3; } }
+    }
+    if(a.state === "act"){
+      a.actT -= dt;
+      var st = a.stationId;
+      if(st === "clinic"){
+        a.energy = Math.max(0, a.energy - 0.8*dt);
+        if(a.carrying !== "plank"){
+          var mult = a.disp === "Diligent" ? 1.3 : a.disp === "Helpful" ? 1.05 : 0.6;
+          if(a.aff === "clinic") mult *= 1.3;
+          G.roof = Math.min(100, G.roof + dt * 0.8 * mult);
+          a.fetchT += dt;
+          if(a.fetchT > 7 && G.roof < 97 && !a.fetch){ a.fetch = "plank-out"; goTo(a, -15.5, -8.6, "clinic"); }
+        }
+      } else if(st === "fields"){
+        a.energy = Math.max(0, a.energy - 0.8*dt);
+        G.fieldGrowth = Math.min(1, G.fieldGrowth + dt * 0.006);
+        a.harvestT = (a.harvestT || 0) + dt;
+        if(a.harvestT > 12){ a.harvestT = 0; G.stores++; setBubble(a, "🌿", 1.6); }
+      } else if(st === "store"){
+        if(!a.fetch && a.actT <= 0){ a.fetch = "crate-out"; goTo(a, 16.5, -8.8, "store"); }
+      } else if(st === "green"){
+        a.morale = Math.min(100, a.morale + 1.1*dt);
+        var near = null, nd = 4;
+        G.agents.forEach(function(o){ if(o !== a && o.stationId === "green" && (o.state === "act" || o.state === "sit")){ var dd = Math.sqrt((o.x-a.x)*(o.x-a.x) + (o.z-a.z)*(o.z-a.z)); if(dd < nd){ nd = dd; near = o; } } });
+        if(near){ var ta = Math.atan2(near.x - a.x, near.z - a.z); var dh2 = ta - a.heading; while(dh2 > Math.PI) dh2 -= 6.283; while(dh2 < -Math.PI) dh2 += 6.283; a.heading += dh2 * Math.min(1, dt*3); }
+      } else if(st === "well"){
+        a.energy = Math.max(0, a.energy - 0.6*dt);
+      }
+      if(a.energy < 18 && st !== "home"){ setBubble(a, "💤", 1.6); a.order = null; goStation(a, "home"); }
+      else if(a.actT <= 0 && st !== "clinic" && st !== "store"){ a.state = "idle"; a.decideT = 0.3 + Math.random()*0.7; }
+      if(st === "clinic" && a.actT <= 0 && !a.fetch){ a.actT = 6; }
+    }
+    a.root.position.x = a.x; a.root.position.z = a.z;
+    a.root.rotation.y = a.heading;
+  });
+  /* gentle separation */
+  for(var i=0;i<G.agents.length;i++) for(var j=i+1;j<G.agents.length;j++){
+    var A = G.agents[i], B = G.agents[j], dx = B.x - A.x, dz = B.z - A.z, d = Math.sqrt(dx*dx + dz*dz);
+    if(d > 0.01 && d < 0.9){ var push = (0.9 - d)/2; A.x -= dx/d*push; A.z -= dz/d*push; B.x += dx/d*push; B.z += dz/d*push; A.root.position.x = A.x; A.root.position.z = A.z; B.root.position.x = B.x; B.root.position.z = B.z; }
+  }
+}
+function imitationScan(){
+  G.agents.forEach(function(a){
+    if(a.vis >= 60 || a.watchCd > 0 || a.sick || a.medicTask) return;
+    if(!(a.state === "idle" || (a.state === "act" && a.stationId === "green") || a.state === "sit")) return;
+    var best = null, bd = 99;
+    G.agents.forEach(function(m){
+      if(m === a || m.vis < 60 || m.state !== "act") return;
+      var d = Math.sqrt((m.x-a.x)*(m.x-a.x) + (m.z-a.z)*(m.z-a.z));
+      if(d < bd){ bd = d; best = m; }
+    });
+    if(!best) return;
+    var guaranteed = (a.id === "bram" && best.id === "mara");
+    if(bd < 9 && (guaranteed || Math.random() < 0.45)){
+      if(bd > 3.4){ a.pendingWatch = best.id; var vx = a.x - best.x, vz = a.z - best.z, vl = Math.sqrt(vx*vx + vz*vz) || 1; goTo(a, best.x + vx/vl*3.2, best.z + vz/vl*3.2, a.stationId); }
+      else { a.state = "watch"; a.watchOf = best.id; a.watchT = 3.4; setBubble(a, "👀", 1.8); }
+    }
+  });
+}
+function triggerIncident(){
+  var rosa = agent("rosa");
+  if(!rosa || rosa.sick) return;
+  var d = Math.sqrt((rosa.x)*(rosa.x) + (rosa.z - 8.6)*(rosa.z - 8.6));
+  if(d > 3){ rosa.pendingSick = true; rosa.order = null; goTo(rosa, 0, 8.6, "green"); }
+  else { rosa.sick = true; rosa.state = "sit"; rosa.stationId = "green"; openIncident(); }
+  setBubble(rosa, "✚", 3);
+}
+function openIncident(){
+  G.incidentOpen = true;
+  var box = document.getElementById("incident");
+  box.innerHTML = "<div class='k'>✚ IN THE VILLAGE</div><h3>Rosa feels faint</h3><p>She has sat down by the fire, pale. The village is watching what happens next.</p><div class='opts'>"
+    + "<button class='iopt' data-i='0'><span class='ii'>✚</span><span class='il'>Send Jonah</span><span class='ih'>The medic, in person</span></button>"
+    + "<button class='iopt' data-i='1'><span class='ii'>🏠</span><span class='il'>Let her rest</span><span class='ih'>Home, quiet, slower</span></button>"
+    + "<button class='iopt blame' data-i='2'><span class='ii'>🔴</span><span class='il'>Blame the well</span><span class='ih'>Abel kept the water</span></button></div>";
+  box.style.display = "block";
+  box.querySelectorAll(".iopt").forEach(function(b){ b.addEventListener("click", function(){ chooseIncident(parseInt(b.getAttribute("data-i"), 10)); }); });
+}
+function chooseIncident(i){
+  if(!G.incidentOpen) return;
+  G.incidentOpen = false; G.incidentDone = true;
+  document.getElementById("incident").style.display = "none";
+  var rosa = agent("rosa"), jonah = agent("jonah"), abel = agent("abel");
+  if(i === 0){
+    G.rosaOutcome = "Jonah reached Rosa and treated her by the fire";
+    jonah.medicTask = 1; jonah.order = null; jonah.fetch = null; jonah.carrying = null;
+    goTo(jonah, rosa.x + 1.1, rosa.z + 0.4, "green");
+    showToast("✚ Jonah is on his way");
+  } else if(i === 1){
+    G.rosaOutcome = "Rosa rested at home and recovered slowly";
+    rosa.order = null; goStation(rosa, "home");
+    setTimeout(function(){ }, 0);
+    showToast("🏠 Rosa heads home to rest");
+  } else {
+    G.rosaOutcome = "Abel took the blame for the water";
+    abel.disp = "Withdrawn"; abel.morale = Math.max(5, abel.morale - 25); abel.order = null;
+    setBubble(abel, "🔴", 2.5); goStation(abel, "home");
+    rosa.sick = false; rosa.morale = 45; rosa.state = "idle"; rosa.decideT = 1;
+    showToast("🔴 The village blames Abel");
+  }
+  refreshTray();
+}
+function stepSim(dt){
+  G.t += dt; G.weekTime += dt;
+  if(!G.incidentDone && !G.incidentOpen && G.weekTime >= 48) triggerIncident();
+  G.imitateT += dt;
+  if(G.imitateT > 2.5){ G.imitateT = 0; imitationScan(); }
+  stepAgents(dt);
+  /* roof visuals */
+  var targetPlanks = Math.floor(G.roof / 16.7);
+  roofPlanks.forEach(function(p, i){ p.visible = i < Math.max(2, targetPlanks); });
+  if(roofHole){ var hs = Math.max(0.05, 1 - G.roof/115); roofHole.scale.set(hs, 1, hs); roofHole.visible = G.roof < 99; }
+  /* crops */
+  if(Math.abs(G.fieldGrowth - G.growthApplied) > 0.03){
+    G.growthApplied = G.fieldGrowth;
+    var dummy = new THREE.Object3D();
+    cropData.forEach(function(c, i){
+      dummy.position.set(c.x, 0.3 + G.fieldGrowth*0.5, c.z);
+      dummy.scale.setScalar(c.s * (0.6 + G.fieldGrowth*0.9)); dummy.updateMatrix();
+      cropMesh.setMatrixAt(i, dummy.matrix);
+    });
+    cropMesh.instanceMatrix.needsUpdate = true;
+  }
+  if(fireCore){ var fs = 1 + Math.sin(G.t*11)*0.18 + Math.sin(G.t*23)*0.08; fireCore.scale.set(fs, fs*1.25, fs); fireLight.intensity = 0.8 + Math.sin(G.t*13)*0.18; }
+  if(G.weekTime >= WEEK_LEN && !G.over) finishSlice();
+}
+function finishSlice(){
+  G.over = true;
+  var avgMorale = Math.round(G.agents.reduce(function(s, a){ return s + a.morale; }, 0) / G.agents.length);
+  var verdict = G.roof >= 100 ? "Roof sealed before the count." : (G.roof >= 70 ? "Roof nearly there. Another day of hands would have finished it." : "The roof still leaks. The crew needed directing.");
+  var html = "<div class='kick2'>END OF WEEK 1 · SLICE REPORT</div><h2>The Winter Count, <span>early</span></h2>"
+    + "<p style='color:var(--ink2)'>" + verdict + "</p>"
+    + "<div class='stat-row'><span>🔨 Clinic roof</span><b>" + Math.round(G.roof) + "%</b></div>"
+    + "<div class='stat-row'><span>📦 Stores gathered</span><b>" + G.stores + "</b></div>"
+    + "<div class='stat-row'><span>👀 Imitations witnessed</span><b>" + G.copied + "</b></div>"
+    + "<div class='stat-row'><span>✚ Rosa</span><b style='font-size:13px;text-align:right;max-width:55%'>" + (G.rosaOutcome || "No word") + "</b></div>"
+    + "<div class='stat-row'><span>♥ Village morale (avg)</span><b>" + avgMorale + "</b></div>"
+    + "<p style='color:var(--ink2);font-size:13.5px'>This is the vertical slice: one week, the full cast, four workplaces, one imitation chain, one incident. The full 3D rebuild extends exactly this to twelve weeks.</p>"
+    + "<button class='btn' onclick='location.reload()'>Run the week again</button>";
+  document.getElementById("endCard").innerHTML = html;
+  document.getElementById("endOverlay").classList.add("open");
+}
+
+/* ================= THREE SETUP ================= */
+var clock;
+function initThree(){
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(46, window.innerWidth/window.innerHeight, 0.1, 400);
+  renderer = new THREE.WebGLRenderer({antialias:true, preserveDrawingBuffer:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.06;
+  document.getElementById("scene").appendChild(renderer.domElement);
+  clock = new THREE.Clock();
+  window.addEventListener("resize", function(){
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+}
+function updateCamera(dt){
+  if(cam.follow){
+    var a = agent(cam.follow);
+    if(a){ cam.target.x += (a.x - cam.target.x) * Math.min(1, dt*4); cam.target.z += (a.z - cam.target.z) * Math.min(1, dt*4); }
+  }
+  cam.target.x = Math.max(-38, Math.min(38, cam.target.x));
+  cam.target.z = Math.max(-30, Math.min(32, cam.target.z));
+  var sp = Math.sin(cam.pitch), x = cam.target.x + cam.dist * sp * Math.sin(cam.yaw);
+  var z = cam.target.z + cam.dist * sp * Math.cos(cam.yaw);
+  var y = cam.dist * Math.cos(cam.pitch);
+  camera.position.set(x, y, z);
+  camera.lookAt(cam.target.x, 1, cam.target.z);
+}
+/* ================= HUD ================= */
+function activityText(a){
+  if(a.sick) return "Unwell, by the fire";
+  if(a.state === "walk") return a.medicTask ? "Hurrying to Rosa" : "Going to " + (stationW(a.stationId) ? stationW(a.stationId).name : "somewhere");
+  if(a.state === "watch") return "Watching " + (a.watchOf ? agent(a.watchOf).name.split(" ")[0] : "");
+  if(a.state === "kneel") return "Treating Rosa";
+  if(a.state === "sit") return a.stationId === "home" ? "Resting at home" : "Sitting";
+  if(a.state === "act"){
+    if(a.stationId === "clinic") return a.carrying === "plank" ? "Carrying a plank" : "🔨 Repairing the roof";
+    if(a.stationId === "fields") return "🌿 Working the fields";
+    if(a.stationId === "store") return a.carrying === "crate" ? "Carrying a crate" : "📦 Hauling stores";
+    if(a.stationId === "green") return "🌳 With the village";
+    if(a.stationId === "well") return "💧 Drawing water";
+    return "Working";
+  }
+  return "Idle";
+}
+var CMDS = [
+  {id:"auto", icon:"◎", label:"Free will"}, {id:"clinic", icon:"✚", label:"Clinic"},
+  {id:"fields", icon:"🌿", label:"Fields"}, {id:"store", icon:"📦", label:"Stores"},
+  {id:"green", icon:"🌳", label:"Green"}, {id:"well", icon:"💧", label:"Well"},
+  {id:"home", icon:"🏠", label:"Rest"}
+];
+var trayKey = "";
+function refreshTray(force){
+  var a = G.selected ? agent(G.selected) : null;
+  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp : "") + "|" + (cam.follow || "") + "|" + (G.spotCd > G.t ? "cd" : "rdy") + "|" + G.armed;
+  if(!force && key === trayKey) return;
+  trayKey = key;
+  var info = document.getElementById("selInfo");
+  if(a){
+    info.innerHTML = "<div class='rl'>" + a.role + " · <span style='color:" + DISPO3[a.disp].col + "'>" + DISPO3[a.disp].icon + " " + a.disp + "</span></div>"
+      + "<div class='nm'>" + (a.vis >= 60 ? "🔥 " : "") + a.name + "</div>"
+      + "<div class='st'>" + activityText(a) + " · ⚡" + Math.round(a.energy) + " ♥" + Math.round(a.morale) + " 👀" + Math.round(a.vis) + "</div>";
+  } else {
+    info.innerHTML = "<div class='rl'>Village</div><div class='nm'>No selection</div><div class='st'>Tap a resident. Tap a building to send them. Drag to look around.</div>";
+  }
+  var html = CMDS.map(function(c){
+    var on = a && ((c.id === "auto" && !a.order) || a.order === c.id);
+    return "<button class='cbtn" + (on ? " on" : "") + "' data-o='" + c.id + "'" + (!a ? " disabled" : "") + "><span class='i'>" + c.icon + "</span><span class='l'>" + c.label + "</span></button>";
+  }).join("");
+  html += "<button class='cbtn" + (cam.follow ? " on" : "") + "' data-o='follow'" + (!a ? " disabled" : "") + "><span class='i'>🎥</span><span class='l'>Follow</span></button>";
+  html += "<button class='cbtn" + (G.armed ? " on" : "") + "' data-o='spot'" + (!a || G.spotCd > G.t ? " disabled" : "") + "><span class='i'>✨</span><span class='l'>Spotlight</span></button>";
+  var cmds = document.getElementById("cmds");
+  cmds.innerHTML = html;
+  cmds.querySelectorAll(".cbtn").forEach(function(b){
+    b.addEventListener("click", function(){
+      var o = b.getAttribute("data-o");
+      if(o === "follow"){ cam.follow = cam.follow ? null : G.selected; refreshTray(true); return; }
+      if(o === "spot"){ G.armed = true; showToast("✨ Tap a resident to spotlight them"); refreshTray(true); return; }
+      setOrder3(o);
+    });
+  });
+}
+function setOrder3(orderId){
+  var a = G.selected ? agent(G.selected) : null;
+  if(!a || a.sick) return;
+  a.order = (orderId === "auto") ? null : orderId;
+  a.mimicStation = null; a.visitId = null;
+  if(a.state !== "walk"){ a.state = "idle"; a.decideT = 0; }
+  refreshTray(true);
+}
+function showToast(msg){
+  var t = document.getElementById("toast");
+  t.textContent = msg; t.style.display = "block";
+  t.setAttribute("data-hide", String(Date.now() + 3600));
+}
+var hudAcc = 0;
+function hudTick(dt){
+  hudAcc += dt;
+  var t = document.getElementById("toast");
+  if(t.style.display === "block" && Date.now() > parseInt(t.getAttribute("data-hide") || "0", 10)) t.style.display = "none";
+  if(hudAcc < 0.15) return;
+  hudAcc = 0;
+  document.getElementById("objBar").style.width = G.roof + "%";
+  document.getElementById("objPct").textContent = Math.round(G.roof) + "%";
+  document.getElementById("weekChip").textContent = "WEEK 1 · ☀ " + Math.round(G.weekTime / WEEK_LEN * 100) + "%";
+  document.getElementById("storesN").textContent = G.stores;
+  document.getElementById("copiedN").textContent = G.copied;
+  refreshTray(false);
+}
+var projV = null;
+function updateLabels(){
+  if(!projV) projV = new THREE.Vector3();
+  var w = window.innerWidth, h = window.innerHeight;
+  G.agents.forEach(function(a){
+    projV.set(a.x, 2.5, a.z).project(camera);
+    var sx = (projV.x * 0.5 + 0.5) * w, sy = (-projV.y * 0.5 + 0.5) * h;
+    var behind = projV.z > 1;
+    var showName = !behind && (G.selected === a.id || a.vis >= 60);
+    a.labelEl.style.display = showName ? "block" : "none";
+    if(showName){
+      a.labelEl.style.left = sx + "px"; a.labelEl.style.top = sy + "px";
+      var txt = (a.vis >= 60 ? "🔥 " : "") + a.name.split(" ")[0] + (G.selected === a.id ? " · " + a.role : "");
+      if(a.labelEl.textContent !== txt) a.labelEl.textContent = txt;
+    }
+    var showBub = !behind && a.bubble && G.t < a.bubbleUntil;
+    a.bubbleEl.style.display = showBub ? "block" : "none";
+    if(showBub){
+      a.bubbleEl.style.left = sx + "px"; a.bubbleEl.style.top = (sy - 16) + "px";
+      if(a.bubbleEl.textContent !== a.bubble) a.bubbleEl.textContent = a.bubble;
+    }
+  });
+}
+/* ================= INPUT ================= */
+var raycaster = new THREE.Raycaster();
+function pickAt(cx, cy){
+  var nd = new THREE.Vector2((cx / window.innerWidth) * 2 - 1, -(cy / window.innerHeight) * 2 + 1);
+  raycaster.setFromCamera(nd, camera);
+  var hits = [];
+  G.agents.forEach(function(a){ hits.push(a.hit); });
+  Object.keys(STATION3).forEach(function(id){ if(STATION3[id].hitMesh) hits.push(STATION3[id].hitMesh); });
+  var found = raycaster.intersectObjects(hits, false);
+  if(found.length){
+    var o = found[0].object;
+    if(o.userData.agentId) return {agent: o.userData.agentId};
+    if(o.userData.stationId) return {station: o.userData.stationId};
+  }
+  return {};
+}
+function tapAt(cx, cy, smart){
+  var p = pickAt(cx, cy);
+  if(G.armed){
+    if(p.agent){ var t = agent(p.agent); t.vis = Math.min(100, t.vis + 26); setBubble(t, "✨", 2.5); G.spotCd = G.t + 20; G.armed = false; showToast("✨ " + t.name.split(" ")[0] + " is watched now"); refreshTray(true); }
+    else G.armed = false;
+    return;
+  }
+  if(p.agent){
+    if(smart && G.selected && G.selected !== p.agent){
+      var me = agent(G.selected), them = agent(p.agent);
+      me.visitId = them.id; me.order = null; goTo(me, them.x + 1.2, them.z + 0.6, me.stationId);
+      refreshTray(true); return;
+    }
+    G.selected = p.agent; refreshTray(true); return;
+  }
+  if(p.station){
+    if(G.selected){ var a2 = agent(G.selected); if(!a2.sick){ a2.order = p.station; a2.mimicStation = null; a2.visitId = null; if(a2.state !== "walk"){ a2.state = "idle"; a2.decideT = 0; } showToast(stationW(p.station).icon + " " + a2.name.split(" ")[0] + " → " + stationW(p.station).name); refreshTray(true); } }
+    else showToast(stationW(p.station).icon + " " + stationW(p.station).name);
+    return;
+  }
+  if(!smart){ G.selected = null; refreshTray(true); }
+}
+function bindInput(){
+  var el = renderer.domElement;
+  var pointers = new Map();
+  var downAt = null, dragged = false, pinchD = 0, pinchA = 0;
+  el.addEventListener("pointerdown", function(e){
+    pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    if(pointers.size === 1){ downAt = {x:e.clientX, y:e.clientY}; dragged = false; }
+    if(pointers.size === 2){
+      var ps = Array.from(pointers.values());
+      pinchD = Math.hypot(ps[0].x - ps[1].x, ps[0].y - ps[1].y);
+      pinchA = Math.atan2(ps[1].y - ps[0].y, ps[1].x - ps[0].x);
+      dragged = true;
+    }
+    el.setPointerCapture(e.pointerId);
+  });
+  el.addEventListener("pointermove", function(e){
+    if(!pointers.has(e.pointerId)) return;
+    var prev = pointers.get(e.pointerId);
+    var dx = e.clientX - prev.x, dy = e.clientY - prev.y;
+    pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    if(pointers.size === 1 && downAt){
+      if(Math.abs(e.clientX - downAt.x) + Math.abs(e.clientY - downAt.y) > 7) dragged = true;
+      if(dragged){
+        var fwd = new THREE.Vector3(); camera.getWorldDirection(fwd); fwd.y = 0; fwd.normalize();
+        var right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0, 1, 0));
+        var s = cam.dist * 0.0016;
+        cam.target.addScaledVector(right, -dx * s);
+        cam.target.addScaledVector(fwd, dy * s);
+        cam.follow = null;
+      }
+    } else if(pointers.size === 2){
+      var ps = Array.from(pointers.values());
+      var nd = Math.hypot(ps[0].x - ps[1].x, ps[0].y - ps[1].y);
+      var na = Math.atan2(ps[1].y - ps[0].y, ps[1].x - ps[0].x);
+      if(pinchD > 0) cam.dist = Math.max(15, Math.min(62, cam.dist * pinchD / Math.max(20, nd)));
+      cam.yaw += (na - pinchA);
+      pinchD = nd; pinchA = na;
+    }
+  });
+  function endPointer(e){
+    var wasDrag = dragged;
+    pointers.delete(e.pointerId);
+    if(pointers.size === 0){
+      if(!wasDrag && downAt) tapAt(e.clientX, e.clientY, false);
+      downAt = null; dragged = false;
+    }
+  }
+  el.addEventListener("pointerup", endPointer);
+  el.addEventListener("pointercancel", endPointer);
+  el.addEventListener("wheel", function(e){ e.preventDefault(); cam.dist = Math.max(15, Math.min(62, cam.dist * (e.deltaY > 0 ? 1.1 : 0.9))); }, {passive:false});
+  el.addEventListener("contextmenu", function(e){ e.preventDefault(); tapAt(e.clientX, e.clientY, true); });
+  el.addEventListener("dblclick", function(e){
+    var p = pickAt(e.clientX, e.clientY);
+    if(p.agent){ G.selected = p.agent; cam.follow = (cam.follow === p.agent) ? null : p.agent; refreshTray(true); }
+  });
+  document.addEventListener("keydown", function(e){
+    if(e.code === "Space"){ e.preventDefault(); setSpeed(G.speed === 0 ? 1 : 0); }
+    if(e.key === "q" || e.key === "Q") cam.yaw += 0.35;
+    if(e.key === "e" || e.key === "E") cam.yaw -= 0.35;
+  });
+}
+function setSpeed(n){
+  G.speed = n;
+  [0, 1, 2].forEach(function(s){ document.getElementById("sp" + s).classList.toggle("on", s === n); });
+}
+document.getElementById("sp0").addEventListener("click", function(){ setSpeed(0); });
+document.getElementById("sp1").addEventListener("click", function(){ setSpeed(1); });
+document.getElementById("sp2").addEventListener("click", function(){ setSpeed(2); });
+document.getElementById("camBtn").addEventListener("click", function(){ cam.target.set(0, 0, 4); cam.yaw = 0; cam.dist = 38; cam.follow = null; refreshTray(true); });
+function beginSlice(){
+  if(G.started) return;
+  G.started = true;
+  document.getElementById("startOverlay").classList.remove("open");
+  showToast("🔨 Mara is on the roof. Bram is watching.");
+}
+document.getElementById("beginBtn").addEventListener("click", beginSlice);
+/* ================= MAIN LOOP ================= */
+initThree();
+buildWorld();
+G = newSlice();
+bindInput();
+refreshTray(true);
+renderer.setAnimationLoop(function(){
+  var dtR = Math.min(0.05, clock.getDelta());
+  var eff = 0;
+  if(G.started && !G.over){
+    eff = dtR * G.speed * (G.incidentOpen ? 0.3 : 1);
+    if(eff > 0) stepSim(eff);
+  }
+  G.agents.forEach(function(a){ animateAgent(a, eff); });
+  updateCamera(dtR);
+  updateLabels();
+  hudTick(dtR);
+  renderer.render(scene, camera);
+});
+if(location.hash.indexOf("play") >= 0) beginSlice();
+var ffm = location.hash.match(/ff=(\d+)/);
+if(ffm){
+  beginSlice();
+  var steps = parseInt(ffm[1], 10) * 10;
+  for(var fi = 0; fi < steps; fi++){ if(G.incidentOpen) chooseIncident(0); stepSim(0.1); }
+  G.agents.forEach(function(a){ animateAgent(a, 0.1); });
+  updateCamera(0); updateLabels(); refreshTray(true);
+  renderer.render(scene, camera);
+}
+window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginSlice, choose: chooseIncident, order: setOrder3, select: function(id){ G.selected = id; refreshTray(true); }};
+</script>
+</body>
+</html>
