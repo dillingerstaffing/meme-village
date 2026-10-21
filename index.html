@@ -28,8 +28,12 @@ canvas{display:block}
 #sliceTag{top:10px;left:50%;transform:translateX(-50%);background:rgba(90,20,16,.85);border:1px solid var(--red);color:#ffd9d4;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:800;letter-spacing:.18em}
 #toast{bottom:118px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--gold);border-radius:22px;padding:8px 18px;font-size:14px;font-weight:700;display:none;white-space:nowrap;max-width:94vw}
 #alerts{position:fixed;left:10px;bottom:118px;display:flex;flex-direction:column;gap:6px;z-index:29}
+#pressure{position:fixed;z-index:9;transform:translate(-50%,-100%);pointer-events:none;background:rgba(80,18,12,.88);color:#ffd9d0;border:1px solid #e86a4b;border-radius:8px;padding:2px 8px;font:700 12px 'Inter',sans-serif;display:none}
 .alert-chip{background:rgba(14,20,16,.9);border:1px solid var(--gold);color:var(--ink);border-radius:8px;padding:7px 11px;font:600 12px 'Inter',sans-serif;cursor:pointer;text-align:left;box-shadow:0 4px 14px rgba(0,0,0,.35)}
 .alert-chip b{color:var(--gold)}
+.bubble.wantb{border:2px dashed var(--gold);background:rgba(255,244,214,.97)}
+.cbtn.wantpulse{animation:wantp 1s ease-in-out infinite;border-color:var(--gold)}
+@keyframes wantp{0%,100%{box-shadow:0 0 0 0 rgba(232,179,75,0)}50%{box-shadow:0 0 0 3px rgba(232,179,75,.55)}}
 #tray{position:fixed;z-index:10;bottom:0;left:0;right:0;background:linear-gradient(180deg,rgba(14,19,26,.92),rgba(9,12,17,.97));border-top:1px solid var(--line);padding:10px 12px;display:flex;gap:12px;align-items:center;min-height:96px}
 #selInfo{min-width:170px;max-width:230px}
 #selInfo .nm{font-weight:800;font-size:17px}
@@ -42,6 +46,7 @@ canvas{display:block}
 .cbtn .i{font-size:21px;display:block}
 .cbtn .l{font-size:10.5px;font-weight:700;color:var(--ink2);display:block;margin-top:1px}
 .cbtn:disabled{opacity:.4;cursor:not-allowed}
+#labels{pointer-events:none}
 .label{position:fixed;z-index:9;transform:translate(-50%,-100%);pointer-events:none;font-size:12px;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.8);white-space:nowrap;display:none}
 .bubble{position:fixed;z-index:9;transform:translate(-50%,-130%);pointer-events:none;background:rgba(253,251,244,.96);border-radius:10px;padding:3px 8px;font-size:16px;display:none;box-shadow:0 3px 10px rgba(0,0,0,.35)}
 .intent{position:fixed;z-index:8;transform:translate(-50%,-100%);pointer-events:none;background:rgba(18,24,20,.62);border-radius:8px;padding:1px 6px;font-size:13px;line-height:1.5;display:none}
@@ -131,6 +136,7 @@ canvas{display:block}
 </div>
 <div class="hud" id="toast"></div>
 <div id="alerts"></div>
+<div id="pressure"></div>
 <div class="hud" id="incident"></div>
 <div id="labels"></div>
 <div id="tray">
@@ -148,10 +154,12 @@ canvas{display:block}
       <div>👀 <b>Residents copy visible models.</b> Spotlight the right person and the whole village tilts.</div>
       <div>⚖ <b>Blame works fast and bills later.</b> Choose carefully when things go wrong.</div>
     </div>
+    <div id="seasonLine" style="color:var(--ink2);font-size:13px;margin-top:10px"></div>
     <div class="seglabel">SEASON</div>
     <div class="seg" id="diffSeg">
       <button class="segbtn on" data-d="standard" type="button">☀ Standard</button>
       <button class="segbtn" data-d="hard" type="button">❄ Hard Winter</button>
+      <button class="segbtn" data-d="dry" type="button">☀ Dry Year</button>
     </div>
     <div class="seglabel">THE POSTING ON THE GREEN</div>
     <div class="seg" id="polSeg">
@@ -212,7 +220,8 @@ var roofPlanks = [], roofHole = null, storedCrates = [], cropMesh = null, cropDa
 var fireLight = null, fireCore = null, millBlades = null, objRing = null;
 var pulses = [], coachStation = null, coachAgent = null, pipGroup = null, pipMats = [];
 var orderPings = [], selLine = null;
-var mouseX = -1, mouseY = -1, mouseIn = false, ptrDown = false;
+var mouseX = -1, mouseY = -1, mouseIn = false, ptrDown = false, mouseT = 0, mouseBtn = 0;
+var FINE_POINTER = !!(window.matchMedia && matchMedia("(pointer:fine)").matches);
 function buildWorld(){
   scene.background = new THREE.Color(0x9fd3e8);
   scene.fog = new THREE.Fog(0x9fd3e8, 90, 190);
@@ -396,7 +405,7 @@ function makeAgents(){
       x:d.home[0], z:d.home[1], heading:Math.random()*6.28, tx:0, tz:0,
       state:"idle", stationId:null, slot:null, actT:0, decideT:Math.random()*2, loafT:0, alerted:false,
       energy:80 - (i%4)*4, morale:72, phase:Math.random()*10, walkPhase:0,
-      order:null, carrying:null, bubble:null, bubbleUntil:0, watchOf:null, watchT:0,
+      order:null, carrying:null, bubble:null, bubbleUntil:0, watchOf:null, watchT:0, want:null, wantCd:Math.random()*10, wantPend:null,
       idleT:0, sick:false, seed:Math.random()*100
     });
     a.tx = a.x; a.tz = a.z;
@@ -787,7 +796,7 @@ var OBJECTIVES = [
   {station:"store", icon:"📦", title:"The Winter Count", hint:"Final stores before the snow", metric:function(){ return G.weekWork.stores * 100 / 10; }}
 ];
 function setObjective(){
-  var o = OBJECTIVES[G.week - 1];
+  var o = (G.objectives || OBJECTIVES)[G.week - 1];
   if(!o) return;
   G.objStation = o.station; G.objComplete = false;
   var st = STATION3[o.station];
@@ -796,18 +805,18 @@ function setObjective(){
 }
 function objectiveTick(){
   if(G.objComplete) return;
-  var o = OBJECTIVES[G.week - 1];
+  var o = (G.objectives || OBJECTIVES)[G.week - 1];
   if(o && o.metric() >= 100){ G.objComplete = true; G.objDone++; applyStatMods({trust:3, cohesion:3}); showToast("✓ Objective complete: " + o.title); }
 }
 function clamp100(v){ return Math.max(0, Math.min(100, v)); }
 function statDrift(dt){
   var s = G.stats, workers = 0, ordered = 0, crowd = {};
   G.agents.forEach(function(a){
-    if(a.state === "act" && a.stationId && a.stationId !== "green" && a.stationId !== "home"){ workers++; crowd[a.stationId] = (crowd[a.stationId] || 0) + 1; }
+    if(a.state === "act" && a.stationId && a.stationId !== "green" && a.stationId !== "home"){ workers++; if(!a.order) crowd[a.stationId] = (crowd[a.stationId] || 0) + 1; }
     if(a.order) ordered++;
   });
   s.prod += (workers * 11 - s.prod) * dt * 0.03;
-  var scarT = clamp100(80 - Math.min(62, G.stores) * 1.15 + (G.difficulty === "hard" ? 9 : 0));
+  var scarT = clamp100(80 - Math.min(62, G.stores) * 1.15 + (G.difficulty === "hard" ? 9 : (G.difficulty === "dry" ? 6 : 0)));
   s.scarcity += (scarT - s.scarcity) * dt * 0.18;
   var avgM = G.agents.reduce(function(sm, a){ return sm + a.morale; }, 0) / G.agents.length;
   s.trust += (clamp100(avgM * 0.72 + (G.policy === "open" ? 7 : 0)) - s.trust) * dt * 0.05;
@@ -819,7 +828,7 @@ function statDrift(dt){
   Object.keys(s).forEach(function(k){ s[k] = clamp100(s[k]); });
 }
 function endWeek(){
-  var o = OBJECTIVES[G.week - 1];
+  var o = (G.objectives || OBJECTIVES)[G.week - 1];
   if(G.week >= SEASON_WEEKS){ finishGame(); return; }
   if(o) showToast(G.objComplete ? ("✓ Week " + G.week + " done: " + o.title + " · " + G.objDone + "/12") : ("Week " + G.week + " ends: " + o.title + " missed"));
   G.week++; G.weekTime = 0; G.incidentDone = false; G.curIncident = null;
@@ -833,7 +842,7 @@ function endWeek(){
 function stepSim(dt){
   G.t += dt; G.weekTime += dt;
   for(var di = G.delays.length - 1; di >= 0; di--){ if(G.t >= G.delays[di].at){ var dl = G.delays[di]; G.delays.splice(di, 1); applyStatMods(dl.mods); if(dl.msg) showToast(dl.msg); } }
-  var inc = INCIDENTS[G.week - 1];
+  var inc = (G.incidents || INCIDENTS)[G.week - 1];
   if(inc && !G.incidentDone && !G.incidentOpen && !G.pendingIncident && G.weekTime >= inc.at) triggerIncident(inc);
   G.imitateT += dt;
   if(G.imitateT > 2.5){ G.imitateT = 0; imitationScan(); }
@@ -842,6 +851,21 @@ function stepSim(dt){
     var working = a.medicTask || a.order || (a.state === "act" && a.stationId && a.stationId !== "green" && a.stationId !== "home") || (a.state === "walk" && a.stationId && a.stationId !== "green" && a.stationId !== "home");
     if(working || a.sick) a.loafT = 0; else a.loafT = (a.loafT || 0) + dt;
     if(a.loafT > 15 && !a.alerted && G.started && !G.over){ a.alerted = true; G.alerts.push({id:a.id, name:a.name.split(" ")[0], at:G.t}); }
+  });
+  G.agents.forEach(function(a){
+    if(a.wantPend && G.t >= a.wantPend.at && !a.sick){ var wp = a.wantPend; a.wantPend = null; giveWant(a, wp.station); }
+    if(a.want){
+      if(G.t > a.want.until){ a.morale = Math.max(0, a.morale - 3); a.want = null; a.wantCd = 8; }
+      else if(a.state === "act" && a.stationId === a.want.station){
+        a.morale = Math.min(100, a.morale + 9); setBubble(a, "♥", 1.6);
+        if(a.order === a.want.station) applyStatMods({trust:1.5, cohesion:1});
+        a.want = null; a.wantCd = 14;
+      }
+    }
+    if(!a.want && !a.wantPend && !a.sick && G.started && !G.over){
+      a.wantCd -= dt;
+      if(a.wantCd <= 0){ a.wantCd = 20 + Math.random()*14; if(Math.random() < 0.75) giveWant(a, pickWantStation(a)); }
+    }
   });
   statDrift(dt);
   objectiveTick();
@@ -880,6 +904,7 @@ function finishGame(){
   function row(label, val){ return "<div class='stat-row'><span>" + label + "</span><b>" + Math.round(val) + "</b></div>"; }
   var html = "<div class='kick2'>THE WINTER COUNT · AFTER 12 WEEKS</div><h2>" + ending + "</h2>"
     + "<p style='color:var(--ink2)'>" + epi + "</p>"
+    + "<p style='color:var(--ink2)'>Season #" + G.seed + " · watched this season: " + (G.seasonModels || []).join(", ") + "</p>"
     + row("⚒ Productivity", s.prod) + row("♥ Trust", s.trust) + row("🌳 Cohesion", s.cohesion)
     + row("⚔ Rivalry", s.rivalry) + row("🌾 Scarcity", s.scarcity) + row("🕊 Autonomy", s.autonomy)
     + "<div class='stat-row'><span>🎯 Objectives met</span><b>" + G.objDone + " / 12</b></div>"
@@ -906,6 +931,7 @@ function initThree(){
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.06;
   document.getElementById("scene").appendChild(renderer.domElement);
+  renderer.domElement.style.touchAction = "none";
   clock = new THREE.Clock();
   window.addEventListener("resize", function(){
     camera.aspect = window.innerWidth/window.innerHeight;
@@ -918,7 +944,7 @@ function updateCamera(dt){
     var a = agent(cam.follow);
     if(a){ cam.target.x += (a.x - cam.target.x) * Math.min(1, dt*4); cam.target.z += (a.z - cam.target.z) * Math.min(1, dt*4); }
   }
-  if(mouseIn && !ptrDown && G.started && !G.over && !G.incidentOpen){
+  if(mouseIn && FINE_POINTER && !ptrDown && mouseBtn === 0 && performance.now() - mouseT < 1500 && G.started && !G.over && !G.incidentOpen){
     var eps = cam.dist * 0.9 * dt, em = 30;
     var efx = -Math.sin(cam.yaw), efz = -Math.cos(cam.yaw), erx = Math.cos(cam.yaw), erz = -Math.sin(cam.yaw);
     if(mouseX < em){ cam.target.x -= erx * eps; cam.target.z -= erz * eps; }
@@ -964,12 +990,12 @@ var CMDS = [
 var trayKey = "";
 function refreshTray(force){
   var a = G.selected ? agent(G.selected) : null;
-  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") : "") + "|" + (cam.follow || "") + "|" + (G.spotCd > G.t ? "cd" : "rdy") + "|" + G.armed;
+  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.want ? a.want.station : "") : "") + "|" + (cam.follow || "") + "|" + (G.spotCd > G.t ? "cd" : "rdy") + "|" + G.armed;
   if(!force && key === trayKey) return;
   trayKey = key;
   var info = document.getElementById("selInfo");
   if(a){
-    info.innerHTML = "<div class='rl'>" + a.role + " · <span style='color:" + DISPO3[a.disp].col + "'>" + DISPO3[a.disp].icon + " " + a.disp + "</span></div>"
+    info.innerHTML = "<div class='rl'>" + a.role + " · <span style='color:" + DISPO3[a.disp].col + "'>" + DISPO3[a.disp].icon + " " + a.disp + "</span>" + (a.want ? " · 💭" + STATION3[a.want.station].icon + " " + stationW(a.want.station).name : "") + "</div>"
       + "<div class='nm'>" + (a.vis >= 60 ? "🔥 " : "") + a.name + "</div>"
       + "<div class='st'>" + activityText(a) + " · ⚡" + Math.round(a.energy) + " ♥" + Math.round(a.morale) + " 👀" + Math.round(a.vis) + "</div>"
       + "<div class='st'>" + (a.reason ? a.reason + " · " : "") + watchLine(a) + "</div>";
@@ -978,7 +1004,8 @@ function refreshTray(force){
   }
   var html = CMDS.map(function(c){
     var on = a && ((c.id === "auto" && !a.order) || a.order === c.id);
-    return "<button class='cbtn" + (on ? " on" : "") + "' data-o='" + c.id + "'" + (!a ? " disabled" : "") + "><span class='i'>" + c.icon + "</span><span class='l'>" + c.label + "</span></button>";
+    var wnt = a && a.want && a.want.station === c.id;
+    return "<button class='cbtn" + (on ? " on" : "") + (wnt ? " wantpulse" : "") + "' data-o='" + c.id + "'" + (!a ? " disabled" : "") + "><span class='i'>" + c.icon + "</span><span class='l'>" + c.label + "</span></button>";
   }).join("");
   html += "<button class='cbtn" + (cam.follow ? " on" : "") + "' data-o='follow'" + (!a ? " disabled" : "") + "><span class='i'>🎥</span><span class='l'>Follow</span></button>";
   html += "<button class='cbtn" + (G.armed ? " on" : "") + "' data-o='spot'" + (!a || G.spotCd > G.t ? " disabled" : "") + "><span class='i'>✨</span><span class='l'>Spotlight</span></button>";
@@ -1017,7 +1044,7 @@ function hudTick(dt){
   if(t.style.display === "block" && Date.now() > parseInt(t.getAttribute("data-hide") || "0", 10)) t.style.display = "none";
   if(hudAcc < 0.15) return;
   hudAcc = 0;
-  var o = OBJECTIVES[G.week - 1];
+  var o = (G.objectives || OBJECTIVES)[G.week - 1];
   var pct = o ? Math.max(0, Math.min(100, Math.round(o.metric()))) : 0;
   document.getElementById("objK").textContent = "OBJECTIVE · WEEK " + G.week + (G.objComplete ? " · ✓ DONE" : "");
   document.getElementById("objT").textContent = o ? (o.icon + " " + o.title) : "";
@@ -1044,6 +1071,43 @@ function intentIcon(a){
   if(a.state === "watch") return "👀";
   if(a.state === "walk" || a.state === "act"){ var st = STATION3[a.stationId]; return st ? st.icon : "•"; }
   return "💭";
+}
+function shuffleArr(arr){ for(var i = arr.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)); var t = arr[i]; arr[i] = arr[j]; arr[j] = t; } return arr; }
+function shuffleCast(){
+  var others = G.agents.filter(function(a){ return a.id !== "mara" && a.id !== "bram"; });
+  var disps = shuffleArr(["Diligent","Helpful","Diligent","Helpful","Selfish","Helpful","Diligent","Withdrawn"]);
+  var affs = shuffleArr(others.map(function(a){ return a.aff; }));
+  others.forEach(function(a, i){ a.disp = disps[i]; a.aff = affs[i]; a.vis = 22 + Math.floor(Math.random() * 22); });
+  var models = shuffleArr(others.slice()).slice(0, 2);
+  models.forEach(function(a){ a.vis = 62 + Math.floor(Math.random() * 12); });
+  G.seasonModels = models.map(function(a){ return a.name.split(" ")[0]; });
+  G.objectives = [OBJECTIVES[0]].concat(shuffleArr(OBJECTIVES.slice(1)));
+  G.incidents = [INCIDENTS[0]].concat(shuffleArr(INCIDENTS.slice(1)));
+}
+function pickWantStation(a){
+  if(a.energy < 35) return "home";
+  if(a.morale < 45) return "green";
+  var c = [[a.aff, 3], [G.objStation, 2], ["green", 1.4], ["store", 1.2], ["fields", 1.2]];
+  if(a.disp === "Diligent") c.push(["clinic", 2], ["mill", 2]);
+  if(a.disp === "Helpful") c.push(["clinic", 2], ["school", 2]);
+  if(a.disp === "Selfish") c.push(["green", 2.4], ["home", 1.6]);
+  if(a.disp === "Withdrawn") c.push(["home", 3]);
+  var tot = 0; c.forEach(function(x){ tot += x[1]; });
+  var r = Math.random() * tot;
+  for(var i = 0; i < c.length; i++){ r -= c[i][1]; if(r <= 0) return c[i][0]; }
+  return "green";
+}
+function giveWant(a, station){
+  if(!station || a.sick || a.want) return;
+  a.want = {station:station, until:G.t + 26};
+  setBubble(a, STATION3[station].icon, 1.2);
+  if(a.vis >= 60){
+    G.agents.forEach(function(b){
+      if(b === a || b.want || b.wantPend || b.sick) return;
+      var d = Math.sqrt((b.x-a.x)*(b.x-a.x) + (b.z-a.z)*(b.z-a.z));
+      if(d < 10 && Math.random() < 0.5) b.wantPend = {station:station, at:G.t + 0.7 + Math.random()*1.6};
+    });
+  }
 }
 function watchLine(a){
   var n = 0; G.agents.forEach(function(b){ if(b !== a && (b.watchOf === a.id || b.pendingWatch === a.id)) n++; });
@@ -1100,7 +1164,7 @@ function fxTick(dt){
     selLine.geometry.setFromPoints([new THREE.Vector3(sa.x, 0.35, sa.z), new THREE.Vector3(sa.tx, 0.35, sa.tz)]);
   } else if(selLine) selLine.visible = false;
 }
-window.__pickAlert = function(id){ G.selected = id; cam.follow = id; refreshTray(true); };
+window.__pickAlert = function(id){ var a = agent(id); G.selected = id; cam.follow = null; if(a){ cam.target.x = a.x; cam.target.z = a.z; } refreshTray(true); };
 var projV = null;
 function updateLabels(){
   if(!projV) projV = new THREE.Vector3();
@@ -1116,16 +1180,30 @@ function updateLabels(){
       var txt = (a.vis >= 60 ? "🔥 " : "") + a.name.split(" ")[0] + (G.selected === a.id ? " · " + a.role : "");
       if(a.labelEl.textContent !== txt) a.labelEl.textContent = txt;
     }
-    var showBub = !behind && a.bubble && G.t < a.bubbleUntil;
+    var evBub = (a.bubble && G.t < a.bubbleUntil) ? a.bubble : null;
+    var bubIcon = evBub || (a.want ? STATION3[a.want.station].icon : null);
+    var showBub = !behind && !!bubIcon;
     a.bubbleEl.style.display = showBub ? "block" : "none";
+    a.bubbleEl.className = "bubble" + (bubIcon && !evBub ? " wantb" : "");
     if(showBub){
       a.bubbleEl.style.left = sx + "px"; a.bubbleEl.style.top = (sy - 16) + "px";
-      if(a.bubbleEl.textContent !== a.bubble) a.bubbleEl.textContent = a.bubble;
+      if(a.bubbleEl.textContent !== bubIcon) a.bubbleEl.textContent = bubIcon;
     }
     var iIcon = intentIcon(a);
     a.intentEl.style.display = behind ? "none" : "block";
     if(!behind){ a.intentEl.style.left = sx + "px"; a.intentEl.style.top = (sy - 38) + "px"; if(a.intentEl.textContent !== iIcon) a.intentEl.textContent = iIcon; }
   });
+  var press = {}, pressSt = null, pressN = 3;
+  G.agents.forEach(function(a2){ if(!a2.order && (a2.state === "act" || a2.state === "walk") && a2.stationId && a2.stationId !== "green" && a2.stationId !== "home") press[a2.stationId] = (press[a2.stationId] || 0) + 1; });
+  Object.keys(press).forEach(function(k){ if(press[k] > pressN){ pressN = press[k]; pressSt = k; } });
+  var pEl = document.getElementById("pressure");
+  if(pressSt && G.started && !G.over){
+    var pst = STATION3[pressSt];
+    projV.set(pst.x, 4.2, pst.z).project(camera);
+    if(projV.z <= 1){ pEl.style.display = "block"; pEl.style.left = ((projV.x * 0.5 + 0.5) * w) + "px"; pEl.style.top = ((-projV.y * 0.5 + 0.5) * h) + "px"; var ptxt = "⚔×" + pressN + " all want the " + pst.name; if(pEl.textContent !== ptxt) pEl.textContent = ptxt; }
+    else pEl.style.display = "none";
+    if(G.pressToastWk !== G.week){ G.pressToastWk = G.week; showToast("⚔ Everyone wants the " + pst.name + " · rivalry is rising"); }
+  } else pEl.style.display = "none";
 }
 /* ================= INPUT ================= */
 var raycaster = new THREE.Raycaster();
@@ -1234,9 +1312,11 @@ document.getElementById("sp0").addEventListener("click", function(){ setSpeed(0)
 document.getElementById("sp1").addEventListener("click", function(){ setSpeed(1); });
 document.getElementById("sp2").addEventListener("click", function(){ setSpeed(2); });
 document.getElementById("camBtn").addEventListener("click", function(){ cam.target.set(0, 0, 4); cam.yaw = 0; cam.dist = 38; cam.follow = null; refreshTray(true); });
-window.addEventListener("pointermove", function(e){ if(e.pointerType === "mouse"){ mouseX = e.clientX; mouseY = e.clientY; mouseIn = true; } });
-window.addEventListener("pointerdown", function(){ ptrDown = true; });
+window.addEventListener("pointermove", function(e){ if(e.pointerType === "mouse"){ mouseX = e.clientX; mouseY = e.clientY; mouseIn = true; mouseT = performance.now(); mouseBtn = e.buttons; } });
+window.addEventListener("pointerdown", function(e){ if(e.pointerType !== "mouse") mouseIn = false; ptrDown = true; });
 window.addEventListener("pointerup", function(){ ptrDown = false; });
+window.addEventListener("pointercancel", function(){ ptrDown = false; });
+window.addEventListener("blur", function(){ mouseIn = false; ptrDown = false; });
 var chosenDiff = "standard", chosenPolicy = "hearth";
 document.querySelectorAll("#diffSeg .segbtn").forEach(function(b){ b.addEventListener("click", function(){ document.querySelectorAll("#diffSeg .segbtn").forEach(function(x){ x.classList.remove("on"); }); b.classList.add("on"); chosenDiff = b.getAttribute("data-d"); }); });
 document.querySelectorAll("#polSeg .segbtn").forEach(function(b){ b.addEventListener("click", function(){ document.querySelectorAll("#polSeg .segbtn").forEach(function(x){ x.classList.remove("on"); }); b.classList.add("on"); chosenPolicy = b.getAttribute("data-p"); }); });
@@ -1245,6 +1325,7 @@ function beginGame(){
   G.started = true;
   G.policy = chosenPolicy; G.difficulty = chosenDiff;
   if(chosenDiff === "hard"){ G.stats.scarcity = 68; G.stats.trust = 48; G.agents.forEach(function(a){ a.energy -= 10; }); }
+  if(chosenDiff === "dry"){ G.stats.scarcity = 62; G.stats.prod = 40; }
   setObjective();
   document.getElementById("startOverlay").classList.remove("open");
   showToast("🔨 Week 1: Mara is on the roof. Bram is watching.");
@@ -1269,6 +1350,9 @@ renderer.setAnimationLoop(function(){
   hudTick(dtR);
   renderer.render(scene, camera);
 });
+G.seed = 10000 + Math.floor(Math.random() * 89999);
+shuffleCast();
+document.getElementById("seasonLine").textContent = "Season #" + G.seed + " · Watched this season: 🔥 " + G.seasonModels.join(" · 🔥 ") + " · every season reshuffles the village";
 if(location.hash.indexOf("play") >= 0) beginGame();
 var cmm = location.hash.match(/cam=(-?\d+),(-?\d+)/);
 if(cmm){ cam.target.x = parseInt(cmm[1], 10); cam.target.z = parseInt(cmm[2], 10); }
