@@ -44,6 +44,7 @@ canvas{display:block}
 .cbtn:disabled{opacity:.4;cursor:not-allowed}
 .label{position:fixed;z-index:9;transform:translate(-50%,-100%);pointer-events:none;font-size:12px;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.8);white-space:nowrap;display:none}
 .bubble{position:fixed;z-index:9;transform:translate(-50%,-130%);pointer-events:none;background:rgba(253,251,244,.96);border-radius:10px;padding:3px 8px;font-size:16px;display:none;box-shadow:0 3px 10px rgba(0,0,0,.35)}
+.intent{position:fixed;z-index:8;transform:translate(-50%,-100%);pointer-events:none;background:rgba(18,24,20,.62);border-radius:8px;padding:1px 6px;font-size:13px;line-height:1.5;display:none}
 .bubble:after{content:"";position:absolute;left:50%;bottom:-5px;transform:translateX(-50%);border:5px solid transparent;border-top-color:rgba(253,251,244,.96);border-bottom:0}
 #incident{top:64px;left:50%;transform:translateX(-50%);width:520px;max-width:94vw;background:linear-gradient(180deg,#1d2735,#121922);border:1px solid var(--gold);border-radius:11px;padding:14px 16px;display:none;z-index:30;box-shadow:0 18px 50px rgba(0,0,0,.7)}
 #incident .k{font-size:10px;letter-spacing:.24em;color:var(--red);font-weight:800}
@@ -207,9 +208,10 @@ var STATION3 = {
   well:{name:"Well", icon:"💧", x:10, z:-3, work:[[8.4,-1.6],[11.6,-1.6]], hit:[10,-3,6,6]},
   home:{name:"Home", icon:"🏠", x:0, z:0, work:[], hit:[0,0,0,0]}
 };
-var roofPlanks = [], roofHole = null, storedCrates = [], cropMesh = null, cropData = [];
+var roofPlanks = [], roofHole = null, storedCrates = [], cropMesh = null, cropData = [], flourSacks = [];
 var fireLight = null, fireCore = null, millBlades = null, objRing = null;
 var pulses = [], coachStation = null, coachAgent = null, pipGroup = null, pipMats = [];
+var orderPings = [], selLine = null;
 var mouseX = -1, mouseY = -1, mouseIn = false, ptrDown = false;
 function buildWorld(){
   scene.background = new THREE.Color(0x9fd3e8);
@@ -283,6 +285,11 @@ function buildWorld(){
   for(var cix=0;cix<12;cix++){
     var cr = box(0.9, 0.9, 0.9, 0xa87f52, 21.6 + (cix%4)*1.05, 0.45 + Math.floor(cix/4)*0.95, -10.6, scene);
     cr.visible = false; storedCrates.push(cr);
+  }
+  /* mill flour sacks (grow with the milling) */
+  for(var fx2=0;fx2<6;fx2++){
+    var sk = box(0.8, 0.55, 0.55, 0xe6dcc3, 20.6 + (fx2%3)*0.95, 0.28 + Math.floor(fx2/3)*0.58, 16.8, scene);
+    sk.visible = false; flourSacks.push(sk);
   }
   /* wood pile + crate pile */
   for(var w=0;w<5;w++) box(2.6, 0.22, 0.5, 0xb5854e, -15.5, 0.15 + w*0.24, -9.5, scene);
@@ -397,17 +404,18 @@ function makeAgents(){
     a.hit.userData.agentId = a.id;
     var label = document.createElement("div"); label.className = "label"; label.id = "lab-" + a.id;
     var bub = document.createElement("div"); bub.className = "bubble"; bub.id = "bub-" + a.id;
-    document.getElementById("labels").appendChild(label); document.getElementById("labels").appendChild(bub);
-    a.labelEl = label; a.bubbleEl = bub;
+    var intEl = document.createElement("div"); intEl.className = "intent"; intEl.id = "int-" + a.id;
+    document.getElementById("labels").appendChild(label); document.getElementById("labels").appendChild(bub); document.getElementById("labels").appendChild(intEl);
+    a.labelEl = label; a.bubbleEl = bub; a.intentEl = intEl;
     return a;
   });
 }
 function agent(id){ for(var i=0;i<G.agents.length;i++) if(G.agents[i].id===id) return G.agents[i]; return null; }
 function setBubble(a, icon, secs){ a.bubble = icon; a.bubbleUntil = G.t + secs; }
 function animateAgent(a, dt){
-  var moving = a.state === "walk";
-  var speedNow = moving ? a.speedNow || 0 : 0;
-  a.walkPhase += dt * (moving ? 6.2 * (speedNow/3.2) : 0);
+  var spd = a.vel || 0;
+  var moving = spd > 0.35;
+  a.walkPhase += dt * (moving ? 6.2 * (spd/3.2) : 0);
   var sw = moving ? Math.sin(a.walkPhase) * 0.55 : 0;
   var targetY = 0, legLX = sw, legRX = -sw, armLX = -sw*0.7, armRX = sw*0.7;
   var torsoPitch = moving ? 0.07 : 0, headPitch = 0, headYaw = Math.sin(G.t*0.4 + a.seed)*0.14;
@@ -478,18 +486,30 @@ function agent0(g, id){ for(var i=0;i<g.agents.length;i++) if(g.agents[i].id===i
 function stationW(id){ return STATION3[id]; }
 function goTo(a, x, z, stationId){
   a.tx = x; a.tz = z; a.stationId = stationId || a.stationId; a.state = "walk";
+  a.stuckT = 0; a.chkT = 0; a.lx = a.x; a.lz = a.z; a.walkT = 0; a.bestD = null; a.bestDT = 0;
 }
 function goStation(a, stId){
-  if(stId === "home"){ goTo(a, a.home[0] + (Math.random()*2-1), a.home[1] + 2.2, "home"); return; }
+  if(stId === "home"){ a.slot = null; goTo(a, a.home[0] + (Math.random()*2-1), a.home[1] + 2.2, "home"); return; }
   var s = stationW(stId), w = s.work;
-  var spot = w[Math.floor(Math.random()*w.length)];
-  a.slot = {x:spot[0], z:spot[1]};
-  goTo(a, spot[0], spot[1], stId);
+  function taken(px, pz){
+    for(var i = 0; i < G.agents.length; i++){ var b = G.agents[i]; if(b === a) continue;
+      if(b.state === "walk" && Math.abs(b.tx - px) < 1.2 && Math.abs(b.tz - pz) < 1.2) return true;
+      if(b.slot && b.state !== "walk" && Math.abs(b.slot.x - px) < 1.2 && Math.abs(b.slot.z - pz) < 1.2) return true;
+    }
+    return false;
+  }
+  var free = w.filter(function(sp){ return !taken(sp[0], sp[1]); });
+  var pool = free.length ? free : w;
+  var spot = pool[Math.floor(Math.random()*pool.length)];
+  var jx = spot[0], jz = spot[1];
+  if(!free.length){ jx += Math.random()*2.4 - 1.2; jz += Math.random()*2.4 - 1.2; }
+  a.slot = {x:jx, z:jz};
+  goTo(a, jx, jz, stId);
 }
 function decide(a){
   if(a.sick || a.medicTask) return;
-  if(a.order){ goStation(a, a.order); return; }
-  if(a.mimicStation){ var ms = a.mimicStation; a.mimicStation = null; goStation(a, ms); return; }
+  if(a.order){ a.reason = "Your order"; goStation(a, a.order); return; }
+  if(a.mimicStation){ var ms = a.mimicStation; a.mimicStation = null; a.reason = "Copying " + (a.mimicFrom || "a model"); a.mimicFrom = null; goStation(a, ms); return; }
   var ads = {
     clinic: G.roof < 100 ? 26 : 13,
     fields: 26,
@@ -513,6 +533,7 @@ function decide(a){
   var top = scored.slice(0, 3), tot = 0; top.forEach(function(s){ tot += s.sc; });
   var roll = Math.random() * tot, pick = top[0].id;
   for(var i=0;i<top.length;i++){ roll -= top[i].sc; if(roll <= 0){ pick = top[i].id; break; } }
+  a.reason = (pick === G.objStation && !G.objComplete) ? "Drawn to the objective" : (pick === a.aff ? "Own specialty" : "Own idea");
   goStation(a, pick);
 }
 function arrive(a){
@@ -536,6 +557,7 @@ function stepAgents(dt){
     a.watchCd = Math.max(0, a.watchCd - dt);
     if(a.state === "idle"){ a.idleT += dt; a.decideT -= dt; if(a.decideT <= 0){ decide(a); a.decideT = 1 + Math.random(); } }
     else a.idleT = 0;
+    if(a.state !== "walk") a.vel = 0;
     if(a.state === "walk"){
       var dx = a.tx - a.x, dz = a.tz - a.z, d = Math.sqrt(dx*dx + dz*dz);
       var sp = (a.id === "bram" ? 3.6 : 3.1) * (a.carrying ? 0.82 : 1) * (a.energy < 25 ? 0.8 : 1);
@@ -544,8 +566,18 @@ function stepAgents(dt){
       var dh = targetHeading - a.heading; while(dh > Math.PI) dh -= 6.283; while(dh < -Math.PI) dh += 6.283;
       a.heading += dh * Math.min(1, dt*10);
       a.energy = Math.max(0, a.energy - 0.45*dt);
-      if(d < 0.25){ a.x = a.tx; a.z = a.tz; a.speedNow = 0; arrive(a); }
-      else { a.x += dx/d * sp * dt; a.z += dz/d * sp * dt; }
+      var ox = a.x, oz = a.z;
+      a.walkT = (a.walkT || 0) + dt;
+      if(a.medicTask === 1 && a.walkT > 14){ a.medicTask = 2; a.state = "kneel"; a.kneelT = 4; a.vel = 0; return; }
+      if(d < 0.45 || (a.walkT > 4 && d < 1.9)){ a.x = a.tx; a.z = a.tz; a.speedNow = 0; a.vel = 0; arrive(a); }
+      else { a.x += dx/d * sp * dt; a.z += dz/d * sp * dt; a.vel = dt > 0 ? Math.sqrt((a.x-ox)*(a.x-ox) + (a.z-oz)*(a.z-oz)) / dt : 0;
+        if(a.bestD == null){ a.bestD = d; a.bestDT = 0; }
+        if(d < a.bestD - 0.4){ a.bestD = d; a.bestDT = 0; } else a.bestDT = (a.bestDT || 0) + dt;
+        if(a.bestDT >= 2.0){
+          if(d < 2.2){ a.x = a.tx; a.z = a.tz; a.speedNow = 0; a.vel = 0; arrive(a); }
+          else { a.tx += Math.random()*3 - 1.5; a.tz += Math.random()*3 - 1.5; if(a.slot){ a.slot.x = a.tx; a.slot.z = a.tz; } a.bestD = null; a.bestDT = 0; }
+        }
+      }
     }
     if(a.state === "watch"){
       a.watchT -= dt;
@@ -555,7 +587,7 @@ function stepAgents(dt){
         a.state = "idle"; a.decideT = 0.2; a.watchCd = 25;
         if(m && m.disp !== a.disp){
           a.disp = m.disp; G.copied++; a.vis = Math.min(100, a.vis + 8);
-          a.mimicStation = (m.state === "act") ? m.stationId : null;
+          a.mimicStation = (m.state === "act") ? m.stationId : null; a.mimicFrom = m.name.split(" ")[0];
           setBubble(a, DISPO3[a.disp].icon, 2.6); spawnPulse(m, a);
           showToast("👀 " + a.name.split(" ")[0] + " copied " + m.name.split(" ")[0] + ": " + DISPO3[a.disp].icon + " " + a.disp);
           refreshTray();
@@ -623,7 +655,14 @@ function stepAgents(dt){
   /* gentle separation */
   for(var i=0;i<G.agents.length;i++) for(var j=i+1;j<G.agents.length;j++){
     var A = G.agents[i], B = G.agents[j], dx = B.x - A.x, dz = B.z - A.z, d = Math.sqrt(dx*dx + dz*dz);
-    if(d > 0.01 && d < 0.9){ var push = (0.9 - d)/2; A.x -= dx/d*push; A.z -= dz/d*push; B.x += dx/d*push; B.z += dz/d*push; A.root.position.x = A.x; A.root.position.z = A.z; B.root.position.x = B.x; B.root.position.z = B.z; }
+    if(d > 0.01 && d < 0.9){
+      function planted(q){ if(q.state === "act" || q.state === "sit" || q.state === "kneel") return true; if(q.state === "walk"){ var qd = Math.sqrt((q.tx-q.x)*(q.tx-q.x) + (q.tz-q.z)*(q.tz-q.z)); return qd < 1.2; } return false; }
+      var pA = planted(A), pB = planted(B);
+      if(pA && pB) continue;
+      var push = (0.9 - d) * (pA || pB ? 1 : 0.5);
+      if(!pA){ A.x -= dx/d*push; A.z -= dz/d*push; A.root.position.x = A.x; A.root.position.z = A.z; }
+      if(!pB){ B.x += dx/d*push; B.z += dz/d*push; B.root.position.x = B.x; B.root.position.z = B.z; }
+    }
   }
 }
 function imitationScan(){
@@ -647,7 +686,7 @@ function imitationScan(){
 /* ================= INCIDENTS & OBJECTIVES ================= */
 function orderAgent(id, station){ var a = agent(id); if(!a) return; a.order = station; a.fetch = null; a.carrying = null; if(a.state !== "walk"){ a.state = "idle"; a.decideT = 0; } }
 function blameAgent(id){ var a = agent(id); if(!a) return; a.disp = "Withdrawn"; a.morale = Math.max(5, a.morale - 25); a.order = null; setBubble(a, "🔴", 2.5); goStation(a, "home"); G.stats.rivalry = Math.min(100, G.stats.rivalry + 5); }
-function sendMedic(patientId){ var j = agent("jonah"), p = agent(patientId); if(!j || !p) return; G.medicPatient = patientId; j.medicTask = 1; j.order = null; j.fetch = null; j.carrying = null; goTo(j, p.x + 1.1, p.z + 0.4, "green"); showToast("✚ Jonah is on his way"); }
+function sendMedic(patientId){ var j = agent("jonah"), p = agent(patientId); if(!j || !p) return; G.medicPatient = patientId; j.medicTask = 1; j.order = null; j.fetch = null; j.carrying = null; goTo(j, 1.1, 9.0, "green"); showToast("✚ Jonah is on his way"); }
 function recoverPatient(id, morale){ var p = agent(id); if(!p) return; p.sick = false; p.morale = morale; p.state = "idle"; p.decideT = 1; }
 function restPatient(id){ var p = agent(id); if(!p) return; p.order = null; goStation(p, "home"); showToast("🏠 " + p.name.split(" ")[0] + " heads home to rest"); }
 function applyStatMods(mods){ if(!mods) return; Object.keys(mods).forEach(function(k){ if(G.stats[k] != null) G.stats[k] = Math.max(0, Math.min(100, G.stats[k] + mods[k])); }); }
@@ -810,6 +849,7 @@ function stepSim(dt){
   var targetPlanks = Math.floor(G.roof / 16.7);
   roofPlanks.forEach(function(p, i){ p.visible = i < Math.max(2, targetPlanks); });
   if(roofHole){ var hs = Math.max(0.05, 1 - G.roof/115); roofHole.scale.set(hs, 1, hs); roofHole.visible = G.roof < 99; }
+  flourSacks.forEach(function(sk, i){ sk.visible = i < Math.min(6, Math.floor(G.flour / 2)); });
   /* crops */
   if(Math.abs(G.fieldGrowth - G.growthApplied) > 0.03){
     G.growthApplied = G.fieldGrowth;
@@ -924,7 +964,7 @@ var CMDS = [
 var trayKey = "";
 function refreshTray(force){
   var a = G.selected ? agent(G.selected) : null;
-  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp : "") + "|" + (cam.follow || "") + "|" + (G.spotCd > G.t ? "cd" : "rdy") + "|" + G.armed;
+  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") : "") + "|" + (cam.follow || "") + "|" + (G.spotCd > G.t ? "cd" : "rdy") + "|" + G.armed;
   if(!force && key === trayKey) return;
   trayKey = key;
   var info = document.getElementById("selInfo");
@@ -932,7 +972,7 @@ function refreshTray(force){
     info.innerHTML = "<div class='rl'>" + a.role + " · <span style='color:" + DISPO3[a.disp].col + "'>" + DISPO3[a.disp].icon + " " + a.disp + "</span></div>"
       + "<div class='nm'>" + (a.vis >= 60 ? "🔥 " : "") + a.name + "</div>"
       + "<div class='st'>" + activityText(a) + " · ⚡" + Math.round(a.energy) + " ♥" + Math.round(a.morale) + " 👀" + Math.round(a.vis) + "</div>"
-      + "<div class='st'>" + watchLine(a) + "</div>";
+      + "<div class='st'>" + (a.reason ? a.reason + " · " : "") + watchLine(a) + "</div>";
   } else {
     info.innerHTML = "<div class='rl'>Village</div><div class='nm'>No selection</div><div class='st'>Tap a resident. Tap a building to send them. Drag to look around.</div>";
   }
@@ -957,9 +997,12 @@ function setOrder3(orderId){
   var a = G.selected ? agent(G.selected) : null;
   if(!a || a.sick) return;
   G.firstOrder = true;
+  if(a.medicTask){ a.medicTask = 0; var pat = G.medicPatient ? agent(G.medicPatient) : null; if(pat && pat.sick){ pat.sick = false; pat.morale = Math.max(pat.morale, 50); pat.state = "idle"; pat.decideT = 0.5; } G.medicPatient = null; }
   a.order = (orderId === "auto") ? null : orderId;
-  a.mimicStation = null; a.visitId = null;
-  if(a.state !== "walk"){ a.state = "idle"; a.decideT = 0; }
+  a.reason = orderId === "auto" ? "Free will" : "Your order";
+  a.mimicStation = null; a.visitId = null; a.fetch = null; a.carrying = null; a.pendingWatch = null; a.watchOf = null;
+  if(orderId !== "auto" && STATION3[orderId]){ var stp = STATION3[orderId]; spawnOrderPing(stp.x, stp.z); setBubble(a, stp.icon, 1.4); }
+  a.state = "idle"; a.decideT = 0;
   refreshTray(true);
 }
 function showToast(msg){
@@ -995,6 +1038,13 @@ function hudTick(dt){
   if(alEl.innerHTML !== ahtml) alEl.innerHTML = ahtml;
   refreshTray(false);
 }
+function intentIcon(a){
+  if(a.sick || a.state === "sit") return "✚";
+  if(a.medicTask || a.state === "kneel") return "✚";
+  if(a.state === "watch") return "👀";
+  if(a.state === "walk" || a.state === "act"){ var st = STATION3[a.stationId]; return st ? st.icon : "•"; }
+  return "💭";
+}
 function watchLine(a){
   var n = 0; G.agents.forEach(function(b){ if(b !== a && (b.watchOf === a.id || b.pendingWatch === a.id)) n++; });
   if(n > 0) return "👁 Watched by " + n + " · this behavior spreads";
@@ -1005,6 +1055,11 @@ function countHands(stId){
   if(!stId) return 0;
   var n = 0; G.agents.forEach(function(a){ if(a.stationId === stId && (a.state === "act" || a.state === "watch")) n++; });
   return n;
+}
+function spawnOrderPing(x, z){
+  var mesh = new THREE.Mesh(new THREE.RingGeometry(0.5, 0.68, 32), new THREE.MeshBasicMaterial({color:0xffc94d, transparent:true, opacity:0.95, side:THREE.DoubleSide}));
+  mesh.rotation.x = -Math.PI/2; mesh.position.set(x, 0.12, z); scene.add(mesh);
+  orderPings.push({mesh:mesh, life:0.75});
 }
 function spawnPulse(m, a){
   if(!m || !a) return;
@@ -1031,6 +1086,19 @@ function fxTick(dt){
     else p.line.material.opacity = Math.min(0.85, p.life);
   }
   if(pipMats.length){ var hands = countHands(G.objStation); pipMats.forEach(function(pm, ix){ pm.opacity = hands > ix ? 0.95 : 0.22; }); }
+  for(var oi = orderPings.length - 1; oi >= 0; oi--){
+    var op = orderPings[oi]; op.life -= dt;
+    if(op.life <= 0){ scene.remove(op.mesh); orderPings.splice(oi, 1); }
+    else { var os = 1 + (0.75 - op.life) * 3.4; op.mesh.scale.set(os, os, 1); op.mesh.material.opacity = op.life / 0.75 * 0.95; }
+  }
+  var sa = G.selected ? agent(G.selected) : null;
+  if(sa && sa.state === "walk" && !G.over){
+    if(!selLine){ selLine = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({color:0xffffff, transparent:true, opacity:0.4})); scene.add(selLine); }
+    selLine.visible = true;
+    selLine.material.color.setHex(sa.order ? 0xffc94d : 0xffffff);
+    selLine.material.opacity = sa.order ? 0.75 : 0.35;
+    selLine.geometry.setFromPoints([new THREE.Vector3(sa.x, 0.35, sa.z), new THREE.Vector3(sa.tx, 0.35, sa.tz)]);
+  } else if(selLine) selLine.visible = false;
 }
 window.__pickAlert = function(id){ G.selected = id; cam.follow = id; refreshTray(true); };
 var projV = null;
@@ -1054,6 +1122,9 @@ function updateLabels(){
       a.bubbleEl.style.left = sx + "px"; a.bubbleEl.style.top = (sy - 16) + "px";
       if(a.bubbleEl.textContent !== a.bubble) a.bubbleEl.textContent = a.bubble;
     }
+    var iIcon = intentIcon(a);
+    a.intentEl.style.display = behind ? "none" : "block";
+    if(!behind){ a.intentEl.style.left = sx + "px"; a.intentEl.style.top = (sy - 38) + "px"; if(a.intentEl.textContent !== iIcon) a.intentEl.textContent = iIcon; }
   });
 }
 /* ================= INPUT ================= */
@@ -1082,13 +1153,13 @@ function tapAt(cx, cy, smart){
   if(p.agent){
     if(smart && G.selected && G.selected !== p.agent){
       var me = agent(G.selected), them = agent(p.agent);
-      me.visitId = them.id; me.order = null; goTo(me, them.x + 1.2, them.z + 0.6, me.stationId);
+      me.visitId = them.id; me.order = null; me.reason = "Visiting " + them.name.split(" ")[0]; goTo(me, them.x + 1.2, them.z + 0.6, me.stationId); spawnOrderPing(them.x, them.z); setBubble(me, "💬", 1.1);
       refreshTray(true); return;
     }
     G.selected = p.agent; refreshTray(true); return;
   }
   if(p.station){
-    if(G.selected){ var a2 = agent(G.selected); if(!a2.sick){ a2.order = p.station; a2.mimicStation = null; a2.visitId = null; if(a2.state !== "walk"){ a2.state = "idle"; a2.decideT = 0; } showToast(stationW(p.station).icon + " " + a2.name.split(" ")[0] + " → " + stationW(p.station).name); refreshTray(true); } }
+    if(G.selected){ setOrder3(p.station); }
     else showToast(stationW(p.station).icon + " " + stationW(p.station).name);
     return;
   }
