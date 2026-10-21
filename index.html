@@ -1342,9 +1342,29 @@ function fxTick(dt){
 }
 window.__pickAlert = function(id){ var a = agent(id); G.selected = id; cam.follow = null; if(a){ cam.target.x = a.x; cam.target.z = a.z; } refreshTray(true); };
 var projV = null;
+function leftHudRect(){
+  var o = document.getElementById("objCard"), s = document.getElementById("stats");
+  if(!o || !s || typeof o.getBoundingClientRect !== "function" || typeof s.getBoundingClientRect !== "function") return null;
+  var ro = o.getBoundingClientRect(), rs = s.getBoundingClientRect();
+  return {left:Math.min(ro.left, rs.left), right:Math.max(ro.right, rs.right),
+          top:Math.min(ro.top, rs.top), bottom:Math.max(ro.bottom, rs.bottom)};
+}
+// Keep name/want/intent markers legible: when a resident stands on the west edge,
+// their marker must not slide under the left HUD column. Markers are CSS-centered
+// on the anchor, so push the anchor right until the marker's left edge clears.
+function clearLeftHud(el, sx, sy, hud){
+  var w = window.innerWidth, cx = sx;
+  if(hud && cx > 0 && cx < w && sy > hud.top - 30 && sy < hud.bottom + 10){
+    var ew = el.offsetWidth || 0;
+    if(cx - ew / 2 < hud.right + 6) cx = hud.right + 6 + ew / 2;
+  }
+  el.style.left = cx + "px";
+  return cx;
+}
 function updateLabels(){
   if(!projV) projV = new THREE.Vector3();
   var w = window.innerWidth, h = window.innerHeight;
+  var hud = leftHudRect();
   G.agents.forEach(function(a){
     projV.set(a.x, 2.5, a.z).project(camera);
     var sx = (projV.x * 0.5 + 0.5) * w, sy = (-projV.y * 0.5 + 0.5) * h;
@@ -1352,7 +1372,8 @@ function updateLabels(){
     var showName = !behind && (G.selected === a.id || a.vis >= 60);
     a.labelEl.style.display = showName ? "block" : "none";
     if(showName){
-      a.labelEl.style.left = sx + "px"; a.labelEl.style.top = sy + "px";
+      a.labelEl.style.top = sy + "px";
+      clearLeftHud(a.labelEl, sx, sy, hud);
       var txt = (a.vis >= 60 ? "🔥 " : "") + a.name.split(" ")[0] + (G.selected === a.id ? " · " + a.role : "");
       if(a.labelEl.textContent !== txt) a.labelEl.textContent = txt;
     }
@@ -1362,12 +1383,13 @@ function updateLabels(){
     a.bubbleEl.style.display = showBub ? "block" : "none";
     a.bubbleEl.className = "bubble" + (bubIcon && !evBub ? " wantb" : "");
     if(showBub){
-      a.bubbleEl.style.left = sx + "px"; a.bubbleEl.style.top = (sy - 16) + "px";
+      a.bubbleEl.style.top = (sy - 16) + "px";
+      clearLeftHud(a.bubbleEl, sx, sy - 16, hud);
       if(a.bubbleEl.textContent !== bubIcon) a.bubbleEl.textContent = bubIcon;
     }
     var iIcon = intentIcon(a);
     a.intentEl.style.display = behind ? "none" : "block";
-    if(!behind){ a.intentEl.style.left = sx + "px"; a.intentEl.style.top = (sy - 38) + "px"; if(a.intentEl.textContent !== iIcon) a.intentEl.textContent = iIcon; }
+    if(!behind){ a.intentEl.style.top = (sy - 38) + "px"; clearLeftHud(a.intentEl, sx, sy - 38, hud); if(a.intentEl.textContent !== iIcon) a.intentEl.textContent = iIcon; }
   });
   var press = {}, pressSt = null, pressN = 3;
   G.agents.forEach(function(a2){ if(!a2.order && (a2.state === "act" || a2.state === "walk") && a2.stationId && a2.stationId !== "green" && a2.stationId !== "home") press[a2.stationId] = (press[a2.stationId] || 0) + 1; });
