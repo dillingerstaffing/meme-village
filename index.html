@@ -53,9 +53,9 @@ canvas{display:block}
 .cbtn:disabled{opacity:.4;cursor:not-allowed}
 #labels{pointer-events:none}
 .ovl{position:fixed;z-index:9;transform:translate(-50%,-100%);pointer-events:none;display:none;flex-direction:column;align-items:center;gap:2px}
-.ovl .label{font-size:12px;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.8);white-space:nowrap}
-.ovl .bubble{position:relative;background:rgba(253,251,244,.96);border-radius:10px;padding:3px 8px;font-size:16px;box-shadow:0 3px 10px rgba(0,0,0,.35);white-space:nowrap}
-.ovl .intent{background:rgba(18,24,20,.62);border-radius:8px;padding:1px 6px;font-size:13px;line-height:1.5;color:#fff;white-space:nowrap}
+.ovl .label{display:none;font-size:12px;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.8);white-space:nowrap}
+.ovl .bubble{position:relative;display:none;background:rgba(253,251,244,.96);border-radius:10px;padding:3px 8px;font-size:16px;box-shadow:0 3px 10px rgba(0,0,0,.35);white-space:nowrap}
+.ovl .intent{display:none;background:rgba(18,24,20,.62);border-radius:8px;padding:1px 6px;font-size:13px;line-height:1.5;color:#fff;white-space:nowrap}
 .ovl .bubble:after{content:"";position:absolute;left:50%;bottom:-5px;transform:translateX(-50%);border:5px solid transparent;border-top-color:rgba(253,251,244,.96);border-bottom:0}
 #incident{top:64px;left:50%;transform:translateX(-50%);width:520px;max-width:94vw;background:linear-gradient(180deg,#1d2735,#121922);border:1px solid var(--gold);border-radius:11px;padding:14px 16px;display:none;z-index:30;box-shadow:0 18px 50px rgba(0,0,0,.7)}
 #incident .k{font-size:10px;letter-spacing:.24em;color:var(--red);font-weight:800}
@@ -138,6 +138,7 @@ canvas{display:block}
   <div class="bar"><i id="objBar"></i></div>
   <div class="s"><span id="objHint">Planks land as the crew works</span><span id="objPct">0%</span></div>
   <div id="wantStrip"></div>
+  <div id="projPick" style="display:none;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
 </div>
 <div class="hud" id="stats">
   <div class="sh">THE VILLAGE</div>
@@ -574,7 +575,7 @@ function animateAgent(a, dt){
 function newSlice(){
   var g = {t:0, weekTime:0, week:1, speed:1, started:false, over:false, agents:makeAgents(), selected:null,
     roof:30, stores:0, flour:0, copied:0, fieldGrowth:0, growthApplied:-1, incidentOpen:false, incidentDone:false,
-    rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0,
+    rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0,
     stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
     objStation:"clinic", objComplete:false, objDone:0, scapegoats:0, delays:[],
     weekWork:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0}, weekWorkP:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0},
@@ -618,15 +619,36 @@ function goStation(a, stId){
   a.slot = {x:jx, z:jz};
   goTo(a, jx, jz, stId);
 }
-function wk(a, key, amt){ G.weekWork[key] += amt; if(a.driveObj){ var mult = (a.stationId === G.objStation && G.t < (G.pushUntil || 0)) ? 2 : 1; G.weekWorkP[key] += amt * mult; if(G.objWorkers) G.objWorkers[a.id] = a.model || ""; } }
+function wk(a, key, amt){
+  if(a.boostUntil && G.t < a.boostUntil) amt *= 2;
+  G.weekWork[key] += amt;
+  if(a.driveObj){
+    var syn = 0;
+    G.agents.forEach(function(b){ if(b !== a && b.driveObj && b.stationId === a.stationId && (b.model === a.id || a.model === b.id || (a.model && b.model === a.model))) syn++; });
+    var mult = (a.stationId === G.objStation && G.t < (G.pushUntil || 0)) ? 2 : 1;
+    mult *= (1 + 0.1 * Math.min(3, syn));
+    G.weekWorkP[key] += amt * mult;
+    if(G.objWorkers) G.objWorkers[a.id] = a.model || "";
+    var pr = G.project;
+    if(pr && !pr.done && pr.parts[key]){ pr.parts[key].have += amt * mult; if(pr.chainKey === key) pr.workers[a.id] = a.model || ""; }
+  }
+}
 function decide(a){
   if(a.sick || a.medicTask) return;
-  if(a.order){ a.reason = "Your order"; a.driveObj = (a.order === G.objStation); goStation(a, a.order); return; }
+  if(a.order){
+    a.reason = "Your order"; a.driveObj = (a.order === G.objStation);
+    if(a.resting){
+      if(a.energy > 60){ a.resting = false; goStation(a, a.order); }
+      else if(a.stationId !== "home" || (a.state !== "walk" && a.state !== "sit")) goStation(a, "home");
+      return;
+    }
+    goStation(a, a.order); return;
+  }
   if(a.mimicStation){ var ms = a.mimicStation; a.mimicStation = null; a.driveObj = (ms === G.objStation); a.reason = "Copying " + (a.mimicFrom || "a model"); a.mimicFrom = null; goStation(a, ms); return; }
   var ads = {
     clinic: G.roof < 100 ? 26 : 13,
     fields: 26,
-    store: 20 - Math.min(10, G.stores * 0.3),
+    store: 20 - Math.min(10, G.stores * 0.3) + (hasPerk("granary") ? 4 : 0),
     mill: 15,
     school: 12,
     well: 13,
@@ -680,6 +702,7 @@ function stepAgents(dt){
       var dh = targetHeading - a.heading; while(dh > Math.PI) dh -= 6.283; while(dh < -Math.PI) dh += 6.283;
       a.heading += dh * Math.min(1, dt*10);
       a.energy = Math.max(0, a.energy - 0.45*dt);
+      if(a.energy <= 0 && a.stationId !== "home" && a.order && !a.resting){ a.resting = true; goStation(a, "home"); }
       var ox = a.x, oz = a.z;
       a.walkT = (a.walkT || 0) + dt;
       if(a.medicTask === 1 && a.walkT > 14){ a.medicTask = 2; a.state = "kneel"; a.kneelT = 4; a.vel = 0; return; }
@@ -724,7 +747,7 @@ function stepAgents(dt){
     if(a.state === "sit"){
       if(a.stationId === "home"){
         a.energy = Math.min(100, a.energy + 6*dt); a.morale = Math.min(100, a.morale + 0.4*dt);
-        if(a.sick && a.energy > 55){ a.sick = false; }
+        if(a.sick && a.energy > (hasPerk("roofsealed") ? 40 : 55)){ a.sick = false; }
         if(a.energy > 92 && !a.sick){ a.state = "idle"; a.decideT = 0.3; if(a.disp === "Withdrawn" && a.morale > 45) a.disp = "Helpful"; }
       } else if(a.sick){ /* Rosa, waiting */ }
       else { a.energy = Math.min(100, a.energy + 2*dt); a.actT -= dt; if(a.actT <= 0){ a.state = "idle"; a.decideT = 0.3; } }
@@ -732,19 +755,26 @@ function stepAgents(dt){
     if(a.state === "act"){
       a.actT -= dt;
       var st = a.stationId;
+      a.lastActStation = st; a.lastActT = G.t;
+      var mdI = a.model ? agent(a.model) : null;
+      if(mdI && mdI !== a && mdI.lastActStation === st && st !== "home" && (G.t - (mdI.lastActT || -99)) < 12 && G.t > (a.inspCd || 0)){
+        a.inspCd = G.t + 20; a.inspUntil = G.t + 5; a.inspMult = mdI.vis >= 60 ? 1.25 : (mdI.vis < 40 ? 1.10 : 1.18);
+        setBubble(a, "✨", 1.6); a.reason = "Inspired by " + mdI.name.split(" ")[0];
+      }
+      var pdt = dt * ((a.inspUntil && G.t < a.inspUntil) ? (a.inspMult || 1.25) : 1);
       if(st === "clinic"){
         a.energy = Math.max(0, a.energy - 0.8*dt);
         if(a.carrying !== "plank"){
           var mult = a.disp === "Diligent" ? 1.3 : a.disp === "Helpful" ? 1.05 : 0.6;
           if(a.aff === "clinic") mult *= 1.3;
-          if(a.driveObj) G.roof = Math.min(100, G.roof + dt * 0.8 * mult); wk(a, "clinic", dt);
+          if(a.driveObj) G.roof = Math.min(100, G.roof + pdt * 0.8 * mult * (hasPerk("roofsealed") ? 1.5 : 1)); wk(a, "clinic", pdt);
           a.fetchT += dt;
           if(a.fetchT > 7 && G.roof < 97 && !a.fetch){ a.fetch = "plank-out"; goTo(a, -15.5, -8.6, "clinic"); }
         }
       } else if(st === "fields"){
         a.energy = Math.max(0, a.energy - 0.8*dt);
         G.fieldGrowth = Math.min(1, G.fieldGrowth + dt * 0.006);
-        a.harvestT = (a.harvestT || 0) + dt;
+        a.harvestT = (a.harvestT || 0) + pdt;
         if(a.harvestT > 12){ a.harvestT = 0; G.stores++; wk(a, "stores", 1); wk(a, "harvest", 1); setBubble(a, "🌿", 1.6); }
       } else if(st === "store"){
         if(!a.fetch && a.actT <= 0){ a.fetch = "crate-out"; goTo(a, 16.5, -8.8, "store"); }
@@ -752,18 +782,18 @@ function stepAgents(dt){
         if(!a.fetch && a.actT <= 0){ a.fetch = "grain-out"; goTo(a, 28, -10.2, "mill"); }
       } else if(st === "school"){
         a.energy = Math.max(0, a.energy - 0.4*dt);
-        wk(a, "school", dt); G.stats.cohesion = Math.min(100, G.stats.cohesion + dt * 0.05);
+        wk(a, "school", pdt); G.stats.cohesion = Math.min(100, G.stats.cohesion + dt * 0.05);
       } else if(st === "green"){
-        a.morale = Math.min(100, a.morale + 1.1*dt);
-        wk(a, "green", dt); G.stats.cohesion = Math.min(100, G.stats.cohesion + dt * 0.03);
+        a.morale = Math.min(100, a.morale + 1.1 * dt * (hasPerk("longtable") ? 1.5 : 1));
+        wk(a, "green", pdt); G.stats.cohesion = Math.min(100, G.stats.cohesion + dt * 0.03);
         var near = null, nd = 4;
         G.agents.forEach(function(o){ if(o !== a && o.stationId === "green" && (o.state === "act" || o.state === "sit")){ var dd = Math.sqrt((o.x-a.x)*(o.x-a.x) + (o.z-a.z)*(o.z-a.z)); if(dd < nd){ nd = dd; near = o; } } });
         if(near){ var ta = Math.atan2(near.x - a.x, near.z - a.z); var dh2 = ta - a.heading; while(dh2 > Math.PI) dh2 -= 6.283; while(dh2 < -Math.PI) dh2 += 6.283; a.heading += dh2 * Math.min(1, dt*3); }
       } else if(st === "well"){
         a.energy = Math.max(0, a.energy - 0.6*dt);
-        wk(a, "well", dt);
+        wk(a, "well", pdt);
       }
-      if(a.energy < 18 && st !== "home"){ setBubble(a, "💤", 1.6); a.order = null; goStation(a, "home"); }
+      if(a.energy < 18 && st !== "home"){ setBubble(a, "💤", 1.6); if(a.order) a.resting = true; goStation(a, "home"); }
       else if(a.actT <= 0 && st !== "clinic" && st !== "store" && st !== "mill"){ a.state = "idle"; a.decideT = 0.3 + Math.random()*0.7; }
       if(st === "clinic" && a.actT <= 0 && !a.fetch){ a.actT = 6; }
     }
@@ -808,6 +838,93 @@ function scapegoatCandidate(){
   var best = null, bs = -1;
   G.agents.forEach(function(a){ if(a.sick) return; var sc = (a.blamed || 0) * 14 + (62 - a.morale); if(sc > bs){ bs = sc; best = a; } });
   return best;
+}
+/* ============ INITIATIVES ============
+   Residents start things on their own, but never from a bare die
+   roll: every rate below is a base multiplied by graph state
+   (follower counts, the model's recent work, pair tension,
+   convergence at a station, blame pressure). Each initiative is
+   telegraphed 6 seconds ahead with a bubble and a toast naming
+   the cause, and ordering the resident inside the window cancels
+   it: the player redirects desire by giving it another object. */
+function followersOf(a){ var n = 0; if(a) G.agents.forEach(function(b){ if(b.model === a.id) n++; }); return n; }
+function warnInitiative(c){
+  var a = c.a;
+  a.initPend = {kind:c.kind, at:G.t + 6, station:c.station || null, pair:c.pair || null, target:c.target || null};
+  a.initWk = G.week;
+  setBubble(a, "🔔", 3);
+  var nm = a.name.split(" ")[0], msg = "";
+  if(c.kind === "shift"){ var m = agent(a.model); msg = "🔔 " + nm + " is about to take an extra shift at the " + STATION3[c.station].name + ", following " + (m ? m.name.split(" ")[0] : "their model") + ". Order " + nm + " elsewhere to stop it."; }
+  if(c.kind === "mediate"){ var ids = c.pair.split("|"); var other = agent(ids[0] === a.id ? ids[1] : ids[0]); msg = "🔔 " + nm + " is about to lead " + (other ? other.name.split(" ")[0] : "a rival") + " to the green to cool a feud. Order " + nm + " elsewhere to stop it."; }
+  if(c.kind === "claim"){ var t = agent(c.target); msg = "🔔 " + nm + " is about to claim a work spot at the " + STATION3[c.station].name + ", drawn by " + (t ? t.name.split(" ")[0] : "a model") + ". Order " + nm + " elsewhere to stop it."; }
+  if(c.kind === "refuse"){ msg = "🔔 " + nm + ", worn down by blame, is about to refuse and go home. Order " + nm + " elsewhere to stop it."; }
+  if(msg) showToast(msg);
+}
+function fireInitiative(a, p){
+  a.driveObj = false;
+  if(p.kind === "shift"){
+    a.boostUntil = G.t + 8; setBubble(a, "⚡", 2);
+    G.agents.forEach(function(b){ if(b.model === a.id && b.stationId === a.stationId && Math.random() < 0.3) b.boostUntil = G.t + 8; });
+  }
+  if(p.kind === "mediate"){
+    var ids = p.pair.split("|"); var other = agent(ids[0] === a.id ? ids[1] : ids[0]);
+    goStation(a, "green"); setBubble(a, "🌿", 2);
+    if(other){ other.driveObj = false; goStation(other, "green"); }
+  }
+  if(p.kind === "claim"){
+    var crew = G.agents.filter(function(b){ return b !== a && b.stationId === p.station; });
+    var disp = null, df = 99;
+    crew.forEach(function(b){ var f = followersOf(b); if(f < df){ df = f; disp = b; } });
+    goStation(a, p.station); setBubble(a, "🧲", 2);
+    if(disp) addTension(a, disp, 8);
+    G.agents.forEach(function(b){ if(b.model === a.id && Math.random() < 0.3){ goStation(b, p.station); return; } });
+  }
+  if(p.kind === "refuse"){
+    goStation(a, "home"); setBubble(a, "🚪", 2);
+    G.agents.forEach(function(b){ if(b.model === a.id) b.morale = Math.max(0, b.morale - 2); });
+  }
+}
+function initiativeScan(){
+  G.agents.forEach(function(a){
+    if(a.initPend && G.t >= a.initPend.at){ var p = a.initPend; a.initPend = null; G.initFired++; fireInitiative(a, p); }
+  });
+  if(G.initT > G.t) return;
+  G.initT = G.t + 4;
+  if(G.agents.some(function(a){ return !!a.initPend; })) return;
+  var cands = [];
+  G.agents.forEach(function(a){
+    if(a.sick || a.initWk === G.week || a.order) return;
+    var fol = followersOf(a);
+    if(a.disp === "Diligent" && a.model){
+      var m = agent(a.model);
+      if(m && m.lastActStation === a.aff && (G.t - (m.lastActT || -99)) < 12) cands.push({a:a, kind:"shift", w:0.02 * (1 + 0.3 * fol), station:a.aff});
+    }
+    if(a.disp === "Helpful"){
+      var bestK = null, bestV = 39;
+      Object.keys(G.pairs).forEach(function(k){ if(G.pairs[k] > bestV && k.split("|").indexOf(a.id) >= 0){ bestV = G.pairs[k]; bestK = k; } });
+      if(bestK) cands.push({a:a, kind:"mediate", w:0.015 + bestV * 0.0006, pair:bestK});
+    }
+    if(a.disp === "Selfish"){
+      var bySt = {};
+      G.agents.forEach(function(b){ if(b !== a && b.stationId && (b.state === "act" || b.state === "walk")){ (bySt[b.stationId] = bySt[b.stationId] || []).push(b); } });
+      Object.keys(bySt).forEach(function(st){
+        var crew = bySt[st];
+        if(crew.length >= 3 && st !== "home" && st !== "green"){
+          var top = null, tf = -1;
+          crew.forEach(function(b){ var f = followersOf(b); if(f > tf){ tf = f; top = b; } });
+          if(top && a.model === top.id && a.stationId !== st) cands.push({a:a, kind:"claim", w:0.012 + 0.004 * crew.length, station:st, target:top.id});
+        }
+      });
+    }
+    if(a.disp === "Withdrawn"){
+      var sc = (a.blamed || 0) * 14 + (62 - a.morale);
+      if(sc > 25) cands.push({a:a, kind:"refuse", w:0.01 + sc * 0.0004});
+    }
+  });
+  for(var i = cands.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)); var tmp = cands[i]; cands[i] = cands[j]; cands[j] = tmp; }
+  for(var ci = 0; ci < cands.length; ci++){
+    if(Math.random() < cands[ci].w * 2.0){ warnInitiative(cands[ci]); break; }
+  }
 }
 function imitationScan(){
   G.agents.forEach(function(a){
@@ -942,17 +1059,101 @@ function chooseIncident(i){
   }
   refreshTray();
 }
+/* ============ PROJECTS ============
+   A project is an assembled object: parts from different work
+   types, filled in any order from driven work only, plus a chain
+   part that counts distinct models among the driven workers, so
+   one hero cannot assemble anything alone. Finishing a project
+   changes the village permanently (G.perks), and an unfinished
+   project persists across weeks until it is done. */
+function hasPerk(id){ return !!(G.perks && G.perks.indexOf(id) >= 0); }
+var PROJECTS = [
+  {id:"granary", icon:"🌾", title:"Raised Granary", station:"fields", parts:{harvest:6, mill:4}, chainKey:"harvest", perkText:"Stores stretch further now: scarcity eases and the storehouse draws more hands."},
+  {id:"longtable", icon:"🍲", title:"The Long Table", station:"green", parts:{green:24}, peak:6, cost:4, perkText:"Talking it out on the green now drains blame faster, and time there restores more heart."},
+  {id:"roofsealed", icon:"🔨", title:"Clinic Roof, Sealed", station:"clinic", parts:{clinic:20, mill:2}, perkText:"Clinic work raises the roof faster, and the sick recover sooner at home."},
+  {id:"schoolbell", icon:"🔔", title:"The School Bell", station:"school", parts:{school:20, green:12}, perkText:"A well followed model's wants now carry further through the village."}
+];
+var PART_STATION = {harvest:"fields", stores:"store", mill:"mill", clinic:"clinic", school:"school", green:"green", well:"well"};
+function projectDef(){ var pr = G.project; if(!pr) return null; var d = null; PROJECTS.forEach(function(p){ if(p.id === pr.id) d = p; }); return d; }
+function projectPartsList(pr){
+  var out = [];
+  Object.keys(pr.parts).forEach(function(k){ out.push({key:k, kind:"work", need:pr.parts[k].need, have:pr.parts[k].have}); });
+  if(pr.chainKey){ var seen = {}; Object.keys(pr.workers || {}).forEach(function(id){ if(pr.workers[id]) seen[pr.workers[id]] = 1; }); out.push({key:"chain", kind:"chain", need:2, have:Object.keys(seen).length}); }
+  if(pr.peak) out.push({key:"peak", kind:"peak", need:pr.peak, have:pr.peakHave || 0});
+  return out;
+}
+function projectProgress(){
+  var pr = G.project;
+  if(!pr) return (G.projDone && G.projDone.length >= PROJECTS.length) ? 100 : 0;
+  if(pr.done) return 100;
+  var ps = projectPartsList(pr), sum = 0;
+  ps.forEach(function(p){ sum += Math.min(100, p.have * 100 / p.need); });
+  return ps.length ? sum / ps.length : 0;
+}
+function projectStation(){
+  var pr = G.project; if(!pr) return "green";
+  if(pr.chainKey && !pr.done){
+    var seen = {};
+    Object.keys(pr.workers || {}).forEach(function(id){ if(pr.workers[id]) seen[pr.workers[id]] = 1; });
+    if(Object.keys(seen).length < 2) return PART_STATION[pr.chainKey] || "green";
+  }
+  var best = null, br = 2;
+  projectPartsList(pr).forEach(function(p){ if(p.kind === "work"){ var r = p.have / p.need; if(r < br){ br = r; best = p.key; } } });
+  return best ? (PART_STATION[best] || "green") : pr.station;
+}
+function projectTitle(){
+  var d = projectDef(); if(d) return "Project: " + d.title;
+  if(G.projectOffer && G.projectOffer.length){
+    var ns = G.projectOffer.map(function(id){ var dd = null; PROJECTS.forEach(function(p){ if(p.id === id) dd = p; }); return dd ? dd.title : id; });
+    return "Choose: " + ns.join(" or ");
+  }
+  return "Village project";
+}
+function projectHint(){
+  var pr = G.project;
+  if(!pr) return "Tap a project to choose it. Parts fill only from driven work, in any order, and a finished project changes the village for good.";
+  return projectPartsList(pr).map(function(p){
+    if(p.kind === "chain") return "⛓ chains " + Math.min(p.have, p.need) + "/" + p.need;
+    if(p.kind === "peak") return "👥 together " + Math.min(p.have, p.need) + "/" + p.need;
+    var st = STATION3[PART_STATION[p.key] || "green"];
+    return (st ? st.icon : "") + " " + p.key + " " + Math.floor(Math.min(p.have, p.need)) + "/" + p.need;
+  }).join(" · ");
+}
+function pickProject(i){
+  var off = G.projectOffer; if(!off || !off[i]) return;
+  var def = null; PROJECTS.forEach(function(p){ if(p.id === off[i]) def = p; });
+  if(!def) return;
+  G.project = {id:def.id, station:def.station, parts:{}, workers:{}, chainKey:def.chainKey || null, peak:def.peak || 0, peakHave:0, done:false};
+  Object.keys(def.parts).forEach(function(k){ G.project.parts[k] = {have:0, need:def.parts[k]}; });
+  if(def.cost) G.project.cost = def.cost;
+  G.objStation = projectStation();
+  showToast(def.icon + " Project chosen: " + def.title + ". Parts fill from driven work, in any order.");
+  Store.commit();
+}
+function projectTick(){
+  var pr = G.project; if(!pr || pr.done) return;
+  if(pr.peak) pr.peakHave = Math.max(pr.peakHave || 0, G.peakGreen || 0);
+  var all = true;
+  projectPartsList(pr).forEach(function(p){ if(p.have < p.need) all = false; });
+  if(!all) return;
+  pr.done = true;
+  G.projDone.push(pr.id);
+  var def = projectDef();
+  if(pr.cost && G.stores >= pr.cost) G.stores -= pr.cost;
+  G.perks.push(pr.id);
+  showToast("🏗 Project complete: " + (def ? def.title : pr.id) + ". " + (def ? def.perkText : ""));
+}
 var OBJECTIVES = [
   {station:"clinic", icon:"🔨", title:"Repair the clinic roof", hint:"Planks land as the crew works", metric:function(){ return G.roof; }},
   {station:"store", icon:"📦", title:"Fill the storehouse", hint:"Crates and harvests, all season food", metric:function(){ return G.weekWorkP.stores * 100 / 10; }},
   {station:"green", icon:"🍲", title:"One table, one village", hint:"Six residents on the green at once: send them, or let copying gather them", metric:function(){ return (G.peakGreen || 0) * 100 / 6; }},
   {station:"fields", icon:"🌿", title:"Many hands, one harvest", hint:"Driven work from three different chains of imitation", metric:function(){ var seen = {}; Object.keys(G.objWorkers || {}).forEach(function(k){ if(G.objWorkers[k]) seen[G.objWorkers[k]] = 1; }); return Math.min(G.weekWorkP.harvest * 100 / 6, Object.keys(seen).length * 100 / 3); }},
-  {station:"mill", icon:"🌾", title:"Flour for the winter", hint:"Grain in, flour out", metric:function(){ return G.weekWorkP.mill * 100 / 4; }},
+  {station:"mill", icon:"🏗", title:"Village project", project:true, titleDyn:function(){ return projectTitle(); }, hintDyn:function(){ return projectHint(); }, metric:function(){ return projectProgress(); }},
   {station:"green", icon:"🕊", title:"A week without a feud", hint:"Keep rivalry under 45: separate the doubles, cool them on the green", metric:function(){ return (G.calmT || 0) * 100 / WEEK_LEN; }},
   {station:"green", icon:"🌟", title:"A new model rises", dynModel:true, hintDyn:function(){ var t = G.objTarget ? agent(G.objTarget) : null; return t ? ("Three residents looking up to " + t.name.split(" ")[0] + ": set models, use Spotlight") : "Three residents looking up to the least watched"; }, metric:function(){ if(!G.objTarget) return 0; var n = 0; G.agents.forEach(function(a){ if(a.model === G.objTarget) n++; }); return n * 100 / 3; }},
-  {station:"school", icon:"📚", title:"Lessons under the tree", hint:"Time at the school, together", metric:function(){ return G.weekWorkP.school * 100 / 20; }},
-  {station:"well", icon:"💧", title:"Water for everyone", hint:"Keep the well rope moving, across the bridge", metric:function(){ return G.weekWorkP.well * 100 / 20; }},
-  {station:"clinic", icon:"✚", title:"A clinic ready for winter", hint:"Hands at the clinic, all week", metric:function(){ return G.weekWorkP.clinic * 100 / 28; }},
+  {station:"school", icon:"🏗", title:"Village project", project:true, titleDyn:function(){ return projectTitle(); }, hintDyn:function(){ return projectHint(); }, metric:function(){ return projectProgress(); }},
+  {station:"well", icon:"🏗", title:"Village project", project:true, titleDyn:function(){ return projectTitle(); }, hintDyn:function(){ return projectHint(); }, metric:function(){ return projectProgress(); }},
+  {station:"clinic", icon:"🏗", title:"Village project", project:true, titleDyn:function(){ return projectTitle(); }, hintDyn:function(){ return projectHint(); }, metric:function(){ return projectProgress(); }},
   {station:"green", icon:"🍲", title:"The long table", hint:"Everyone on the green, often", metric:function(){ return G.weekWorkP.green * 100 / 48; }},
   {station:"store", icon:"❄", title:"The Winter Count", hint:"Final stores before the snow", metric:function(){ return G.weekWorkP.stores * 100 / 10; }}
 ];
@@ -960,6 +1161,14 @@ function setObjective(){
   var o = (G.objectives || OBJECTIVES)[G.week - 1];
   if(!o) return;
   G.objStation = o.station; G.objComplete = false;
+  if(o.project){
+    if(G.project && G.project.done) G.project = null;
+    if(!G.project){
+      var avail = PROJECTS.filter(function(p){ return G.projDone.indexOf(p.id) < 0; });
+      G.projectOffer = avail.slice(0, 2).map(function(p){ return p.id; });
+      if(avail.length) G.objStation = avail[0].station;
+    } else G.objStation = projectStation();
+  }
   var st = STATION3[o.station];
   if(objRing && st) objRing.position.set(st.x, 1.2, st.z);
   if(pipGroup && st){ pipGroup.position.set(st.x, 0, st.z); pipGroup.visible = true; }
@@ -994,7 +1203,7 @@ function statDrift(dt){
   else if(s.rivalry < 40) G.blame = Math.max(0, (G.blame || 0) - dt * 0.3);
   var cand = scapegoatCandidate();
   if(cand && (G.blame || 0) >= 60 && cand.stationId === "green" && (cand.state === "act" || cand.state === "sit")){
-    G.blame = Math.max(0, G.blame - dt * 3.4);
+    G.blame = Math.max(0, G.blame - dt * (hasPerk("longtable") ? 5 : 3.4));
     if(G.blame < 60 && !G.mediated){ G.mediated = true; applyStatMods({cohesion:3}); showToast("🌿 The village talked it out on the green"); }
   }
   if((G.blame || 0) > 82) G.mediated = false;
@@ -1010,7 +1219,7 @@ function statDrift(dt){
     if(a.order) ordered++;
   });
   s.prod += (workers * 11 - s.prod) * dt * 0.03;
-  var scarT = clamp100(80 - Math.min(62, G.stores) * 1.15 + (G.difficulty === "hard" ? 9 : (G.difficulty === "dry" ? 6 : 0)));
+  var scarT = clamp100(80 - Math.min(62, G.stores) * 1.15 + (G.difficulty === "hard" ? 9 : (G.difficulty === "dry" ? 6 : 0)) - (hasPerk("granary") ? 6 : 0));
   s.scarcity += (scarT - s.scarcity) * dt * 0.18;
   var avgM = G.agents.reduce(function(sm, a){ return sm + a.morale; }, 0) / G.agents.length;
   s.trust += (clamp100(avgM * 0.72 + (G.policy === "open" ? 7 : 0)) - s.trust) * dt * 0.05;
@@ -1050,6 +1259,8 @@ function stepSim(dt){
   if(gNow > (G.peakGreen || 0)) G.peakGreen = gNow;
   G.imitateT += dt;
   if(G.imitateT > 2.5){ G.imitateT = 0; imitationScan(); }
+  initiativeScan();
+  projectTick();
   stepAgents(dt);
   G.agents.forEach(function(a){
     var working = a.medicTask || a.order || (a.state === "act" && a.stationId && a.stationId !== "green" && a.stationId !== "home") || (a.state === "walk" && a.stationId && a.stationId !== "green" && a.stationId !== "home");
@@ -1229,11 +1440,12 @@ function refreshTray(force){
 function setOrder3(orderId){
   var a = G.selected ? agent(G.selected) : null;
   if(!a || a.sick) return;
+  if(a.initPend){ a.initPend = null; showToast("↩ " + a.name.split(" ")[0] + " drops the plan and takes your order"); }
   if(orderId !== "auto" && a.order === orderId){ refreshTray(true); return; }
   G.firstOrder = true;
   Object.keys(G.pairs).forEach(function(k){ if(k.split("|").indexOf(a.id) >= 0) G.pairs[k] = Math.max(0, G.pairs[k] - 22); });
   if(a.medicTask){ a.medicTask = 0; var pat = G.medicPatient ? agent(G.medicPatient) : null; if(pat && pat.sick){ pat.sick = false; pat.morale = Math.max(pat.morale, 50); pat.state = "idle"; pat.decideT = 0.5; } G.medicPatient = null; }
-  a.order = (orderId === "auto") ? null : orderId;
+  a.resting = false; a.order = (orderId === "auto") ? null : orderId;
   a.reason = orderId === "auto" ? "Free will" : "Your order";
   a.driveObj = (orderId === G.objStation);
   a.mimicStation = null; a.visitId = null; a.fetch = null; a.carrying = null; a.pendingWatch = null; a.watchOf = null;
@@ -1269,10 +1481,18 @@ function hudTick(dt){
   var o = (G.objectives || OBJECTIVES)[G.week - 1];
   var pct = o ? Math.max(0, Math.min(100, Math.round(o.metric()))) : 0;
   document.getElementById("objK").textContent = "OBJECTIVE · WEEK " + G.week + (G.objComplete ? " · ✓ DONE" : "");
-  document.getElementById("objT").textContent = o ? (o.icon + " " + o.title) : "";
+  document.getElementById("objT").textContent = o ? (o.icon + " " + (o.titleDyn ? o.titleDyn() : o.title)) : "";
   document.getElementById("objHint").textContent = o ? (o.hintDyn ? o.hintDyn() : o.hint) : "";
   document.getElementById("objBar").style.width = pct + "%";
   document.getElementById("objPct").textContent = pct + "% · 👥" + countHands(G.objStation);
+  var ppEl = document.getElementById("projPick");
+  if(ppEl){
+    var showPick = !!(o && o.project && G.projectOffer && G.projectOffer.length && !G.project);
+    var ppHtml = "";
+    if(showPick) ppHtml = G.projectOffer.map(function(pid, ix){ var pd = null; PROJECTS.forEach(function(p){ if(p.id === pid) pd = p; }); return pd ? "<button class='alert-chip' onclick='__pickProject(" + ix + ")'>" + pd.icon + " <b>" + pd.title + "</b></button>" : ""; }).join("");
+    if(ppEl.innerHTML !== ppHtml) ppEl.innerHTML = ppHtml;
+    ppEl.style.display = showPick ? "flex" : "none";
+  }
   var wc2 = {};
   G.agents.forEach(function(a){ if(a.want) wc2[a.want.station] = (wc2[a.want.station] || 0) + 1; });
   var wks = Object.keys(wc2).sort(function(x, y){ return wc2[y] - wc2[x]; }).slice(0, 3);
@@ -1327,7 +1547,7 @@ function pickWantStation(a){
   if(a.disp === "Selfish") c.push(["green", 2.4], ["home", 1.6]);
   if(a.disp === "Withdrawn") c.push(["home", 3]);
   var md = a.model ? agent(a.model) : null;
-  if(md){ if(md.stationId && md.stationId !== "home") c.push([md.stationId, 2.6]); if(md.want) c.push([md.want.station, 2.2]); }
+  if(md){ if(md.stationId && md.stationId !== "home") c.push([md.stationId, 2.6]); if(md.want) c.push([md.want.station, (hasPerk("schoolbell") && followersOf(md) >= 2) ? 3.2 : 2.2]); }
   var tot = 0; c.forEach(function(x){ tot += x[1]; });
   var r = Math.random() * tot;
   for(var i = 0; i < c.length; i++){ r -= c[i][1]; if(r <= 0) return c[i][0]; }
@@ -1418,6 +1638,7 @@ function fxTick(dt){
   } else if(selLine) selLine.visible = false;
 }
 window.__pickAlert = function(id){ var a = agent(id); G.selected = id; cam.follow = null; if(a){ cam.target.x = a.x; cam.target.z = a.z; } refreshTray(true); };
+window.__pickProject = function(i){ pickProject(i); };
 var projV = null;
 function leftHudRect(){
   var o = document.getElementById("objCard"), s = document.getElementById("stats");
@@ -1525,8 +1746,6 @@ function pickAt(cx, cy){
   Object.keys(STATION3).forEach(function(id){ if(STATION3[id].hitMesh) sHits.push(STATION3[id].hitMesh); });
   var fa = raycaster.intersectObjects(aHits, false);
   if(fa.length) return {agent: fa[0].object.userData.agentId};
-  var fs = raycaster.intersectObjects(sHits, false);
-  if(fs.length) return {station: fs[0].object.userData.stationId};
   var best = null, bestD = 40;
   G.agents.forEach(function(a){
     var v = new THREE.Vector3(a.x, 1.1, a.z).project(camera);
@@ -1536,6 +1755,8 @@ function pickAt(cx, cy){
     if(d < bestD){ bestD = d; best = a.id; }
   });
   if(best) return {agent: best};
+  var fs = raycaster.intersectObjects(sHits, false);
+  if(fs.length) return {station: fs[0].object.userData.stationId};
   return {};
 }
 function tapAt(cx, cy, smart){
@@ -1707,7 +1928,7 @@ if(ffm){
   updateCamera(0); Store.commit(); refreshTray(true);
   renderer.render(scene, camera);
 }
-window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, setModel: function(id, mid){ var a = agent(id); if(a) a.model = mid; }, select: function(id){ Store.dispatch("ui/select", {id:id}); refreshTray(true); }};
+window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, setModel: function(id, mid){ var a = agent(id); if(a) a.model = mid; }, select: function(id){ Store.dispatch("ui/select", {id:id}); refreshTray(true); }, pickProject: function(i){ pickProject(i || 0); }};
 </script>
 </body>
 </html>
