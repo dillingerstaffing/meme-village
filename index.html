@@ -27,6 +27,9 @@ canvas{display:block}
 .sbtn.on{border-color:var(--gold);color:var(--gold)}
 #sliceTag{top:10px;left:50%;transform:translateX(-50%);background:rgba(90,20,16,.85);border:1px solid var(--red);color:#ffd9d4;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:800;letter-spacing:.18em}
 #toast{bottom:118px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--gold);border-radius:22px;padding:8px 18px;font-size:14px;font-weight:700;display:none;white-space:nowrap;max-width:94vw}
+#alerts{position:fixed;left:10px;bottom:118px;display:flex;flex-direction:column;gap:6px;z-index:29}
+.alert-chip{background:rgba(14,20,16,.9);border:1px solid var(--gold);color:var(--ink);border-radius:8px;padding:7px 11px;font:600 12px 'Inter',sans-serif;cursor:pointer;text-align:left;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.alert-chip b{color:var(--gold)}
 #tray{position:fixed;z-index:10;bottom:0;left:0;right:0;background:linear-gradient(180deg,rgba(14,19,26,.92),rgba(9,12,17,.97));border-top:1px solid var(--line);padding:10px 12px;display:flex;gap:12px;align-items:center;min-height:96px}
 #selInfo{min-width:170px;max-width:230px}
 #selInfo .nm{font-weight:800;font-size:17px}
@@ -87,6 +90,7 @@ canvas{display:block}
   #stats{top:auto;bottom:250px;width:150px;padding:6px 8px}
   .srow .sl{width:54px;font-size:9.5px}
   #toast{bottom:auto;top:172px;font-size:12.5px;padding:7px 13px}
+  #alerts{bottom:158px}
   #tray{padding:8px;gap:8px;min-height:0}
   #selInfo{min-width:102px;max-width:118px}
   #selInfo .st{display:none}
@@ -125,6 +129,7 @@ canvas{display:block}
   </div>
 </div>
 <div class="hud" id="toast"></div>
+<div id="alerts"></div>
 <div class="hud" id="incident"></div>
 <div id="labels"></div>
 <div id="tray">
@@ -204,6 +209,8 @@ var STATION3 = {
 };
 var roofPlanks = [], roofHole = null, storedCrates = [], cropMesh = null, cropData = [];
 var fireLight = null, fireCore = null, millBlades = null, objRing = null;
+var pulses = [], coachStation = null, coachAgent = null, pipGroup = null, pipMats = [];
+var mouseX = -1, mouseY = -1, mouseIn = false, ptrDown = false;
 function buildWorld(){
   scene.background = new THREE.Color(0x9fd3e8);
   scene.fog = new THREE.Fog(0x9fd3e8, 90, 190);
@@ -302,7 +309,13 @@ function buildWorld(){
   scene.add(trunkI); scene.add(folI);
   /* objective beacon: gold ring + light pillar on the week's target */
   objRing = new THREE.Mesh(new THREE.TorusGeometry(3.4, 0.22, 10, 40), new THREE.MeshBasicMaterial({color:0xf5c86a, transparent:true, opacity:0.9}));
-  objRing.rotation.x = Math.PI/2; objRing.position.set(-24, 1.2, -12); scene.add(objRing);
+  objRing.rotation.x = Math.PI/2; objRing.position.set(-24, 1.2, -12); scene.add(objRing)
+  var coachMat = new THREE.MeshBasicMaterial({color:0xf0a51e});
+  var coneGeo = new THREE.ConeGeometry(1.2, 2.4, 4);
+  coachStation = new THREE.Mesh(coneGeo, coachMat); coachStation.rotation.x = Math.PI; coachStation.visible = false; scene.add(coachStation);
+  coachAgent = new THREE.Mesh(coneGeo, coachMat); coachAgent.rotation.x = Math.PI; coachAgent.visible = false; scene.add(coachAgent);
+  pipGroup = new THREE.Group(); pipGroup.visible = false; scene.add(pipGroup);
+  for(var pi = 0; pi < 3; pi++){ var pm = new THREE.MeshBasicMaterial({color:0xffc94d, transparent:true, opacity:0.22}); var pip = new THREE.Mesh(new THREE.SphereGeometry(0.34, 10, 8), pm); pip.position.set((pi - 1) * 2.3, 2.6, 0); pipGroup.add(pip); pipMats.push(pm); };
   /* hit boxes for stations */
   Object.keys(STATION3).forEach(function(id){
     var s = STATION3[id];
@@ -374,7 +387,7 @@ function makeAgents(){
     var f = makeFigure(d);
     var a = Object.assign({}, d, f, {
       x:d.home[0], z:d.home[1], heading:Math.random()*6.28, tx:0, tz:0,
-      state:"idle", stationId:null, slot:null, actT:0, decideT:Math.random()*2,
+      state:"idle", stationId:null, slot:null, actT:0, decideT:Math.random()*2, loafT:0, alerted:false,
       energy:80 - (i%4)*4, morale:72, phase:Math.random()*10, walkPhase:0,
       order:null, carrying:null, bubble:null, bubbleUntil:0, watchOf:null, watchT:0,
       idleT:0, sick:false, seed:Math.random()*100
@@ -445,7 +458,7 @@ function newSlice(){
     stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
     objStation:"clinic", objComplete:false, objDone:0, scapegoats:0, delays:[],
     weekWork:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0},
-    policy:"hearth", difficulty:"standard", medicPatient:null, pendingIncident:null, curIncident:null};
+    policy:"hearth", difficulty:"standard", medicPatient:null, pendingIncident:null, curIncident:null, alerts:[], firstOrder:false};
   g.agents.forEach(function(a){
     a.speedNow = 0; a.slot = null; a.fetch = null; a.fetchT = 0; a.watchCd = 0; a.mimicStation = null;
     a.pendingWatch = null; a.medicTask = 0; a.kneelT = 0; a.pendingSick = false; a.visitId = null;
@@ -543,7 +556,7 @@ function stepAgents(dt){
         if(m && m.disp !== a.disp){
           a.disp = m.disp; G.copied++; a.vis = Math.min(100, a.vis + 8);
           a.mimicStation = (m.state === "act") ? m.stationId : null;
-          setBubble(a, DISPO3[a.disp].icon, 2.6);
+          setBubble(a, DISPO3[a.disp].icon, 2.6); spawnPulse(m, a);
           showToast("👀 " + a.name.split(" ")[0] + " copied " + m.name.split(" ")[0] + ": " + DISPO3[a.disp].icon + " " + a.disp);
           refreshTray();
         }
@@ -740,6 +753,7 @@ function setObjective(){
   G.objStation = o.station; G.objComplete = false;
   var st = STATION3[o.station];
   if(objRing && st) objRing.position.set(st.x, 1.2, st.z);
+  if(pipGroup && st){ pipGroup.position.set(st.x, 0, st.z); pipGroup.visible = true; }
 }
 function objectiveTick(){
   if(G.objComplete) return;
@@ -771,6 +785,7 @@ function endWeek(){
   if(o) showToast(G.objComplete ? ("✓ Week " + G.week + " done: " + o.title + " · " + G.objDone + "/12") : ("Week " + G.week + " ends: " + o.title + " missed"));
   G.week++; G.weekTime = 0; G.incidentDone = false; G.curIncident = null;
   G.weekWork = {stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0};
+  G.agents.forEach(function(a){ a.alerted = false; a.loafT = 0; });
   G.fieldGrowth = 0.12; G.growthApplied = -1;
   setObjective();
   if(G.week === 7) setTimeout(function(){ if(!G.over) showToast("❄ Half the season gone. Winter is counting."); }, 1200);
@@ -784,6 +799,11 @@ function stepSim(dt){
   G.imitateT += dt;
   if(G.imitateT > 2.5){ G.imitateT = 0; imitationScan(); }
   stepAgents(dt);
+  G.agents.forEach(function(a){
+    var working = a.medicTask || a.order || (a.state === "act" && a.stationId && a.stationId !== "green" && a.stationId !== "home") || (a.state === "walk" && a.stationId && a.stationId !== "green" && a.stationId !== "home");
+    if(working || a.sick) a.loafT = 0; else a.loafT = (a.loafT || 0) + dt;
+    if(a.loafT > 15 && !a.alerted && G.started && !G.over){ a.alerted = true; G.alerts.push({id:a.id, name:a.name.split(" ")[0], at:G.t}); }
+  });
   statDrift(dt);
   objectiveTick();
   /* roof visuals */
@@ -858,13 +878,22 @@ function updateCamera(dt){
     var a = agent(cam.follow);
     if(a){ cam.target.x += (a.x - cam.target.x) * Math.min(1, dt*4); cam.target.z += (a.z - cam.target.z) * Math.min(1, dt*4); }
   }
-  cam.target.x = Math.max(-38, Math.min(38, cam.target.x));
-  cam.target.z = Math.max(-30, Math.min(32, cam.target.z));
+  if(mouseIn && !ptrDown && G.started && !G.over && !G.incidentOpen){
+    var eps = cam.dist * 0.9 * dt, em = 30;
+    var efx = -Math.sin(cam.yaw), efz = -Math.cos(cam.yaw), erx = Math.cos(cam.yaw), erz = -Math.sin(cam.yaw);
+    if(mouseX < em){ cam.target.x -= erx * eps; cam.target.z -= erz * eps; }
+    if(mouseX > window.innerWidth - em){ cam.target.x += erx * eps; cam.target.z += erz * eps; }
+    if(mouseY < em){ cam.target.x += efx * eps; cam.target.z += efz * eps; }
+    if(mouseY > window.innerHeight - em){ cam.target.x -= efx * eps; cam.target.z -= efz * eps; }
+  }
+  cam.target.x = Math.max(-62, Math.min(62, cam.target.x));
+  cam.target.z = Math.max(-48, Math.min(48, cam.target.z));
   var sp = Math.sin(cam.pitch), x = cam.target.x + cam.dist * sp * Math.sin(cam.yaw);
   var z = cam.target.z + cam.dist * sp * Math.cos(cam.yaw);
   var y = cam.dist * Math.cos(cam.pitch);
   camera.position.set(x, y, z);
   camera.lookAt(cam.target.x, 1, cam.target.z);
+  fxTick(dt);
 }
 /* ================= HUD ================= */
 function activityText(a){
@@ -902,7 +931,8 @@ function refreshTray(force){
   if(a){
     info.innerHTML = "<div class='rl'>" + a.role + " · <span style='color:" + DISPO3[a.disp].col + "'>" + DISPO3[a.disp].icon + " " + a.disp + "</span></div>"
       + "<div class='nm'>" + (a.vis >= 60 ? "🔥 " : "") + a.name + "</div>"
-      + "<div class='st'>" + activityText(a) + " · ⚡" + Math.round(a.energy) + " ♥" + Math.round(a.morale) + " 👀" + Math.round(a.vis) + "</div>";
+      + "<div class='st'>" + activityText(a) + " · ⚡" + Math.round(a.energy) + " ♥" + Math.round(a.morale) + " 👀" + Math.round(a.vis) + "</div>"
+      + "<div class='st'>" + watchLine(a) + "</div>";
   } else {
     info.innerHTML = "<div class='rl'>Village</div><div class='nm'>No selection</div><div class='st'>Tap a resident. Tap a building to send them. Drag to look around.</div>";
   }
@@ -926,6 +956,7 @@ function refreshTray(force){
 function setOrder3(orderId){
   var a = G.selected ? agent(G.selected) : null;
   if(!a || a.sick) return;
+  G.firstOrder = true;
   a.order = (orderId === "auto") ? null : orderId;
   a.mimicStation = null; a.visitId = null;
   if(a.state !== "walk"){ a.state = "idle"; a.decideT = 0; }
@@ -949,7 +980,7 @@ function hudTick(dt){
   document.getElementById("objT").textContent = o ? (o.icon + " " + o.title) : "";
   document.getElementById("objHint").textContent = o ? o.hint : "";
   document.getElementById("objBar").style.width = pct + "%";
-  document.getElementById("objPct").textContent = pct + "%";
+  document.getElementById("objPct").textContent = pct + "% · 👥" + countHands(G.objStation);
   document.getElementById("weekChip").textContent = "WEEK " + G.week + "/12 · ☀ " + Math.round(G.weekTime / WEEK_LEN * 100) + "%";
   document.getElementById("storesN").textContent = G.stores;
   document.getElementById("copiedN").textContent = G.copied;
@@ -958,8 +989,50 @@ function hudTick(dt){
     document.getElementById("bar-" + pr[0]).style.width = s[pr[1]] + "%";
     document.getElementById("val-" + pr[0]).textContent = Math.round(s[pr[1]]);
   });
+  G.alerts = G.alerts.filter(function(x){ return G.t - x.at < 9; });
+  var alEl = document.getElementById("alerts");
+  var ahtml = G.alerts.map(function(x){ return "<button class='alert-chip' onclick='__pickAlert(\"" + x.id + "\")'>⚠ <b>" + x.name + "</b> is idle · tap to direct</button>"; }).join("");
+  if(alEl.innerHTML !== ahtml) alEl.innerHTML = ahtml;
   refreshTray(false);
 }
+function watchLine(a){
+  var n = 0; G.agents.forEach(function(b){ if(b !== a && (b.watchOf === a.id || b.pendingWatch === a.id)) n++; });
+  if(n > 0) return "👁 Watched by " + n + " · this behavior spreads";
+  if(a.vis >= 60) return "👁 A model · work done in the open gets copied";
+  return "👁 Nobody watching · open work is what spreads";
+}
+function countHands(stId){
+  if(!stId) return 0;
+  var n = 0; G.agents.forEach(function(a){ if(a.stationId === stId && (a.state === "act" || a.state === "watch")) n++; });
+  return n;
+}
+function spawnPulse(m, a){
+  if(!m || !a) return;
+  var geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(m.x, 2.2, m.z), new THREE.Vector3(a.x, 2.2, a.z)]);
+  var line = new THREE.Line(geo, new THREE.LineBasicMaterial({color:0xffc94d, transparent:true, opacity:0.85}));
+  scene.add(line); pulses.push({line:line, life:1.4});
+}
+function fxTick(dt){
+  var showCoach = G.started && !G.over && !G.firstOrder;
+  if(coachStation){ coachStation.rotation.y += dt * 1.8; coachAgent.rotation.y += dt * 1.8;
+    var st = STATION3[G.objStation];
+    coachStation.visible = !!(showCoach && st);
+    if(st){ coachStation.position.set(st.x, 9.4 + Math.sin(G.t * 3.2) * 0.6, st.z); var cs = 1 + 0.13 * Math.sin(G.t * 5); coachStation.scale.set(cs, cs, cs); }
+  }
+  if(coachAgent){
+    var loafer = null, lt = 5;
+    G.agents.forEach(function(a){ if((a.loafT || 0) > lt && !a.sick){ lt = a.loafT; loafer = a; } });
+    coachAgent.visible = !!(showCoach && loafer);
+    if(loafer){ coachAgent.position.set(loafer.x, 5.4 + Math.sin(G.t * 3.2) * 0.45, loafer.z); var ca = 1 + 0.13 * Math.sin(G.t * 5); coachAgent.scale.set(ca, ca, ca); }
+  }
+  for(var i = pulses.length - 1; i >= 0; i--){
+    var p = pulses[i]; p.life -= dt;
+    if(p.life <= 0){ scene.remove(p.line); pulses.splice(i, 1); }
+    else p.line.material.opacity = Math.min(0.85, p.life);
+  }
+  if(pipMats.length){ var hands = countHands(G.objStation); pipMats.forEach(function(pm, ix){ pm.opacity = hands > ix ? 0.95 : 0.22; }); }
+}
+window.__pickAlert = function(id){ G.selected = id; cam.follow = id; refreshTray(true); };
 var projV = null;
 function updateLabels(){
   if(!projV) projV = new THREE.Vector3();
@@ -1090,6 +1163,9 @@ document.getElementById("sp0").addEventListener("click", function(){ setSpeed(0)
 document.getElementById("sp1").addEventListener("click", function(){ setSpeed(1); });
 document.getElementById("sp2").addEventListener("click", function(){ setSpeed(2); });
 document.getElementById("camBtn").addEventListener("click", function(){ cam.target.set(0, 0, 4); cam.yaw = 0; cam.dist = 38; cam.follow = null; refreshTray(true); });
+window.addEventListener("pointermove", function(e){ if(e.pointerType === "mouse"){ mouseX = e.clientX; mouseY = e.clientY; mouseIn = true; } });
+window.addEventListener("pointerdown", function(){ ptrDown = true; });
+window.addEventListener("pointerup", function(){ ptrDown = false; });
 var chosenDiff = "standard", chosenPolicy = "hearth";
 document.querySelectorAll("#diffSeg .segbtn").forEach(function(b){ b.addEventListener("click", function(){ document.querySelectorAll("#diffSeg .segbtn").forEach(function(x){ x.classList.remove("on"); }); b.classList.add("on"); chosenDiff = b.getAttribute("data-d"); }); });
 document.querySelectorAll("#polSeg .segbtn").forEach(function(b){ b.addEventListener("click", function(){ document.querySelectorAll("#polSeg .segbtn").forEach(function(x){ x.classList.remove("on"); }); b.classList.add("on"); chosenPolicy = b.getAttribute("data-p"); }); });
@@ -1123,6 +1199,8 @@ renderer.setAnimationLoop(function(){
   renderer.render(scene, camera);
 });
 if(location.hash.indexOf("play") >= 0) beginGame();
+var cmm = location.hash.match(/cam=(-?\d+),(-?\d+)/);
+if(cmm){ cam.target.x = parseInt(cmm[1], 10); cam.target.z = parseInt(cmm[2], 10); }
 var ffm = location.hash.match(/ff=(\d+)/);
 if(ffm){
   beginGame();
