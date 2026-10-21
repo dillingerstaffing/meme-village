@@ -111,6 +111,9 @@ canvas{display:block}
   #wantStrip{font-size:10.5px}
   #alerts{bottom:158px}
   #tray{padding:8px;gap:8px;min-height:0}
+  #tray{flex-wrap:wrap}
+  #tray #speeds{flex-basis:100%;justify-content:flex-end}
+  #tray .sbtn{padding:10px 14px;font-size:13px}
   #selInfo{min-width:102px;max-width:118px}
   #selInfo .st{display:none}
   #selInfo .nm{font-size:14px}
@@ -1558,6 +1561,16 @@ document.getElementById("sp0").addEventListener("click", function(){ setSpeed(0)
 document.getElementById("sp1").addEventListener("click", function(){ setSpeed(1); });
 document.getElementById("sp2").addEventListener("click", function(){ setSpeed(2); });
 document.getElementById("camBtn").addEventListener("click", function(){ cam.target.set(0, 0, 4); cam.yaw = 0; cam.dist = 38; cam.follow = null; refreshTray(true); });
+/* Thumb-zone rule (mobile): pause/speed/camera are the highest-urgency controls, so on small screens they move out of the top-right corner and into the bottom tray, where a thumb reaches without shifting grip. Pure CSS moves nothing across parents, so the reparenting happens here; CSS lays it out as the tray's own right-aligned row. */
+function placeSpeeds(){
+  var sp = document.getElementById("speeds"), tray = document.getElementById("tray"), tr = document.getElementById("topRight");
+  if(!sp || !tray || !tr || !window.matchMedia) return;
+  var mobile = window.matchMedia("(max-width:560px)").matches;
+  if(mobile && sp.parentNode !== tray) tray.appendChild(sp);
+  else if(!mobile && sp.parentNode !== tr) tr.appendChild(sp);
+}
+placeSpeeds();
+window.addEventListener("resize", placeSpeeds);
 window.addEventListener("pointermove", function(e){ if(e.pointerType === "mouse"){ mouseX = e.clientX; mouseY = e.clientY; mouseIn = true; mouseT = performance.now(); mouseBtn = e.buttons; } });
 window.addEventListener("pointerdown", function(e){ if(e.pointerType !== "mouse") mouseIn = false; ptrDown = true; });
 window.addEventListener("pointerup", function(){ ptrDown = false; });
