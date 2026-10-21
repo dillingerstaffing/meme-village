@@ -3,1380 +3,1136 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Meme Village: THE VILLAGE MODEL</title>
-<meta name="description" content="A real-time village strategy game about imitation. Direct ten residents, keep the work flowing, choose who the village copies. Twelve weeks to winter.">
-<meta property="og:title" content="Meme Village: THE VILLAGE MODEL">
-<meta property="og:description" content="Real-time strategy meets the Sims: autonomous residents, visible imitation, twelve weeks to winter.">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://dillingerstaffing.github.io/meme-village/">
-<meta name="twitter:card" content="summary">
+<title>Meme Village: THE VILLAGE MODEL (3D)</title>
+<meta name="description" content="Meme Village: THE VILLAGE MODEL. A 12-week 3D village simulation about imitation. Direct ten living residents; what they copy decides how the season ends.">
 <style>
-:root{
-  --bg:#07090d; --panel:#11161e; --panel2:#161e28; --line:#2a3646; --line2:#3b4c63;
-  --ink:#ece5d3; --ink2:#a79d85; --ink3:#66727f;
-  --gold:#e3aa3d; --gold2:#f5c86a; --teal:#5cc9a7; --red:#e05a4e; --green:#84c95e; --amber:#e8b93e; --blue:#6fb3e8; --violet:#a78fe0;
-  --shadow:0 10px 28px rgba(0,0,0,.55);
-}
+:root{--panel:rgba(10,14,19,.88);--line:#3b4c63;--ink:#f2ecd9;--ink2:#b6ac8f;--gold:#e8b34b;--teal:#5cc9a7;--red:#e05a4e}
 *{box-sizing:border-box}
-html,body{overflow-x:clip}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;font-size:15px;
-  background-image:radial-gradient(1100px 500px at 50% -8%, #182635 0%, var(--bg) 62%)}
-button{font:inherit;cursor:pointer;border-radius:6px;color:var(--ink)}
-button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-.wrap{max-width:1240px;margin:0 auto;padding:8px 10px 26px}
-
-/* ===== Top resource bar (StarCraft grammar) ===== */
-.topbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;background:linear-gradient(180deg,#182230,#0f151d);
-  border:1px solid var(--line2);border-radius:8px;padding:7px 12px;box-shadow:var(--shadow);position:sticky;top:6px;z-index:40}
-.brand{display:flex;gap:10px;align-items:center}
-.brand svg{width:34px;height:34px}
-.brand .kick{font-size:9px;letter-spacing:.26em;color:var(--gold);font-weight:700}
-.brand h1{margin:0;font-size:17px;letter-spacing:.13em;font-weight:800;line-height:1}
-.brand h1 span{color:var(--gold)}
-.resources{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
-.res{display:flex;align-items:center;gap:5px;background:#0b1016;border:1px solid var(--line);border-radius:6px;padding:4px 9px;min-width:86px}
-.res .ic{font-size:15px;width:18px;text-align:center}
-.res .v{font-family:ui-monospace,Menlo,monospace;font-weight:700;font-size:15px}
-.res .tr{font-size:11px;width:12px}
-.res small{display:block;font-size:8.5px;letter-spacing:.14em;color:var(--ink3);text-transform:uppercase;line-height:1}
-.reswrap{display:flex;flex-direction:column}
-.clockbox{display:flex;align-items:center;gap:8px}
-.weekchip{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;border:1px solid var(--gold);color:var(--gold2);padding:6px 10px;border-radius:6px;background:rgba(227,170,61,.08);white-space:nowrap}
-.speeds{display:flex;gap:4px}
-.sbtn{background:#1a232f;border:1px solid var(--line2);padding:6px 10px;font-weight:700;font-size:13px;min-width:40px}
-.sbtn.on{border-color:var(--gold);color:var(--gold2);background:rgba(227,170,61,.12)}
-.hbtn{background:#1a232f;border:1px solid var(--line2);padding:6px 11px;font-weight:600;font-size:13px}
-.hbtn:hover{border-color:var(--gold);color:var(--gold2)}
-
-/* ===== Stage ===== */
-.stagewrap{position:relative;margin-top:10px;border:1px solid var(--line2);border-radius:10px;overflow:hidden;box-shadow:var(--shadow);background:#0a0e13}
-canvas{display:block;width:100%;height:auto}
-.objective{position:absolute;left:10px;top:10px;width:248px;max-width:62vw;background:rgba(9,13,18,.86);border:1px solid var(--line2);border-left:4px solid var(--gold);
-  border-radius:6px;padding:8px 11px;backdrop-filter:blur(3px)}
-.objective .ok{font-size:9.5px;letter-spacing:.22em;color:var(--gold);font-weight:800}
-.objective .ot{font-weight:800;font-size:15.5px;margin:1px 0 5px}
-.objective .obar{height:11px;background:#05080b;border:1px solid var(--line2);border-radius:3px;overflow:hidden}
-.objective .obar i{display:block;height:100%;background:linear-gradient(90deg,#b57f22,var(--gold2));width:0%;transition:width .4s}
-.objective .os{font-size:11.5px;color:var(--ink2);margin-top:4px;display:flex;justify-content:space-between}
-.objective.done{border-left-color:var(--teal)} .objective.done .ok{color:var(--teal)}
-.objective.missed{border-left-color:var(--red)} .objective.missed .ok{color:var(--red)}
-.alerts{position:absolute;left:10px;top:138px;width:248px;max-width:62vw;display:flex;flex-direction:column;gap:5px}
-.alert{display:flex;gap:8px;align-items:center;background:rgba(9,13,18,.85);border:1px solid var(--line);border-radius:6px;padding:6px 9px;font-size:12.5px;cursor:pointer;text-align:left;width:100%;color:var(--ink)}
-.alert:hover{border-color:var(--gold)}
-.alert .ai{font-size:15px}
-.alert.warn{border-color:var(--amber)} .alert.bad{border-color:var(--red)}
-.coach{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:rgba(9,13,18,.92);border:1px solid var(--gold);color:var(--ink);
-  border-radius:24px;padding:8px 16px;font-size:13.5px;font-weight:600;display:none;align-items:center;gap:8px;box-shadow:0 0 18px rgba(227,170,61,.35);white-space:nowrap;max-width:94vw}
-.coach.show{display:flex}
-.coach .ci{font-size:16px}
-@keyframes pulseB{0%,100%{box-shadow:0 0 12px rgba(227,170,61,.3)}50%{box-shadow:0 0 24px rgba(227,170,61,.65)}}
-.coach.show{animation:pulseB 1.6s ease-in-out infinite}
-
-/* ===== Incident card ===== */
-.incident{position:absolute;left:50%;top:12px;transform:translateX(-50%) translateY(-8px);width:520px;max-width:94vw;background:linear-gradient(180deg,#1c2634,#121922);
-  border:1px solid var(--gold);border-radius:10px;box-shadow:0 18px 50px rgba(0,0,0,.7);padding:13px 15px;opacity:0;pointer-events:none;transition:all .25s;z-index:25}
-.incident.open{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
-.incident .ik{font-size:10px;letter-spacing:.24em;color:var(--red);font-weight:800}
-.incident h3{margin:2px 0 3px;font-size:20px}
-.incident p{margin:0 0 10px;color:var(--ink2);font-size:13.5px}
-.incident .opts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-@media (max-width:560px){.incident .opts{grid-template-columns:1fr}}
-.iopt{background:#0c1219;border:1px solid var(--line2);padding:10px;text-align:center}
+html,body{overflow:hidden;height:100%}
+body{margin:0;background:#0a0e13;color:var(--ink);font-family:"Segoe UI",system-ui,Roboto,Arial,sans-serif}
+#scene{position:fixed;inset:0;touch-action:none}
+canvas{display:block}
+.hud{position:fixed;z-index:10}
+#objCard{top:10px;left:10px;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:8px;padding:9px 12px;width:250px;max-width:64vw;backdrop-filter:blur(3px)}
+#objCard .k{font-size:9.5px;letter-spacing:.22em;color:var(--gold);font-weight:800}
+#objCard .t{font-weight:800;font-size:16px;margin:1px 0 5px}
+#objCard .bar{height:10px;background:#05080b;border:1px solid var(--line);border-radius:3px;overflow:hidden}
+#objCard .bar i{display:block;height:100%;background:linear-gradient(90deg,#b57f22,#f5c86a);width:0%}
+#objCard .s{font-size:11.5px;color:var(--ink2);margin-top:4px;display:flex;justify-content:space-between}
+#topRight{top:10px;right:10px;display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:6px 11px;font-family:ui-monospace,Menlo,monospace;font-size:13px;font-weight:700}
+.chip b{color:var(--gold)}
+#speeds{display:flex;gap:4px}
+.sbtn{background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:7px 12px;font-weight:800;cursor:pointer;font-size:13px}
+.sbtn.on{border-color:var(--gold);color:var(--gold)}
+#sliceTag{top:10px;left:50%;transform:translateX(-50%);background:rgba(90,20,16,.85);border:1px solid var(--red);color:#ffd9d4;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:800;letter-spacing:.18em}
+#toast{bottom:118px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--gold);border-radius:22px;padding:8px 18px;font-size:14px;font-weight:700;display:none;white-space:nowrap;max-width:94vw}
+#tray{position:fixed;z-index:10;bottom:0;left:0;right:0;background:linear-gradient(180deg,rgba(14,19,26,.92),rgba(9,12,17,.97));border-top:1px solid var(--line);padding:10px 12px;display:flex;gap:12px;align-items:center;min-height:96px}
+#selInfo{min-width:170px;max-width:230px}
+#selInfo .nm{font-weight:800;font-size:17px}
+#selInfo .rl{font-size:10.5px;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;font-weight:700}
+#selInfo .st{font-size:12px;color:var(--ink2);margin-top:2px}
+#cmds{display:flex;gap:7px;flex-wrap:wrap}
+.cbtn{background:#131a23;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:9px 6px 7px;min-width:64px;cursor:pointer;text-align:center}
+.cbtn:hover{border-color:var(--gold)}
+.cbtn.on{border-color:var(--teal);background:rgba(92,201,167,.13)}
+.cbtn .i{font-size:21px;display:block}
+.cbtn .l{font-size:10.5px;font-weight:700;color:var(--ink2);display:block;margin-top:1px}
+.cbtn:disabled{opacity:.4;cursor:not-allowed}
+.label{position:fixed;z-index:9;transform:translate(-50%,-100%);pointer-events:none;font-size:12px;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.8);white-space:nowrap;display:none}
+.bubble{position:fixed;z-index:9;transform:translate(-50%,-130%);pointer-events:none;background:rgba(253,251,244,.96);border-radius:10px;padding:3px 8px;font-size:16px;display:none;box-shadow:0 3px 10px rgba(0,0,0,.35)}
+.bubble:after{content:"";position:absolute;left:50%;bottom:-5px;transform:translateX(-50%);border:5px solid transparent;border-top-color:rgba(253,251,244,.96);border-bottom:0}
+#incident{top:64px;left:50%;transform:translateX(-50%);width:520px;max-width:94vw;background:linear-gradient(180deg,#1d2735,#121922);border:1px solid var(--gold);border-radius:11px;padding:14px 16px;display:none;z-index:30;box-shadow:0 18px 50px rgba(0,0,0,.7)}
+#incident .k{font-size:10px;letter-spacing:.24em;color:var(--red);font-weight:800}
+#incident h3{margin:2px 0 3px;font-size:20px}
+#incident p{margin:0 0 11px;color:var(--ink2);font-size:13.5px}
+#incident .opts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media (max-width:560px){#incident .opts{grid-template-columns:1fr}}
+.iopt{background:#0c1219;border:1px solid var(--line);color:var(--ink);padding:10px;border-radius:8px;cursor:pointer;text-align:center}
 .iopt:hover{border-color:var(--gold)}
 .iopt .ii{font-size:24px;display:block}
 .iopt .il{font-weight:800;font-size:13.5px;display:block;margin-top:3px}
-.iopt .ih{font-size:11px;color:var(--ink2);display:block;margin-top:2px;font-family:ui-monospace,monospace}
-.iopt.blame{border-color:#5c2b26}.iopt.blame:hover{border-color:var(--red)}
-
-/* ===== Command card (bottom, selection-sensitive) ===== */
-.cmdbar{margin-top:10px;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);
-  display:grid;grid-template-columns:300px 1fr;gap:0;overflow:hidden}
-@media (max-width:760px){.cmdbar{grid-template-columns:1fr}}
-.selbox{padding:11px 13px;border-right:1px solid var(--line);display:flex;gap:11px;min-height:118px}
-@media (max-width:760px){.selbox{border-right:0;border-bottom:1px solid var(--line)}}
-.selbox .port{flex:none}
-.selbox h3{margin:0;font-size:17px}
-.selbox .role{font-size:10.5px;letter-spacing:.16em;color:var(--gold2);text-transform:uppercase;font-weight:700}
-.mbars{margin-top:6px;display:grid;gap:4px}
-.mbar{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--ink2)}
-.mbar .mb{flex:1;height:7px;background:#05080b;border:1px solid var(--line);border-radius:3px;overflow:hidden}
-.mbar .mb i{display:block;height:100%}
-.chip{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.05em;padding:2px 8px;border-radius:20px;border:1px solid var(--line2);color:var(--ink2)}
-.orders{padding:11px 13px}
-.orders .olab{font-size:10px;letter-spacing:.22em;color:var(--ink3);text-transform:uppercase;font-weight:700;margin-bottom:7px;display:flex;justify-content:space-between}
-.ogrid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
-@media (max-width:560px){.ogrid{grid-template-columns:repeat(3,1fr)}}
-.obtn{background:#0c1219;border:1px solid var(--line2);padding:8px 4px 7px;text-align:center;position:relative}
-.obtn:hover{border-color:var(--gold)}
-.obtn.on{border-color:var(--teal);background:rgba(92,201,167,.1)}
-.obtn .oi{font-size:20px;display:block;line-height:1.15}
-.obtn .ol{font-size:10.5px;font-weight:700;display:block;color:var(--ink2)}
-.obtn:disabled{opacity:.45;cursor:not-allowed}
-.obtn .cd{position:absolute;inset:0;border-radius:6px;background:conic-gradient(rgba(5,8,11,.78) var(--p,0%), transparent 0);pointer-events:none}
-.globals{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap}
-.gbtn{background:#0c1219;border:1px solid var(--line2);padding:7px 12px;font-size:12.5px;font-weight:700;position:relative;overflow:hidden}
-.gbtn:hover{border-color:var(--gold)}
-.gbtn:disabled{opacity:.45;cursor:not-allowed}
-.gbtn .cd{position:absolute;inset:0;background:conic-gradient(rgba(5,8,11,.8) var(--p,0%), transparent 0);pointer-events:none}
-.gbtn .chg{color:var(--gold2);font-family:ui-monospace,monospace;font-size:11px}
-
-/* ===== Roster strip ===== */
-.roster{display:flex;gap:6px;margin-top:10px;overflow-x:auto;padding-bottom:2px}
-.rcard{flex:1;min-width:86px;background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:6px 7px;cursor:pointer;text-align:left}
-.rcard:hover{border-color:var(--line2)}
-.rcard.sel{border-color:var(--gold)}
-.rcard .rn{font-size:11.5px;font-weight:800;white-space:nowrap}
-.rcard .rb{height:5px;background:#05080b;border-radius:3px;overflow:hidden;margin-top:4px}
-.rcard .rb i{display:block;height:100%}
-.rcard .rs{font-size:10px;color:var(--ink2);margin-top:3px;display:flex;justify-content:space-between}
-.rcard.idle{border-color:var(--amber)}
-@media (max-width:760px){
-  .topbar{gap:6px;padding:7px 9px}
-  .clockbox{flex-wrap:wrap;row-gap:6px}
-  .brand h1{font-size:15px}
-  .objective{width:204px;padding:7px 9px}
-  .objective .ot{font-size:14px}
-  .alerts{top:126px;width:204px}
-  .alert{font-size:11.5px;padding:5px 7px}
-}
-@media (max-width:560px){
-  #ordHint{display:none}
-  .olab{justify-content:flex-start}
-}
-footer{margin-top:14px;font-size:11.5px;color:var(--ink3);max-width:105ch}
-
-/* ===== Overlays ===== */
-.overlay{position:fixed;inset:0;background:rgba(3,5,8,.8);display:none;align-items:center;justify-content:center;padding:14px;z-index:80;backdrop-filter:blur(4px)}
+.iopt .ih{font-size:11px;color:var(--ink2);display:block;margin-top:2px}
+.iopt.blame{border-color:#5c2b26}
+.overlay{position:fixed;inset:0;background:rgba(3,5,8,.78);display:none;align-items:center;justify-content:center;padding:14px;z-index:50;backdrop-filter:blur(3px)}
 .overlay.open{display:flex}
-.modal{background:linear-gradient(180deg,#171f29,#0f141b);border:1px solid var(--line2);border-radius:10px;max-width:720px;width:100%;max-height:90vh;overflow:auto;padding:22px;box-shadow:var(--shadow)}
-.modal h2{margin:0 0 6px;font-size:24px}
-.titleart{font-size:clamp(32px,6.4vw,54px);font-weight:800;letter-spacing:.09em;line-height:1.02;margin:4px 0 6px}
-.titleart span{color:var(--gold)}
-.kick{font-size:10px;letter-spacing:.28em;color:var(--gold);font-weight:700}
-.pickgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
-@media (max-width:620px){.pickgrid{grid-template-columns:1fr}}
-.pick{background:#0b1016;border:1px solid var(--line2);padding:11px;text-align:left;width:100%}
-.pick:hover{border-color:var(--gold)}
-.pick.sel{border-color:var(--gold);background:rgba(227,170,61,.1);box-shadow:0 0 0 1px var(--gold)}
-.pick .pi{font-size:22px}
-.pick .pt{font-weight:800;display:block;margin-top:2px}
-.pick .pd{color:var(--ink2);font-size:12px;display:block;margin-top:2px}
-.btn{background:#1a232f;border:1px solid var(--line2);padding:10px 18px;font-weight:700}
-.btn.primary{background:linear-gradient(180deg,#c98f2b,var(--gold) 45%,#a97a24);border-color:#7c5c1a;color:#171106;font-size:16px}
-.legend{display:grid;grid-template-columns:repeat(2,1fr);gap:5px 18px;font-size:13.5px;margin-top:6px}
-@media (max-width:620px){.legend{grid-template-columns:1fr}}
-.legend div{display:flex;gap:9px;align-items:center}
-.legend .li{font-size:17px;width:24px;text-align:center;flex:none}
-.stamp{display:inline-block;border:2.5px solid var(--gold);color:var(--gold2);font-weight:800;letter-spacing:.13em;text-transform:uppercase;padding:6px 14px;transform:rotate(-1.6deg);border-radius:4px;margin:8px 0;background:rgba(227,170,61,.07);font-size:16px}
-.medals{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
-.medal{border:1px solid var(--gold);color:var(--gold2);border-radius:20px;padding:3px 10px;font-size:11.5px;font-weight:700;background:rgba(227,170,61,.08)}
-.prow{display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:1px dashed var(--line);font-size:13px}
-.prow .pg{margin-left:auto;font-family:ui-monospace,monospace;font-weight:800;color:var(--gold2)}
+.modal{background:linear-gradient(180deg,#18202b,#0f141b);border:1px solid var(--line);border-radius:12px;max-width:640px;width:100%;padding:24px;max-height:92vh;overflow:auto}
+.modal h2{margin:4px 0 8px;font-size:30px;letter-spacing:.04em}
+.modal h2 span{color:var(--gold)}
+.kick2{font-size:10px;letter-spacing:.26em;color:var(--gold);font-weight:800}
+.watch{display:grid;gap:7px;margin:14px 0;font-size:14.5px}
+.watch div{background:#0c1219;border:1px solid var(--line);border-radius:8px;padding:9px 12px}
+.btn{background:linear-gradient(180deg,#c98f2b,#e8b34b 45%,#a97a24);border:1px solid #7c5c1a;color:#171106;border-radius:8px;padding:12px 22px;font-weight:800;font-size:16px;cursor:pointer}
+.stat-row{display:flex;justify-content:space-between;border-bottom:1px dashed var(--line);padding:6px 0;font-size:14.5px}
+#stats{top:118px;left:10px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:178px;backdrop-filter:blur(3px)}
+#stats .sh{font-size:9px;letter-spacing:.22em;color:var(--gold);font-weight:800;margin-bottom:4px}
+.srow{display:flex;align-items:center;gap:6px;font-size:10.5px;margin:3.5px 0}
+.srow .sl{width:66px;color:var(--ink2);white-space:nowrap}
+.srow .sb{flex:1;height:6px;background:#05080b;border:1px solid #263449;border-radius:2px;overflow:hidden}
+.srow .sb i{display:block;height:100%;width:50%}
+.srow b{width:22px;text-align:right;font-family:ui-monospace,Menlo,monospace;font-size:10.5px}
+.seg{display:flex;gap:6px;margin:6px 0 12px}
+.segbtn{flex:1;background:#0c1219;border:1px solid var(--line);color:var(--ink2);border-radius:8px;padding:9px 6px;cursor:pointer;font-weight:700;font-size:13px}
+.segbtn.on{border-color:var(--gold);color:var(--gold);background:rgba(232,179,75,.1)}
+.seglabel{font-size:10px;letter-spacing:.22em;color:var(--gold);font-weight:800;margin-top:10px}
+@media (max-width:760px){#selInfo{min-width:118px}#objCard{width:206px}.cbtn{min-width:56px;padding:8px 4px 6px}}
+@media (max-width:560px){
+  #objCard{width:172px;padding:7px 9px}
+  #objCard .t{font-size:13px}
+  #objCard .s{font-size:10px}
+  #topRight{gap:4px}
+  .chip{font-size:11px;padding:5px 8px}
+  .sbtn{padding:6px 9px;font-size:12px}
+  #sliceTag{top:136px;font-size:9px;padding:4px 8px;letter-spacing:.12em}
+  #stats{top:auto;bottom:250px;width:150px;padding:6px 8px}
+  .srow .sl{width:54px;font-size:9.5px}
+  #toast{bottom:auto;top:172px;font-size:12.5px;padding:7px 13px}
+  #tray{padding:8px;gap:8px;min-height:0}
+  #selInfo{min-width:102px;max-width:118px}
+  #selInfo .st{display:none}
+  #selInfo .nm{font-size:14px}
+  .cbtn{min-width:52px;padding:6px 3px 5px}
+  .cbtn .i{font-size:17px}
+}
 </style>
 </head>
 <body>
-<div class="wrap">
+<div id="scene"></div>
 
-<header class="topbar">
-  <div class="brand">
-    <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" fill="none" stroke="#e3aa3d" stroke-width="2.5"/><path d="M14 32 L24 12 L34 32 Z" fill="none" stroke="#5cc9a7" stroke-width="2.5"/><circle cx="24" cy="27" r="3.4" fill="#e3aa3d"/></svg>
-    <div><div class="kick">TTI &middot; Field Posting 7</div><h1>THE VILLAGE <span>MODEL</span></h1></div>
-  </div>
-  <div class="resources" id="resources" aria-label="Village resources"></div>
-  <div class="clockbox">
-    <span class="weekchip" id="weekChip">WEEK 1 / 12</span>
-    <div class="speeds" role="group" aria-label="Game speed">
-      <button class="sbtn" id="sp0" type="button" title="Pause (Space)">&#10073;&#10073;</button>
-      <button class="sbtn on" id="sp1" type="button" title="Normal speed">1x</button>
-      <button class="sbtn" id="sp2" type="button" title="Double speed">2x</button>
-      <button class="sbtn" id="sp4" type="button" title="Quadruple speed">4x</button>
-    </div>
-    <button class="hbtn" id="soundBtn" type="button" aria-pressed="false">Sound: off</button>
-    <button class="hbtn" id="legendBtn" type="button">Legend</button>
-    <button class="hbtn" id="restartBtn" type="button">Restart</button>
-  </div>
-</header>
-
-<div class="stagewrap" id="stageWrap">
-  <canvas id="game" width="960" height="540"></canvas>
-  <div class="objective" id="objectiveBox">
-    <div class="ok">OBJECTIVE &middot; WEEK 1</div>
-    <div class="ot" id="objTitle">Repair the clinic roof</div>
-    <div class="obar"><i id="objBar"></i></div>
-    <div class="os"><span id="objHint">Work at the Clinic</span><span id="objPct">0%</span></div>
-  </div>
-  <div class="alerts" id="alerts"></div>
-  <div class="incident" id="incidentBox" role="alertdialog" aria-live="assertive"></div>
-  <div class="coach" id="coach"><span class="ci" id="coachIcon">&#128070;</span><span id="coachText"></span></div>
+<div class="hud" id="objCard">
+  <div class="k" id="objK">OBJECTIVE · WEEK 1</div>
+  <div class="t" id="objT">🔨 Repair the clinic roof</div>
+  <div class="bar"><i id="objBar"></i></div>
+  <div class="s"><span id="objHint">Planks land as the crew works</span><span id="objPct">0%</span></div>
 </div>
-
-<section class="cmdbar" aria-label="Command card">
-  <div class="selbox" id="selBox"></div>
-  <div class="orders">
-    <div class="olab"><span>Orders</span><span id="ordHint">Select a resident, then tap a station on the map, or use these</span></div>
-    <div class="ogrid" id="orderGrid"></div>
-    <div class="globals" id="globalBar"></div>
-  </div>
-</section>
-
-<div class="roster" id="roster" aria-label="All residents"></div>
-
-<footer>
-  A real-time game about imitation, inspired by Rene Girard's mimetic theory. Residents think for themselves, in icons. You set the direction; they decide what it means; the village copies what it sees. Fictional, and not a manual for handling real people.
-</footer>
+<div class="hud" id="stats">
+  <div class="sh">THE VILLAGE</div>
+  <div class="srow"><span class="sl">⚒ Productivity</span><span class="sb"><i id="bar-prod" style="background:#e8b34b"></i></span><b id="val-prod">45</b></div>
+  <div class="srow"><span class="sl">♥ Trust</span><span class="sb"><i id="bar-trust" style="background:#5cc9a7"></i></span><b id="val-trust">55</b></div>
+  <div class="srow"><span class="sl">🌳 Cohesion</span><span class="sb"><i id="bar-coh" style="background:#86b95e"></i></span><b id="val-coh">55</b></div>
+  <div class="srow"><span class="sl">⚔ Rivalry</span><span class="sb"><i id="bar-riv" style="background:#e05a4e"></i></span><b id="val-riv">18</b></div>
+  <div class="srow"><span class="sl">🌾 Scarcity</span><span class="sb"><i id="bar-scar" style="background:#e08a4b"></i></span><b id="val-scar">52</b></div>
+  <div class="srow"><span class="sl">🕊 Autonomy</span><span class="sb"><i id="bar-aut" style="background:#6fb3e8"></i></span><b id="val-aut">60</b></div>
 </div>
-
-<div class="overlay open" id="startOverlay" role="dialog" aria-modal="true">
-  <div class="modal" style="max-width:760px">
-    <div class="kick">TRAUMA TEAM INTERNATIONAL &middot; MEME VILLAGE &middot; TWELVE WEEKS TO WINTER</div>
-    <div class="titleart">THE VILLAGE<br><span>MODEL</span></div>
-    <p style="margin:4px 0 2px;color:var(--ink2)">Ten residents. They work, rest, help, feud, and copy each other, live. You direct the work and choose who gets watched. Nobody reads paragraphs here, including you.</p>
-    <h3 style="margin:14px 0 2px;color:var(--gold2);font-size:14px;letter-spacing:.08em">POSTING POLICY</h3>
-    <div class="pickgrid" id="policyPick"></div>
-    <h3 style="margin:14px 0 2px;color:var(--gold2);font-size:14px;letter-spacing:.08em">SEASON</h3>
-    <div class="pickgrid" style="grid-template-columns:1fr 1fr" id="diffPick">
-      <button class="pick sel" type="button" data-diff="standard"><span class="pi">&#127793;</span><span class="pt">Standard</span><span class="pd">A hard year, honestly dealt.</span></button>
-      <button class="pick" type="button" data-diff="hard"><span class="pi">&#10052;</span><span class="pt">Hard Winter</span><span class="pd">Thinner stores. Colder dice.</span></button>
-    </div>
-    <div style="margin-top:18px"><button class="btn primary" id="beginBtn" type="button">Begin Week 1</button></div>
+<div class="hud" id="topRight">
+  <span class="chip" id="weekChip">WEEK 1 · ☀ 0%</span>
+  <span class="chip">📦 Stores <b id="storesN">0</b> &nbsp; 👀 Copied <b id="copiedN">0</b></span>
+  <div id="speeds">
+    <button class="sbtn" id="sp0" type="button">❚❚</button>
+    <button class="sbtn on" id="sp1" type="button">1x</button>
+    <button class="sbtn" id="sp2" type="button">2x</button>
+    <button class="sbtn" id="camBtn" type="button" title="Reset camera">🎥</button>
   </div>
 </div>
+<div class="hud" id="toast"></div>
+<div class="hud" id="incident"></div>
+<div id="labels"></div>
+<div id="tray">
+  <div id="selInfo"><div class="rl">Village</div><div class="nm">No selection</div><div class="st">Tap a resident. Tap a building to send them. Drag to look around.</div></div>
+  <div id="cmds"></div>
+</div>
 
-<div class="overlay" id="legendOverlay" role="dialog" aria-modal="true">
+<div class="overlay open" id="startOverlay">
   <div class="modal">
-    <h2>The whole manual, in icons</h2>
-    <div class="legend">
-      <div><span class="li">&#9968;</span> Work / produce. Green stations feed the village.</div>
-      <div><span class="li">&#10010;</span> Clinic. Care raises morale and heals the worn down.</div>
-      <div><span class="li">&#9873;</span> Objective building this week. Send workers there.</div>
-      <div><span class="li">&#128293;</span> A model. Gold ring: others nearby copy their way of acting.</div>
-      <div><span class="li">&#10024;</span> Spotlight: make one resident watched. Cooldown applies.</div>
-      <div><span class="li">&#9889;</span> Feuding. Two residents, one grievance. It spreads.</div>
-      <div><span class="li">&#10084;</span> Helping. Raises trust and cohesion around them.</div>
-      <div><span class="li">&#128164;</span> Resting at home. Energy returns. No output.</div>
-      <div><span class="li">&#128100;</span> Idle. Wasted hands. The feed pings them for you.</div>
-      <div><span class="li">&#128308;</span> Blame. Fast calm, late bill: trust falls, the blamed withdraw.</div>
-      <div><span class="li">&#128218;</span> Storehouse. Staffed shelves make fairness visible: trust.</div>
-      <div><span class="li">&#127891;</span> School. Teaching builds cohesion and autonomy.</div>
-      <div><span class="li">&#128167;</span> Well. Water work holds scarcity down.</div>
-      <div><span class="li">&#127807;</span> Fields. Food work pushes scarcity down fastest.</div>
-      <div><span class="li">&#9881;</span> Mill. Goods work: steady productivity.</div>
-      <div><span class="li">&#127796;</span> The Green. Social time: morale, cohesion, and copying.</div>
+    <div class="kick2">MEME VILLAGE · THE VILLAGE MODEL · 12 WEEKS</div>
+    <h2>THE VILLAGE <span>MODEL</span></h2>
+    <p style="color:var(--ink2);margin:0">Ten people, one valley, twelve weeks to winter. They work, rest, watch each other, and copy what they see. You direct them, but you do not control what they become. That part spreads on its own.</p>
+    <div class="watch">
+      <div>🔨 <b>Every week has an objective.</b> The gold ring marks where it happens.</div>
+      <div>👀 <b>Residents copy visible models.</b> Spotlight the right person and the whole village tilts.</div>
+      <div>⚖ <b>Blame works fast and bills later.</b> Choose carefully when things go wrong.</div>
     </div>
-    <p style="color:var(--ink2);font-size:13.5px">Bars over heads: green is morale, blue is energy. A dashed gold ring is a model being watched. Your orders override a resident's own ideas, and the village notices how often that happens: that is the Autonomy meter. Everything else, the village will show you.</p>
-    <div style="margin-top:12px"><button class="btn primary" id="legendClose" type="button">Back to the village</button></div>
+    <div class="seglabel">SEASON</div>
+    <div class="seg" id="diffSeg">
+      <button class="segbtn on" data-d="standard" type="button">☀ Standard</button>
+      <button class="segbtn" data-d="hard" type="button">❄ Hard Winter</button>
+    </div>
+    <div class="seglabel">THE POSTING ON THE GREEN</div>
+    <div class="seg" id="polSeg">
+      <button class="segbtn" data-p="open" type="button">📖 Open Books</button>
+      <button class="segbtn on" data-p="hearth" type="button">🔥 Shared Hearth</button>
+      <button class="segbtn" data-p="order" type="button">📏 Quiet Order</button>
+    </div>
+    <button class="btn" id="beginBtn" type="button">Begin the season</button>
   </div>
 </div>
 
-<div class="overlay" id="endOverlay" role="dialog" aria-modal="true">
+<div class="overlay" id="endOverlay">
   <div class="modal" id="endCard"></div>
 </div>
 
+<script src="three.min.js"></script>
 <script>
 "use strict";
-/* =============== DATA =============== */
-var STATIONS = [
-  {id:"clinic", name:"Clinic", icon:"✚", x:178, y:252, bx:118, by:138, bw:118, bh:80, slots:4, col:"#e8e4da"},
-  {id:"school", name:"School", icon:"🎓", x:452, y:172, bx:398, by:78, bw:110, bh:66, slots:3, col:"#e3d3ac"},
-  {id:"store", name:"Storehouse", icon:"📚", x:694, y:238, bx:636, by:132, bw:118, bh:74, slots:3, col:"#c9a97e"},
-  {id:"mill", name:"Mill", icon:"⚙", x:836, y:382, bx:796, by:262, bw:92, bh:88, slots:2, col:"#d8c096"},
-  {id:"well", name:"Well", icon:"💧", x:472, y:322, bx:452, by:292, bw:40, bh:34, slots:2, col:"#8d99a0"},
-  {id:"fields", name:"Fields", icon:"🌿", x:188, y:428, bx:52, by:356, bw:280, bh:150, slots:5, col:"#8aa864"},
-  {id:"green", name:"The Green", icon:"🌳", x:428, y:392, bx:356, by:340, bw:150, bh:110, slots:6, col:"#77975a"},
-  {id:"home", name:"Home", icon:"🏠", x:0, y:0, bx:-99, by:-99, bw:1, bh:1, slots:10, col:"#cdb894"}
-];
-function station(id){ for(var i=0;i<STATIONS.length;i++) if(STATIONS[i].id===id) return STATIONS[i]; return null; }
-/* dispositions: Diligent, Helpful, Selfish, Feuding, Withdrawn */
-var DISPO = {
-  "Diligent":{icon:"⚒", col:"#e3aa3d"},
-  "Helpful":{icon:"♥", col:"#5cc9a7"},
-  "Selfish":{icon:"✦", col:"#6fb3e8"},
-  "Feuding":{icon:"⚡", col:"#e05a4e"},
-  "Withdrawn":{icon:"☾", col:"#a78fe0"}
-};
-var RESIDENTS = [
-  {id:"mara", name:"Mara Voss", role:"Repair Lead", aff:"clinic", home:{x:96,y:300}, admires:"jonah", rival:"felix", vis:66, disp:"Diligent", skin:"#c98a5e", hair:0, hairC:"#2e2018", shirt:"#a34d24"},
-  {id:"jonah", name:"Jonah Reyes", role:"Medic", aff:"clinic", home:{x:130,y:306}, admires:"priya", rival:null, vis:60, disp:"Helpful", skin:"#8a5a34", hair:2, hairC:"#16120e", shirt:"#3f6d5a"},
-  {id:"priya", name:"Priya Nair", role:"Teacher", aff:"school", home:{x:318,y:262}, admires:"mara", rival:null, vis:60, disp:"Helpful", skin:"#a06a3c", hair:1, hairC:"#100d0a", shirt:"#5a5f9e"},
-  {id:"tomas", name:"Tomas Hale", role:"Farmer", aff:"fields", home:{x:368,y:474}, admires:"mara", rival:"abel", vis:34, disp:"Diligent", skin:"#d9a878", hair:3, hairC:"#6e5636", shirt:"#6d8f52"},
-  {id:"ines", name:"Ines Duarte", role:"Baker", aff:"store", home:{x:576,y:320}, admires:"priya", rival:null, vis:38, disp:"Helpful", skin:"#b57a48", hair:4, hairC:"#3a2415", shirt:"#c9862b"},
-  {id:"felix", name:"Felix Grant", role:"Miller", aff:"mill", home:{x:742,y:140}, admires:"jonah", rival:"mara", vis:30, disp:"Diligent", skin:"#e0b184", hair:2, hairC:"#8a8a86", shirt:"#707a84"},
-  {id:"rosa", name:"Rosa Lindqvist", role:"Weaver", aff:"green", home:{x:600,y:326}, admires:"ines", rival:null, vis:26, disp:"Helpful", skin:"#e8bd93", hair:1, hairC:"#c8b294", shirt:"#96688a"},
-  {id:"abel", name:"Abel Osei", role:"Water Keeper", aff:"well", home:{x:566,y:452}, admires:"mara", rival:"tomas", vis:32, disp:"Diligent", skin:"#6e4526", hair:2, hairC:"#0e0c0a", shirt:"#3e6d8e"},
-  {id:"nadia", name:"Nadia Farrell", role:"Storekeeper", aff:"store", home:{x:770,y:146}, admires:"priya", rival:null, vis:28, disp:"Helpful", skin:"#caa06a", hair:4, hairC:"#7a4a22", shirt:"#8e3f3a"},
-  {id:"bram", name:"Bram Kessler", role:"Runner", aff:"green", home:{x:344,y:256}, admires:"mara", rival:null, vis:20, disp:"Selfish", skin:"#dbac7d", hair:2, hairC:"#a8783c", shirt:"#4a7a9e"}
-];
-var POLICIES = [
-  {id:"openbooks", icon:"📖", name:"Open Books", desc:"Openness pays double. Secrets cost double."},
-  {id:"hearth", icon:"🍞", name:"Shared Hearth", desc:"Finished objectives bind the village tighter."},
-  {id:"quietorder", icon:"⚖", name:"Quiet Order", desc:"Your ordered workers work 15% faster."}
-];
-/* weekly objectives: work at station(s) fills the bar */
-var OBJECTIVES = [
-  {title:"Repair the clinic roof", stations:["clinic"], target:128, bonus:{trust:3, cohesion:2, scarcity:-2}, penalty:{trust:-2, scarcity:2}},
-  {title:"Bring in the planting", stations:["fields"], target:150, bonus:{scarcity:-4, productivity:2}, penalty:{scarcity:4}},
-  {title:"Balance the storehouse", stations:["store"], target:128, bonus:{trust:4}, penalty:{trust:-3, rivalry:2}},
-  {title:"Fill the soup pots", stations:["store"], target:135, bonus:{cohesion:3, scarcity:-2}, penalty:{cohesion:-2, scarcity:2}},
-  {title:"Save the millstone", stations:["mill"], target:120, bonus:{productivity:3, scarcity:-2}, penalty:{productivity:-3}},
-  {title:"Every roof sound by frost", stations:["clinic"], target:140, bonus:{cohesion:3, trust:2}, penalty:{trust:-2}},
-  {title:"Fever watch", stations:["clinic"], target:145, bonus:{trust:4}, penalty:{trust:-3, scarcity:2}},
-  {title:"Stock for the trader", stations:["mill"], target:128, bonus:{scarcity:-4}, penalty:{scarcity:3}},
-  {title:"School in session", stations:["school"], target:135, bonus:{cohesion:3, autonomy:2}, penalty:{cohesion:-2}},
-  {title:"Raise the pipe line", stations:["well"], target:135, bonus:{scarcity:-4, trust:2}, penalty:{scarcity:3}},
-  {title:"Open books week", stations:["store"], target:128, bonus:{trust:4, rivalry:-2}, penalty:{trust:-3}},
-  {title:"Winter stores, full", stations:["fields","mill"], target:165, bonus:{scarcity:-3, trust:2}, penalty:{scarcity:4, trust:-2}}
-];
-/* weekly incidents: one per week, three pictogram answers, text kept to a headline and one line */
-var INCIDENTS = [
-  {kick:"WEEK 1", title:"The Clinic Roof Leaks", line:"Rain through the roof. The crew is two hands short.", opts:[
-    {icon:"🤝", label:"All hands", hint:"+Cohesion +Trust", fx:{cohesion:4, trust:2}},
-    {icon:"📋", label:"Quotas", hint:"+Output −Autonomy", fx:{productivity:5, autonomy:-4}, edict:"quotas"},
-    {icon:"🔴", label:"Blame Bram", hint:"Calm now, bill later", blame:"bram", fx:{rivalry:-4}}]},
-  {kick:"WEEK 2", title:"The Late Rains", line:"Fields behind. Tomas has a plan and a guarded look.", opts:[
-    {icon:"🤝", label:"Shared crews", hint:"+Cohesion −Scarcity", fx:{cohesion:4, scarcity:-2}},
-    {icon:"🔦", label:"Back Tomas", hint:"He gets watched", spotlight:"tomas", fx:{productivity:4}},
-    {icon:"🤫", label:"Hide forecast", hint:"Calm now, bill later", fx:{rivalry:-2}, delay:{weeks:2, fx:{trust:-8}, note:"The hidden forecast surfaced"}}]},
-  {kick:"WEEK 3", title:"The Ration Book Dispute", line:"Two households say the book favors Nadia's cousins.", opts:[
-    {icon:"📖", label:"Open the books", hint:"+Trust, costs time", fx:{trust:7, productivity:-2}, tag:"transparent"},
-    {icon:"🛡", label:"Back Nadia", hint:"Settled by authority", fx:{productivity:2, autonomy:-3}},
-    {icon:"🔴", label:"Blame Nadia", hint:"Calm now, bill later", blame:"nadia", fx:{rivalry:-3}}]},
-  {kick:"WEEK 4", title:"Ines and the Soup Rota", line:"She feeds the sick houses free. Half the village joined in.", opts:[
-    {icon:"🔦", label:"Spotlight Ines", hint:"Her habit spreads", spotlight:"ines", fx:{cohesion:4, scarcity:-2}},
-    {icon:"📋", label:"Make it duty", hint:"Soup stays, gift goes", fx:{productivity:3, cohesion:-3, autonomy:-4}, edict:"quotas"},
-    {icon:"🤫", label:"Quiet supplies", hint:"No spotlight, still fed", fx:{cohesion:2, scarcity:-2, autonomy:2}}]},
-  {kick:"WEEK 5", title:"The Cracked Millstone", line:"Ground fast it may split. A new stone costs the reserve.", opts:[
-    {icon:"🐢", label:"Slow + careful", hint:"Felix's way, standard", spotlight:"felix", fx:{productivity:2, trust:2}},
-    {icon:"🚀", label:"Full speed", hint:"Big gain, real risk", fx:{productivity:5, scarcity:-2}, gamble:{stat:"scarcity", bad:{productivity:-8, scarcity:5, note:"The millstone split"}}},
-    {icon:"🔴", label:"Blame Felix", hint:"Calm now, bill later", blame:"felix", fx:{rivalry:-3}}]},
-  {kick:"WEEK 6", title:"The Banner", line:"Two crews, one 'best crew' banner. Output up. So is the noise.", opts:[
-    {icon:"🎯", label:"One shared goal", hint:"Contest ends, work stays", fx:{rivalry:-5, cohesion:4}},
-    {icon:"🏅", label:"Judge helping", hint:"Same fire, new target", fx:{rivalry:-2, cohesion:3, productivity:2}},
-    {icon:"🔥", label:"Let it burn", hint:"+Output +Rivalry", fx:{productivity:4, rivalry:5}}]},
-  {kick:"WEEK 7", title:"Fever in Two Houses", line:"Jonah cannot be in both houses, or awake forever.", opts:[
-    {icon:"🔦", label:"Train medics", hint:"Jonah teaches, openly", spotlight:"jonah", fx:{trust:4, cohesion:3}},
-    {icon:"🚧", label:"Quarantine", hint:"Clinic shuts a week", fx:{autonomy:-5, trust:-2}, edict:"quarantine"},
-    {icon:"🔴", label:"Blame Abel", hint:"The water, surely", blame:"abel", fx:{rivalry:-4, cohesion:-3}}]},
-  {kick:"WEEK 8", title:"The Trader at the Gate", line:"Cloth and tools for a quarter of the seed reserve.", opts:[
-    {icon:"🗳", label:"Village vote", hint:"Their call, your figures", fx:{autonomy:6, trust:3}, gamble:{stat:"autonomy", bad:{rivalry:4, note:"The vote split the village"}}},
-    {icon:"📖", label:"Trade openly", hint:"Every term published", fx:{scarcity:-4, trust:2}, tag:"transparent"},
-    {icon:"👤", label:"Tomas decides", hint:"Fast, expert, exposed", spotlight:"tomas", fx:{productivity:2, autonomy:-3, rivalry:2}}]},
-  {kick:"WEEK 9", title:"Seats in the School Room", line:"Room for half the children. Every house has a reason.", opts:[
-    {icon:"🔦", label:"Priya's shifts", hint:"Her room, her method", spotlight:"priya", fx:{cohesion:4, trust:2}},
-    {icon:"🎲", label:"Public lottery", hint:"Luck has no cousins", fx:{trust:3, rivalry:-2, autonomy:2}, gamble:{stat:"trust", bad:{rivalry:3, note:"The fair draw was called rigged"}}},
-    {icon:"🔴", label:"Blame Priya", hint:"The shortage lands on her", blame:"priya", fx:{rivalry:-2}}]},
-  {kick:"WEEK 10", title:"The Storm and the Pipe Line", line:"Two joints torn out. Water by the bucket until fixed.", opts:[
-    {icon:"🤝", label:"All hands day", hint:"Everyone on the hill", fx:{cohesion:5, scarcity:-3}},
-    {icon:"🔦", label:"Back Abel", hint:"He knew the weak joints", spotlight:"abel", fx:{trust:3, scarcity:-2}},
-    {icon:"📋", label:"Bucket rota", hint:"Order at the well", fx:{autonomy:-4, rivalry:2}, edict:"quotas"}]},
-  {kick:"WEEK 11", title:"The Rumor About TTI", line:"'TTI favors the upper lane.' The stores prove no such thing.", opts:[
-    {icon:"📖", label:"Open your books", hint:"Questions till none left", fx:{trust:7, productivity:-2}, tag:"transparent"},
-    {icon:"🚧", label:"Deny it flatly", hint:"A claim against a claim", fx:{trust:-3, rivalry:3}},
-    {icon:"🔴", label:"Blame Bram", hint:"He runs every message", blame:"bram", fx:{rivalry:-4}}]},
-  {kick:"WEEK 12", title:"The Winter Count", line:"The number is the number. The village is watching itself.", opts:[
-    {icon:"🗳", label:"Village plans", hint:"You sign as witness", fx:{autonomy:7, trust:3}},
-    {icon:"📖", label:"TTI plans, openly", hint:"Your plan, all figures", fx:{productivity:4, trust:2, autonomy:-2}, tag:"transparent"},
-    {icon:"🔴", label:"Blame Tomas", hint:"The gap becomes a person", blame:"tomas", fx:{rivalry:-3, trust:-3}}]}
-];
-var ORDERS = [
-  {id:"auto", icon:"◎", label:"Free will"},
-  {id:"fields", icon:"🌿", label:"Fields"},
-  {id:"mill", icon:"⚙", label:"Mill"},
-  {id:"clinic", icon:"✚", label:"Clinic"},
-  {id:"store", icon:"📚", label:"Stores"},
-  {id:"school", icon:"🎓", label:"School"},
-  {id:"well", icon:"💧", label:"Well"},
-  {id:"green", icon:"🌳", label:"Green"},
-  {id:"home", icon:"🏠", label:"Rest"}
-];
-
-/* =============== SIM CORE =============== */
-var WEEK_LEN = 50, CW = 960, CH = 540;
+/* ================= CORE ================= */
+var WEEK_LEN = 60;
+var SEASON_WEEKS = 12;
+var scene, camera, renderer, sunLight;
+var cam = {target:new THREE.Vector3(0,0,4), yaw:0, pitch:0.94, dist:38, follow:null};
 var G = null;
-function clamp(v){ return Math.max(0, Math.min(100, v)); }
-function res(id){ for(var i=0;i<G.residents.length;i++) if(G.residents[i].id===id) return G.residents[i]; return null; }
-function dist(a,b){ var dx=a.x-b.x, dy=a.y-b.y; return Math.sqrt(dx*dx+dy*dy); }
-function slotPos(st, i){
-  if(st.id==="home") return null;
-  var a = i * 2.39 + (st.id.charCodeAt(0));
-  return {x: st.x + Math.cos(a)*30, y: st.y + Math.sin(a)*19 + 8};
+var MATS = {};
+function mat(c, r){ return new THREE.MeshStandardMaterial({color:c, roughness:(r==null?0.9:r), metalness:0.02}); }
+function box(w,h,d,c,x,y,z,parent,shadow){
+  var m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), (typeof c==="number") ? mat(c) : c);
+  m.position.set(x||0,y||0,z||0);
+  if(shadow!==false){ m.castShadow = true; m.receiveShadow = true; }
+  (parent||scene).add(m); return m;
 }
-function newGame(policy, hard){
-  var g = {
-    started:true, over:false, t:0, week:1, weekTime:0, speed:1, policy:policy, hard:!!hard,
-    stats:{productivity:50, trust:hard?46:55, cohesion:50, rivalry:30, scarcity:hard?52:42, autonomy:58},
-    snap:{}, trend:{}, residents:[], selected:null, selStation:null,
-    objective:null, objDone:false, incident:null, incidentFired:false, feudUsed:false,
-    pending:[], edicts:[], pulses:[], alerts:[],
-    spotlightCD:0, spotlightTarget:null, spotlightUntil:0, armed:false,
-    charges:{feast:1, audit:1, stories:1},
-    blame:0, blameNames:[], copies:0, copiesGood:0, objectsDone:0,
-    workEMA:8, feudCharge:0, feudPair:null, banner:null, coachStep:0, coachT:0,
-    imitateT:0, hudT:0, idlePingT:0, endData:null
-  };
-  RESIDENTS.forEach(function(d, i){
-    g.residents.push(Object.assign({}, d, {
-      x:d.home.x + (i%3)*10 - 10, y:d.home.y + 14, tx:0, ty:0,
-      state:"idle", stationId:null, slot:0, actT:0, decideT:Math.random()*1.5,
-      energy:78 - (i%4)*4, morale:72, disp:d.disp, prevDisp:d.disp,
-      visibility:d.vis, model:(d.vis>=60), order:null, orderTime:0, freeTime:0,
-      bubble:null, bubbleUntil:0, sinceSocial:0, idleT:0, workOut:0, sick:0
-    }));
-    var r = g.residents[g.residents.length-1]; r.tx = r.x; r.ty = r.y;
+function cyl(rt,rb,h,c,x,y,z,parent,seg){
+  var m = new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg||10), (typeof c==="number") ? mat(c) : c);
+  m.position.set(x||0,y||0,z||0);
+  m.castShadow = true; m.receiveShadow = true;
+  (parent||scene).add(m); return m;
+}
+function sph(r,c,x,y,z,parent){
+  var m = new THREE.Mesh(new THREE.SphereGeometry(r,12,10), (typeof c==="number") ? mat(c) : c);
+  m.position.set(x||0,y||0,z||0);
+  m.castShadow = true;
+  (parent||scene).add(m); return m;
+}
+
+/* ================= WORLD ================= */
+var STATION3 = {
+  clinic:{name:"Clinic", icon:"✚", x:-24, z:-13, work:[[-27,-10],[-21,-10],[-24,-9.4]], hit:[-24,-12,13,11]},
+  fields:{name:"Fields", icon:"🌿", x:-22, z:15, work:[[-28,12],[-22,15],[-16,12],[-25,18],[-19,18]], hit:[-22,15,21,13]},
+  store:{name:"Storehouse", icon:"📦", x:24, z:-13, work:[[20.5,-8.6],[24,-8.2],[27.5,-8.6]], hit:[24,-12,15,11]},
+  green:{name:"The Green", icon:"🌳", x:0, z:7, work:[[-3,5],[3,5],[-3,10],[3,10],[0,12]], hit:[0,7,17,13]},
+  mill:{name:"Mill", icon:"🌾", x:24, z:14, work:[[20.5,12.6],[24,12],[27.5,12.6]], hit:[24,15,14,11]},
+  school:{name:"School", icon:"📚", x:-35, z:-13, work:[[-32,-10.2],[-35,-9.6],[-38,-10.2]], hit:[-35,-13,9,9]},
+  well:{name:"Well", icon:"💧", x:10, z:-3, work:[[8.4,-1.6],[11.6,-1.6]], hit:[10,-3,6,6]},
+  home:{name:"Home", icon:"🏠", x:0, z:0, work:[], hit:[0,0,0,0]}
+};
+var roofPlanks = [], roofHole = null, storedCrates = [], cropMesh = null, cropData = [];
+var fireLight = null, fireCore = null, millBlades = null, objRing = null;
+function buildWorld(){
+  scene.background = new THREE.Color(0x9fd3e8);
+  scene.fog = new THREE.Fog(0x9fd3e8, 90, 190);
+  var hemi = new THREE.HemisphereLight(0xcfe8ff, 0x5d7a45, 0.75); scene.add(hemi);
+  sunLight = new THREE.DirectionalLight(0xffe9bb, 1.05);
+  sunLight.position.set(30, 42, 18);
+  sunLight.castShadow = true;
+  sunLight.shadow.mapSize.set(2048, 2048);
+  sunLight.shadow.camera.left = -46; sunLight.shadow.camera.right = 46;
+  sunLight.shadow.camera.top = 46; sunLight.shadow.camera.bottom = -46;
+  sunLight.shadow.camera.far = 120;
+  scene.add(sunLight);
+  /* ground + paths */
+  var ground = new THREE.Mesh(new THREE.PlaneGeometry(120, 90), mat(0x77a75e, 1));
+  ground.rotation.x = -Math.PI/2; ground.receiveShadow = true; scene.add(ground);
+  var pathMat = mat(0xcdb483, 1);
+  [[0,4,26,3.2],[ -13,-6,3.2,20],[13,-6,3.2,20],[0,-11,30,3.2],[-11,11,20,3]].forEach(function(p){
+    var m = new THREE.Mesh(new THREE.PlaneGeometry(p[2], p[3]), pathMat);
+    m.rotation.x = -Math.PI/2; m.position.set(p[0], 0.02, p[1]); m.receiveShadow = true; scene.add(m);
   });
-  g.objective = makeObjective(1);
-  g.snap = Object.assign({}, g.stats);
+  /* river strip */
+  var river = new THREE.Mesh(new THREE.PlaneGeometry(10, 90), mat(0x5d9ec4, 0.35));
+  river.rotation.x = -Math.PI/2; river.position.set(46, 0.03, 0); scene.add(river);
+  /* hills */
+  [[-55,-38,16],[0,-46,20],[55,-36,15],[-58,10,12],[58,16,13]].forEach(function(h){
+    var m = sph(h[2], 0x6d9153, h[0], -h[2]*0.45, h[1], scene); m.scale.y = 0.55;
+  });
+  /* fields soil + crops */
+  box(21, 0.24, 13, 0x7a5c38, -22, 0.12, 15, scene);
+  var cropGeo = new THREE.ConeGeometry(0.32, 0.9, 6);
+  cropMesh = new THREE.InstancedMesh(cropGeo, mat(0x86b95e, 0.8), 60);
+  cropMesh.castShadow = true;
+  var dummy = new THREE.Object3D();
+  for(var i=0;i<60;i++){
+    var cx = -31 + (i%10)*1.9, cz = 10.4 + Math.floor(i/10)*1.9;
+    cropData.push({x:cx, z:cz, s:0.35 + Math.random()*0.2});
+    dummy.position.set(cx, 0.55, cz); dummy.scale.setScalar(cropData[i].s); dummy.updateMatrix();
+    cropMesh.setMatrixAt(i, dummy.matrix);
+  }
+  scene.add(cropMesh);
+  buildBuilding(-24,-15, 12, 7.5, 0xe9e2d2, 0x9e4f36, "clinic");
+  buildBuilding(24,-15, 12, 7.5, 0xd9b98a, 0x7c4a30, "store");
+  buildBuilding(-33, 1, 7, 5.4, 0xe3cf9f, 0x8a4f35, "house");
+  buildBuilding(-12,-23, 7, 5.4, 0xdfc9a8, 0x74543a, "house");
+  buildBuilding(14,-23, 7, 5.4, 0xe8d9b0, 0x8a4f35, "house");
+  buildBuilding(33, 3, 7, 5.4, 0xdcc39a, 0x6e4f30, "house");
+  buildBuilding(6, 21, 7, 5.4, 0xe3cf9f, 0x7c4a30, "house");
+  buildBuilding(24, 17, 10, 7, 0xd9c9a8, 0x7c4a30, "mill");
+  buildBuilding(-36, -16, 7, 5.6, 0xe8e2cc, 0x5a6d8e, "school");
+  /* windmill blades on the mill front */
+  millBlades = new THREE.Group(); millBlades.position.set(24, 7.6, 20.6); scene.add(millBlades);
+  for(var bl=0; bl<4; bl++){ var blade = box(0.28, 3.4, 0.08, 0xe8e2cc, 0, 1.5, 0, millBlades); var holder = new THREE.Group(); holder.rotation.z = bl * Math.PI/2; millBlades.add(holder); holder.add(blade); blade.position.set(0, 1.5, 0); }
+  sph(0.3, 0x7c4a30, 24, 7.6, 20.7, scene);
+  /* school flag */
+  cyl(0.05, 0.05, 3.6, 0x6b4a2e, -32.8, 1.8, -12.2, scene, 6);
+  box(1.1, 0.6, 0.05, 0x5a6d8e, -32.2, 3.2, -12.2, scene);
+  /* clinic cross + scaffold + roof hole */
+  var crossM = mat(0xd84040, 0.6);
+  box(0.5, 1.9, 0.24, crossM, -24, 6.4, -10.9, scene); box(1.3, 0.5, 0.24, crossM, -24, 6.4, -10.9, scene);
+  box(0.18, 4.6, 0.18, 0x8a6a42, -28.5, 2.3, -9.6, scene); box(0.18, 4.6, 0.18, 0x8a6a42, -19.5, 2.3, -9.6, scene);
+  box(9.6, 0.16, 0.5, 0xa87f52, 0, 4.55, 0, scene).position.set(-24, 4.55, -9.6);
+  roofHole = box(4.8, 0.08, 2.5, 0x241a12, -24, 6.3, -13.05, scene);
+  roofHole.rotation.x = -0.59;
+  for(var p=0;p<6;p++){
+    var plank = box(1.45, 0.1, 2.3, 0xc79a5e, -26.4 + p*1.58, 6.38, -12.95, scene);
+    plank.rotation.x = -0.59;
+    plank.visible = p<2; roofPlanks.push(plank);
+  }
+  /* storehouse crate stack (grows) */
+  for(var cix=0;cix<12;cix++){
+    var cr = box(0.9, 0.9, 0.9, 0xa87f52, 21.6 + (cix%4)*1.05, 0.45 + Math.floor(cix/4)*0.95, -10.6, scene);
+    cr.visible = false; storedCrates.push(cr);
+  }
+  /* wood pile + crate pile */
+  for(var w=0;w<5;w++) box(2.6, 0.22, 0.5, 0xb5854e, -15.5, 0.15 + w*0.24, -9.5, scene);
+  for(var cp=0;cp<4;cp++) box(0.9, 0.9, 0.9, 0x9a7448, 16.5 + (cp%2)*1.0, 0.45 + Math.floor(cp/2)*0.95, -9.8, scene);
+  /* well */
+  cyl(1.1, 1.25, 0.9, 0x8d99a0, 10, 0.45, -3, scene); cyl(0.09, 0.09, 1.8, 0x6b4a2e, 9.1, 0.9, -3, scene); cyl(0.09, 0.09, 1.8, 0x6b4a2e, 10.9, 0.9, -3, scene);
+  var wroof = box(2.6, 0.14, 1.6, 0x7c4a30, 10, 1.95, -3, scene); wroof.rotation.z = 0.0;
+  /* the green: big tree, benches, fire pit */
+  cyl(0.5, 0.7, 3.4, 0x6b4a2e, 0, 1.7, 3.4, scene);
+  sph(3.1, 0x4e7d3d, 0, 5.4, 3.4, scene); sph(2.2, 0x5d8a49, -2, 4.4, 3.4, scene); sph(2.2, 0x557f42, 2.1, 4.5, 3.6, scene);
+  [[-3.4,7],[3.4,7],[0,11.5]].forEach(function(b){ box(2.2, 0.18, 0.55, 0x8a6a42, b[0], 0.55, b[1], scene); box(0.16,0.55,0.5, 0x6b4a2e, b[0]-0.9, 0.27, b[1], scene); box(0.16,0.55,0.5, 0x6b4a2e, b[0]+0.9, 0.27, b[1], scene); });
+  cyl(0.85, 1.0, 0.4, 0x777777, 0, 0.2, 7, scene);
+  fireCore = sph(0.34, new THREE.MeshBasicMaterial({color:0xff9a3c}), 0, 0.55, 7, scene);
+  fireLight = new THREE.PointLight(0xff8f3f, 0.9, 12); fireLight.position.set(0, 1.2, 7); scene.add(fireLight);
+  /* trees (instanced) */
+  var trunkI = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.16, 0.24, 1.6, 6), mat(0x6b4a2e), 16);
+  var folI = new THREE.InstancedMesh(new THREE.SphereGeometry(1.35, 8, 7), mat(0x557f42), 16);
+  var d2 = new THREE.Object3D();
+  [[-38,-12],[-38,20],[-6,-30],[22,-30],[38,-20],[38,24],[-14,28],[16,28],[-40,-24],[30,14],[-30,-28],[8,-32],[-44,4],[44,-8],[20,32],[-20,32]].forEach(function(tp, i){
+    d2.position.set(tp[0], 0.8, tp[1]); d2.scale.setScalar(1); d2.updateMatrix(); trunkI.setMatrixAt(i, d2.matrix);
+    d2.position.y = 2.2 + (i%3)*0.3; d2.updateMatrix(); folI.setMatrixAt(i, d2.matrix);
+  });
+  trunkI.castShadow = folI.castShadow = true;
+  scene.add(trunkI); scene.add(folI);
+  /* objective beacon: gold ring + light pillar on the week's target */
+  objRing = new THREE.Mesh(new THREE.TorusGeometry(3.4, 0.22, 10, 40), new THREE.MeshBasicMaterial({color:0xf5c86a, transparent:true, opacity:0.9}));
+  objRing.rotation.x = Math.PI/2; objRing.position.set(-24, 1.2, -12); scene.add(objRing);
+  /* hit boxes for stations */
+  Object.keys(STATION3).forEach(function(id){
+    var s = STATION3[id];
+    if(!s.hit[2]) return;
+    var hit = new THREE.Mesh(new THREE.BoxGeometry(s.hit[2], 6, s.hit[3]), new THREE.MeshBasicMaterial({visible:false}));
+    hit.position.set(s.hit[0], 2, s.hit[1]); hit.userData.stationId = id;
+    scene.add(hit); s.hitMesh = hit;
+  });
+}
+function buildBuilding(x, z, w, h, wallC, roofC, kind){
+  var g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
+  box(w, h*0.62, 6.4, wallC, 0, h*0.31, 0, g);
+  var roof = new THREE.Mesh(new THREE.ConeGeometry(w*0.72, h*0.42, 4), mat(roofC));
+  roof.position.y = h*0.62 + h*0.21; roof.rotation.y = Math.PI/4; roof.scale.z = 6.4/(w*0.72) * 0.72;
+  roof.castShadow = true; g.add(roof);
+  box(1.3, 2.3, 0.16, 0x5a4230, 0, 1.15, 3.24, g);
+  box(1.1, 1.0, 0.14, new THREE.MeshBasicMaterial({color:0xffe9a3}), -w/4, h*0.38, 3.24, g, false);
+  box(1.1, 1.0, 0.14, new THREE.MeshBasicMaterial({color:0xffe9a3}), w/4, h*0.38, 3.24, g, false);
   return g;
 }
-function makeObjective(week){
-  var o = OBJECTIVES[week-1];
-  return {week:week, title:o.title, stations:o.stations.slice(), target:o.target, progress:0, bonus:o.bonus, penalty:o.penalty};
-}
-function applyFx(fx){
-  if(!fx) return;
-  for(var k in fx){ if(G.stats.hasOwnProperty(k)) G.stats[k] = clamp(G.stats[k] + fx[k]); }
-}
-function edictActive(key){ for(var i=0;i<G.edicts.length;i++) if(G.edicts[i].key===key && G.edicts[i].until>G.t) return true; return false; }
-function isModel(r){ return r.visibility>=60; }
 
-function decide(r){
-  if(r.disp==="Withdrawn" && r.morale<48){ goStation(r, "home"); return; }
-  var target = null;
-  if(r.order){ target = r.order; }
-  else{
-    var S = G.stats;
-    var lowMorale = 100; G.residents.forEach(function(o){ lowMorale = Math.min(lowMorale, o.morale); });
-    var ads = {
-      fields: 20 + S.scarcity*0.45,
-      mill: 24 + (100-S.productivity)*0.22,
-      well: 20 + S.scarcity*0.38,
-      store: 22 + (100-S.trust)*0.30,
-      clinic: edictActive("quarantine") ? 0 : (16 + (lowMorale<55?26:0) + (r.morale<45?14:0)),
-      school: 18 + (100-S.cohesion)*0.24,
-      green: 14 + (100-r.morale)*0.30 + r.sinceSocial*1.4,
-      home: (100-r.energy)*0.95
-    };
-    var fit = {fields:1, mill:1, well:1, store:1, clinic:1, school:1, green:1, home:1};
-    if(r.disp==="Diligent"){ fit.fields=1.3; fit.mill=1.3; fit.well=1.25; fit.clinic=1.2; fit.store=1.2; fit.green=0.65; }
-    if(r.disp==="Helpful"){ fit.clinic=1.35; fit.store=1.3; fit.school=1.3; fit.green=1.3; }
-    if(r.disp==="Selfish"){ fit.green=1.45; fit.home=1.25; fit.fields=0.55; fit.mill=0.55; fit.well=0.6; fit.store=0.7; fit.clinic=0.7; }
-    if(r.disp==="Feuding"){ fit.green=1.25; fit.fields=0.8; fit.mill=0.8; }
-    if(r.disp==="Withdrawn"){ fit.home=3; fit.fields=0.3; fit.mill=0.3; fit.green=0.4; fit.clinic=0.5; fit.store=0.3; fit.school=0.3; fit.well=0.3; }
-    fit[r.aff] = (fit[r.aff]||1) * 1.35;
-    var scored = Object.keys(ads).map(function(id){
-      var st = station(id);
-      var d = (id==="home") ? dist(r, r.home) : dist(r, st);
-      var sc = ads[id] * fit[id] * (1 - Math.min(0.55, d/1500));
-      if(id!=="home" && G.objective && G.objective.stations.indexOf(id)>=0 && !G.objDone) sc *= 1.05;
-      return {id:id, sc:sc * (0.85 + Math.random()*0.3)};
-    }).filter(function(s){ return s.sc>1; });
-    scored.sort(function(a,b){ return b.sc - a.sc; });
-    var top = scored.slice(0,3);
-    if(!top.length){ goStation(r, "home"); return; }
-    var tot = 0; top.forEach(function(s){ tot += s.sc; });
-    var roll = Math.random()*tot, pick = top[0].id;
-    for(var i=0;i<top.length;i++){ roll -= top[i].sc; if(roll<=0){ pick = top[i].id; break; } }
-    target = pick;
-  }
-  goStation(r, target);
+/* ================= RESIDENTS ================= */
+var RES3 = [
+  {id:"mara", name:"Mara Voss", role:"Repair Lead", aff:"clinic", home:[-30,4], admires:"jonah", vis:66, disp:"Diligent", skin:0xc98a5e, hair:0, hairC:0x2e2018, shirt:0xa34d24},
+  {id:"jonah", name:"Jonah Reyes", role:"Medic", aff:"clinic", home:[-29,6], admires:"priya", vis:60, disp:"Helpful", skin:0x8a5a34, hair:2, hairC:0x16120e, shirt:0x3f6d5a},
+  {id:"priya", name:"Priya Nair", role:"Teacher", aff:"school", home:[-10,-20], admires:"mara", vis:60, disp:"Helpful", skin:0xa06a3c, hair:1, hairC:0x100d0a, shirt:0x5a5f9e},
+  {id:"tomas", name:"Tomas Hale", role:"Farmer", aff:"fields", home:[4,18], admires:"mara", vis:34, disp:"Diligent", skin:0xd9a878, hair:3, hairC:0x6e5636, shirt:0x6d8f52},
+  {id:"ines", name:"Ines Duarte", role:"Baker", aff:"store", home:[12,-20], admires:"priya", vis:38, disp:"Helpful", skin:0xb57a48, hair:4, hairC:0x3a2415, shirt:0xc9862b},
+  {id:"felix", name:"Felix Grant", role:"Miller", aff:"mill", home:[30,6], admires:"jonah", vis:30, disp:"Diligent", skin:0xe0b184, hair:2, hairC:0x8a8a86, shirt:0x707a84},
+  {id:"rosa", name:"Rosa Lindqvist", role:"Weaver", aff:"green", home:[31,8], admires:"ines", vis:26, disp:"Helpful", skin:0xe8bd93, hair:1, hairC:0xc8b294, shirt:0x96688a},
+  {id:"abel", name:"Abel Osei", role:"Water Keeper", aff:"well", home:[8,18], admires:"mara", vis:32, disp:"Diligent", skin:0x6e4526, hair:2, hairC:0x0e0c0a, shirt:0x3e6d8e},
+  {id:"nadia", name:"Nadia Farrell", role:"Storekeeper", aff:"store", home:[30,-19], admires:"priya", vis:28, disp:"Helpful", skin:0xcaa06a, hair:4, hairC:0x7a4a22, shirt:0x8e3f3a},
+  {id:"bram", name:"Bram Kessler", role:"Runner", aff:"green", home:[-9,-19], admires:"mara", vis:20, disp:"Selfish", skin:0xdbac7d, hair:2, hairC:0xa8783c, shirt:0x4a7a9e}
+];
+var DISPO3 = {"Diligent":{icon:"⚒", col:"#e8b34b"}, "Helpful":{icon:"♥", col:"#5cc9a7"}, "Selfish":{icon:"✦", col:"#6fb3e8"}, "Withdrawn":{icon:"☾", col:"#a78fe0"}};
+function makeFigure(d){
+  var root = new THREE.Group(); scene.add(root);
+  var legL = new THREE.Group(); legL.position.set(-0.14, 0.98, 0); root.add(legL);
+  var legR = new THREE.Group(); legR.position.set(0.14, 0.98, 0); root.add(legR);
+  box(0.17, 0.95, 0.2, 0x4a4038, 0, -0.47, 0, legL); box(0.17, 0.95, 0.2, 0x4a4038, 0, -0.47, 0, legR);
+  var torsoG = new THREE.Group(); torsoG.position.y = 0.98; root.add(torsoG);
+  box(0.64, 0.72, 0.36, d.shirt, 0, 0.36, 0, torsoG);
+  var armL = new THREE.Group(); armL.position.set(-0.41, 0.64, 0); torsoG.add(armL);
+  var armR = new THREE.Group(); armR.position.set(0.41, 0.64, 0); torsoG.add(armR);
+  box(0.15, 0.66, 0.16, d.shirt, 0, -0.3, 0, armL); box(0.15, 0.66, 0.16, d.shirt, 0, -0.3, 0, armR);
+  box(0.13, 0.14, 0.13, d.skin, 0, -0.66, 0, armL); box(0.13, 0.14, 0.13, d.skin, 0, -0.66, 0, armR);
+  var headG = new THREE.Group(); headG.position.y = 0.86; torsoG.add(headG);
+  sph(0.21, d.skin, 0, 0.1, 0, headG);
+  var hairM = mat(d.hairC);
+  if(d.hair===1){ sph(0.09, hairM, 0, 0.3, -0.03, headG); }
+  if(d.hair===4){ box(0.07, 0.3, 0.07, hairM, -0.2, 0.12, 0, headG); box(0.07, 0.3, 0.07, hairM, 0.2, 0.12, 0, headG); }
+  var cap = sph(0.215, hairM, 0, 0.13, 0, headG); cap.scale.set(1, 0.62, 1);
+  if(d.hair===3){ box(0.3, 0.14, 0.3, hairM, 0, -0.12, 0.1, headG); }
+  var handR = new THREE.Group(); handR.position.set(0, -0.68, 0); armR.add(handR);
+  var hammer = new THREE.Group(); handR.add(hammer);
+  cyl(0.03, 0.03, 0.42, 0x8a6a42, 0, -0.1, 0, hammer, 6); box(0.2, 0.09, 0.09, 0x9aa2a8, 0, -0.3, 0, hammer);
+  hammer.visible = false;
+  var carry = new THREE.Group(); carry.position.set(0, 0.28, 0.5); torsoG.add(carry);
+  var crate = box(0.52, 0.52, 0.52, 0xa87f52, 0, 0, 0, carry); crate.visible = false;
+  var plank = box(1.7, 0.07, 0.3, 0xb5854e, 0, 0.1, 0.1, carry); plank.visible = false;
+  var basket = cyl(0.22, 0.15, 0.26, 0xb5854e, 0, -0.05, 0, carry, 8); basket.visible = false;
+  var hit = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.85, 2.1, 8), new THREE.MeshBasicMaterial({visible:false}));
+  hit.position.y = 1.05; root.add(hit);
+  return {root:root, legL:legL, legR:legR, torsoG:torsoG, armL:armL, armR:armR, headG:headG,
+    props:{hammer:hammer, crate:crate, plank:plank, basket:basket}, hit:hit};
 }
-function goStation(r, stId){
-  r.stationId = stId;
-  if(stId==="home"){ r.tx = r.home.x + (r.slot-2)*6; r.ty = r.home.y + 16; }
-  else{
-    var st = station(stId);
-    r.slot = Math.floor(Math.random()*st.slots);
-    var p = slotPos(st, r.slot);
-    r.tx = p.x; r.ty = p.y;
-  }
-  r.state = "move";
-}
-function workMult(r, stId){
-  var m = 1;
-  if(r.aff===stId) m *= 1.3;
-  if(r.disp==="Diligent") m *= 1.25; else if(r.disp==="Helpful") m *= 1.05;
-  else if(r.disp==="Selfish") m *= 0.6; else if(r.disp==="Feuding") m *= 0.75;
-  else if(r.disp==="Withdrawn") m *= 0.3;
-  if(edictActive("quotas") && stId!=="green" && stId!=="home") m *= 1.3;
-  if(G.policy==="quietorder" && r.order) m *= 1.15;
-  return m;
-}
-function doBlame(targetId, note){
-  var r = res(targetId);
-  G.blame++;
-  if(r){
-    G.blameNames.push(r.name);
-    r.prevDisp = (r.disp==="Withdrawn") ? r.prevDisp : r.disp;
-    r.disp = "Withdrawn"; r.morale = clamp(r.morale - 30); r.visibility = clamp(r.visibility - 8);
-    r.bubble = "☾"; r.bubbleUntil = G.t + 3;
-    goStation(r, "home");
-  }
-  G.pending.push({week:G.week+1, fx:{trust:-6}, note:(note||"The blame bill arrives") + ": trust falls"});
-  addAlert("🔴", (r?r.name.split(" ")[0]:"Someone") + " blamed. Calm now.", "bad", targetId);
-}
-function addAlert(icon, text, cls, residentId){
-  G.alerts.unshift({icon:icon, text:text, cls:cls||"", rid:residentId||null, until:G.t + 16});
-  if(G.alerts.length>5) G.alerts.pop();
-  renderAlerts();
-}
-function fireIncident(){
-  var data = INCIDENTS[G.week-1];
-  G.incident = {data:data, feud:false};
-  G.incidentFired = true;
-  renderIncident();
-  chime();
-}
-function fireFeud(a, b){
-  G.incident = {feud:true, a:a.id, b:b.id, data:{kick:"ALERT", title:"⚡ Feud: " + a.name.split(" ")[0] + " vs " + b.name.split(" ")[0], line:"Old grievance, new audience. The green is watching.", opts:[
-    {icon:"🎓", label:"Send Priya", hint:"Mediation, modeled", fx:{rivalry:-8, cohesion:3}, feudFix:true},
-    {icon:"🔥", label:"Let it burn", hint:"It will cost morale", fx:{rivalry:4}, feudBurn:true},
-    {icon:"🔴", label:"Blame " + a.name.split(" ")[0], hint:"One villain, quiet Friday", blame:a.id, fx:{rivalry:-5}}]}};
-  renderIncident();
-  chime();
-}
-function resolveIncident(i){
-  if(!G.incident) return;
-  var inc = G.incident, opt = inc.data.opts[i];
-  if(!opt) return;
-  G.incident = null;
-  document.getElementById("incidentBox").classList.remove("open");
-  if(opt.blame){ applyFx(opt.fx); doBlame(opt.blame); }
-  else if(opt.gamble){
-    var sv = G.stats[opt.gamble.stat];
-    var p = Math.max(0.2, Math.min(0.9, 0.35 + (sv-50)/100));
-    if(Math.random() < p){ applyFx(opt.fx); addAlert("🎲", "It landed.", "", null); }
-    else { applyFx(opt.gamble.bad); addAlert("🎲", opt.gamble.bad.note || "It did not land.", "bad", null); }
-  }
-  else applyFx(opt.fx);
-  if(opt.tag==="transparent" && G.policy==="openbooks"){ applyFx({trust:2}); }
-  if(opt.spotlight){ var sr = res(opt.spotlight); if(sr){ sr.visibility = clamp(sr.visibility + 26); sr.bubble = "🔥"; sr.bubbleUntil = G.t+3; } }
-  if(opt.edict){ G.edicts.push({key:opt.edict, until:G.t + WEEK_LEN}); addAlert("📋", opt.edict==="quotas" ? "Quotas in force, one week" : "Clinic quarantined, one week", "warn", null); }
-  if(opt.delay){ G.pending.push({week:G.week + opt.delay.weeks, fx:opt.delay.fx, note:opt.delay.note}); }
-  if(inc.feud){
-    var a = res(inc.a), b = res(inc.b);
-    if(opt.feudFix){ if(a) a.disp = "Selfish"===a.disp ? "Diligent" : a.disp; if(a && a.disp==="Feuding") a.disp="Diligent"; if(b && b.disp==="Feuding") b.disp="Helpful"; G.feudCharge = 0; }
-    if(opt.feudBurn){ if(a) a.morale = clamp(a.morale-8); if(b) b.morale = clamp(b.morale-8); G.feudCharge = 0; }
-    if(opt.blame) G.feudCharge = 0;
-  }
-  blip(520, .06);
-}
-function imitate(){
-  G.residents.forEach(function(r){
-    var best = null;
-    G.residents.forEach(function(m){
-      if(m===r) return;
-      var watched = (m.id===r.admires) || (isModel(m) && dist(r,m)<120);
-      if(!watched) return;
-      if(!best || m.visibility > best.visibility) best = m;
+function makeAgents(){
+  return RES3.map(function(d, i){
+    var f = makeFigure(d);
+    var a = Object.assign({}, d, f, {
+      x:d.home[0], z:d.home[1], heading:Math.random()*6.28, tx:0, tz:0,
+      state:"idle", stationId:null, slot:null, actT:0, decideT:Math.random()*2,
+      energy:80 - (i%4)*4, morale:72, phase:Math.random()*10, walkPhase:0,
+      order:null, carrying:null, bubble:null, bubbleUntil:0, watchOf:null, watchT:0,
+      idleT:0, sick:false, seed:Math.random()*100
     });
-    if(!best || best.disp===r.disp) return;
-    var p = 0.05 + (best.visibility/100)*0.30;
-    if(dist(r,best)<120) p += 0.10;
-    if(r.disp==="Withdrawn") p *= 0.4;
-    if(Math.random() < p){
-      var from = {x:best.x, y:best.y - 14};
-      r.prevDisp = (r.disp==="Withdrawn") ? r.prevDisp : r.disp;
-      r.disp = best.disp;
-      r.bubble = DISPO[best.disp].icon; r.bubbleUntil = G.t + 2.6;
-      G.copies++; if(best.disp==="Diligent" || best.disp==="Helpful") G.copiesGood++;
-      G.pulses.push({x1:from.x, y1:from.y, x2:r.x, y2:r.y - 14, start:G.t, dur:0.8});
-      if(G.coachStep===2){ G.coachStep = 3; G.coachT = 0; }
-    }
-  });
-  G.residents.forEach(function(r){
-    var m = isModel(r);
-    if(m && !r.model){ r.model = true; addAlert("🔥", r.name.split(" ")[0] + " is a model now", "", r.id); }
-    if(!m && r.model && r.visibility<30) r.model = false; else if(m) r.model = true;
+    a.tx = a.x; a.tz = a.z;
+    a.root.position.set(a.x, 0, a.z);
+    a.hit.userData.agentId = a.id;
+    var label = document.createElement("div"); label.className = "label"; label.id = "lab-" + a.id;
+    var bub = document.createElement("div"); bub.className = "bubble"; bub.id = "bub-" + a.id;
+    document.getElementById("labels").appendChild(label); document.getElementById("labels").appendChild(bub);
+    a.labelEl = label; a.bubbleEl = bub;
+    return a;
   });
 }
-function stepSim(dt){
-  if(!G || !G.started || G.over) return;
-  var scale = G.speed * (G.incident ? 0.22 : 1);
-  var sdt = dt * scale;
-  if(sdt<=0) return;
-  G.t += sdt;
-  G.weekTime += sdt;
-  /* week rollover */
-  if(G.weekTime >= WEEK_LEN){
-    G.weekTime = 0;
-    if(G.objective && !G.objDone){
-      applyFx(G.objective.penalty);
-      addAlert("🚩", "Missed: " + G.objective.title, "bad", null);
+function agent(id){ for(var i=0;i<G.agents.length;i++) if(G.agents[i].id===id) return G.agents[i]; return null; }
+function setBubble(a, icon, secs){ a.bubble = icon; a.bubbleUntil = G.t + secs; }
+function animateAgent(a, dt){
+  var moving = a.state === "walk";
+  var speedNow = moving ? a.speedNow || 0 : 0;
+  a.walkPhase += dt * (moving ? 6.2 * (speedNow/3.2) : 0);
+  var sw = moving ? Math.sin(a.walkPhase) * 0.55 : 0;
+  var targetY = 0, legLX = sw, legRX = -sw, armLX = -sw*0.7, armRX = sw*0.7;
+  var torsoPitch = moving ? 0.07 : 0, headPitch = 0, headYaw = Math.sin(G.t*0.4 + a.seed)*0.14;
+  a.armL.rotation.z = 0.07; a.armR.rotation.z = -0.07;
+  if(a.state === "act"){
+    var ph = a.phase;
+    if(a.stationId === "clinic"){
+      if(a.carrying === "plank"){ armLX = armRX = -1.05; }
+      else { var strike = Math.pow(Math.max(0, Math.sin(ph*2.4)), 3); armRX = -0.5 - strike*1.15; armLX = -0.25; torsoPitch = 0.14 + strike*0.12; }
+    } else if(a.stationId === "fields"){
+      torsoPitch = 0.38 + Math.sin(ph*1.7)*0.24; armLX = armRX = -0.7 + Math.sin(ph*1.7)*0.3;
+    } else if(a.stationId === "store" || a.stationId === "mill"){
+      if(a.carrying === "crate"){ armLX = armRX = -1.12; }
+      else { armRX = -0.6 + Math.sin(ph*2)*0.25; armLX = -0.2; }
+    } else if(a.stationId === "well"){
+      armLX = -1.2 + Math.sin(ph*2.2)*0.5; armRX = -1.2 - Math.sin(ph*2.2)*0.5; torsoPitch = 0.12;
+    } else if(a.stationId === "green" || a.stationId === "school"){
+      armRX = -0.55 + Math.sin(G.t*2.6 + a.seed)*0.28; a.armR.rotation.z = -0.35 + Math.sin(G.t*1.7 + a.seed)*0.15;
+      headYaw = Math.sin(G.t*0.8 + a.seed)*0.3; torsoPitch = 0.03;
     }
-    var due = G.pending.filter(function(p){ return p.week<=G.week; });
-    G.pending = G.pending.filter(function(p){ return p.week>G.week; });
-    due.forEach(function(p){ applyFx(p.fx); addAlert("🧾", p.note, "warn", null); });
-    G.week++;
-    if(G.week>12){ finish(); return; }
-    G.objective = makeObjective(G.week); G.objDone = false;
-    G.incidentFired = false; G.feudUsed = false;
-    G.banner = {text:"WEEK " + G.week, sub:OBJECTIVES[G.week-1].title.toUpperCase(), until:G.t + 2.2};
-    chime();
   }
-  /* incident trigger */
-  if(!G.incidentFired && !G.incident && G.weekTime > WEEK_LEN*0.38 && G.week<=12) fireIncident();
-  /* imitation clock */
-  G.imitateT += sdt;
-  if(G.imitateT > 4){ G.imitateT = 0; imitate(); }
-  /* residents */
-  var out = {fields:0, mill:0, well:0, store:0, clinic:0, school:0};
-  var socialPairs = 0, feuds = 0, withdrawn = 0, orderedShare = 0;
-  G.residents.forEach(function(r){
-    if(r.order) { r.orderTime += sdt; orderedShare += 1; } else r.freeTime += sdt;
-    r.sinceSocial += sdt;
-    r.decideT -= sdt;
-    if(r.state==="idle" && r.decideT<=0){ decide(r); r.decideT = 1.2 + Math.random(); }
-    if(r.state==="move"){
-      var dx = r.tx - r.x, dy = r.ty - r.y, d = Math.sqrt(dx*dx+dy*dy);
-      var sp = (r.id==="bram" ? 76 : 62) * sdt;
-      r.energy = clamp(r.energy - 0.5*sdt);
-      if(d < Math.max(3, sp)){ r.x = r.tx; r.y = r.ty; r.state = "act"; r.actT = (r.stationId==="green" ? 4.5 : r.stationId==="home" ? 999 : 5.5) + Math.random()*1.5; }
-      else { r.x += dx/d*sp; r.y += dy/d*sp; }
-    } else if(r.state==="act"){
-      r.actT -= sdt;
-      var stId = r.stationId;
-      if(stId==="home"){
-        r.energy = clamp(r.energy + 7*sdt); r.morale = clamp(r.morale + 0.55*sdt);
-        if(r.energy>93){ r.state="idle"; r.decideT = 0.2; if(r.disp==="Withdrawn" && r.morale>46){ r.disp = r.prevDisp || "Helpful"; } }
-      } else if(stId==="green"){
-        r.energy = clamp(r.energy - 0.25*sdt); r.sinceSocial = 0;
-        r.morale = clamp(r.morale + 0.30*sdt);
-        if(r.actT<=0){ r.state = "idle"; r.decideT = 0.3 + Math.random()*0.8; }
-        G.residents.forEach(function(o){ if(o!==r && o.stationId==="green" && o.state==="act" && dist(r,o)<52){ socialPairs += 0.5*sdt; r.morale = clamp(r.morale + 0.10*sdt); } });
-      } else {
-        var m = workMult(r, stId);
-        r.workOut = m; out[stId] = (out[stId]||0) + m;
-        r.energy = clamp(r.energy - 1.05*sdt);
-        if(stId==="clinic"){
-          var low = null; G.residents.forEach(function(o){ if(dist(r,o)<130 && (!low || o.morale<low.morale)) low = o; });
-          if(low) low.morale = clamp(low.morale + 0.5*sdt);
+  if(a.state === "watch"){
+    torsoPitch = 0.09; armLX = armRX = 0.05; headYaw = 0;
+    if(a.watchOf){ var m = agent(a.watchOf); if(m){ var ang = Math.atan2(m.x - a.x, m.z - a.z); var rel = ang - a.heading; while(rel > Math.PI) rel -= 6.283; while(rel < -Math.PI) rel += 6.283; headYaw = Math.max(-0.7, Math.min(0.7, rel)); } }
+  }
+  if(a.state === "sit" || a.sick){ targetY = -0.46; legLX = legRX = -1.42; torsoPitch = a.sick ? 0.3 : 0.06; headPitch = a.sick ? 0.38 : 0.08; armLX = armRX = -0.25; }
+  if(a.state === "kneel"){ targetY = -0.52; legLX = -1.5; legRX = 0.55; torsoPitch = 0.32; armRX = -0.95; armLX = -0.4; }
+  a.root.position.y += ((targetY + (moving ? Math.abs(Math.sin(a.walkPhase))*0.05 : 0)) - a.root.position.y) * Math.min(1, dt*10);
+  a.legL.rotation.x = legLX; a.legR.rotation.x = legRX;
+  a.armL.rotation.x = armLX; a.armR.rotation.x = armRX;
+  a.torsoG.rotation.x = torsoPitch;
+  a.headG.rotation.x = headPitch; a.headG.rotation.y = headYaw;
+  a.torsoG.scale.y = 1 + Math.sin(G.t*1.7 + a.seed)*0.012;
+  a.props.hammer.visible = (a.state === "act" && a.stationId === "clinic" && a.carrying !== "plank");
+  a.props.plank.visible = (a.carrying === "plank");
+  a.props.crate.visible = (a.carrying === "crate");
+  a.props.basket.visible = (a.state === "act" && a.stationId === "fields");
+  /* selection ring + model aura */
+  if(a.ring){ a.ring.visible = (G.selected === a.id); a.ring.rotation.z = G.t*0.8; }
+  if(a.aura){ a.aura.visible = a.vis >= 60; a.aura.material.opacity = 0.10 + Math.sin(G.t*2 + a.seed)*0.03; }
+}
+
+/* ================= SLICE SIM ================= */
+function newSlice(){
+  var g = {t:0, weekTime:0, week:1, speed:1, started:false, over:false, agents:makeAgents(), selected:null,
+    roof:30, stores:0, flour:0, copied:0, fieldGrowth:0, growthApplied:-1, incidentOpen:false, incidentDone:false,
+    rosaOutcome:"", imitateT:0, spotCd:0, armed:false, toastUntil:0,
+    stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
+    objStation:"clinic", objComplete:false, objDone:0, scapegoats:0, delays:[],
+    weekWork:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0},
+    policy:"hearth", difficulty:"standard", medicPatient:null, pendingIncident:null, curIncident:null};
+  g.agents.forEach(function(a){
+    a.speedNow = 0; a.slot = null; a.fetch = null; a.fetchT = 0; a.watchCd = 0; a.mimicStation = null;
+    a.pendingWatch = null; a.medicTask = 0; a.kneelT = 0; a.pendingSick = false; a.visitId = null;
+    var ring = new THREE.Mesh(new THREE.RingGeometry(0.72, 0.92, 28), new THREE.MeshBasicMaterial({color:0xf5c86a, transparent:true, opacity:0.95, side:THREE.DoubleSide}));
+    ring.rotation.x = -Math.PI/2; ring.position.y = 0.06; ring.visible = false; a.root.add(ring); a.ring = ring;
+    var aura = new THREE.Mesh(new THREE.CircleGeometry(2.7, 28), new THREE.MeshBasicMaterial({color:0xe8b34b, transparent:true, opacity:0.1, side:THREE.DoubleSide}));
+    aura.rotation.x = -Math.PI/2; aura.position.y = 0.04; aura.visible = a.vis >= 60; a.root.add(aura); a.aura = aura;
+  });
+  var mara = agent0(g, "mara"); mara.x = -24; mara.z = -9.4; mara.state = "act"; mara.stationId = "clinic"; mara.order = "clinic"; mara.root.position.set(mara.x, 0, mara.z); mara.heading = 3.14;
+  var bram = agent0(g, "bram"); bram.x = -16; bram.z = -4; bram.state = "act"; bram.stationId = "green"; bram.actT = 30; bram.root.position.set(bram.x, 0, bram.z);
+  var rosa = agent0(g, "rosa"); rosa.x = 2; rosa.z = 8; rosa.state = "act"; rosa.stationId = "green"; rosa.actT = 5; rosa.root.position.set(rosa.x, 0, rosa.z);
+  var tomas = agent0(g, "tomas"); tomas.x = -22; tomas.z = 15; tomas.state = "act"; tomas.stationId = "fields"; tomas.root.position.set(tomas.x, 0, tomas.z);
+  var ines = agent0(g, "ines"); ines.x = 24; ines.z = -8.2; ines.state = "act"; ines.stationId = "store"; ines.root.position.set(ines.x, 0, ines.z);
+  return g;
+}
+function agent0(g, id){ for(var i=0;i<g.agents.length;i++) if(g.agents[i].id===id) return g.agents[i]; return null; }
+function stationW(id){ return STATION3[id]; }
+function goTo(a, x, z, stationId){
+  a.tx = x; a.tz = z; a.stationId = stationId || a.stationId; a.state = "walk";
+}
+function goStation(a, stId){
+  if(stId === "home"){ goTo(a, a.home[0] + (Math.random()*2-1), a.home[1] + 2.2, "home"); return; }
+  var s = stationW(stId), w = s.work;
+  var spot = w[Math.floor(Math.random()*w.length)];
+  a.slot = {x:spot[0], z:spot[1]};
+  goTo(a, spot[0], spot[1], stId);
+}
+function decide(a){
+  if(a.sick || a.medicTask) return;
+  if(a.order){ goStation(a, a.order); return; }
+  if(a.mimicStation){ var ms = a.mimicStation; a.mimicStation = null; goStation(a, ms); return; }
+  var ads = {
+    clinic: G.roof < 100 ? 26 : 13,
+    fields: 26,
+    store: 20 - Math.min(10, G.stores * 0.3),
+    mill: 15,
+    school: 12,
+    well: 13,
+    green: 13 + (100 - a.morale) * 0.28,
+    home: (100 - a.energy) * 0.95
+  };
+  if(G.objStation && ads[G.objStation] != null) ads[G.objStation] += 40;
+  var fit = {clinic:1, fields:1, store:1, mill:1, school:1, well:1, green:1, home:1};
+  if(a.disp === "Diligent"){ fit.clinic = 1.3; fit.fields = 1.3; fit.store = 1.2; fit.mill = 1.25; fit.well = 1.2; fit.green = 0.65; }
+  if(a.disp === "Helpful"){ fit.clinic = 1.3; fit.store = 1.3; fit.school = 1.3; fit.green = 1.3; }
+  if(a.disp === "Selfish"){ fit.green = 1.5; fit.home = 1.3; fit.fields = 0.5; fit.store = 0.65; fit.clinic = 0.7; fit.well = 0.6; fit.mill = 0.7; fit.school = 0.6; }
+  if(a.disp === "Withdrawn"){ fit.home = 3; fit.clinic = 0.4; fit.fields = 0.3; fit.store = 0.3; fit.green = 0.4; fit.well = 0.3; fit.mill = 0.3; fit.school = 0.3; }
+  fit[a.aff] = (fit[a.aff] || 1) * 1.35;
+  if(G.policy === "order"){ fit.clinic *= 1.12; fit.store *= 1.12; fit.mill *= 1.12; fit.home *= 0.85; }
+  if(G.policy === "hearth"){ fit.green *= 1.3; }
+  var scored = Object.keys(ads).map(function(id){ return {id:id, sc: ads[id] * fit[id] * (0.85 + Math.random()*0.3)}; }).sort(function(x,y){ return y.sc - x.sc; });
+  var top = scored.slice(0, 3), tot = 0; top.forEach(function(s){ tot += s.sc; });
+  var roll = Math.random() * tot, pick = top[0].id;
+  for(var i=0;i<top.length;i++){ roll -= top[i].sc; if(roll <= 0){ pick = top[i].id; break; } }
+  goStation(a, pick);
+}
+function arrive(a){
+  if(!a.slot) a.slot = {x:a.x, z:a.z};
+  if(a.sickWalk){ a.sickWalk = false; a.sick = true; a.state = "sit"; a.stationId = "green"; if(G.pendingIncident){ var pi = G.pendingIncident; G.pendingIncident = null; openIncident(pi); } return; }
+  if(a.pendingWatch){ var m = agent(a.pendingWatch); a.pendingWatch = null; if(m){ a.state = "watch"; a.watchOf = m.id; a.watchT = 3.4; setBubble(a, "👀", 1.8); return; } }
+  if(a.medicTask === 1){ a.medicTask = 2; a.state = "kneel"; a.kneelT = 4; return; }
+  if(a.fetch === "plank-out"){ a.carrying = "plank"; a.fetch = "plank-back"; goTo(a, a.slot.x, a.slot.z, "clinic"); return; }
+  if(a.fetch === "plank-back"){ a.carrying = null; a.fetch = null; a.fetchT = 0; G.roof = Math.min(100, G.roof + 2.5); a.state = "act"; a.actT = 6; return; }
+  if(a.fetch === "crate-out"){ a.carrying = "crate"; a.fetch = "crate-back"; goTo(a, a.slot.x, a.slot.z, "store"); return; }
+  if(a.fetch === "crate-back"){ a.carrying = null; a.fetch = null; G.stores++; G.weekWork.stores++; if(storedCrates[Math.min(G.stores, 12) - 1]) storedCrates[Math.min(G.stores, 12) - 1].visible = true; a.state = "act"; a.actT = 1.2; return; }
+  if(a.fetch === "grain-out"){ a.carrying = "crate"; a.fetch = "grain-back"; goTo(a, a.slot.x, a.slot.z, "mill"); return; }
+  if(a.fetch === "grain-back"){ a.carrying = null; a.fetch = null; G.flour++; G.stores++; G.weekWork.stores++; G.weekWork.mill++; a.state = "act"; a.actT = 1.2; return; }
+  if(a.visitId){ a.visitId = null; a.state = "act"; a.stationId = "green"; a.actT = 3.5; return; }
+  if(a.stationId === "home"){ a.state = "sit"; return; }
+  a.state = "act"; a.actT = 3.5 + Math.random()*3;
+}
+function stepAgents(dt){
+  G.agents.forEach(function(a){
+    a.phase += dt;
+    a.watchCd = Math.max(0, a.watchCd - dt);
+    if(a.state === "idle"){ a.idleT += dt; a.decideT -= dt; if(a.decideT <= 0){ decide(a); a.decideT = 1 + Math.random(); } }
+    else a.idleT = 0;
+    if(a.state === "walk"){
+      var dx = a.tx - a.x, dz = a.tz - a.z, d = Math.sqrt(dx*dx + dz*dz);
+      var sp = (a.id === "bram" ? 3.6 : 3.1) * (a.carrying ? 0.82 : 1) * (a.energy < 25 ? 0.8 : 1);
+      a.speedNow = sp;
+      var targetHeading = Math.atan2(dx, dz);
+      var dh = targetHeading - a.heading; while(dh > Math.PI) dh -= 6.283; while(dh < -Math.PI) dh += 6.283;
+      a.heading += dh * Math.min(1, dt*10);
+      a.energy = Math.max(0, a.energy - 0.45*dt);
+      if(d < 0.25){ a.x = a.tx; a.z = a.tz; a.speedNow = 0; arrive(a); }
+      else { a.x += dx/d * sp * dt; a.z += dz/d * sp * dt; }
+    }
+    if(a.state === "watch"){
+      a.watchT -= dt;
+      if(a.watchT < 1.6 && a.bubble !== "💡") setBubble(a, "💡", 1.6);
+      if(a.watchT <= 0){
+        var m = agent(a.watchOf);
+        a.state = "idle"; a.decideT = 0.2; a.watchCd = 25;
+        if(m && m.disp !== a.disp){
+          a.disp = m.disp; G.copied++; a.vis = Math.min(100, a.vis + 8);
+          a.mimicStation = (m.state === "act") ? m.stationId : null;
+          setBubble(a, DISPO3[a.disp].icon, 2.6);
+          showToast("👀 " + a.name.split(" ")[0] + " copied " + m.name.split(" ")[0] + ": " + DISPO3[a.disp].icon + " " + a.disp);
+          refreshTray();
         }
-        if(r.energy<18){ r.bubble = "💤"; r.bubbleUntil = G.t + 1.6; goStation(r, "home"); }
-        else if(r.actT<=0){
-          if(G.objective && !G.objDone && G.objective.stations.indexOf(stId)>=0){
-            r.visibility = clamp(r.visibility + 1.2);
-          }
-          r.state = "idle"; r.decideT = 0.3 + Math.random()*0.8;
-        }
+        a.watchOf = null;
       }
-      if(r.state==="act" && stId!=="home" && stId!=="green" && r.actT<=0 && r.state!=="idle"){ r.state="idle"; }
     }
-    /* morale weather */
-    if(G.stats.scarcity>65) r.morale = clamp(r.morale - 0.22*sdt);
-    if(r.disp==="Withdrawn") withdrawn++;
-    if(r.disp==="Feuding") feuds++;
-    if(r.morale<22 && r.disp!=="Withdrawn" && Math.random()<0.10*sdt){
-      r.prevDisp = r.disp; r.disp = "Withdrawn";
-      addAlert("☾", r.name.split(" ")[0] + " has withdrawn", "bad", r.id);
-      goStation(r, "home");
+    if(a.state === "kneel"){
+      a.kneelT -= dt;
+      if(a.kneelT <= 0){
+        a.medicTask = 0; a.state = "idle"; a.decideT = 0.3;
+        var pat = G.medicPatient ? agent(G.medicPatient) : null; G.medicPatient = null;
+        if(pat && pat.sick){ pat.sick = false; pat.morale = 88; pat.state = "idle"; pat.decideT = 0.5; setBubble(pat, "♥", 2.5); }
+      }
     }
-    if(r.state==="idle" || (r.state==="act" && r.stationId==="home")) r.idleT += (r.stationId==="home" && r.energy>90) ? sdt : 0; else r.idleT = 0;
-    /* objective progress from work output */
+    if(a.state === "sit"){
+      if(a.stationId === "home"){
+        a.energy = Math.min(100, a.energy + 6*dt); a.morale = Math.min(100, a.morale + 0.4*dt);
+        if(a.sick && a.energy > 55){ a.sick = false; }
+        if(a.energy > 92 && !a.sick){ a.state = "idle"; a.decideT = 0.3; if(a.disp === "Withdrawn" && a.morale > 45) a.disp = "Helpful"; }
+      } else if(a.sick){ /* Rosa, waiting */ }
+      else { a.energy = Math.min(100, a.energy + 2*dt); a.actT -= dt; if(a.actT <= 0){ a.state = "idle"; a.decideT = 0.3; } }
+    }
+    if(a.state === "act"){
+      a.actT -= dt;
+      var st = a.stationId;
+      if(st === "clinic"){
+        a.energy = Math.max(0, a.energy - 0.8*dt);
+        if(a.carrying !== "plank"){
+          var mult = a.disp === "Diligent" ? 1.3 : a.disp === "Helpful" ? 1.05 : 0.6;
+          if(a.aff === "clinic") mult *= 1.3;
+          G.roof = Math.min(100, G.roof + dt * 0.8 * mult); G.weekWork.clinic += dt;
+          a.fetchT += dt;
+          if(a.fetchT > 7 && G.roof < 97 && !a.fetch){ a.fetch = "plank-out"; goTo(a, -15.5, -8.6, "clinic"); }
+        }
+      } else if(st === "fields"){
+        a.energy = Math.max(0, a.energy - 0.8*dt);
+        G.fieldGrowth = Math.min(1, G.fieldGrowth + dt * 0.006);
+        a.harvestT = (a.harvestT || 0) + dt;
+        if(a.harvestT > 12){ a.harvestT = 0; G.stores++; G.weekWork.stores++; G.weekWork.harvest++; setBubble(a, "🌿", 1.6); }
+      } else if(st === "store"){
+        if(!a.fetch && a.actT <= 0){ a.fetch = "crate-out"; goTo(a, 16.5, -8.8, "store"); }
+      } else if(st === "mill"){
+        if(!a.fetch && a.actT <= 0){ a.fetch = "grain-out"; goTo(a, 24, -8.2, "mill"); }
+      } else if(st === "school"){
+        a.energy = Math.max(0, a.energy - 0.4*dt);
+        G.weekWork.school += dt; G.stats.cohesion = Math.min(100, G.stats.cohesion + dt * 0.05);
+      } else if(st === "green"){
+        a.morale = Math.min(100, a.morale + 1.1*dt);
+        G.weekWork.green += dt; G.stats.cohesion = Math.min(100, G.stats.cohesion + dt * 0.03);
+        var near = null, nd = 4;
+        G.agents.forEach(function(o){ if(o !== a && o.stationId === "green" && (o.state === "act" || o.state === "sit")){ var dd = Math.sqrt((o.x-a.x)*(o.x-a.x) + (o.z-a.z)*(o.z-a.z)); if(dd < nd){ nd = dd; near = o; } } });
+        if(near){ var ta = Math.atan2(near.x - a.x, near.z - a.z); var dh2 = ta - a.heading; while(dh2 > Math.PI) dh2 -= 6.283; while(dh2 < -Math.PI) dh2 += 6.283; a.heading += dh2 * Math.min(1, dt*3); }
+      } else if(st === "well"){
+        a.energy = Math.max(0, a.energy - 0.6*dt);
+        G.weekWork.well += dt;
+      }
+      if(a.energy < 18 && st !== "home"){ setBubble(a, "💤", 1.6); a.order = null; goStation(a, "home"); }
+      else if(a.actT <= 0 && st !== "clinic" && st !== "store" && st !== "mill"){ a.state = "idle"; a.decideT = 0.3 + Math.random()*0.7; }
+      if(st === "clinic" && a.actT <= 0 && !a.fetch){ a.actT = 6; }
+    }
+    a.root.position.x = a.x; a.root.position.z = a.z;
+    a.root.rotation.y = a.heading;
   });
-  /* separation */
-  for(var i=0;i<G.residents.length;i++) for(var j=i+1;j<G.residents.length;j++){
-    var a = G.residents[i], b = G.residents[j], dx = b.x-a.x, dy = b.y-a.y, d = Math.sqrt(dx*dx+dy*dy);
-    if(d>0 && d<17){ var push = (17-d)/2; a.x -= dx/d*push; a.y -= dy/d*push; b.x += dx/d*push; b.y += dy/d*push; }
+  /* gentle separation */
+  for(var i=0;i<G.agents.length;i++) for(var j=i+1;j<G.agents.length;j++){
+    var A = G.agents[i], B = G.agents[j], dx = B.x - A.x, dz = B.z - A.z, d = Math.sqrt(dx*dx + dz*dz);
+    if(d > 0.01 && d < 0.9){ var push = (0.9 - d)/2; A.x -= dx/d*push; A.z -= dz/d*push; B.x += dx/d*push; B.z += dz/d*push; A.root.position.x = A.x; A.root.position.z = A.z; B.root.position.x = B.x; B.root.position.z = B.z; }
   }
-  /* objective progress */
-  if(G.objective && !G.objDone){
-    var gain = 0;
-    G.objective.stations.forEach(function(sid){ gain += (out[sid]||0); });
-    G.objective.progress += gain * sdt * 1.9;
-    if(G.objective.progress >= G.objective.target){
-      G.objDone = true; G.objectsDone++;
-      applyFx(G.objective.bonus);
-      if(G.policy==="hearth") applyFx({cohesion:2});
-      addAlert("🚩", "Objective done: " + G.objective.title, "", null);
-      ding();
-    }
-  }
-  /* stats integration */
-  var workTotal = out.fields + out.mill + out.well + out.store + out.clinic + out.school;
-  G.workEMA += (workTotal - G.workEMA) * Math.min(1, sdt*0.5);
-  var S = G.stats;
-  var scarcV = (G.hard ? 0.88 : 0.68) - out.fields*0.36 - out.well*0.19 - out.mill*0.07 + (G.week>=9 ? 0.10 : 0);
-  S.scarcity = clamp(S.scarcity + scarcV * sdt * 0.85);
-  var prodT = clamp(G.workEMA * 15);
-  S.productivity += (prodT - S.productivity) * Math.min(1, sdt*0.35);
-  var trustV = (out.store>0.2 ? 0.085 : -0.05) + (S.scarcity>65 ? -0.13 : 0) + (socialPairs>2 ? 0.02 : 0);
-  S.trust = clamp(S.trust + trustV * sdt);
-  var cohV = -0.018 + socialPairs*0.045 + out.school*0.016 - feuds*0.05 - (withdrawn>=3 ? 0.07 : 0);
-  S.cohesion = clamp(S.cohesion + cohV * sdt);
-  var helpfulMaj = G.residents.filter(function(r){ return r.disp==="Diligent" || r.disp==="Helpful"; }).length >= 6;
-  var rivV = feuds*0.055 - (helpfulMaj ? 0.055 : 0) + (S.rivalry>20 ? 0.004 : 0);
-  S.rivalry = clamp(S.rivalry + rivV * sdt);
-  var orderedRatio = orderedShare / G.residents.length;
-  var autT = 100 - orderedRatio*46 - G.blame*3.5 - (edictActive("quotas") ? 7 : 0) - (edictActive("quarantine") ? 3 : 0);
-  S.autonomy += (clamp(autT) - S.autonomy) * Math.min(1, sdt*0.30);
-  /* visibility decay toward baseline */
-  G.residents.forEach(function(r){
-    var base = 24;
-    if(r.visibility > base && G.spotlightTarget!==r.id) r.visibility = Math.max(base, r.visibility - 0.10*sdt);
-    r.model = isModel(r);
-  });
-  if(G.spotlightTarget && G.t>G.spotlightUntil){ G.spotlightTarget = null; }
-  /* feud build */
-  if(S.rivalry>=56 && !G.feudUsed && !G.incident){
-    var fa = null, fb = null;
-    G.residents.forEach(function(r){ if(r.disp==="Feuding"){ if(!fa) fa = r; else if(!fb && r.rival===fa.id || !fb) fb = r; } });
-    if(fa && fb && dist(fa,fb)<240){ G.feudCharge += sdt; if(G.feudCharge>7){ G.feudUsed = true; G.feudCharge = 0; fireFeud(fa, fb); } }
-    else G.feudCharge = Math.max(0, G.feudCharge - sdt);
-  }
-  /* idle pings */
-  G.idlePingT += sdt;
-  if(G.idlePingT > 5){
-    G.idlePingT = 0;
-    G.residents.forEach(function(r){
-      if(r.idleT > 6 && !r.pinged){ r.pinged = true; addAlert("👤", "Idle: " + r.name.split(" ")[0], "warn", r.id); if(G.coachStep===3){ G.coachStep = 4; } }
-      if(r.idleT < 1) r.pinged = false;
+}
+function imitationScan(){
+  G.agents.forEach(function(a){
+    if(a.vis >= 60 || a.watchCd > 0 || a.sick || a.medicTask) return;
+    if(!(a.state === "idle" || (a.state === "act" && a.stationId === "green") || a.state === "sit")) return;
+    var best = null, bd = 99;
+    G.agents.forEach(function(m){
+      if(m === a || m.vis < 60 || m.state !== "act") return;
+      var d = Math.sqrt((m.x-a.x)*(m.x-a.x) + (m.z-a.z)*(m.z-a.z));
+      if(d < bd){ bd = d; best = m; }
     });
+    if(!best) return;
+    var guaranteed = (a.id === "bram" && best.id === "mara");
+    if(bd < 9 && (guaranteed || Math.random() < 0.45)){
+      if(bd > 3.4){ a.pendingWatch = best.id; var vx = a.x - best.x, vz = a.z - best.z, vl = Math.sqrt(vx*vx + vz*vz) || 1; goTo(a, best.x + vx/vl*3.2, best.z + vz/vl*3.2, a.stationId); }
+      else { a.state = "watch"; a.watchOf = best.id; a.watchT = 3.4; setBubble(a, "👀", 1.8); }
+    }
+  });
+}
+/* ================= INCIDENTS & OBJECTIVES ================= */
+function orderAgent(id, station){ var a = agent(id); if(!a) return; a.order = station; a.fetch = null; a.carrying = null; if(a.state !== "walk"){ a.state = "idle"; a.decideT = 0; } }
+function blameAgent(id){ var a = agent(id); if(!a) return; a.disp = "Withdrawn"; a.morale = Math.max(5, a.morale - 25); a.order = null; setBubble(a, "🔴", 2.5); goStation(a, "home"); G.stats.rivalry = Math.min(100, G.stats.rivalry + 5); }
+function sendMedic(patientId){ var j = agent("jonah"), p = agent(patientId); if(!j || !p) return; G.medicPatient = patientId; j.medicTask = 1; j.order = null; j.fetch = null; j.carrying = null; goTo(j, p.x + 1.1, p.z + 0.4, "green"); showToast("✚ Jonah is on his way"); }
+function recoverPatient(id, morale){ var p = agent(id); if(!p) return; p.sick = false; p.morale = morale; p.state = "idle"; p.decideT = 1; }
+function restPatient(id){ var p = agent(id); if(!p) return; p.order = null; goStation(p, "home"); showToast("🏠 " + p.name.split(" ")[0] + " heads home to rest"); }
+function applyStatMods(mods){ if(!mods) return; Object.keys(mods).forEach(function(k){ if(G.stats[k] != null) G.stats[k] = Math.max(0, Math.min(100, G.stats[k] + mods[k])); }); }
+var INCIDENTS = [
+  {at:26, patient:"rosa", title:"Rosa feels faint", text:"She has sat down by the fire, pale. The village is watching what happens next.", options:[
+    {icon:"✚", label:"Send Jonah", hint:"The medic, in person", fx:function(){ sendMedic("rosa"); }},
+    {icon:"🏠", label:"Let her rest", hint:"Home, quiet, slower", fx:function(){ restPatient("rosa"); }},
+    {icon:"🔴", label:"Blame the well", hint:"Abel kept the water", blame:true, fx:function(){ blameAgent("abel"); recoverPatient("rosa", 45); }}]},
+  {at:30, title:"The roof still leaks", text:"Rain found the last gap over the clinic beds.", options:[
+    {icon:"🔨", label:"Patch it tonight", hint:"Mara and Jonah, up the scaffold", fx:function(){ orderAgent("mara", "clinic"); orderAgent("jonah", "clinic"); applyStatMods({prod:2}); }},
+    {icon:"🌧", label:"Wait for dry weather", hint:"Buckets under the drip", fx:function(){ applyStatMods({scarcity:3}); }},
+    {icon:"🔴", label:"Blame the builders", hint:"Felix raised that roof", blame:true, fx:function(){ blameAgent("felix"); }}]},
+  {at:34, title:"Short stores", text:"The count comes up light. Dinner gets thin.", options:[
+    {icon:"⚖", label:"Ration fairly", hint:"Everyone a little hungry", fx:function(){ applyStatMods({trust:3, scarcity:3}); }},
+    {icon:"🌙", label:"Work double shifts", hint:"Fields and storehouse, late", fx:function(){ orderAgent("tomas", "fields"); orderAgent("nadia", "store"); orderAgent("ines", "store"); applyStatMods({prod:3}); }},
+    {icon:"🔴", label:"Blame the storekeeper", hint:"Nadia holds the keys", blame:true, fx:function(){ blameAgent("nadia"); }}]},
+  {at:28, title:"A feud at the well", text:"Abel and Tomas both claim the morning water.", options:[
+    {icon:"🕊", label:"Mediate on the green", hint:"Sit them both down", fx:function(){ orderAgent("abel", "green"); orderAgent("tomas", "green"); applyStatMods({cohesion:4, rivalry:-4}); }},
+    {icon:"❄", label:"Let them cool off", hint:"Separate houses, separate hours", fx:function(){ orderAgent("abel", "home"); orderAgent("tomas", "home"); applyStatMods({rivalry:3}); }},
+    {icon:"🔴", label:"Blame Abel", hint:"His rope, his well", blame:true, fx:function(){ blameAgent("abel"); applyStatMods({cohesion:2}); }}]},
+  {at:30, patient:"priya", title:"Fever in the schoolhouse", text:"Priya sat down mid-lesson, pale and hot.", options:[
+    {icon:"✚", label:"Send Jonah", hint:"The medic, in person", fx:function(){ sendMedic("priya"); }},
+    {icon:"🏠", label:"Let her rest", hint:"Home, quiet, slower", fx:function(){ restPatient("priya"); }},
+    {icon:"🔴", label:"Blame the well water", hint:"Abel kept the water", blame:true, fx:function(){ blameAgent("abel"); recoverPatient("priya", 45); }}]},
+  {at:32, title:"The mill wheel jams", text:"Grain waits in sacks. The wheel will not turn.", options:[
+    {icon:"⚙", label:"Felix fixes it", hint:"His mill, his hands", fx:function(){ orderAgent("felix", "mill"); applyStatMods({prod:2}); }},
+    {icon:"💪", label:"Every hand pushes", hint:"Half the village on one wheel", fx:function(){ orderAgent("tomas", "mill"); orderAgent("bram", "mill"); orderAgent("felix", "mill"); }},
+    {icon:"🔴", label:"Blame the miller", hint:"Felix let it seize", blame:true, fx:function(){ blameAgent("felix"); }}]},
+  {at:26, title:"A stranger at the river", text:"A trader with a full cart asks to camp by the green.", options:[
+    {icon:"🤝", label:"Welcome them", hint:"A seat and a share of dinner", fx:function(){ G.stores = Math.max(0, G.stores - 3); applyStatMods({trust:4, cohesion:3}); }},
+    {icon:"⚖", label:"Trade fairly", hint:"Salt and tools for grain", fx:function(){ G.stores += 6; applyStatMods({trust:1}); }},
+    {icon:"🚪", label:"Turn them away", hint:"The valley keeps itself", fx:function(){ applyStatMods({autonomy:3, trust:-4}); }}]},
+  {at:30, title:"Storm in the night", text:"Wind took two fences and flattened half the rows.", options:[
+    {icon:"🌾", label:"All hands to the fields", hint:"Save what stands", fx:function(){ orderAgent("tomas", "fields"); orderAgent("bram", "fields"); orderAgent("ines", "fields"); orderAgent("abel", "fields"); }},
+    {icon:"🏠", label:"Shelter and wait", hint:"Lose the flat rows", fx:function(){ G.fieldGrowth = Math.max(0, G.fieldGrowth - 0.25); applyStatMods({scarcity:4}); }},
+    {icon:"🔴", label:"Blame the night watch", hint:"Bram was on watch", blame:true, fx:function(){ blameAgent("bram"); }}]},
+  {at:34, title:"The long table cracks", text:"The feast table split down the middle at lunch.", options:[
+    {icon:"🍲", label:"Feast from the stores", hint:"Eat well on the broken table", fx:function(){ G.stores = Math.max(0, G.stores - 5); applyStatMods({cohesion:7, trust:2}); }},
+    {icon:"🪑", label:"Quiet meals apart", hint:"Every house its own pot", fx:function(){ applyStatMods({cohesion:-4, autonomy:3}); }},
+    {icon:"🔴", label:"Blame the baker", hint:"Ines leaned the loaves on it", blame:true, fx:function(){ blameAgent("ines"); }}]},
+  {at:28, title:"Whispers about the stores", text:"Someone says the count is wrong. Nobody says it loudly.", options:[
+    {icon:"📖", label:"Open the books", hint:"Count it again, in public", fx:function(){ applyStatMods({trust: G.policy === "open" ? 9 : 5}); }},
+    {icon:"🤫", label:"Say nothing", hint:"Let it pass, or fester", fx:function(){ applyStatMods({trust:-3}); }},
+    {icon:"🔴", label:"Blame the storekeeper", hint:"Nadia holds the keys", blame:true, fx:function(){ blameAgent("nadia"); }}]},
+  {at:32, title:"Two want the same field", text:"Tomas marked rows that Bram says were promised to him.", options:[
+    {icon:"🌿", label:"Share the rows", hint:"Alternate days", fx:function(){ orderAgent("tomas", "fields"); orderAgent("bram", "fields"); applyStatMods({cohesion:3}); }},
+    {icon:"🏁", label:"First come, first served", hint:"The marks stand", fx:function(){ applyStatMods({rivalry:4}); }},
+    {icon:"🔴", label:"Blame Bram", hint:"Always claiming something", blame:true, fx:function(){ blameAgent("bram"); }}]},
+  {at:30, title:"The first frost", text:"Ice on the well rope. Winter is done knocking.", options:[
+    {icon:"🔥", label:"Light every hearth", hint:"Burn stores, warm houses", fx:function(){ G.stores = Math.max(0, G.stores - 4); applyStatMods({cohesion:4}); }},
+    {icon:"🌳", label:"One fire on the green", hint:"Everyone around one flame", fx:function(){ orderAgent("mara", "green"); orderAgent("rosa", "green"); orderAgent("priya", "green"); applyStatMods({cohesion:2}); }},
+    {icon:"❄", label:"Endure it quietly", hint:"No fuss, no fire", fx:function(){ applyStatMods({autonomy:4, trust:-1}); }}]}
+];
+function triggerIncident(inc){
+  if(inc.patient){
+    var p = agent(inc.patient);
+    if(p && !p.sick){
+      var d = Math.sqrt(p.x * p.x + (p.z - 8.6) * (p.z - 8.6));
+      if(d > 3){ G.pendingIncident = inc; p.sickWalk = true; p.order = null; p.fetch = null; p.carrying = null; goTo(p, 0, 8.6, "green"); setBubble(p, "✚", 3); return; }
+      p.sick = true; p.state = "sit"; p.stationId = "green";
+    }
   }
-  G.edicts = G.edicts.filter(function(e){ return e.until > G.t; });
-  G.pulses = G.pulses.filter(function(p){ return G.t - p.start < p.dur; });
-  G.alerts = G.alerts.filter(function(a){ return a.until > G.t; });
-  if(G.alerts.length===0 && Math.random()<0.001) {}
-  renderAlertsThrottled();
+  openIncident(inc);
 }
-function stationWorkers(stId){
-  return G.residents.filter(function(r){ return r.stationId===stId && (r.state==="act" || r.state==="move"); });
+function openIncident(inc){
+  G.incidentOpen = true; G.curIncident = inc;
+  var box = document.getElementById("incident");
+  var opts = inc.options.map(function(o, i){
+    return "<button class='iopt" + (o.blame ? " blame" : "") + "' data-i='" + i + "'><span class='ii'>" + o.icon + "</span><span class='il'>" + o.label + "</span><span class='ih'>" + o.hint + "</span></button>";
+  }).join("");
+  box.innerHTML = "<div class='k'>WEEK " + G.week + " · IN THE VILLAGE</div><h3>" + inc.title + "</h3><p>" + inc.text + "</p><div class='opts'>" + opts + "</div>";
+  box.style.display = "block";
+  box.querySelectorAll(".iopt").forEach(function(b){ b.addEventListener("click", function(){ chooseIncident(parseInt(b.getAttribute("data-i"), 10)); }); });
 }
-function finish(){
+function chooseIncident(i){
+  if(!G.incidentOpen || !G.curIncident) return;
+  var opt = G.curIncident.options[i];
+  G.incidentOpen = false; G.incidentDone = true; G.curIncident = null;
+  document.getElementById("incident").style.display = "none";
+  if(opt){
+    if(opt.blame){ G.scapegoats++; G.delays.push({at: G.t + 2 * WEEK_LEN, mods:{trust:-7, cohesion:-6, rivalry:6}, msg:"🕯 The village remembers the blame"}); }
+    if(opt.fx) opt.fx();
+  }
+  refreshTray();
+}
+var OBJECTIVES = [
+  {station:"clinic", icon:"🔨", title:"Repair the clinic roof", hint:"Planks land as the crew works", metric:function(){ return G.roof; }},
+  {station:"store", icon:"📦", title:"Fill the storehouse", hint:"Crates and harvests, all season food", metric:function(){ return G.weekWork.stores * 100 / 10; }},
+  {station:"fields", icon:"🌿", title:"Bring in the harvest", hint:"Work the rows while they are ripe", metric:function(){ return G.weekWork.harvest * 100 / 6; }},
+  {station:"well", icon:"💧", title:"Water for everyone", hint:"Keep the well rope moving", metric:function(){ return G.weekWork.well * 100 / 20; }},
+  {station:"school", icon:"📚", title:"Lessons under the tree", hint:"Time at the school, together", metric:function(){ return G.weekWork.school * 100 / 20; }},
+  {station:"mill", icon:"🌾", title:"Flour for the winter", hint:"Grain in, flour out", metric:function(){ return G.weekWork.mill * 100 / 4; }},
+  {station:"green", icon:"🔥", title:"The village that eats together", hint:"Time on the green, all week", metric:function(){ return G.weekWork.green * 100 / 40; }},
+  {station:"clinic", icon:"✚", title:"A clinic ready for winter", hint:"Hands at the clinic, all week", metric:function(){ return G.weekWork.clinic * 100 / 28; }},
+  {station:"fields", icon:"🌾", title:"The second harvest", hint:"One more pass over the rows", metric:function(){ return G.weekWork.harvest * 100 / 8; }},
+  {station:"store", icon:"❄", title:"Stores against the cold", hint:"The count winter will audit", metric:function(){ return G.weekWork.stores * 100 / 13; }},
+  {station:"green", icon:"🍲", title:"The long table", hint:"Everyone on the green, often", metric:function(){ return G.weekWork.green * 100 / 48; }},
+  {station:"store", icon:"📦", title:"The Winter Count", hint:"Final stores before the snow", metric:function(){ return G.weekWork.stores * 100 / 10; }}
+];
+function setObjective(){
+  var o = OBJECTIVES[G.week - 1];
+  if(!o) return;
+  G.objStation = o.station; G.objComplete = false;
+  var st = STATION3[o.station];
+  if(objRing && st) objRing.position.set(st.x, 1.2, st.z);
+}
+function objectiveTick(){
+  if(G.objComplete) return;
+  var o = OBJECTIVES[G.week - 1];
+  if(o && o.metric() >= 100){ G.objComplete = true; G.objDone++; applyStatMods({trust:3, cohesion:3}); showToast("✓ Objective complete: " + o.title); }
+}
+function clamp100(v){ return Math.max(0, Math.min(100, v)); }
+function statDrift(dt){
+  var s = G.stats, workers = 0, ordered = 0, crowd = {};
+  G.agents.forEach(function(a){
+    if(a.state === "act" && a.stationId && a.stationId !== "green" && a.stationId !== "home"){ workers++; crowd[a.stationId] = (crowd[a.stationId] || 0) + 1; }
+    if(a.order) ordered++;
+  });
+  s.prod += (workers * 11 - s.prod) * dt * 0.03;
+  var scarT = clamp100(80 - Math.min(62, G.stores) * 1.15 + (G.difficulty === "hard" ? 9 : 0));
+  s.scarcity += (scarT - s.scarcity) * dt * 0.18;
+  var avgM = G.agents.reduce(function(sm, a){ return sm + a.morale; }, 0) / G.agents.length;
+  s.trust += (clamp100(avgM * 0.72 + (G.policy === "open" ? 7 : 0)) - s.trust) * dt * 0.05;
+  s.cohesion += (clamp100(avgM * 0.85) - s.cohesion) * dt * 0.04;
+  var maxCrowd = 0; Object.keys(crowd).forEach(function(k){ if(crowd[k] > maxCrowd) maxCrowd = crowd[k]; });
+  if(maxCrowd >= 4) s.rivalry = clamp100(s.rivalry + dt * 0.4); else s.rivalry = clamp100(s.rivalry - dt * 0.1);
+  var autT = clamp100(100 - (ordered / G.agents.length) * 58 - (G.policy === "order" ? 8 : 0));
+  s.autonomy += (autT - s.autonomy) * dt * 0.08;
+  Object.keys(s).forEach(function(k){ s[k] = clamp100(s[k]); });
+}
+function endWeek(){
+  var o = OBJECTIVES[G.week - 1];
+  if(G.week >= SEASON_WEEKS){ finishGame(); return; }
+  if(o) showToast(G.objComplete ? ("✓ Week " + G.week + " done: " + o.title + " · " + G.objDone + "/12") : ("Week " + G.week + " ends: " + o.title + " missed"));
+  G.week++; G.weekTime = 0; G.incidentDone = false; G.curIncident = null;
+  G.weekWork = {stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0};
+  G.fieldGrowth = 0.12; G.growthApplied = -1;
+  setObjective();
+  if(G.week === 7) setTimeout(function(){ if(!G.over) showToast("❄ Half the season gone. Winter is counting."); }, 1200);
+}
+
+function stepSim(dt){
+  G.t += dt; G.weekTime += dt;
+  for(var di = G.delays.length - 1; di >= 0; di--){ if(G.t >= G.delays[di].at){ var dl = G.delays[di]; G.delays.splice(di, 1); applyStatMods(dl.mods); if(dl.msg) showToast(dl.msg); } }
+  var inc = INCIDENTS[G.week - 1];
+  if(inc && !G.incidentDone && !G.incidentOpen && !G.pendingIncident && G.weekTime >= inc.at) triggerIncident(inc);
+  G.imitateT += dt;
+  if(G.imitateT > 2.5){ G.imitateT = 0; imitationScan(); }
+  stepAgents(dt);
+  statDrift(dt);
+  objectiveTick();
+  /* roof visuals */
+  var targetPlanks = Math.floor(G.roof / 16.7);
+  roofPlanks.forEach(function(p, i){ p.visible = i < Math.max(2, targetPlanks); });
+  if(roofHole){ var hs = Math.max(0.05, 1 - G.roof/115); roofHole.scale.set(hs, 1, hs); roofHole.visible = G.roof < 99; }
+  /* crops */
+  if(Math.abs(G.fieldGrowth - G.growthApplied) > 0.03){
+    G.growthApplied = G.fieldGrowth;
+    var dummy = new THREE.Object3D();
+    cropData.forEach(function(c, i){
+      dummy.position.set(c.x, 0.3 + G.fieldGrowth*0.5, c.z);
+      dummy.scale.setScalar(c.s * (0.6 + G.fieldGrowth*0.9)); dummy.updateMatrix();
+      cropMesh.setMatrixAt(i, dummy.matrix);
+    });
+    cropMesh.instanceMatrix.needsUpdate = true;
+  }
+  if(fireCore){ var fs = 1 + Math.sin(G.t*11)*0.18 + Math.sin(G.t*23)*0.08; fireCore.scale.set(fs, fs*1.25, fs); fireLight.intensity = 0.8 + Math.sin(G.t*13)*0.18; }
+  if(millBlades) millBlades.rotation.z += dt * 0.8;
+  if(objRing){ objRing.rotation.z += dt * 0.6; objRing.position.y = 1.2 + Math.sin(G.t * 2) * 0.25; objRing.material.opacity = G.objComplete ? 0.25 : 0.9; }
+  if(G.weekTime >= WEEK_LEN && !G.over) endWeek();
+}
+
+function finishGame(){
   G.over = true;
-  var s = G.stats, ending;
-  if(G.blame >= 3 || (G.blame >= 2 && s.rivalry >= 55)){
-    ending = {name:"The Blame Cycle", body:"The village runs on a single reliable technology: a name for every failure. " + G.blameNames.join(", ") + " carried it this season. Services limp on. Trust does not. The next failure is already looking for its name."};
-  } else if(s.scarcity >= 68 || s.cohesion <= 26){
-    ending = {name:"Quiet Breakdown", body:"No single disaster did it. Needs outgrew cooperation until households stopped planning together and started planning around each other. The village is still on the map. As a village, it runs on memory."};
-  } else if(s.productivity >= 56 && s.trust >= 52 && s.cohesion >= 52 && s.autonomy >= 46 && G.objectsDone >= 6){
-    ending = {name:"Mutual Aid", body:"The work got done by people who chose each other's company to do it. Cooperation became the local custom, and TTI's best decision all season was becoming less necessary."};
-  } else if(s.autonomy >= 62 && s.trust >= 55){
-    ending = {name:"The Village Chooses", body:"Output was not maximal, and the village would like it noted that this was partly the point. They end the season deciding for themselves, which is another way of saying alive and self-governing."};
-  } else if(s.productivity >= 50 && (s.trust < 48 || s.autonomy < 42)){
-    ending = {name:"Order at a Price", body:"The roofs hold and the ledgers balance. Ask the village how it is and you get a pause first. Output was bought with watchfulness, and the receipt is in the two meters you stopped watching."};
-  } else if(s.autonomy >= 54 && s.cohesion >= 45){
-    ending = {name:"The Village Chooses", body:"Not the tidiest season on record. Recognizably theirs, though: arguing, deciding, and copying each other in roughly equal measure."};
-  } else if(s.productivity >= 46){
-    ending = {name:"Order at a Price", body:"The essential work mostly got done and the village mostly complied. What was modeled this season was endurance under direction. It functions. It does not flourish."};
-  } else {
-    ending = {name:"Quiet Breakdown", body:"Twelve small weeks of drift compound like interest. The season ends with the essentials unfinished and belief thinner than the stores."};
-  }
-  var medals = [];
-  if(G.blame===0) medals.push("Spotless Ledger");
-  if(s.scarcity<=28) medals.push("Full Granary");
-  if(s.autonomy>=68) medals.push("Self-Governing");
-  if(s.rivalry<=22) medals.push("Peacemaker");
-  if(s.productivity>=68) medals.push("Iron Season");
-  if(s.trust>=65) medals.push("Every Voice Heard");
-  if(G.objectsDone>=9) medals.push("Objective Machine (" + G.objectsDone + "/12)");
-  if(G.copiesGood>=10) medals.push("Good Habits Went Viral");
-  G.endData = {ending:ending, medals:medals};
-  renderEnd();
-  ding();
+  var s = G.stats;
+  var avgMorale = Math.round(G.agents.reduce(function(sm, a){ return sm + a.morale; }, 0) / G.agents.length);
+  var ending, epi;
+  if(G.scapegoats >= 3 || (G.scapegoats >= 2 && s.rivalry >= 55)){ ending = "The Blame Cycle"; epi = "Every problem found a person, and every person found a door. The village is quiet now, in the way empty places are quiet."; }
+  else if(s.scarcity >= 72 || avgMorale < 38){ ending = "Quiet Breakdown"; epi = "No single disaster. Just a slow thinning, of stores, of hands, of reasons to stay at the table."; }
+  else if(G.objDone >= 6 && s.trust >= 54 && s.cohesion >= 54 && s.scarcity < 56){ ending = "Mutual Aid"; epi = "Winter came to a village that had practiced needing each other. The stores were shared, the work was shared, and so was the cold."; }
+  else if(s.prod >= 62 && s.autonomy < 42){ ending = "Order at a Price"; epi = "The stores are full and the lanes are swept. Everything got done. Almost nobody remembers choosing any of it."; }
+  else { ending = "The Village Chooses"; epi = "No pattern won. The village goes into winter as itself: uneven, unscripted, and still deciding what it is."; }
+  function row(label, val){ return "<div class='stat-row'><span>" + label + "</span><b>" + Math.round(val) + "</b></div>"; }
+  var html = "<div class='kick2'>THE WINTER COUNT · AFTER 12 WEEKS</div><h2>" + ending + "</h2>"
+    + "<p style='color:var(--ink2)'>" + epi + "</p>"
+    + row("⚒ Productivity", s.prod) + row("♥ Trust", s.trust) + row("🌳 Cohesion", s.cohesion)
+    + row("⚔ Rivalry", s.rivalry) + row("🌾 Scarcity", s.scarcity) + row("🕊 Autonomy", s.autonomy)
+    + "<div class='stat-row'><span>🎯 Objectives met</span><b>" + G.objDone + " / 12</b></div>"
+    + "<div class='stat-row'><span>📦 Stores gathered</span><b>" + G.stores + "</b></div>"
+    + "<div class='stat-row'><span>👀 Imitations witnessed</span><b>" + G.copied + "</b></div>"
+    + "<div class='stat-row'><span>🔴 Scapegoats named</span><b>" + G.scapegoats + "</b></div>"
+    + "<div class='stat-row'><span>♥ Village morale (avg)</span><b>" + avgMorale + "</b></div>"
+    + "<button class='btn' onclick='location.reload()' style='margin-top:12px'>Play another season</button>";
+  document.getElementById("endCard").innerHTML = html;
+  document.getElementById("endOverlay").classList.add("open");
 }
 
-/* =============== RENDER (CANVAS) =============== */
-var cv = document.getElementById("game"), ctx = cv.getContext("2d");
-var PHASES = [
-  {sky:["#8ec9e8","#dff0e2"], hill:"#7d9264", ground:"#77975a", field:"#8aa864"},
-  {sky:["#6db6e8","#e8f3d8"], hill:"#74915c", ground:"#6d8f52", field:"#7fa055"},
-  {sky:["#7d9fc4","#f0dfba"], hill:"#7d7f52", ground:"#8a7a48", field:"#b08d4a"},
-  {sky:["#5f7ea6","#dfe9f2"], hill:"#6d7f88", ground:"#aebbc0", field:"#c8cfd2"}
-];
-var FX = {smoke:[], snow:[]};
-for(var sn=0; sn<70; sn++) FX.snow.push({x:Math.random()*960, y:Math.random()*540, s:1+Math.random()*2, v:14+Math.random()*22, ph:Math.random()*6});
-function rr(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
-function txt(s,x,y,size,col,align,weight){ ctx.font = (weight||"600") + " " + size + "px 'Segoe UI',system-ui,sans-serif"; ctx.fillStyle = col; ctx.textAlign = align||"center"; ctx.fillText(s,x,y); }
-function phaseOf(week){ return Math.min(3, Math.floor((week-1)/3)); }
-function drawBuilding(st, t){
-  var b = st, x = b.bx, y = b.by, w = b.bw, h = b.bh;
-  ctx.fillStyle = "rgba(30,25,15,.18)"; ctx.beginPath(); ctx.ellipse(x+w/2, y+h+6, w/2, 7, 0, 0, 7); ctx.fill();
-  ctx.fillStyle = b.col; rr(x, y, w, h, 3); ctx.fill();
-  ctx.strokeStyle = "rgba(25,20,12,.35)"; ctx.lineWidth = 1.5; ctx.stroke();
-  ctx.fillStyle = st.id==="mill" ? "#7c4a30" : st.id==="clinic" ? "#7a4a34" : "#86552f";
-  ctx.beginPath(); ctx.moveTo(x-6, y); ctx.lineTo(x+w+6, y); ctx.lineTo(x+w/2, y-24); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = "#5a4230"; rr(x+w/2-8, y+h-26, 16, 26, 2); ctx.fill();
-  ctx.fillStyle = "#ffe9a3"; rr(x+12, y+14, 15, 13, 2); ctx.fill(); rr(x+w-27, y+14, 15, 13, 2); ctx.fill();
-  if(st.id==="clinic"){ ctx.fillStyle = "#d84f4f"; ctx.fillRect(x+w/2-3, y-20, 6, 16); ctx.fillRect(x+w/2-8, y-15, 16, 6); }
-  if(st.id==="mill"){
-    var cxp = x+w-24, cyp = y+h-16, a = t*0.5;
-    ctx.strokeStyle = "#5a4230"; ctx.lineWidth = 4;
-    ctx.beginPath(); ctx.arc(cxp, cyp, 19, 0, 7); ctx.stroke();
-    for(var k=0;k<3;k++){ ctx.beginPath(); ctx.moveTo(cxp - Math.cos(a+k*2.09)*19, cyp - Math.sin(a+k*2.09)*19); ctx.lineTo(cxp + Math.cos(a+k*2.09)*19, cyp + Math.sin(a+k*2.09)*19); ctx.stroke(); }
-  }
-  if(st.id==="store"){
-    if(Math.random()<0.10 && FX.smoke.length<26) FX.smoke.push({x:x+w-18, y:y-16, r:3, life:0});
-    ctx.fillStyle = "#9a8d7c"; ctx.fillRect(x+w-24, y-26, 10, 22);
-  }
-  txt(st.icon, x+w/2, y-32, 17, "#fff");
-}
-function draw(){
-  if(!G) return;
-  var t = G.t, ph = PHASES[phaseOf(G.week)], wk = G.weekTime / WEEK_LEN;
-  var sky = ctx.createLinearGradient(0,0,0,360);
-  sky.addColorStop(0, ph.sky[0]); sky.addColorStop(1, ph.sky[1]);
-  ctx.fillStyle = sky; ctx.fillRect(0,0,CW,CH);
-  /* sun arc across the week */
-  var sx = 70 + wk*820, sy = 96 - Math.sin(wk*Math.PI)*44;
-  var sg = ctx.createRadialGradient(sx,sy,4,sx,sy,60); sg.addColorStop(0,"rgba(255,240,190,.95)"); sg.addColorStop(1,"rgba(255,240,190,0)");
-  ctx.fillStyle = sg; ctx.fillRect(sx-60,sy-60,120,120);
-  ctx.fillStyle = "#f7d774"; ctx.beginPath(); ctx.arc(sx,sy,17,0,7); ctx.fill();
-  ctx.fillStyle = ph.hill; ctx.beginPath(); ctx.moveTo(0,300); ctx.quadraticCurveTo(240,238,480,272); ctx.quadraticCurveTo(720,300,960,258); ctx.lineTo(960,360); ctx.lineTo(0,360); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = ph.ground; ctx.fillRect(0,330,CW,210);
-  /* river */
-  ctx.fillStyle = "#5d9ec4"; ctx.beginPath(); ctx.moveTo(902,330); ctx.quadraticCurveTo(936,420,922,540); ctx.lineTo(960,540); ctx.lineTo(960,330); ctx.closePath(); ctx.fill();
-  ctx.strokeStyle = "rgba(230,246,255,.55)"; ctx.lineWidth = 2; ctx.setLineDash([8,10]); ctx.lineDashOffset = -t*26;
-  ctx.beginPath(); ctx.moveTo(934,336); ctx.quadraticCurveTo(950,430,940,536); ctx.stroke(); ctx.setLineDash([]);
-  /* fields */
-  ctx.fillStyle = ph.field; rr(52,356,280,150,4); ctx.fill();
-  ctx.strokeStyle = "rgba(46,70,32,.35)"; ctx.lineWidth = 2;
-  for(var fi=1; fi<5; fi++){ ctx.beginPath(); ctx.moveTo(52+fi*56, 356); ctx.lineTo(38+fi*56, 506); ctx.stroke(); }
-  /* paths */
-  ctx.strokeStyle = "rgba(215,190,140,.5)"; ctx.lineWidth = 11; ctx.lineCap = "round";
-  ctx.beginPath(); ctx.moveTo(120,540); ctx.quadraticCurveTo(320,430,452,330); ctx.quadraticCurveTo(560,262,694,238); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(452,330); ctx.quadraticCurveTo(640,340,836,382); ctx.stroke();
-  /* trees */
-  [[36,318],[356,300],[618,268],[726,206],[580,120],[248,180],[880,210]].forEach(function(tr, i){
-    var sway = Math.sin(t*0.9 + i*1.7)*1.6;
-    ctx.fillStyle = "#6b4a2e"; ctx.fillRect(tr[0]-3, tr[1], 6, 17);
-    ctx.fillStyle = i%2 ? "#4e7040" : "#5d8149";
-    ctx.beginPath(); ctx.arc(tr[0]+sway, tr[1]-10, 16, 0, 7); ctx.arc(tr[0]-12+sway, tr[1]-3, 11, 0, 7); ctx.arc(tr[0]+12+sway, tr[1]-3, 11, 0, 7); ctx.fill();
+/* ================= THREE SETUP ================= */
+var clock;
+function initThree(){
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(46, window.innerWidth/window.innerHeight, 0.1, 400);
+  renderer = new THREE.WebGLRenderer({antialias:true, preserveDrawingBuffer:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.06;
+  document.getElementById("scene").appendChild(renderer.domElement);
+  clock = new THREE.Clock();
+  window.addEventListener("resize", function(){
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
   });
-  /* houses */
-  [[82,282],[300,244],[552,302],[724,122],[348,452],[548,434]].forEach(function(hs){
-    ctx.fillStyle = "#d9c49a"; rr(hs[0], hs[1], 46, 30, 2); ctx.fill();
-    ctx.fillStyle = "#8a4f35"; ctx.beginPath(); ctx.moveTo(hs[0]-4, hs[1]); ctx.lineTo(hs[0]+50, hs[1]); ctx.lineTo(hs[0]+23, hs[1]-16); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = "#ffe9a3"; ctx.fillRect(hs[0]+8, hs[1]+9, 9, 9);
-  });
-  /* stations */
-  STATIONS.forEach(function(st){
-    if(st.id==="home") return;
-    if(st.id==="well"){
-      ctx.fillStyle = "#8d99a0"; ctx.beginPath(); ctx.ellipse(st.x, st.y+8, 19, 7, 0, 0, 7); ctx.fill();
-      ctx.fillStyle = "#5a4230"; ctx.fillRect(st.x-17, st.y-18, 4, 26); ctx.fillRect(st.x+13, st.y-18, 4, 26);
-      ctx.fillStyle = "#7c4a30"; ctx.beginPath(); ctx.moveTo(st.x-22, st.y-16); ctx.lineTo(st.x+22, st.y-16); ctx.lineTo(st.x, st.y-30); ctx.closePath(); ctx.fill();
-      txt(st.icon, st.x, st.y-38, 15, "#fff");
-    } else if(st.id==="green"){
-      ctx.fillStyle = "rgba(255,255,255,.05)"; ctx.beginPath(); ctx.ellipse(st.x, st.y+16, 82, 30, 0, 0, 7); ctx.fill();
-      txt(st.icon, st.x, st.y-38, 16, "#fff");
-    } else if(st.id==="fields"){
-      txt(st.icon, 190, 348, 16, "#fff");
-    } else drawBuilding(st, t);
-    /* objective marker */
-    if(G.objective && !G.objDone && G.objective.stations.indexOf(st.id)>=0){
-      var pulse = 3 + Math.sin(t*4)*1.6;
-      ctx.strokeStyle = "#f5c86a"; ctx.lineWidth = 2.5;
-      ctx.beginPath(); ctx.ellipse(st.x, st.y+14, 44+pulse, 20+pulse*0.5, 0, 0, 7); ctx.stroke();
-      txt("⚑", st.x, st.y-52, 19, "#f5c86a");
-    }
-    if(st.id==="clinic" && edictActive("quarantine")) txt("🚧", st.x+44, st.y-30, 17, "#fff");
-  });
-  /* smoke */
-  FX.smoke = FX.smoke.filter(function(p){ return p.life < 3.4; });
-  FX.smoke.forEach(function(p){
-    p.life += 0.016; p.y -= 0.55; p.x += Math.sin(p.life*2)*0.3; p.r += 0.05;
-    ctx.fillStyle = "rgba(215,222,228," + (0.5*(1 - p.life/3.4)) + ")";
-    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill();
-  });
-  /* pulses (imitation made visible) */
-  G.pulses.forEach(function(p){
-    var pr = (t - p.start)/p.dur;
-    if(pr<0 || pr>1) return;
-    ctx.strokeStyle = "rgba(245,200,106," + (0.65*(1-pr)) + ")"; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(p.x1, p.y1); ctx.lineTo(p.x2, p.y2); ctx.stroke();
-    ctx.fillStyle = "#f5c86a"; ctx.beginPath(); ctx.arc(p.x1 + (p.x2-p.x1)*pr, p.y1 + (p.y2-p.y1)*pr, 3.6, 0, 7); ctx.fill();
-  });
-  /* residents, sorted by y */
-  var sorted = G.residents.slice().sort(function(a,b){ return a.y - b.y; });
-  sorted.forEach(function(r){ drawResident(r, t); });
-  /* spotlight beam */
-  if(G.spotlightTarget){
-    var sr = res(G.spotlightTarget);
-    if(sr){
-      var bg = ctx.createLinearGradient(0, sr.y-130, 0, sr.y);
-      bg.addColorStop(0, "rgba(245,200,106,0)"); bg.addColorStop(1, "rgba(245,200,106,.30)");
-      ctx.fillStyle = bg; ctx.beginPath(); ctx.moveTo(sr.x-6, sr.y-132); ctx.lineTo(sr.x+6, sr.y-132); ctx.lineTo(sr.x+24, sr.y); ctx.lineTo(sr.x-24, sr.y); ctx.closePath(); ctx.fill();
-    }
-  }
-  /* snow */
-  if(phaseOf(G.week)===3){
-    ctx.fillStyle = "rgba(240,247,252,.9)";
-    FX.snow.forEach(function(p){
-      p.y += p.v*0.016; p.x += Math.sin(t + p.ph)*0.4;
-      if(p.y>545){ p.y = -4; p.x = Math.random()*960; }
-      ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, 7); ctx.fill();
-    });
-  }
-  /* banner */
-  if(G.banner && t < G.banner.until){
-    var ba = Math.min(1, (G.banner.until - t)/0.6);
-    ctx.fillStyle = "rgba(5,8,12," + (0.45*ba) + ")"; ctx.fillRect(0, 218, CW, 104);
-    ctx.globalAlpha = ba;
-    txt(G.banner.text, CW/2, 262, 34, "#f5c86a", "center", "800");
-    txt(G.banner.sub, CW/2, 292, 14, "#ece5d3", "center", "700");
-    ctx.globalAlpha = 1;
-  }
-  /* vignette + slow-mo tint */
-  var vg = ctx.createRadialGradient(480,270,300,480,270,640);
-  vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(0,0,0,.30)");
-  ctx.fillStyle = vg; ctx.fillRect(0,0,CW,CH);
-  if(G.incident){ ctx.fillStyle = "rgba(16,10,30,.16)"; ctx.fillRect(0,0,CW,CH); }
 }
-function drawResident(r, t){
-  var moving = r.state==="move";
-  var bob = moving ? Math.abs(Math.sin(t*11 + r.x*0.1))*2.2 : Math.sin(t*2 + r.y)*0.5;
-  var y = r.y - bob;
-  ctx.fillStyle = "rgba(20,18,10,.25)"; ctx.beginPath(); ctx.ellipse(r.x, r.y+4, 10, 3.4, 0, 0, 7); ctx.fill();
-  if(r.model){
-    ctx.fillStyle = "rgba(227,170,61,.10)"; ctx.beginPath(); ctx.arc(r.x, y-8, 47, 0, 7); ctx.fill();
-    ctx.strokeStyle = "rgba(227,170,61,.75)"; ctx.lineWidth = 1.6; ctx.setLineDash([4,4]); ctx.lineDashOffset = -t*9;
-    ctx.beginPath(); ctx.arc(r.x, y-8, 47, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+function updateCamera(dt){
+  if(cam.follow){
+    var a = agent(cam.follow);
+    if(a){ cam.target.x += (a.x - cam.target.x) * Math.min(1, dt*4); cam.target.z += (a.z - cam.target.z) * Math.min(1, dt*4); }
   }
-  if(G.selected===r.id){
-    ctx.strokeStyle = "#fff"; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(r.x, y-10, 15.5, 0, 7); ctx.stroke();
-    ctx.strokeStyle = "#f5c86a";
-    ctx.beginPath(); ctx.moveTo(r.x, y-34); ctx.lineTo(r.x-5, y-43); ctx.lineTo(r.x+5, y-43); ctx.closePath(); ctx.fillStyle = "#f5c86a"; ctx.fill(); ctx.stroke();
-  }
-  /* legs */
-  ctx.strokeStyle = "#3a3230"; ctx.lineWidth = 3; ctx.lineCap = "round";
-  var lp = moving ? Math.sin(t*11 + r.x*0.1)*4 : 0;
-  ctx.beginPath(); ctx.moveTo(r.x-3, y+1); ctx.lineTo(r.x-3+lp, y+7); ctx.moveTo(r.x+3, y+1); ctx.lineTo(r.x+3-lp, y+7); ctx.stroke();
-  /* body + head */
-  ctx.fillStyle = r.shirt; rr(r.x-7.5, y-15, 15, 17, 5); ctx.fill();
-  ctx.fillStyle = r.skin; ctx.beginPath(); ctx.arc(r.x, y-21, 6.8, 0, 7); ctx.fill();
-  ctx.fillStyle = r.hairC;
-  if(r.hair===1){ ctx.beginPath(); ctx.arc(r.x, y-28.5, 3, 0, 7); ctx.fill(); }
-  if(r.hair===4){ ctx.fillRect(r.x-8.5, y-25, 3.4, 11); ctx.fillRect(r.x+5.1, y-25, 3.4, 11); }
-  ctx.beginPath(); ctx.arc(r.x, y-21.5, 6.8, Math.PI*1.02, Math.PI*1.98); ctx.fill();
-  if(r.hair===3){ ctx.beginPath(); ctx.arc(r.x, y-17.5, 5.4, 0.15*Math.PI, 0.85*Math.PI); ctx.fill(); }
-  /* bars */
-  var showBars = G.selected===r.id || r.model || r.morale<62 || r.energy<40;
-  if(showBars){
-    ctx.fillStyle = "rgba(5,8,11,.7)"; ctx.fillRect(r.x-12, y-40, 24, 4); ctx.fillRect(r.x-12, y-34.5, 24, 3.4);
-    ctx.fillStyle = r.morale>=45 ? "#84c95e" : r.morale>=25 ? "#e8b93e" : "#e05a4e";
-    ctx.fillRect(r.x-12, y-40, 24*r.morale/100, 4);
-    ctx.fillStyle = "#6fb3e8"; ctx.fillRect(r.x-12, y-34.5, 24*r.energy/100, 3.4);
-  }
-  if(G.selected===r.id || r.model) txt(r.name.split(" ")[0], r.x, y-46, 10.5, "#fff", "center", "800");
-  /* disposition icons: always for the dangerous two, else when notable */
-  if(r.disp==="Feuding" || r.disp==="Withdrawn" || r.model || G.selected===r.id){
-    txt(DISPO[r.disp].icon, r.x+14, y-24, 11, DISPO[r.disp].col);
-  }
-  /* thought bubble */
-  if(r.bubble && r.bubbleUntil>t){
-    ctx.fillStyle = "rgba(252,250,244,.95)"; rr(r.x+8, y-62, 24, 19, 6); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(r.x+13, y-44); ctx.lineTo(r.x+10, y-37); ctx.lineTo(r.x+19, y-44); ctx.closePath(); ctx.fill();
-    txt(r.bubble, r.x+20, y-48, 12.5, "#222");
-  }
+  cam.target.x = Math.max(-38, Math.min(38, cam.target.x));
+  cam.target.z = Math.max(-30, Math.min(32, cam.target.z));
+  var sp = Math.sin(cam.pitch), x = cam.target.x + cam.dist * sp * Math.sin(cam.yaw);
+  var z = cam.target.z + cam.dist * sp * Math.cos(cam.yaw);
+  var y = cam.dist * Math.cos(cam.pitch);
+  camera.position.set(x, y, z);
+  camera.lookAt(cam.target.x, 1, cam.target.z);
 }
-
-/* =============== HUD (DOM) =============== */
-var RESDEF = [
-  {k:"productivity", icon:"⚒", label:"Output"}, {k:"trust", icon:"⚖", label:"Trust"},
-  {k:"cohesion", icon:"🤝", label:"Cohesion"}, {k:"rivalry", icon:"⚡", label:"Rivalry", bad:true},
-  {k:"scarcity", icon:"🍞", label:"Scarcity", bad:true}, {k:"autonomy", icon:"🧭", label:"Autonomy"}
-];
-var EDICTS = {
-  feast:{icon:"🍞", label:"Feast Day", fx:{scarcity:-4, cohesion:4, productivity:-2}},
-  audit:{icon:"📖", label:"Open Audit", fx:{trust:5, rivalry:-2}},
-  stories:{icon:"🔥", label:"Night of Stories", fx:{autonomy:3, cohesion:2, trust:1}}
-};
-var soundOnGlobal = false, pickPolicy = "openbooks", pickDiff = "standard";
-function hairPath(r, cx, cy, rad){
-  var c = r.hairC;
-  if(r.hair===0) return "<path d='M " + (cx-rad) + " " + cy + " A " + rad + " " + rad + " 0 0 1 " + (cx+rad) + " " + cy + " L " + (cx+rad) + " " + (cy-rad*0.28) + " A " + rad + " " + (rad*0.72) + " 0 0 0 " + (cx-rad) + " " + (cy-rad*0.28) + " Z' fill='" + c + "'/>";
-  if(r.hair===1) return "<circle cx='" + cx + "' cy='" + (cy-rad-2) + "' r='" + (rad*0.34) + "' fill='" + c + "'/>" + hairPath(Object.assign({}, r, {hair:0}), cx, cy, rad);
-  if(r.hair===3) return hairPath(Object.assign({}, r, {hair:2}), cx, cy, rad) + "<path d='M " + (cx-rad*0.82) + " " + (cy+rad*0.3) + " A " + (rad*0.9) + " " + (rad*0.8) + " 0 0 0 " + (cx+rad*0.82) + " " + (cy+rad*0.3) + " L " + (cx+rad*0.6) + " " + (cy+rad*0.95) + " A " + (rad*0.62) + " " + (rad*0.5) + " 0 0 1 " + (cx-rad*0.6) + " " + (cy+rad*0.95) + " Z' fill='" + c + "'/>";
-  if(r.hair===4) return "<rect x='" + (cx-rad-3) + "' y='" + (cy-rad*0.4) + "' width='7' height='" + (rad*1.5) + "' rx='3' fill='" + c + "'/><rect x='" + (cx+rad-4) + "' y='" + (cy-rad*0.4) + "' width='7' height='" + (rad*1.5) + "' rx='3' fill='" + c + "'/>" + hairPath(Object.assign({}, r, {hair:0}), cx, cy, rad);
-  return "<path d='M " + (cx-rad) + " " + (cy-rad*0.1) + " A " + rad + " " + rad + " 0 0 1 " + (cx+rad) + " " + (cy-rad*0.1) + " L " + (cx+rad) + " " + (cy-rad*0.42) + " A " + rad + " " + (rad*0.66) + " 0 0 0 " + (cx-rad) + " " + (cy-rad*0.42) + " Z' fill='" + c + "'/>";
-}
-function portraitSVG(r, size){
-  var mouth = r.morale>=55 ? "<path d='M42 56 Q50 61 58 56' stroke='#5a3a26' stroke-width='2.2' fill='none' stroke-linecap='round'/>"
-    : r.morale>=30 ? "<line x1='43' y1='57' x2='57' y2='57' stroke='#5a3a26' stroke-width='2.2' stroke-linecap='round'/>"
-    : "<path d='M42 59 Q50 54 58 59' stroke='#5a3a26' stroke-width='2.2' fill='none' stroke-linecap='round'/>";
-  return "<svg width='" + size + "' height='" + size + "' viewBox='0 0 100 100' style='border-radius:8px;border:1px solid var(--line2)' aria-hidden='true'>"
-    + "<rect width='100' height='100' fill='#1b2531'/><path d='M18 100 L27 72 Q50 60 73 72 L82 100 Z' fill='" + r.shirt + "'/>"
-    + "<rect x='44' y='56' width='12' height='12' fill='" + r.skin + "'/><circle cx='50' cy='42' r='19' fill='" + r.skin + "'/>"
-    + hairPath(r, 50, 42, 19)
-    + "<circle cx='43' cy='43' r='2' fill='#1c150e'/><circle cx='57' cy='43' r='2' fill='#1c150e'/>" + mouth + "</svg>";
-}
-function activityOf(r){
-  if(r.state==="move") return "En route → " + (station(r.stationId) ? station(r.stationId).name : "Home");
-  if(r.state==="act"){
-    if(r.stationId==="home") return r.energy>90 ? "Idle at home" : "Resting";
-    if(r.stationId==="green") return "Socializing";
-    return "Working: " + station(r.stationId).name;
+/* ================= HUD ================= */
+function activityText(a){
+  if(a.sick) return "Unwell, by the fire";
+  if(a.state === "walk") return a.medicTask ? "Hurrying to Rosa" : "Going to " + (stationW(a.stationId) ? stationW(a.stationId).name : "somewhere");
+  if(a.state === "watch") return "Watching " + (a.watchOf ? agent(a.watchOf).name.split(" ")[0] : "");
+  if(a.state === "kneel") return "Treating Rosa";
+  if(a.state === "sit") return a.stationId === "home" ? "Resting at home" : "Sitting";
+  if(a.state === "act"){
+    if(a.stationId === "clinic") return a.carrying === "plank" ? "Carrying a plank" : "🔨 Repairing the roof";
+    if(a.stationId === "fields") return "🌿 Working the fields";
+    if(a.stationId === "store") return a.carrying === "crate" ? "Carrying a crate" : "📦 Hauling stores";
+    if(a.stationId === "green") return "🌳 With the village";
+    if(a.stationId === "well") return "💧 Drawing water";
+    if(a.stationId === "mill") return a.carrying === "crate" ? "Carrying grain" : "🌾 Milling grain";
+    if(a.stationId === "school") return "📚 At the school";
+    return "Working";
   }
   return "Idle";
 }
-var uiCache = {sel:"", ord:"", glob:"", alerts:""};
-function renderHUD(){
-  if(!G) return;
-  /* resources + trends */
-  var rh = "";
-  RESDEF.forEach(function(d){
-    var v = Math.round(G.stats[d.k]), old = G.snap[d.k] || v;
-    var arrow = "·", ac = "var(--ink3)";
-    if(v > old + 1){ arrow = "▲"; ac = d.bad ? "var(--red)" : "var(--green)"; }
-    if(v < old - 1){ arrow = "▼"; ac = d.bad ? "var(--green)" : "var(--red)"; }
-    rh += "<div class='res'><span class='ic'>" + d.icon + "</span><span class='reswrap'><small>" + d.label + "</small><span><span class='v'>" + v + "</span> <span class='tr' style='color:" + ac + "'>" + arrow + "</span></span></span></div>";
-  });
-  document.getElementById("resources").innerHTML = rh;
-  document.getElementById("weekChip").textContent = "WEEK " + Math.min(G.week,12) + " / 12 · ☀ " + Math.round(G.weekTime/WEEK_LEN*100) + "%";
-  /* objective */
-  var ob = document.getElementById("objectiveBox");
-  if(G.objective){
-    document.querySelector("#objectiveBox .ok").textContent = (G.objDone ? "OBJECTIVE DONE" : "OBJECTIVE") + " · WEEK " + G.objective.week;
-    document.getElementById("objTitle").textContent = G.objective.title;
-    var pct = Math.min(100, Math.round(G.objective.progress / G.objective.target * 100));
-    document.getElementById("objBar").style.width = pct + "%";
-    document.getElementById("objPct").textContent = pct + "%";
-    document.getElementById("objHint").textContent = "Work at: " + G.objective.stations.map(function(s){ return station(s).name; }).join(" + ");
-    ob.className = "objective" + (G.objDone ? " done" : "");
-  }
-  renderSelBox(); renderOrders(); renderGlobals(); renderRoster(); renderCoach();
-}
-function renderSelBox(){
-  var el = document.getElementById("selBox");
-  var key = (G.selected||"") + "|" + (G.selStation||"");
-  var r = G.selected ? res(G.selected) : null;
-  if(r) key += "|" + Math.round(r.morale/4) + "|" + Math.round(r.energy/4) + "|" + r.disp + "|" + activityOf(r) + "|" + Math.round(r.visibility);
-  if(key === uiCache.sel && !G.over) { /* still refresh cheap bars below */ }
-  if(key === uiCache.sel) return;
-  uiCache.sel = key;
-  if(r){
-    el.innerHTML = "<div class='port'>" + portraitSVG(r, 86) + "</div><div style='min-width:0'>"
-      + "<div class='role'>" + r.role + (r.model ? " · <span style='color:var(--gold)'>🔥 MODEL</span>" : "") + "</div>"
-      + "<h3>" + r.name + "</h3>"
-      + "<div style='margin:3px 0'><span class='chip' style='color:" + DISPO[r.disp].col + ";border-color:" + DISPO[r.disp].col + "'>" + DISPO[r.disp].icon + " " + r.disp + "</span></div>"
-      + "<div class='mbars'>"
-      + "<div class='mbar'>Morale<div class='mb'><i style='width:" + r.morale + "%;background:" + (r.morale>=45?"var(--green)":r.morale>=25?"var(--amber)":"var(--red)") + "'></i></div>" + Math.round(r.morale) + "</div>"
-      + "<div class='mbar'>Energy<div class='mb'><i style='width:" + r.energy + "%;background:var(--blue)'></i></div>" + Math.round(r.energy) + "</div>"
-      + "<div class='mbar'>Watched<div class='mb'><i style='width:" + r.visibility + "%;background:var(--gold)'></i></div>" + Math.round(r.visibility) + "</div>"
-      + "</div>"
-      + "<div style='font-size:12px;color:var(--ink2);margin-top:5px'>" + activityOf(r) + (r.order ? " · Ordered: " + station(r.order).name : " · Free will") + "</div>"
-      + "</div>";
-  } else if(G.selStation){
-    var st = station(G.selStation);
-    var wk = stationWorkers(st.id);
-    el.innerHTML = "<div><div class='role'>Station</div><h3>" + st.icon + " " + st.name + "</h3>"
-      + "<div style='font-size:13px;color:var(--ink2);margin-top:4px'>Hands here: " + (wk.length ? wk.map(function(w){ return w.name.split(" ")[0]; }).join(", ") : "nobody") + "</div>"
-      + "<div style='font-size:12.5px;color:var(--ink2);margin-top:3px'>" + (G.objective && G.objective.stations.indexOf(st.id)>=0 ? "🚩 This week's objective building." : "Not this week's objective.") + "</div>"
-      + "<button class='btn' id='sendIdleBtn' type='button' style='margin-top:8px;padding:7px 13px'>Send idle hands here</button></div>";
-    var b = document.getElementById("sendIdleBtn");
-    if(b) b.addEventListener("click", function(){ sendIdleHere(st.id); });
+var CMDS = [
+  {id:"auto", icon:"◎", label:"Free will"}, {id:"clinic", icon:"✚", label:"Clinic"},
+  {id:"fields", icon:"🌿", label:"Fields"}, {id:"store", icon:"📦", label:"Stores"},
+  {id:"green", icon:"🌳", label:"Green"}, {id:"mill", icon:"🌾", label:"Mill"},
+  {id:"school", icon:"📚", label:"School"}, {id:"well", icon:"💧", label:"Well"},
+  {id:"home", icon:"🏠", label:"Rest"}
+];
+var trayKey = "";
+function refreshTray(force){
+  var a = G.selected ? agent(G.selected) : null;
+  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp : "") + "|" + (cam.follow || "") + "|" + (G.spotCd > G.t ? "cd" : "rdy") + "|" + G.armed;
+  if(!force && key === trayKey) return;
+  trayKey = key;
+  var info = document.getElementById("selInfo");
+  if(a){
+    info.innerHTML = "<div class='rl'>" + a.role + " · <span style='color:" + DISPO3[a.disp].col + "'>" + DISPO3[a.disp].icon + " " + a.disp + "</span></div>"
+      + "<div class='nm'>" + (a.vis >= 60 ? "🔥 " : "") + a.name + "</div>"
+      + "<div class='st'>" + activityText(a) + " · ⚡" + Math.round(a.energy) + " ♥" + Math.round(a.morale) + " 👀" + Math.round(a.vis) + "</div>";
   } else {
-    var idle = G.residents.filter(function(x){ return activityOf(x)==="Idle" || activityOf(x)==="Idle at home"; }).length;
-    var models = G.residents.filter(function(x){ return x.model; }).length;
-    var wd = G.residents.filter(function(x){ return x.disp==="Withdrawn"; }).length;
-    el.innerHTML = "<div><div class='role'>Village</div><h3>No selection</h3>"
-      + "<div style='font-size:13px;color:var(--ink2);margin-top:4px'>Tap a resident to command them.<br>Tap a building to inspect it, or to send the selected resident there.</div>"
-      + "<div style='font-size:12.5px;color:var(--ink2);margin-top:6px'>🔥 " + models + " models · 👤 " + idle + " idle · ☾ " + wd + " withdrawn · ⚒ " + G.objectsDone + "/12 objectives</div></div>";
+    info.innerHTML = "<div class='rl'>Village</div><div class='nm'>No selection</div><div class='st'>Tap a resident. Tap a building to send them. Drag to look around.</div>";
   }
-}
-function renderOrders(){
-  var el = document.getElementById("orderGrid");
-  var r = G.selected ? res(G.selected) : null;
-  var key = (G.selected||"") + "|" + (r ? (r.order||"auto") : "");
-  if(key === uiCache.ord) return;
-  uiCache.ord = key;
-  el.innerHTML = ORDERS.map(function(o){
-    var on = r && ((o.id==="auto" && !r.order) || r.order===o.id);
-    return "<button class='obtn" + (on?" on":"") + "' type='button' data-o='" + o.id + "'" + (!r?" disabled":"") + "><span class='oi'>" + o.icon + "</span><span class='ol'>" + o.label + "</span></button>";
+  var html = CMDS.map(function(c){
+    var on = a && ((c.id === "auto" && !a.order) || a.order === c.id);
+    return "<button class='cbtn" + (on ? " on" : "") + "' data-o='" + c.id + "'" + (!a ? " disabled" : "") + "><span class='i'>" + c.icon + "</span><span class='l'>" + c.label + "</span></button>";
   }).join("");
-  el.querySelectorAll(".obtn").forEach(function(b){ b.addEventListener("click", function(){ setOrder(b.getAttribute("data-o")); }); });
-  document.getElementById("ordHint").textContent = r ? (r.name.split(" ")[0] + ": orders override free will. Autonomy notices.") : "Select a resident, then tap a station on the map, or use these";
-}
-function renderGlobals(){
-  var el = document.getElementById("globalBar");
-  var cdLeft = Math.max(0, G.spotlightCD - G.t);
-  var key = cdLeft.toFixed(0) + "|" + G.charges.feast + G.charges.audit + G.charges.stories + "|" + G.armed + "|" + Math.round((G.spotlightUntil-G.t)*2);
-  if(key === uiCache.glob) return;
-  uiCache.glob = key;
-  var html = "<button class='gbtn' id='spotBtn' type='button'" + (cdLeft>0 || G.over ? " disabled" : "") + ">✨ Spotlight" + (cdLeft>0 ? " <span class='chg'>" + Math.ceil(cdLeft) + "s</span>" : "") + (G.armed ? " · tap a resident" : "") + "</button>";
-  Object.keys(EDICTS).forEach(function(id){
-    var e = EDICTS[id];
-    html += "<button class='gbtn' data-e='" + id + "' type='button'" + (G.charges[id]<=0 || G.over ? " disabled" : "") + ">" + e.icon + " " + e.label + " <span class='chg'>x" + G.charges[id] + "</span></button>";
-  });
-  el.innerHTML = html;
-  var sb = document.getElementById("spotBtn");
-  if(sb) sb.addEventListener("click", function(){ if(G.spotlightCD<=G.t){ G.armed = true; uiCache.glob = ""; renderGlobals(); } });
-  el.querySelectorAll("[data-e]").forEach(function(b){ b.addEventListener("click", function(){ useEdict(b.getAttribute("data-e")); }); });
-}
-function renderRoster(){
-  var el = document.getElementById("roster");
-  el.innerHTML = G.residents.map(function(r){
-    var act = activityOf(r);
-    var idle = act==="Idle" || act==="Idle at home";
-    return "<button class='rcard" + (G.selected===r.id?" sel":"") + (idle?" idle":"") + "' type='button' data-id='" + r.id + "'>"
-      + "<span class='rn'>" + (r.model?"🔥":"") + r.name.split(" ")[0] + "</span>"
-      + "<span class='rb'><i style='width:" + r.morale + "%;background:" + (r.morale>=45?"var(--green)":r.morale>=25?"var(--amber)":"var(--red)") + "'></i></span>"
-      + "<span class='rs'><span>" + DISPO[r.disp].icon + " " + r.disp + "</span><span>" + (idle?"👤 idle":act.replace("Working: ","⚒ ").replace("Resting","💤").replace("Socializing","🌳").replace("En route → ","→ ")) + "</span></span></button>";
-  }).join("");
-  el.querySelectorAll(".rcard").forEach(function(c){ c.addEventListener("click", function(){ selectResident(c.getAttribute("data-id")); }); });
-}
-function renderAlerts(){
-  var el = document.getElementById("alerts");
-  el.innerHTML = G.alerts.map(function(a){
-    return "<button class='alert " + a.cls + "' type='button' data-rid='" + (a.rid||"") + "'><span class='ai'>" + a.icon + "</span><span>" + a.text + "</span></button>";
-  }).join("");
-  el.querySelectorAll(".alert").forEach(function(b){
+  html += "<button class='cbtn" + (cam.follow ? " on" : "") + "' data-o='follow'" + (!a ? " disabled" : "") + "><span class='i'>🎥</span><span class='l'>Follow</span></button>";
+  html += "<button class='cbtn" + (G.armed ? " on" : "") + "' data-o='spot'" + (!a || G.spotCd > G.t ? " disabled" : "") + "><span class='i'>✨</span><span class='l'>Spotlight</span></button>";
+  var cmds = document.getElementById("cmds");
+  cmds.innerHTML = html;
+  cmds.querySelectorAll(".cbtn").forEach(function(b){
     b.addEventListener("click", function(){
-      var rid = b.getAttribute("data-rid");
-      if(rid){ selectResident(rid); if(G.coachStep===3){ G.coachStep = 99; } }
+      var o = b.getAttribute("data-o");
+      if(o === "follow"){ cam.follow = cam.follow ? null : G.selected; refreshTray(true); return; }
+      if(o === "spot"){ G.armed = true; showToast("✨ Tap a resident to spotlight them"); refreshTray(true); return; }
+      setOrder3(o);
     });
   });
 }
-var lastAlertKey = "";
-function renderAlertsThrottled(){
-  if(!G) return;
-  var key = G.alerts.length + "|" + (G.alerts[0] ? G.alerts[0].text : "");
-  if(key !== lastAlertKey){ lastAlertKey = key; renderAlerts(); }
+function setOrder3(orderId){
+  var a = G.selected ? agent(G.selected) : null;
+  if(!a || a.sick) return;
+  a.order = (orderId === "auto") ? null : orderId;
+  a.mimicStation = null; a.visitId = null;
+  if(a.state !== "walk"){ a.state = "idle"; a.decideT = 0; }
+  refreshTray(true);
 }
-function renderIncident(){
-  var box = document.getElementById("incidentBox");
-  if(!G.incident){ box.classList.remove("open"); return; }
-  var d = G.incident.data;
-  var html = "<div class='ik'>" + (G.incident.feud ? "⚡ ALERT" : d.kick + " · INCIDENT") + "</div><h3>" + d.title + "</h3><p>" + d.line + "</p><div class='opts'>";
-  d.opts.forEach(function(o, i){
-    html += "<button class='iopt" + (o.blame?" blame":"") + "' type='button' data-i='" + i + "'><span class='ii'>" + o.icon + "</span><span class='il'>" + o.label + "</span><span class='ih'>" + o.hint + "</span></button>";
+function showToast(msg){
+  var t = document.getElementById("toast");
+  t.textContent = msg; t.style.display = "block";
+  t.setAttribute("data-hide", String(Date.now() + 3600));
+}
+var hudAcc = 0;
+function hudTick(dt){
+  hudAcc += dt;
+  var t = document.getElementById("toast");
+  if(t.style.display === "block" && Date.now() > parseInt(t.getAttribute("data-hide") || "0", 10)) t.style.display = "none";
+  if(hudAcc < 0.15) return;
+  hudAcc = 0;
+  var o = OBJECTIVES[G.week - 1];
+  var pct = o ? Math.max(0, Math.min(100, Math.round(o.metric()))) : 0;
+  document.getElementById("objK").textContent = "OBJECTIVE · WEEK " + G.week + (G.objComplete ? " · ✓ DONE" : "");
+  document.getElementById("objT").textContent = o ? (o.icon + " " + o.title) : "";
+  document.getElementById("objHint").textContent = o ? o.hint : "";
+  document.getElementById("objBar").style.width = pct + "%";
+  document.getElementById("objPct").textContent = pct + "%";
+  document.getElementById("weekChip").textContent = "WEEK " + G.week + "/12 · ☀ " + Math.round(G.weekTime / WEEK_LEN * 100) + "%";
+  document.getElementById("storesN").textContent = G.stores;
+  document.getElementById("copiedN").textContent = G.copied;
+  var s = G.stats;
+  [["prod","prod"],["trust","trust"],["coh","cohesion"],["riv","rivalry"],["scar","scarcity"],["aut","autonomy"]].forEach(function(pr){
+    document.getElementById("bar-" + pr[0]).style.width = s[pr[1]] + "%";
+    document.getElementById("val-" + pr[0]).textContent = Math.round(s[pr[1]]);
   });
-  html += "</div>";
-  box.innerHTML = html;
-  box.classList.add("open");
-  box.querySelectorAll(".iopt").forEach(function(b){ b.addEventListener("click", function(){ resolveIncident(parseInt(b.getAttribute("data-i"),10)); }); });
+  refreshTray(false);
 }
-function renderEnd(){
-  var e = G.endData, s = G.stats;
-  var html = "<div class='kick'>WINTER COUNT · FINAL</div><h2>The Winter Verdict</h2>"
-    + "<span class='stamp'>" + e.ending.name + "</span>"
-    + "<p style='color:var(--ink2)'>" + e.ending.body + "</p>";
-  if(e.medals.length) html += "<div class='medals'>" + e.medals.map(function(m){ return "<span class='medal'>🏅 " + m + "</span>"; }).join("") + "</div>";
-  html += "<p style='font-size:13px;color:var(--ink2)'>Objectives completed: " + G.objectsDone + " of 12 · Imitations witnessed: " + G.copies + " · Blame used: " + G.blame + " time" + (G.blame===1?"":"s") + "</p>";
-  RESDEF.forEach(function(d){
-    var v = Math.round(s[d.k]), eff = d.bad ? 100-v : v;
-    var g = eff>=75?"S":eff>=60?"A":eff>=45?"B":eff>=30?"C":"D";
-    html += "<div class='prow'><span>" + d.icon + " " + d.label + "</span><span class='pg'>" + g + " · " + v + "</span></div>";
-  });
-  G.residents.forEach(function(r){
-    var g = r.morale>=70?"A":r.morale>=50?"B":r.morale>=30?"C":"D";
-    html += "<div class='prow'><span>" + r.name + " <span style='color:var(--ink2)'>" + DISPO[r.disp].icon + " " + r.disp + "</span></span><span class='pg'>" + g + "</span></div>";
-  });
-  html += "<div style='margin-top:16px'><button class='btn primary' id='againBtn' type='button'>Play another season</button></div>";
-  document.getElementById("endCard").innerHTML = html;
-  document.getElementById("endOverlay").classList.add("open");
-  document.getElementById("againBtn").addEventListener("click", function(){
-    document.getElementById("endOverlay").classList.remove("open");
-    toLobby();
+var projV = null;
+function updateLabels(){
+  if(!projV) projV = new THREE.Vector3();
+  var w = window.innerWidth, h = window.innerHeight;
+  G.agents.forEach(function(a){
+    projV.set(a.x, 2.5, a.z).project(camera);
+    var sx = (projV.x * 0.5 + 0.5) * w, sy = (-projV.y * 0.5 + 0.5) * h;
+    var behind = projV.z > 1;
+    var showName = !behind && (G.selected === a.id || a.vis >= 60);
+    a.labelEl.style.display = showName ? "block" : "none";
+    if(showName){
+      a.labelEl.style.left = sx + "px"; a.labelEl.style.top = sy + "px";
+      var txt = (a.vis >= 60 ? "🔥 " : "") + a.name.split(" ")[0] + (G.selected === a.id ? " · " + a.role : "");
+      if(a.labelEl.textContent !== txt) a.labelEl.textContent = txt;
+    }
+    var showBub = !behind && a.bubble && G.t < a.bubbleUntil;
+    a.bubbleEl.style.display = showBub ? "block" : "none";
+    if(showBub){
+      a.bubbleEl.style.left = sx + "px"; a.bubbleEl.style.top = (sy - 16) + "px";
+      if(a.bubbleEl.textContent !== a.bubble) a.bubbleEl.textContent = a.bubble;
+    }
   });
 }
-/* =============== ACTIONS =============== */
-function selectResident(id){
-  G.selected = id; G.selStation = null;
-  var r = res(id);
-  if(r){ r.bubble = DISPO[r.disp].icon; r.bubbleUntil = G.t + 1.2; }
-  uiCache.sel = ""; uiCache.ord = "";
-  renderSelBox(); renderOrders();
-  blip(700, .04);
+/* ================= INPUT ================= */
+var raycaster = new THREE.Raycaster();
+function pickAt(cx, cy){
+  var nd = new THREE.Vector2((cx / window.innerWidth) * 2 - 1, -(cy / window.innerHeight) * 2 + 1);
+  raycaster.setFromCamera(nd, camera);
+  var hits = [];
+  G.agents.forEach(function(a){ hits.push(a.hit); });
+  Object.keys(STATION3).forEach(function(id){ if(STATION3[id].hitMesh) hits.push(STATION3[id].hitMesh); });
+  var found = raycaster.intersectObjects(hits, false);
+  if(found.length){
+    var o = found[0].object;
+    if(o.userData.agentId) return {agent: o.userData.agentId};
+    if(o.userData.stationId) return {station: o.userData.stationId};
+  }
+  return {};
 }
-function selectStation(stId){
-  G.selStation = stId; G.selected = null;
-  uiCache.sel = ""; uiCache.ord = "";
-  renderSelBox(); renderOrders();
-}
-function setOrder(orderId){
-  var r = G.selected ? res(G.selected) : null;
-  if(!r) return;
-  r.order = (orderId==="auto") ? null : orderId;
-  if(r.order && r.stationId !== r.order){ r.state = "idle"; r.decideT = 0; }
-  if(!r.order){ r.state = "idle"; r.decideT = 0; }
-  G.playerOrders = (G.playerOrders||0) + 1;
-  uiCache.ord = ""; uiCache.sel = "";
-  renderOrders(); renderSelBox();
-  blip(560, .05);
-}
-function sendIdleHere(stId){
-  var cands = G.residents.filter(function(r){ return !r.order; }).sort(function(a,b){ return b.idleT - a.idleT; }).slice(0,2);
-  cands.forEach(function(r){ r.order = stId; r.state = "idle"; r.decideT = 0; });
-  if(cands.length) addAlert("⚒", cands.map(function(r){ return r.name.split(" ")[0]; }).join(" + ") + " → " + station(stId).name, "", cands[0].id);
-  uiCache.sel = ""; renderSelBox();
-}
-function useEdict(id){
-  if(!G || G.over || G.charges[id]<=0) return;
-  G.charges[id]--;
-  applyFx(EDICTS[id].fx);
-  addAlert(EDICTS[id].icon, EDICTS[id].label, "", null);
-  uiCache.glob = "";
-  renderGlobals();
-  ding();
-}
-function useSpotlight(id){
-  var r = res(id);
-  if(!r || G.spotlightCD > G.t) return;
-  r.visibility = clamp(r.visibility + 26);
-  r.bubble = "🔥"; r.bubbleUntil = G.t + 3;
-  G.spotlightTarget = id; G.spotlightUntil = G.t + 20;
-  G.spotlightCD = G.t + 25;
-  G.armed = false;
-  addAlert("✨", "Spotlight: " + r.name.split(" ")[0] + " is watched", "", id);
-  uiCache.glob = "";
-  renderGlobals();
-  ding();
-}
-/* =============== COACH MARKS =============== */
-var COACH = [
-  {icon:"👆", text:"Tap a resident. Start with the gold rings.", done:function(){ return !!G.selected; }},
-  {icon:"⚒", text:"Now send them to work: tap a building.", done:function(){ return (G.playerOrders||0) > 0; }},
-  {icon:"🔥", text:"Gold ring = model. Watch the bubbles: the village copies.", done:function(){ return G.coachT > 11 || G.copies > 0; }},
-  {icon:"👤", text:"Idle hands ping on the left. Tap a ping to find them.", done:function(){ return G.coachT > 20; }}
-];
-function renderCoach(){
-  var el = document.getElementById("coach");
-  if(!G || !G.started || G.attract || G.over || G.incident || G.coachStep>=99 || G.coachStep>=COACH.length){ el.classList.remove("show"); return; }
-  var step = COACH[G.coachStep];
-  if(step.done()){ G.coachStep++; G.coachT = 0; renderCoach(); return; }
-  document.getElementById("coachIcon").textContent = step.icon;
-  document.getElementById("coachText").textContent = step.text;
-  el.classList.add("show");
-}
-/* =============== AUDIO =============== */
-var AC = null;
-function tone(freq, dur, delay){
-  if(!soundOnGlobal) return;
-  try{
-    if(!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
-    var t0 = AC.currentTime + (delay||0);
-    var o = AC.createOscillator(), gn = AC.createGain();
-    o.frequency.value = freq; o.type = "sine";
-    gn.gain.setValueAtTime(.05, t0);
-    gn.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
-    o.connect(gn); gn.connect(AC.destination); o.start(t0); o.stop(t0 + dur);
-  }catch(e){}
-}
-function blip(f, d){ tone(f, d||.06, 0); }
-function chime(){ tone(880, .12, 0); tone(660, .16, .1); }
-function ding(){ tone(784, .1, 0); tone(1046, .14, .08); }
-/* =============== INPUT =============== */
-cv.addEventListener("pointerdown", function(ev){
-  if(!G || G.over) return;
-  var rect = cv.getBoundingClientRect();
-  var x = (ev.clientX - rect.left) * CW / rect.width;
-  var y = (ev.clientY - rect.top) * CH / rect.height;
-  var best = null, bd = 24;
-  G.residents.forEach(function(r){ var d = Math.sqrt((r.x-x)*(r.x-x) + (r.y-10-y)*(r.y-10-y)); if(d<bd){ bd = d; best = r; } });
+function tapAt(cx, cy, smart){
+  var p = pickAt(cx, cy);
   if(G.armed){
-    if(best) useSpotlight(best.id); else G.armed = false;
-    uiCache.glob = ""; renderGlobals();
+    if(p.agent){ var t = agent(p.agent); t.vis = Math.min(100, t.vis + 26); setBubble(t, "✨", 2.5); G.spotCd = G.t + 20; G.armed = false; showToast("✨ " + t.name.split(" ")[0] + " is watched now"); refreshTray(true); }
+    else G.armed = false;
     return;
   }
-  if(best){ selectResident(best.id); return; }
-  var hit = null;
-  STATIONS.forEach(function(st){
-    if(st.id==="home") return;
-    if(st.id==="fields"){ if(x>52 && x<332 && y>356 && y<506) hit = st; }
-    else if(st.id==="green"){ if(Math.abs(x-st.x)<80 && Math.abs(y-st.y)<52) hit = st; }
-    else if(st.id==="well"){ if(Math.abs(x-st.x)<30 && Math.abs(y-st.y)<34) hit = st; }
-    else if(x>st.bx-4 && x<st.bx+st.bw+4 && y>st.by-28 && y<st.by+st.bh+6) hit = st;
+  if(p.agent){
+    if(smart && G.selected && G.selected !== p.agent){
+      var me = agent(G.selected), them = agent(p.agent);
+      me.visitId = them.id; me.order = null; goTo(me, them.x + 1.2, them.z + 0.6, me.stationId);
+      refreshTray(true); return;
+    }
+    G.selected = p.agent; refreshTray(true); return;
+  }
+  if(p.station){
+    if(G.selected){ var a2 = agent(G.selected); if(!a2.sick){ a2.order = p.station; a2.mimicStation = null; a2.visitId = null; if(a2.state !== "walk"){ a2.state = "idle"; a2.decideT = 0; } showToast(stationW(p.station).icon + " " + a2.name.split(" ")[0] + " → " + stationW(p.station).name); refreshTray(true); } }
+    else showToast(stationW(p.station).icon + " " + stationW(p.station).name);
+    return;
+  }
+  if(!smart){ G.selected = null; refreshTray(true); }
+}
+function bindInput(){
+  var el = renderer.domElement;
+  var pointers = new Map();
+  var downAt = null, dragged = false, pinchD = 0, pinchA = 0;
+  el.addEventListener("pointerdown", function(e){
+    pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    if(pointers.size === 1){ downAt = {x:e.clientX, y:e.clientY}; dragged = false; }
+    if(pointers.size === 2){
+      var ps = Array.from(pointers.values());
+      pinchD = Math.hypot(ps[0].x - ps[1].x, ps[0].y - ps[1].y);
+      pinchA = Math.atan2(ps[1].y - ps[0].y, ps[1].x - ps[0].x);
+      dragged = true;
+    }
+    el.setPointerCapture(e.pointerId);
   });
-  if(hit){
-    if(G.selected){
-      var r = res(G.selected);
-      if(r){ r.order = hit.id; if(r.stationId!==hit.id){ r.state = "idle"; r.decideT = 0; } G.playerOrders = (G.playerOrders||0)+1; uiCache.ord = ""; uiCache.sel = ""; renderOrders(); renderSelBox(); blip(560, .05); }
-    } else selectStation(hit.id);
-    return;
+  el.addEventListener("pointermove", function(e){
+    if(!pointers.has(e.pointerId)) return;
+    var prev = pointers.get(e.pointerId);
+    var dx = e.clientX - prev.x, dy = e.clientY - prev.y;
+    pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    if(pointers.size === 1 && downAt){
+      if(Math.abs(e.clientX - downAt.x) + Math.abs(e.clientY - downAt.y) > 7) dragged = true;
+      if(dragged){
+        var fwd = new THREE.Vector3(); camera.getWorldDirection(fwd); fwd.y = 0; fwd.normalize();
+        var right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0, 1, 0));
+        var s = cam.dist * 0.0016;
+        cam.target.addScaledVector(right, -dx * s);
+        cam.target.addScaledVector(fwd, dy * s);
+        cam.follow = null;
+      }
+    } else if(pointers.size === 2){
+      var ps = Array.from(pointers.values());
+      var nd = Math.hypot(ps[0].x - ps[1].x, ps[0].y - ps[1].y);
+      var na = Math.atan2(ps[1].y - ps[0].y, ps[1].x - ps[0].x);
+      if(pinchD > 0) cam.dist = Math.max(15, Math.min(62, cam.dist * pinchD / Math.max(20, nd)));
+      cam.yaw += (na - pinchA);
+      pinchD = nd; pinchA = na;
+    }
+  });
+  function endPointer(e){
+    var wasDrag = dragged;
+    pointers.delete(e.pointerId);
+    if(pointers.size === 0){
+      if(!wasDrag && downAt) tapAt(e.clientX, e.clientY, false);
+      downAt = null; dragged = false;
+    }
   }
-  G.selected = null; G.selStation = null;
-  uiCache.sel = ""; uiCache.ord = "";
-  renderSelBox(); renderOrders();
-});
+  el.addEventListener("pointerup", endPointer);
+  el.addEventListener("pointercancel", endPointer);
+  el.addEventListener("wheel", function(e){ e.preventDefault(); cam.dist = Math.max(15, Math.min(62, cam.dist * (e.deltaY > 0 ? 1.1 : 0.9))); }, {passive:false});
+  el.addEventListener("contextmenu", function(e){ e.preventDefault(); tapAt(e.clientX, e.clientY, true); });
+  el.addEventListener("dblclick", function(e){
+    var p = pickAt(e.clientX, e.clientY);
+    if(p.agent){ G.selected = p.agent; cam.follow = (cam.follow === p.agent) ? null : p.agent; refreshTray(true); }
+  });
+  document.addEventListener("keydown", function(e){
+    if(e.code === "Space"){ e.preventDefault(); setSpeed(G.speed === 0 ? 1 : 0); }
+    if(e.key === "q" || e.key === "Q") cam.yaw += 0.35;
+    if(e.key === "e" || e.key === "E") cam.yaw -= 0.35;
+  });
+}
 function setSpeed(n){
-  if(!G) return;
-  if(n>0) G.lastSpeed = n;
   G.speed = n;
-  [0,1,2,4].forEach(function(s){ document.getElementById("sp"+s).classList.toggle("on", s===n); });
+  [0, 1, 2].forEach(function(s){ document.getElementById("sp" + s).classList.toggle("on", s === n); });
 }
 document.getElementById("sp0").addEventListener("click", function(){ setSpeed(0); });
 document.getElementById("sp1").addEventListener("click", function(){ setSpeed(1); });
 document.getElementById("sp2").addEventListener("click", function(){ setSpeed(2); });
-document.getElementById("sp4").addEventListener("click", function(){ setSpeed(4); });
-document.addEventListener("keydown", function(e){
-  if(e.code==="Space" && !G.incident){ e.preventDefault(); if(G) setSpeed(G.speed===0 ? (G.lastSpeed||1) : 0); }
-  if(e.key==="Escape"){ document.getElementById("legendOverlay").classList.remove("open"); }
-});
-document.getElementById("soundBtn").addEventListener("click", function(){
-  soundOnGlobal = !soundOnGlobal;
-  this.textContent = "Sound: " + (soundOnGlobal ? "on" : "off");
-  this.setAttribute("aria-pressed", String(soundOnGlobal));
-  if(soundOnGlobal) tone(660, .07, 0);
-});
-document.getElementById("legendBtn").addEventListener("click", function(){ document.getElementById("legendOverlay").classList.add("open"); });
-document.getElementById("legendClose").addEventListener("click", function(){ document.getElementById("legendOverlay").classList.remove("open"); });
-document.getElementById("restartBtn").addEventListener("click", function(){ toLobby(); });
-function toLobby(){
-  document.getElementById("endOverlay").classList.remove("open");
-  document.getElementById("startOverlay").classList.add("open");
-  if(G) G.started = false;
-}
-/* =============== LOBBY =============== */
-function buildLobby(){
-  var el = document.getElementById("policyPick");
-  el.innerHTML = POLICIES.map(function(p){
-    return "<button class='pick" + (p.id===pickPolicy?" sel":"") + "' type='button' data-p='" + p.id + "'><span class='pi'>" + p.icon + "</span><span class='pt'>" + p.name + "</span><span class='pd'>" + p.desc + "</span></button>";
-  }).join("");
-  el.querySelectorAll(".pick").forEach(function(b){ b.addEventListener("click", function(){ pickPolicy = b.getAttribute("data-p"); buildLobby(); }); });
-  document.querySelectorAll("#diffPick .pick").forEach(function(b){
-    b.classList.toggle("sel", b.getAttribute("data-diff")===pickDiff);
-    b.onclick = function(){ pickDiff = b.getAttribute("data-diff"); buildLobby(); };
-  });
-}
-function begin(){
-  G = newGame(pickPolicy, pickDiff==="hard");
-  G.banner = {text:"WEEK 1", sub:OBJECTIVES[0].title.toUpperCase(), until:2.2};
+document.getElementById("camBtn").addEventListener("click", function(){ cam.target.set(0, 0, 4); cam.yaw = 0; cam.dist = 38; cam.follow = null; refreshTray(true); });
+var chosenDiff = "standard", chosenPolicy = "hearth";
+document.querySelectorAll("#diffSeg .segbtn").forEach(function(b){ b.addEventListener("click", function(){ document.querySelectorAll("#diffSeg .segbtn").forEach(function(x){ x.classList.remove("on"); }); b.classList.add("on"); chosenDiff = b.getAttribute("data-d"); }); });
+document.querySelectorAll("#polSeg .segbtn").forEach(function(b){ b.addEventListener("click", function(){ document.querySelectorAll("#polSeg .segbtn").forEach(function(x){ x.classList.remove("on"); }); b.classList.add("on"); chosenPolicy = b.getAttribute("data-p"); }); });
+function beginGame(){
+  if(G.started) return;
+  G.started = true;
+  G.policy = chosenPolicy; G.difficulty = chosenDiff;
+  if(chosenDiff === "hard"){ G.stats.scarcity = 68; G.stats.trust = 48; G.agents.forEach(function(a){ a.energy -= 10; }); }
+  setObjective();
   document.getElementById("startOverlay").classList.remove("open");
-  uiCache = {sel:"", ord:"", glob:"", alerts:""};
-  lastAlertKey = "__";
-  setSpeed(1);
-  renderHUD();
-  addAlert("🚩", "Objective: " + G.objective.title, "", null);
+  showToast("🔨 Week 1: Mara is on the roof. Bram is watching.");
 }
-document.getElementById("beginBtn").addEventListener("click", begin);
-/* =============== LOOP =============== */
-var lastTs = 0, hudAcc = 0;
-function frame(ts){
-  requestAnimationFrame(frame);
-  if(!lastTs) lastTs = ts;
-  var dt = Math.min(0.05, (ts - lastTs)/1000);
-  lastTs = ts;
-  if(!G) return;
-  if(G.attract && G.incident){
-    G._arT = (G._arT||0) + dt;
-    if(G._arT > 5){ G._arT = 0; resolveIncident(0); }
+document.getElementById("beginBtn").addEventListener("click", beginGame);
+/* ================= MAIN LOOP ================= */
+initThree();
+buildWorld();
+G = newSlice();
+bindInput();
+refreshTray(true);
+renderer.setAnimationLoop(function(){
+  var dtR = Math.min(0.05, clock.getDelta());
+  var eff = 0;
+  if(G.started && !G.over){
+    eff = dtR * G.speed * (G.incidentOpen ? 0.3 : 1);
+    if(eff > 0) stepSim(eff);
   }
-  stepSim(dt);
-  if(G.coachStep<99) G.coachT += dt;
-  draw();
-  hudAcc += dt;
-  if(hudAcc > 0.2){ hudAcc = 0; if(G.started || G.attract) renderHUD(); }
+  G.agents.forEach(function(a){ animateAgent(a, eff); });
+  updateCamera(dtR);
+  updateLabels();
+  hudTick(dtR);
+  renderer.render(scene, camera);
+});
+if(location.hash.indexOf("play") >= 0) beginGame();
+var ffm = location.hash.match(/ff=(\d+)/);
+if(ffm){
+  beginGame();
+  var steps = parseInt(ffm[1], 10) * 10;
+  for(var fi = 0; fi < steps; fi++){ if(G.incidentOpen) chooseIncident(0); stepSim(0.1); }
+  G.agents.forEach(function(a){ animateAgent(a, 0.1); });
+  updateCamera(0); updateLabels(); refreshTray(true);
+  renderer.render(scene, camera);
 }
-buildLobby();
-G = newGame("openbooks", false);
-G.attract = true;
-G.banner = {text:"MEME VILLAGE", sub:"THE VILLAGE MODEL", until:3};
-requestAnimationFrame(frame);
-if(location.hash.indexOf("play")>=0){ begin(); }
-if(location.hash.indexOf("ff")>=0){ if(document.getElementById("startOverlay").classList.contains("open")) begin(); for(var ffi=0; ffi<420; ffi++){ if(G.incident) resolveIncident(0); stepSim(0.25); } }
-/* test hooks */
-window.GAME = {
-  get: function(){ return G; },
-  begin: function(p, h){ pickPolicy = p || "openbooks"; pickDiff = h ? "hard" : "standard"; begin(); },
-  step: function(dt){ stepSim(dt); },
-  resolve: function(i){ resolveIncident(i); },
-  order: function(id, st){ var r = res(id); if(r){ r.order = (st==="auto" ? null : st); r.state = "idle"; r.decideT = 0; G.playerOrders = (G.playerOrders||0)+1; } },
-  select: function(id){ selectResident(id); },
-  spotlight: function(id){ G.spotlightCD = 0; useSpotlight(id); },
-  edict: function(id){ useEdict(id); },
-  stations: STATIONS, residents: RESIDENTS, incidents: INCIDENTS, objectives: OBJECTIVES
-};
+window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, select: function(id){ G.selected = id; refreshTray(true); }};
 </script>
 </body>
 </html>
