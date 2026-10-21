@@ -843,7 +843,11 @@ function objectiveTick(){
     G.objComplete = true; G.objDone++; applyStatMods({trust:3, cohesion:3});
     showToast("✓ Objective complete: " + o.title);
     var st = STATION3[o.station];
-    if(st){ for(var ri = 0; ri < 3; ri++) spawnOrderPing(st.x + (ri - 1) * 1.7, st.z, ri * 0.22); }
+    if(st){
+      var cx = st.x, cz = st.z, wi = 0, sx = 0, sz = 0;
+      if(st.work && st.work.length){ for(wi = 0; wi < st.work.length; wi++){ sx += st.work[wi][0]; sz += st.work[wi][1]; } cx = sx / st.work.length; cz = sz / st.work.length; }
+      for(var ri = 0; ri < 3; ri++) spawnOrderPing(cx + (ri - 1) * 1.7, cz, ri * 0.22);
+    }
     var oc = document.getElementById("objCard");
     if(oc){ oc.classList.add("won"); G.delays.push({at:G.t + 2.6, fn:function(){ var c2 = document.getElementById("objCard"); if(c2) c2.classList.remove("won"); }}); }
   }
@@ -1280,15 +1284,22 @@ var raycaster = new THREE.Raycaster();
 function pickAt(cx, cy){
   var nd = new THREE.Vector2((cx / window.innerWidth) * 2 - 1, -(cy / window.innerHeight) * 2 + 1);
   raycaster.setFromCamera(nd, camera);
-  var hits = [];
-  G.agents.forEach(function(a){ hits.push(a.hit); });
-  Object.keys(STATION3).forEach(function(id){ if(STATION3[id].hitMesh) hits.push(STATION3[id].hitMesh); });
-  var found = raycaster.intersectObjects(hits, false);
-  if(found.length){
-    var o = found[0].object;
-    if(o.userData.agentId) return {agent: o.userData.agentId};
-    if(o.userData.stationId) return {station: o.userData.stationId};
-  }
+  var aHits = [], sHits = [];
+  G.agents.forEach(function(a){ aHits.push(a.hit); });
+  Object.keys(STATION3).forEach(function(id){ if(STATION3[id].hitMesh) sHits.push(STATION3[id].hitMesh); });
+  var fa = raycaster.intersectObjects(aHits, false);
+  if(fa.length) return {agent: fa[0].object.userData.agentId};
+  var fs = raycaster.intersectObjects(sHits, false);
+  if(fs.length) return {station: fs[0].object.userData.stationId};
+  var best = null, bestD = 40;
+  G.agents.forEach(function(a){
+    var v = new THREE.Vector3(a.x, 1.1, a.z).project(camera);
+    if(v.z > 1) return;
+    var sx = (v.x * 0.5 + 0.5) * window.innerWidth, sy = (-v.y * 0.5 + 0.5) * window.innerHeight;
+    var d = Math.hypot(cx - sx, cy - sy);
+    if(d < bestD){ bestD = d; best = a.id; }
+  });
+  if(best) return {agent: best};
   return {};
 }
 function tapAt(cx, cy, smart){
@@ -1304,6 +1315,9 @@ function tapAt(cx, cy, smart){
       me.visitId = them.id; me.order = null; me.reason = "Visiting " + them.name.split(" ")[0]; goTo(me, them.x + 1.2, them.z + 0.6, me.stationId); spawnOrderPing(them.x, them.z); setBubble(me, "💬", 1.1);
       refreshTray(true); return;
     }
+    var nowMs = Date.now();
+    if(G.lastTap && G.lastTap.id === p.agent && nowMs - G.lastTap.ms < 380){ cam.follow = (cam.follow === p.agent) ? null : p.agent; G.lastTap = null; G.selected = p.agent; refreshTray(true); return; }
+    G.lastTap = {id: p.agent, ms: nowMs};
     G.selected = p.agent; refreshTray(true); return;
   }
   if(p.station){
@@ -1334,7 +1348,7 @@ function bindInput(){
     var dx = e.clientX - prev.x, dy = e.clientY - prev.y;
     pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
     if(pointers.size === 1 && downAt){
-      if(Math.abs(e.clientX - downAt.x) + Math.abs(e.clientY - downAt.y) > 7) dragged = true;
+      if(Math.abs(e.clientX - downAt.x) + Math.abs(e.clientY - downAt.y) > 16) dragged = true;
       if(dragged){
         var fwd = new THREE.Vector3(); camera.getWorldDirection(fwd); fwd.y = 0; fwd.normalize();
         var right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0, 1, 0));
