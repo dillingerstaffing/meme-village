@@ -44,6 +44,12 @@ canvas{display:block}
 #selInfo .nm{font-weight:800;font-size:17px}
 #selInfo .rl{font-size:10.5px;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;font-weight:700}
 #selInfo .st{font-size:12px;color:var(--ink2);margin-top:2px}
+#selInfo .iv{margin-top:6px;border-top:1px solid var(--line);padding-top:5px}
+#selInfo .ivh{font-size:10px;letter-spacing:.12em;color:var(--teal);text-transform:uppercase;font-weight:700}
+#selInfo .ivt{font-size:12.5px;color:var(--ink);font-style:italic;margin-top:2px;line-height:1.35}
+#selInfo .ivc{font-size:10.5px;color:var(--ink2);margin-top:1px}
+#selInfo .ivlog{margin-top:3px;max-height:64px;overflow-y:auto}
+#selInfo .ivl{font-size:11px;color:var(--ink2);font-style:italic;line-height:1.3;opacity:.75;margin-top:2px}
 #cmds{display:flex;gap:7px;flex-wrap:wrap}
 .cbtn{background:#131a23;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:9px 6px 7px;min-width:64px;cursor:pointer;text-align:center}
 .cbtn:hover{border-color:var(--gold)}
@@ -234,7 +240,8 @@ var Store = (function(){
     "want/set": function(p){ var a = findA(p.id); if(a && !a.want) a.want = {station:p.station, until: state.t + (p.secs || 26)}; },
     "want/clear": function(p){ var a = findA(p.id); if(a) a.want = null; },
     "ui/toast": function(p){ state.ui.toast = {msg: String(p.msg || ""), until: Date.now() + (p.ms || 3600)}; },
-    "ui/select": function(p){ state.selected = p.id || null; }
+    "ui/select": function(p){ state.selected = p.id || null; },
+    "thought/set": function(p){ var a = findA(p.id); if(a){ a.thought = {text:String(p.text || ""), at:state.t, cause:p.cause || "ambient", why:p.why || "", source:"template"}; if(a.thoughtLog){ a.thoughtLog.push(a.thought); if(a.thoughtLog.length > 8) a.thoughtLog.shift(); } } }
   };
   function commit(){
     if(inTick > 0){ pending = true; return; }
@@ -457,16 +464,16 @@ function buildBuilding(x, z, w, h, wallC, roofC, kind){
 
 /* ================= RESIDENTS ================= */
 var RES3 = [
-  {id:"mara", name:"Mara Voss", role:"Repair Lead", aff:"clinic", home:[-16,-24], admires:"jonah", vis:66, disp:"Diligent", skin:0xc98a5e, hair:0, hairC:0x2e2018, shirt:0xa34d24},
-  {id:"jonah", name:"Jonah Reyes", role:"Medic", aff:"clinic", home:[-27,-11], admires:"priya", vis:60, disp:"Helpful", skin:0x8a5a34, hair:2, hairC:0x16120e, shirt:0x3f6d5a},
-  {id:"priya", name:"Priya Nair", role:"Teacher", aff:"school", home:[17,-24], admires:"mara", vis:60, disp:"Helpful", skin:0xa06a3c, hair:1, hairC:0x100d0a, shirt:0x5a5f9e},
-  {id:"tomas", name:"Tomas Hale", role:"Farmer", aff:"fields", home:[-33,24], admires:"mara", vis:34, disp:"Diligent", skin:0xd9a878, hair:3, hairC:0x6e5636, shirt:0x6d8f52},
-  {id:"ines", name:"Ines Duarte", role:"Baker", aff:"store", home:[24,-11], admires:"priya", vis:38, disp:"Helpful", skin:0xb57a48, hair:4, hairC:0x3a2415, shirt:0xc9862b},
-  {id:"felix", name:"Felix Grant", role:"Miller", aff:"mill", home:[40,16], admires:"jonah", vis:30, disp:"Diligent", skin:0xe0b184, hair:2, hairC:0x8a8a86, shirt:0x707a84},
-  {id:"rosa", name:"Rosa Lindqvist", role:"Weaver", aff:"green", home:[-3,-25], admires:"ines", vis:26, disp:"Helpful", skin:0xe8bd93, hair:1, hairC:0xc8b294, shirt:0x96688a},
-  {id:"abel", name:"Abel Osei", role:"Water Keeper", aff:"well", home:[13,36], admires:"mara", vis:32, disp:"Diligent", skin:0x6e4526, hair:2, hairC:0x0e0c0a, shirt:0x3e6d8e},
-  {id:"nadia", name:"Nadia Farrell", role:"Storekeeper", aff:"store", home:[33,-24], admires:"priya", vis:28, disp:"Helpful", skin:0xcaa06a, hair:4, hairC:0x7a4a22, shirt:0x8e3f3a},
-  {id:"bram", name:"Bram Kessler", role:"Runner", aff:"green", home:[20,38], admires:"mara", vis:20, disp:"Selfish", skin:0xdbac7d, hair:2, hairC:0xa8783c, shirt:0x4a7a9e}
+  {id:"mara", name:"Mara Voss", role:"Repair Lead", aff:"clinic", home:[-16,-24], admires:"jonah", vis:66, disp:"Diligent", skin:0xc98a5e, hair:0, hairC:0x2e2018, shirt:0xa34d24, persona:{voice:["blunt","dry humour","measures twice"], values:"work that holds up when it is leaned on", fear:"a repair failing while someone depends on it", pride:"My repairs hold. That is the whole of it.", tic:"Count it twice, fix it once.", stance:"Follows Jonah because Jonah stays calm when things bleed.", secret:"one morning with nothing broken in it"}},
+  {id:"jonah", name:"Jonah Reyes", role:"Medic", aff:"clinic", home:[-27,-11], admires:"priya", vis:60, disp:"Helpful", skin:0x8a5a34, hair:2, hairC:0x16120e, shirt:0x3f6d5a, persona:{voice:["gentle","unhurried","soft spoken"], values:"nobody hurting alone and unnoticed", fear:"arriving too late", pride:"A steady hand is a kind of promise, and I keep mine.", tic:"Slow hands, steady hands.", stance:"Follows Priya because Priya is patient with frightened people.", secret:"to be the one looked after, just once"}},
+  {id:"priya", name:"Priya Nair", role:"Teacher", aff:"school", home:[17,-24], admires:"mara", vis:60, disp:"Helpful", skin:0xa06a3c, hair:1, hairC:0x100d0a, shirt:0x5a5f9e, persona:{voice:["warm","precise","asks questions back"], values:"people understanding why, not only what", fear:"being obeyed without being understood", pride:"When a lesson lands, you can see it land. That never gets old.", tic:"If I cannot explain it, I do not know it yet.", stance:"Follows Mara because Mara shows her working.", secret:"a class that argues back"}},
+  {id:"tomas", name:"Tomas Hale", role:"Farmer", aff:"fields", home:[-33,24], admires:"mara", vis:34, disp:"Diligent", skin:0xd9a878, hair:3, hairC:0x6e5636, shirt:0x6d8f52, persona:{voice:["plain spoken","weather wise","slow to worry"], values:"a full storehouse before winter", fear:"a failed harvest", pride:"I read the sky right more often than not, and the village eats because of it.", tic:"Sky first, then the soil.", stance:"Follows Mara because her repairs outlast storms.", secret:"one season where the rain comes on time"}},
+  {id:"ines", name:"Ines Duarte", role:"Baker", aff:"store", home:[24,-11], admires:"priya", vis:38, disp:"Helpful", skin:0xb57a48, hair:4, hairC:0x3a2415, shirt:0xc9862b, persona:{voice:["cheerful","gossipy","laughs first"], values:"a full table with nobody left out", fear:"an empty shelf at supper time", pride:"My bread comes out right, and people plan their day around it.", tic:"Taste it twice before you serve it.", stance:"Follows Priya because her lessons come with stories.", secret:"to bake something nobody needs, just because"}},
+  {id:"felix", name:"Felix Grant", role:"Miller", aff:"mill", home:[40,16], admires:"jonah", vis:30, disp:"Diligent", skin:0xe0b184, hair:2, hairC:0x8a8a86, shirt:0x707a84, persona:{voice:["quiet","methodical","talks to the mill"], values:"a machine that runs true", fear:"the wheel stopping in the middle of the season", pride:"A clean grind with no grit in it. Small thing, my thing.", tic:"Listen to the wheel. It tells you first.", stance:"Follows Jonah because Jonah never rushes a hurt thing.", secret:"to build something that is only beautiful"}},
+  {id:"rosa", name:"Rosa Lindqvist", role:"Weaver", aff:"green", home:[-3,-25], admires:"ines", vis:26, disp:"Helpful", skin:0xe8bd93, hair:1, hairC:0xc8b294, shirt:0x96688a, persona:{voice:["dreamy","gentle","notices colours"], values:"things made slowly and made well", fear:"being hurried into shoddy work", pride:"My patterns hide until the cloth is finished. Then everyone sees.", tic:"One stitch at a time.", stance:"Follows Ines because Ines feeds people before asking questions.", secret:"a cloth with no purpose but beauty"}},
+  {id:"abel", name:"Abel Osei", role:"Water Keeper", aff:"well", home:[13,36], admires:"mara", vis:32, disp:"Diligent", skin:0x6e4526, hair:2, hairC:0x0e0c0a, shirt:0x3e6d8e, persona:{voice:["careful","soft spoken","keeps count"], values:"clean water for everyone, every day", fear:"the well running low or turning foul", pride:"The village has never gone thirsty on my watch.", tic:"Check the bucket twice.", stance:"Follows Mara because she fixes things before they break.", secret:"for someone else to carry the water, once"}},
+  {id:"nadia", name:"Nadia Farrell", role:"Storekeeper", aff:"store", home:[33,-24], admires:"priya", vis:28, disp:"Helpful", skin:0xcaa06a, hair:4, hairC:0x7a4a22, shirt:0x8e3f3a, persona:{voice:["brisk","exact","dry"], values:"a ledger that balances at night", fear:"stores walking away uncounted", pride:"Ask me what the village has. I can tell you to the loaf.", tic:"If it is not counted, it is not there.", stance:"Follows Priya because Priya writes everything down too.", secret:"to give something away without writing it down"}},
+  {id:"bram", name:"Bram Kessler", role:"Runner", aff:"green", home:[20,38], admires:"mara", vis:20, disp:"Selfish", skin:0xdbac7d, hair:2, hairC:0xa8783c, shirt:0x4a7a9e, persona:{voice:["quick","teasing","easily bored"], values:"being first, and being seen to be first", fear:"being ordinary, just one of the crowd", pride:"Fastest legs in the village. It is not close.", tic:"Faster. Always a step faster.", stance:"Copies Mara because everyone watches Mara.", secret:"to be wanted for more than his speed"}}
 ];
 var DISPO3 = {"Diligent":{icon:"⚒", col:"#e8b34b"}, "Helpful":{icon:"♥", col:"#5cc9a7"}, "Selfish":{icon:"✦", col:"#6fb3e8"}, "Withdrawn":{icon:"☾", col:"#a78fe0"}};
 function makeFigure(d){
@@ -508,7 +515,7 @@ function makeAgents(){
       state:"idle", stationId:null, slot:null, actT:0, decideT:Math.random()*2, loafT:0, alerted:false,
       energy:80 - (i%4)*4, morale:72, phase:Math.random()*10, walkPhase:0,
       order:null, carrying:null, bubble:null, bubbleUntil:0, watchOf:null, watchT:0, want:null, wantCd:Math.random()*10, wantPend:null, driveObj:false,
-      idleT:0, sick:false, seed:Math.random()*100, model:d.admires, blamed:0, modelCd:0
+      idleT:0, sick:false, seed:Math.random()*100, model:d.admires, blamed:0, modelCd:0, thought:null, thoughtLog:[], recentEvents:[], thoughtAt:-99
     });
     a.tx = a.x; a.tz = a.z;
     a.root.position.set(a.x, 0, a.z);
@@ -675,7 +682,7 @@ function decide(a){
 function arrive(a){
   if(!a.slot) a.slot = {x:a.x, z:a.z};
   if(a.sickWalk){ a.sickWalk = false; a.sick = true; a.state = "sit"; a.stationId = "green"; if(G.pendingIncident){ var pi = G.pendingIncident; G.pendingIncident = null; openIncident(pi); } return; }
-  if(a.pendingWatch){ var m = agent(a.pendingWatch); a.pendingWatch = null; if(m){ a.state = "watch"; a.watchOf = m.id; a.watchT = 3.4; setBubble(a, "👀", 1.8); return; } }
+  if(a.pendingWatch){ var m = agent(a.pendingWatch); a.pendingWatch = null; if(m){ a.state = "watch"; a.watchOf = m.id; a.watchT = 3.4; setBubble(a, "👀", 1.8); noteEvent(a, "copied", m.id); return; } }
   if(a.medicTask === 1){ a.medicTask = 2; a.state = "kneel"; a.kneelT = 4; return; }
   if(a.fetch === "plank-out"){ a.carrying = "plank"; a.fetch = "plank-back"; goTo(a, a.slot.x, a.slot.z, "clinic"); return; }
   if(a.fetch === "plank-back"){ a.carrying = null; a.fetch = null; a.fetchT = 0; G.roof = Math.min(100, G.roof + 2.5); a.state = "act"; a.actT = 6; return; }
@@ -759,7 +766,7 @@ function stepAgents(dt){
       var mdI = a.model ? agent(a.model) : null;
       if(mdI && mdI !== a && mdI.lastActStation === st && st !== "home" && (G.t - (mdI.lastActT || -99)) < 12 && G.t > (a.inspCd || 0)){
         a.inspCd = G.t + 20; a.inspUntil = G.t + 5; a.inspMult = mdI.vis >= 60 ? 1.25 : (mdI.vis < 40 ? 1.10 : 1.18);
-        setBubble(a, "✨", 1.6); a.reason = "Inspired by " + mdI.name.split(" ")[0];
+        setBubble(a, "✨", 1.6); a.reason = "Inspired by " + mdI.name.split(" ")[0]; noteEvent(a, "inspired", mdI.id);
       }
       var pdt = dt * ((a.inspUntil && G.t < a.inspUntil) ? (a.inspMult || 1.25) : 1);
       if(st === "clinic"){
@@ -823,6 +830,7 @@ function addTension(a, b, amt){
     var warnShared = (a.model && a.model === b.model) ? agent(a.model) : null;
     setBubble(a, "⚡", 2.0); setBubble(b, "⚡", 2.0);
     showToast("⚡ " + a.name.split(" ")[0] + " and " + b.name.split(" ")[0] + " are copying " + (warnShared ? warnShared.name.split(" ")[0] + " and getting heated" : "the same work and getting heated") + ". Separate them or cool them on the green.");
+    noteEvent(a, "rivalry", b.id); noteEvent(b, "rivalry", a.id);
   }
   if(G.pairs[k] >= 70 && (!G.feudCd[k] || G.t > G.feudCd[k])){
     G.feudCd[k] = G.t + WEEK_LEN;
@@ -832,12 +840,88 @@ function addTension(a, b, amt){
     G.blame = Math.min(100, (G.blame || 0) + 5);
     var shared = (a.model && a.model === b.model) ? agent(a.model) : null;
     showToast("⚔ " + a.name.split(" ")[0] + " and " + b.name.split(" ")[0] + (shared ? " both follow " + shared.name.split(" ")[0] + ", and imitation has turned to rivalry" : " have fallen out over the same work"));
+    noteEvent(a, "rivalry", b.id); noteEvent(b, "rivalry", a.id);
   }
 }
 function scapegoatCandidate(){
   var best = null, bs = -1;
   G.agents.forEach(function(a){ if(a.sick) return; var sc = (a.blamed || 0) * 14 + (62 - a.morale); if(sc > bs){ bs = sc; best = a; } });
   return best;
+}
+/* ============ INNER VOICE (Tier 0 template thoughts) ============
+   Every resident carries a persona card (in RES3) and a current
+   thought composed ONLY from live state: reason, model, station,
+   the hottest pair tension, morale, energy, want, blame, orders,
+   inspiration. The composer invents nothing: every name and place
+   in a thought comes out of the state it reads. Thoughts are
+   written only through Store.dispatch("thought/set") and logged
+   in a capped ring buffer. Refresh is event driven (noteEvent
+   hooks in the sim) plus a slow ambient sweep in stepSim: at most
+   one resident per tick, each resident at most every 6 sim
+   seconds, so the tick never allocates per frame chatter. */
+function artName(id){ var s = STATION3[id]; if(!s) return null; if(id === "green") return "the Green"; if(id === "home") return "home"; return "the " + s.name; }
+function topTension(a){
+  var best = null, bv = 0;
+  Object.keys(G.pairs).forEach(function(k){
+    var ids = k.split("|");
+    if(ids[0] !== a.id && ids[1] !== a.id) return;
+    if(G.pairs[k] > bv){ bv = G.pairs[k]; best = agent(ids[0] === a.id ? ids[1] : ids[0]); }
+  });
+  return best ? {who:best, v:bv} : null;
+}
+function composeThought(a, cause){
+  var P = a.persona; if(!P) return null;
+  var m = a.model ? agent(a.model) : null;
+  var mn = m ? m.name.split(" ")[0] : null;
+  var ten = topTension(a);
+  var vi = Math.abs(Math.floor(a.seed + a.thoughtLog.length * 3 + Math.floor(G.t / 9))) % 2;
+  var main = null, why = "because there is a quiet moment";
+  if(a.sick){ main = ["I feel rotten. Everything else can wait until this passes.", "Being sick shrinks the world to one chair. Let it."][vi]; why = "because I am unwell"; }
+  else if(ten && ten.v >= 50){ var pn = ten.who.name.split(" ")[0]; main = [pn + " and I keep circling the same work, and it is getting sharp between us.", "Every time " + pn + " is near, the same job turns into a contest."][vi]; why = "because the rivalry with " + pn + " is heating up"; }
+  else if((a.blamed || 0) >= 2){ main = "People look at me sideways now. Blamed " + a.blamed + " times does that to a person."; why = "because blame keeps landing on me"; }
+  else if((a.blamed || 0) >= 1){ main = "Being blamed once sits in the chest longer than people think."; why = "because blame landed on me"; }
+  else if(a.want && STATION3[a.want.station]){ var wn = artName(a.want.station); var rem = a.want.until - G.t; main = rem < 9 ? ("The want for " + wn + " is slipping away, and I hate leaving a thing undone.") : ["My head keeps drifting to " + wn + ". I want that today.", wn.charAt(0).toUpperCase() + wn.slice(1) + " is calling. Not loudly, but it will not stop."][vi]; why = "because the want for " + wn + " took hold"; }
+  else if(a.order && STATION3[a.order]){ main = "Orders are orders: " + artName(a.order) + ", until I am told otherwise."; why = "because I was given an order"; }
+  else if(a.inspUntil && G.t < a.inspUntil && mn){ main = "Working where " + mn + " just worked, and it is rubbing off. My hands know the rhythm now."; why = "because " + mn + " inspired me"; }
+  else if(a.resting || a.energy < 20){ main = "I am running on fumes. Rest first, then I am useful again."; why = "because I am worn out"; }
+  else if(a.state === "watch" && mn){ main = "I am watching " + mn + ". You learn a trade by standing close."; why = "because " + mn + " is the one I follow"; }
+  else if(ten && ten.v >= 28){ var pn2 = ten.who.name.split(" ")[0]; main = pn2 + " is on the same work again. I notice, even when I say nothing."; why = "because " + pn2 + " keeps pace with me"; }
+  else if(a.state === "act" && a.stationId && STATION3[a.stationId]){ var an = artName(a.stationId); main = a.stationId === a.aff ? ("This is my work, " + an + ". It suits me down to the ground.") : ["Work at " + an + ", done properly, holds the whole village up.", "Head down at " + an + ". This is where I am useful."][vi]; why = "because I am at " + an; }
+  else if(a.state === "walk" && a.stationId && STATION3[a.stationId]){ main = "On my way to " + artName(a.stationId) + ". The village does not run itself."; why = "because I am heading to " + artName(a.stationId); }
+  else { main = ["A spare minute. I spend it watching how the village breathes.", "Nothing urgent. That itself feels worth noticing."][vi]; }
+  var second = "";
+  var pick = Math.abs(Math.floor(a.seed * 2 + a.thoughtLog.length * 5 + Math.floor(G.t / 13))) % 4;
+  if(pick === 0) second = P.tic;
+  else if(pick === 1) second = "What matters is " + P.values + ".";
+  else if(pick === 2) second = a.morale < 62 ? ("I dread " + P.fear + ".") : P.pride;
+  else second = a.morale >= 45 ? P.pride : ("I dread " + P.fear + ".");
+  return {text: main + (second ? " " + second : ""), why: why};
+}
+function refreshThought(a, cause){
+  if(!a || !a.persona) return;
+  a.thoughtAt = G.t;
+  var c = composeThought(a, cause);
+  if(!c || !c.text) return;
+  if(cause === "ambient" && a.thought && a.thought.text === c.text) return;
+  Store.dispatch("thought/set", {id:a.id, text:c.text, cause:cause || "ambient", why:c.why});
+}
+function noteEvent(a, kind, detail){
+  if(!a || !a.recentEvents) return;
+  a.recentEvents.push({kind:kind, detail:detail || "", at:G.t});
+  if(a.recentEvents.length > 6) a.recentEvents.shift();
+  refreshThought(a, kind);
+}
+function innerVoiceHTML(a){
+  if(!a.persona) return "";
+  var h = "<div class='iv'><div class='ivh'>Inner voice · " + a.persona.voice.join(", ") + "</div>";
+  if(a.thought) h += "<div class='ivt'>\u201C" + a.thought.text + "\u201D</div><div class='ivc'>" + (a.thought.why || "") + "</div>";
+  else h += "<div class='ivt'>\u2026</div>";
+  if(a.thoughtLog && a.thoughtLog.length > 1){
+    h += "<div class='ivlog'>";
+    for(var i = a.thoughtLog.length - 2; i >= 0 && i > a.thoughtLog.length - 5; i--) h += "<div class='ivl'>\u201C" + a.thoughtLog[i].text + "\u201D</div>";
+    h += "</div>";
+  }
+  return h + "</div>";
 }
 /* ============ INITIATIVES ============
    Residents start things on their own, but never from a bare die
@@ -859,6 +943,7 @@ function warnInitiative(c){
   if(c.kind === "claim"){ var t = agent(c.target); msg = "🔔 " + nm + " is about to claim a work spot at the " + STATION3[c.station].name + ", drawn by " + (t ? t.name.split(" ")[0] : "a model") + ". Order " + nm + " elsewhere to stop it."; }
   if(c.kind === "refuse"){ msg = "🔔 " + nm + ", worn down by blame, is about to refuse and go home. Order " + nm + " elsewhere to stop it."; }
   if(msg) showToast(msg);
+  noteEvent(a, "initiative", c.kind);
 }
 function fireInitiative(a, p){
   a.driveObj = false;
@@ -937,7 +1022,7 @@ function imitationScan(){
     if(Math.random() < 0.55){
       var d = Math.sqrt((m.x-a.x)*(m.x-a.x) + (m.z-a.z)*(m.z-a.z));
       if(d > 3.4){ a.pendingWatch = m.id; var vx = a.x - m.x, vz = a.z - m.z, vl = Math.sqrt(vx*vx + vz*vz) || 1; goTo(a, m.x + vx/vl*3.2, m.z + vz/vl*3.2, a.stationId); }
-      else { a.state = "watch"; a.watchOf = m.id; a.watchT = 3.4; setBubble(a, "👀", 1.8); }
+      else { a.state = "watch"; a.watchOf = m.id; a.watchT = 3.4; setBubble(a, "👀", 1.8); noteEvent(a, "copied", m.id); }
     }
   });
   G.agents.forEach(function(a){
@@ -953,13 +1038,13 @@ function imitationScan(){
     var guaranteed = (a.id === "bram" && best.id === "mara");
     if(bd < 9 && (guaranteed || Math.random() < 0.45)){
       if(bd > 3.4){ a.pendingWatch = best.id; var vx = a.x - best.x, vz = a.z - best.z, vl = Math.sqrt(vx*vx + vz*vz) || 1; goTo(a, best.x + vx/vl*3.2, best.z + vz/vl*3.2, a.stationId); }
-      else { a.state = "watch"; a.watchOf = best.id; a.watchT = 3.4; setBubble(a, "👀", 1.8); }
+      else { a.state = "watch"; a.watchOf = best.id; a.watchT = 3.4; setBubble(a, "👀", 1.8); noteEvent(a, "copied", best.id); }
     }
   });
 }
 /* ================= INCIDENTS & OBJECTIVES ================= */
 function orderAgent(id, station){ var a = agent(id); if(!a) return; a.order = station; a.fetch = null; a.carrying = null; if(a.state !== "walk"){ a.state = "idle"; a.decideT = 0; } }
-function blameAgent(id){ var a = agent(id); if(!a) return; a.blamed = (a.blamed || 0) + 1; G.blame = Math.min(100, (G.blame || 0) + 14); a.disp = "Withdrawn"; a.morale = Math.max(5, a.morale - 25); a.order = null; setBubble(a, "🔴", 2.5); goStation(a, "home"); G.stats.rivalry = Math.min(100, G.stats.rivalry + 5); }
+function blameAgent(id){ var a = agent(id); if(!a) return; a.blamed = (a.blamed || 0) + 1; G.blame = Math.min(100, (G.blame || 0) + 14); a.disp = "Withdrawn"; a.morale = Math.max(5, a.morale - 25); a.order = null; noteEvent(a, "blamed", ""); setBubble(a, "🔴", 2.5); goStation(a, "home"); G.stats.rivalry = Math.min(100, G.stats.rivalry + 5); }
 function sendMedic(patientId){ var j = agent("jonah"), p = agent(patientId); if(!j || !p) return; G.medicPatient = patientId; j.medicTask = 1; j.order = null; j.fetch = null; j.carrying = null; goTo(j, 1.1, 9.0, "green"); showToast("✚ Jonah is on his way"); }
 function recoverPatient(id, morale){ var p = agent(id); if(!p) return; p.sick = false; p.morale = morale; p.state = "idle"; p.decideT = 1; }
 function restPatient(id){ var p = agent(id); if(!p) return; p.order = null; goStation(p, "home"); showToast("🏠 " + p.name.split(" ")[0] + " heads home to rest"); }
@@ -1270,11 +1355,11 @@ function stepSim(dt){
   G.agents.forEach(function(a){
     if(a.wantPend && G.t >= a.wantPend.at && !a.sick){ var wp = a.wantPend; a.wantPend = null; giveWant(a, wp.station); }
     if(a.want){
-      if(G.t > a.want.until){ a.morale = Math.max(0, a.morale - 3); a.want = null; a.wantCd = 8; }
+      if(G.t > a.want.until){ var wmiss = a.want.station; a.morale = Math.max(0, a.morale - 3); a.want = null; a.wantCd = 8; noteEvent(a, "wantMissed", wmiss); }
       else if(a.state === "act" && a.stationId === a.want.station){
         a.morale = Math.min(100, a.morale + 9); setBubble(a, "♥", 1.6);
         if(a.order === a.want.station) applyStatMods({trust:1.5, cohesion:1});
-        a.want = null; a.wantCd = 14;
+        var wdone = a.want.station; a.want = null; a.wantCd = 14; noteEvent(a, "wantDone", wdone);
       }
     }
     if(!a.want && !a.wantPend && !a.sick && G.started && !G.over){
@@ -1282,6 +1367,16 @@ function stepSim(dt){
       if(a.wantCd <= 0){ a.wantCd = 20 + Math.random()*14; if(Math.random() < 0.75) giveWant(a, pickWantStation(a)); }
     }
   });
+  if(G.started && !G.over){
+    var selT = G.selected ? agent(G.selected) : null;
+    if(selT && G.t - (selT.thoughtAt || -99) >= 6) refreshThought(selT, "ambient");
+    else {
+      for(var tq = 0; tq < G.agents.length; tq++){
+        var ca = G.agents[G.thoughtIx || 0]; G.thoughtIx = ((G.thoughtIx || 0) + 1) % G.agents.length;
+        if(G.t - (ca.thoughtAt || -99) >= 6){ refreshThought(ca, "ambient"); break; }
+      }
+    }
+  }
   statDrift(dt);
   objectiveTick();
   /* roof visuals */
@@ -1405,7 +1500,7 @@ var CMDS = [
 var trayKey = "";
 function refreshTray(force){
   var a = G.selected ? agent(G.selected) : null;
-  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.want ? a.want.station : "") : "") + "|" + (cam.follow || "") + "|" + (G.spotCd > G.t ? "cd" : "rdy") + "|" + G.armed;
+  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.want ? a.want.station : "") + (a.thought ? "#" + a.thought.at : "") : "") + "|" + (cam.follow || "") + "|" + (G.spotCd > G.t ? "cd" : "rdy") + "|" + G.armed;
   if(!force && key === trayKey) return;
   trayKey = key;
   var info = document.getElementById("selInfo");
@@ -1413,7 +1508,7 @@ function refreshTray(force){
     info.innerHTML = "<div class='rl'>" + a.role + " · <span style='color:" + DISPO3[a.disp].col + "'>" + DISPO3[a.disp].icon + " " + a.disp + "</span>" + (a.want ? " · 💭" + STATION3[a.want.station].icon + " " + stationW(a.want.station).name : "") + "</div>"
       + "<div class='nm'>" + (a.vis >= 60 ? "🔥 " : "") + a.name + "</div>"
       + "<div class='st'>" + activityText(a) + " · ⚡" + Math.round(a.energy) + " ♥" + Math.round(a.morale) + " 👀" + Math.round(a.vis) + "</div>"
-      + "<div class='st'>" + (a.reason ? a.reason + " · " : "") + watchLine(a) + "</div>";
+      + "<div class='st'>" + (a.reason ? a.reason + " · " : "") + watchLine(a) + "</div>" + innerVoiceHTML(a);
   } else {
     info.innerHTML = "<div class='rl'>Village</div><div class='nm'>No selection</div><div class='st'>Tap a resident. Tap a building to send them. Drag to look around.</div>";
   }
@@ -1451,6 +1546,7 @@ function setOrder3(orderId){
   a.mimicStation = null; a.visitId = null; a.fetch = null; a.carrying = null; a.pendingWatch = null; a.watchOf = null;
   if(orderId !== "auto" && STATION3[orderId]){ var stp = STATION3[orderId]; spawnOrderPing(stp.x, stp.z); setBubble(a, stp.icon, 1.4); }
   a.state = "idle"; a.decideT = 0;
+  noteEvent(a, "ordered", orderId);
   refreshTray(true);
 }
 function showToast(msg){ Store.dispatch("ui/toast", {msg:msg}); }
@@ -1556,6 +1652,7 @@ function pickWantStation(a){
 function giveWant(a, station){
   if(!station || a.sick || a.want) return;
   Store.dispatch("want/set", {id:a.id, station:station, secs:26});
+  noteEvent(a, "want", station);
   setBubble(a, STATION3[station].icon, 1.2);
   if(a.vis >= 60){
     G.agents.forEach(function(b){
@@ -1888,6 +1985,7 @@ function beginGame(){
   setObjective();
   document.getElementById("startOverlay").classList.remove("open");
   showToast("🔨 Week 1: Mara is on the roof. Bram is watching.");
+  G.agents.forEach(function(a){ refreshThought(a, "start"); });
 }
 document.getElementById("beginBtn").addEventListener("click", beginGame);
 /* ================= MAIN LOOP ================= */
@@ -1928,7 +2026,7 @@ if(ffm){
   updateCamera(0); Store.commit(); refreshTray(true);
   renderer.render(scene, camera);
 }
-window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, setModel: function(id, mid){ var a = agent(id); if(a) a.model = mid; }, select: function(id){ Store.dispatch("ui/select", {id:id}); refreshTray(true); }, pickProject: function(i){ pickProject(i || 0); }};
+window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, setModel: function(id, mid){ var a = agent(id); if(a) a.model = mid; }, select: function(id){ Store.dispatch("ui/select", {id:id}); refreshTray(true); }, pickProject: function(i){ pickProject(i || 0); }, thoughts: function(){ var out = {}; G.agents.forEach(function(a){ out[a.id] = {voice:(a.persona ? a.persona.voice.join(", ") : ""), thought:(a.thought ? a.thought.text : ""), cause:(a.thought ? a.thought.cause : ""), log:(a.thoughtLog ? a.thoughtLog.length : 0), events:(a.recentEvents ? a.recentEvents.length : 0)}; }); return out; }};
 </script>
 </body>
 </html>
