@@ -78,7 +78,7 @@ canvas{display:block}
 .watch div{background:#0c1219;border:1px solid var(--line);border-radius:8px;padding:9px 12px}
 .btn{background:linear-gradient(180deg,#c98f2b,#e8b34b 45%,#a97a24);border:1px solid #7c5c1a;color:#171106;border-radius:8px;padding:12px 22px;font-weight:800;font-size:16px;cursor:pointer}
 .stat-row{display:flex;justify-content:space-between;border-bottom:1px dashed var(--line);padding:6px 0;font-size:14.5px}
-#stats{top:118px;left:10px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:178px;backdrop-filter:blur(3px)}
+#stats{top:146px;left:10px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:178px;backdrop-filter:blur(3px)}
 #stats .sh{font-size:9px;letter-spacing:.22em;color:var(--gold);font-weight:800;margin-bottom:4px}
 .srow{display:flex;align-items:center;gap:6px;font-size:10.5px;margin:3.5px 0}
 .srow .sl{width:66px;color:var(--ink2);white-space:nowrap}
@@ -114,10 +114,15 @@ canvas{display:block}
   .cbtn .i{font-size:17px}
 }
 @media (max-width:560px){#alerts{bottom:216px}}
+#vignette{position:fixed;inset:0;pointer-events:none;z-index:5;background:radial-gradient(ellipse at center,transparent 56%,rgba(16,22,14,.42) 100%)}
+#minimap{position:fixed;right:10px;bottom:150px;width:192px;height:144px;z-index:11;background:#22301f;border:1px solid var(--line);border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+@media (max-width:560px){#minimap{width:118px;height:88px;bottom:auto;top:202px}}
 </style>
 </head>
 <body>
 <div id="scene"></div>
+<div id="vignette"></div>
+<canvas id="minimap" width="192" height="144"></canvas>
 
 <div class="hud" id="objCard">
   <div class="k" id="objK">OBJECTIVE · WEEK 1</div>
@@ -246,7 +251,22 @@ function buildWorld(){
   sunLight.shadow.camera.far = 120;
   scene.add(sunLight);
   /* ground + paths */
-  var ground = new THREE.Mesh(new THREE.PlaneGeometry(120, 90), mat(0x77a75e, 1));
+  var groundMat = mat(0x77a75e, 1);
+  try {
+    var gc = document.createElement("canvas"); gc.width = 1024; gc.height = 768;
+    var gx = gc.getContext && gc.getContext("2d");
+    if(gx){
+      gx.fillStyle = "#77a75e"; gx.fillRect(0, 0, 1024, 768);
+      for(var ni = 0; ni < 9000; ni++){ gx.fillStyle = Math.random() < 0.5 ? "rgba(60,90,40,0.10)" : "rgba(200,230,150,0.08)"; gx.fillRect(Math.random()*1024, Math.random()*768, 2.5, 2.5); }
+      for(var bi = 0; bi < 260; bi++){ gx.fillStyle = "rgba(52,84,36,0.15)"; gx.beginPath(); gx.arc(Math.random()*1024, Math.random()*768, 6 + Math.random()*15, 0, 6.29); gx.fill(); }
+      var W2C = function(x, z){ return [(x + 60) / 120 * 1024, (z + 45) / 90 * 768]; };
+      var paths = [[0,7,-24,-13],[0,7,-22,15],[0,7,24,-13],[0,7,24,14],[0,7,-35,-13],[0,7,10,-3],[-24,-13,-22,15],[24,-13,24,14],[-30,4,0,7],[-10,-20,0,7],[30,-19,24,-13],[4,18,-22,15],[31,8,24,14]];
+      gx.lineCap = "round";
+      paths.forEach(function(p){ var a2 = W2C(p[0], p[1]), b2 = W2C(p[2], p[3]); gx.strokeStyle = "rgba(168,138,92,0.55)"; gx.lineWidth = 13; gx.beginPath(); gx.moveTo(a2[0], a2[1]); gx.lineTo(b2[0], b2[1]); gx.stroke(); gx.strokeStyle = "rgba(192,162,106,0.5)"; gx.lineWidth = 8; gx.beginPath(); gx.moveTo(a2[0], a2[1]); gx.lineTo(b2[0], b2[1]); gx.stroke(); });
+      groundMat = new THREE.MeshLambertMaterial({map:new THREE.CanvasTexture(gc)});
+    }
+  } catch(e) { groundMat = mat(0x77a75e, 1); }
+  var ground = new THREE.Mesh(new THREE.PlaneGeometry(120, 90), groundMat);
   ground.rotation.x = -Math.PI/2; ground.receiveShadow = true; scene.add(ground);
   var pathMat = mat(0xcdb483, 1);
   [[0,4,26,3.2],[ -13,-6,3.2,20],[13,-6,3.2,20],[0,-11,30,3.2],[-11,11,20,3]].forEach(function(p){
@@ -1060,6 +1080,20 @@ function showToast(msg){
   t.setAttribute("data-hide", String(Date.now() + 3600));
 }
 var hudAcc = 0;
+var mmCtx = null;
+try { var mmEl0 = document.getElementById("minimap"); if(mmEl0 && mmEl0.getContext){ mmCtx = mmEl0.getContext("2d"); mmEl0.addEventListener("click", function(e){ var r = e.target.getBoundingClientRect(); cam.target.x = ((e.clientX - r.left) / r.width) * 120 - 60; cam.target.z = ((e.clientY - r.top) / r.height) * 90 - 45; cam.follow = null; }); } } catch(e) { mmCtx = null; }
+function drawMinimap(){
+  if(!mmCtx) return;
+  var W = 192, H = 144, c = mmCtx;
+  var X = function(x){ return (x + 60) / 120 * W; }, Y = function(z){ return (z + 45) / 90 * H; };
+  c.fillStyle = "#2a3d24"; c.fillRect(0, 0, W, H);
+  c.fillStyle = "rgba(119,167,94,0.55)"; c.fillRect(0, 0, W, H);
+  Object.keys(STATION3).forEach(function(k){ var st = STATION3[k]; if(k === "home") return; c.fillStyle = (k === G.objStation && !G.objComplete) ? "#e8b34b" : "rgba(240,235,220,0.8)"; c.fillRect(X(st.x) - 3, Y(st.z) - 3, 6, 6); });
+  G.agents.forEach(function(a){ c.fillStyle = a.sick ? "#e85a3c" : (a.id === G.selected ? "#ffd75e" : "rgba(255,255,255,0.92)"); c.beginPath(); c.arc(X(a.x), Y(a.z), a.id === G.selected ? 3 : 2, 0, 6.29); c.fill(); });
+  c.strokeStyle = "rgba(255,255,255,0.55)"; c.lineWidth = 1;
+  var hw = cam.dist * 0.72, hh = cam.dist * 0.54;
+  c.save(); c.translate(X(cam.target.x), Y(cam.target.z)); c.rotate(-cam.yaw); c.strokeRect(-hw / 120 * W, -hh / 90 * H, hw / 60 * W, hh / 45 * H); c.restore();
+}
 function hudTick(dt){
   hudAcc += dt;
   var t = document.getElementById("toast");
@@ -1082,6 +1116,7 @@ function hudTick(dt){
   var eligHands = 0;
   G.agents.forEach(function(a){ if(a.driveObj && a.stationId === G.objStation && (a.state === "act" || a.state === "walk")) eligHands++; });
   document.getElementById("objCard").classList.toggle("urgent", G.started && !G.over && !G.objComplete && G.weekTime > 30 && eligHands === 0);
+  drawMinimap();
   document.getElementById("weekChip").textContent = "WEEK " + G.week + "/12 · ☀ " + Math.round(G.weekTime / WEEK_LEN * 100) + "%";
   document.getElementById("storesN").textContent = G.stores;
   document.getElementById("copiedN").textContent = G.copied;
