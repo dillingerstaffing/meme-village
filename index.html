@@ -478,6 +478,23 @@ var RES3 = [
   {id:"bram", name:"Bram Kessler", role:"Runner", aff:"green", home:[20,38], admires:"mara", vis:20, disp:"Selfish", skin:0xdbac7d, hair:2, hairC:0xa8783c, shirt:0x4a7a9e, persona:{voice:["quick","teasing","easily bored"], values:"being first, and being seen to be first", fear:"being ordinary, just one of the crowd", pride:"Fastest legs in the village. It is not close.", tic:"Faster. Always a step faster.", stance:"Copies Mara because everyone watches Mara.", secret:"to be wanted for more than his speed"}}
 ];
 var DISPO3 = {"Diligent":{icon:"⚒", col:"#e8b34b"}, "Helpful":{icon:"♥", col:"#5cc9a7"}, "Selfish":{icon:"✦", col:"#6fb3e8"}, "Withdrawn":{icon:"☾", col:"#a78fe0"}};
+/* Temperament axes: each resident reads the village through one moral
+   axis, an evaluative operator over neutral facts (power, upkeep, or
+   consent). The axis lives in state only and styles thought text via
+   the interpretation layer in the composer; it is never explained in
+   the interface. The only visible trace is a chip on the selected
+   resident's role line in the tray. */
+var AXES = [
+  {id:"oppression", icon:"⚖", label:"Oppressor · Oppressed"},
+  {id:"civilization", icon:"🏛", label:"Civilization · Barbarism"},
+  {id:"liberty", icon:"🕊", label:"Liberty · Coercion"}
+];
+function axisOf(a){ if(!a) return null; for(var i = 0; i < AXES.length; i++) if(AXES[i].id === a.axis) return AXES[i]; return null; }
+function dealAxes(){
+  var ids = ["oppression", "civilization", "liberty"];
+  var pool = ["oppression","oppression","oppression","civilization","civilization","civilization","liberty","liberty","liberty", ids[Math.floor(Math.random() * 3)]];
+  return shuffleArr(pool);
+}
 function makeFigure(d){
   var root = new THREE.Group(); scene.add(root);
   var legL = new THREE.Group(); legL.position.set(-0.14, 0.98, 0); root.add(legL);
@@ -510,6 +527,7 @@ function makeFigure(d){
     props:{hammer:hammer, crate:crate, plank:plank, basket:basket}, hit:hit};
 }
 function makeAgents(){
+  var axisPool = dealAxes();
   return RES3.map(function(d, i){
     var f = makeFigure(d);
     var a = Object.assign({}, d, f, {
@@ -517,7 +535,7 @@ function makeAgents(){
       state:"idle", stationId:null, slot:null, actT:0, decideT:Math.random()*2, loafT:0, alerted:false,
       energy:80 - (i%4)*4, morale:72, phase:Math.random()*10, walkPhase:0,
       order:null, carrying:null, bubble:null, bubbleUntil:0, watchOf:null, watchT:0, want:null, wantCd:Math.random()*10, wantPend:null, driveObj:false,
-      idleT:0, sick:false, seed:Math.random()*100, model:d.admires, blamed:0, modelCd:0, thought:null, thoughtLog:[], recentEvents:[], thoughtAt:-99
+      idleT:0, sick:false, seed:Math.random()*100, model:d.admires, blamed:0, modelCd:0, axis:axisPool[i], thought:null, thoughtLog:[], recentEvents:[], thoughtAt:-99
     });
     a.tx = a.x; a.tz = a.z;
     a.root.position.set(a.x, 0, a.z);
@@ -871,6 +889,67 @@ function topTension(a){
   });
   return best ? {who:best, v:bv} : null;
 }
+/* ============ INTERPRETATION LAYER ============
+   The composer first reads a neutral fact: a category plus the
+   interpolation facts the neutral phrasing used (model name, tension
+   partner name, station display name, blame count, slipping flag,
+   affinity flag). The resident's axis then reframes that same fact:
+   the templates below contribute only evaluative framing, never new
+   names, places, or counts. A missing cell falls back to the neutral
+   phrasing unchanged. String entries interpolate {model}, {partner},
+   {station}, {Station} from the facts; function entries receive the
+   facts object directly. */
+var AXIS_TPL = {
+  oppression: {
+    sick: ["I feel rotten, and sickness does not ask who is important. Everything else can wait until this passes."],
+    rivalryHigh: ["{partner} and I keep circling the same work, and the ones above us watch us fight over scraps.", "Every time {partner} is near, the same job turns into a contest, and the cost lands on us, not on them."],
+    rivalryLow: ["{partner} is on the same work again. Two of us at the bottom, measured against each other."],
+    blamed: [function(F){ return F.blamed >= 2 ? ("Blamed " + F.blamed + " times now. When things go wrong, the finger finds the lowest back to land on.") : "Being blamed once sits in the chest. Blame is how the village keeps its order, and it is kept on people like me."; }, "The blame rolls downhill, and I know exactly where the bottom is."],
+    want: [function(F){ return F.slipping ? ("The want for " + F.station + " is slipping away, and nobody with power even noticed it was mine.") : (F.Station + " is where my heart is today, whatever the powerful have planned."); }, "I want {station} today. A want of my own counts for something, even down here."],
+    ordered: ["Sent to {station} by someone who will not be the one doing the lifting.", function(F){ return "Orders land on the same backs, and mine is one of them. " + F.Station + " it is."; }],
+    inspired: ["Working where {model} just worked. Some of us lift each other; that is the only ladder I trust.", "{model} showed the way at this work, and I am stronger beside them than under anyone."],
+    resting: ["I am running on fumes, and rest is the one thing nobody can order out of me.", "Even the burdened get to sit down. I am taking my rest before I am used up."],
+    watch: ["I am watching {model}. Standing close is how the low learn what the high would rather keep.", "I watch {model} work. Knowledge passed hand to hand is power nobody granted us."],
+    work: [function(F){ return F.selfStation ? ("This is my work, " + F.station + ", and nobody hands it to me. I take it up myself.") : ("Head down at " + F.station + ". The ones who carry the load are the ones who carry the village."); }, "Work at {station} is honest work, and honest work is its own standing."],
+    walk: ["On my way to {station}. The village runs on the feet of people like me."],
+    idle: ["A spare minute, and I spend it watching who gives the orders and who takes them.", "Nothing urgent. From down here, you can see the whole shape of the village."]
+  },
+  civilization: {
+    sick: ["I feel rotten. A body neglected is a roof neglected; mend it early or pay in full later."],
+    rivalryHigh: ["{partner} and I keep circling the same work. Two hands fighting over one task helps neither the task nor the village.", "Every time {partner} is near, the same job turns into a contest. Order is the first casualty, and we all pay for it."],
+    rivalryLow: ["{partner} is on the same work again. Company at the task, if we keep it civil."],
+    blamed: [function(F){ return F.blamed >= 2 ? ("Blamed " + F.blamed + " times. A village that lets blame do the work of judgment is a village coming apart.") : "Being blamed once sits in the chest. Order begins with owning what is yours; I will own mine."; }, "Blame is cheap and repair is dear. I know which one this village needs from me."],
+    want: [function(F){ return F.slipping ? ("The want for " + F.station + " is slipping away, and a want let slip is a duty left to rot.") : ("My head keeps drifting to " + F.station + ". Wanting the right things is half of keeping a village."); }, "{Station} is calling. A kept place calls the people who keep it."],
+    ordered: [function(F){ return F.Station + " needs hands if it is to keep turning come winter. Orders are how a village holds together."; }, "Ordered to {station}. Work assigned is work that gets done, and done work is what stands between us and ruin."],
+    inspired: ["Working where {model} just worked, and the standard they set is worth matching. Good work is a kind of inheritance.", "{model} keeps a high standard, and standing near it raises mine."],
+    resting: ["I am running on fumes. Even a good tool is rested and oiled, or it breaks in the hand.", "Rest first, then I am useful again. A village that runs its people to ruin has no one left to mend it."],
+    watch: ["I am watching {model}. You learn a trade by standing close to someone who keeps its standards.", "I watch {model}. Craft is passed down hand to hand, or it is lost."],
+    work: [function(F){ return F.selfStation ? ("This is my work, " + F.station + ". Kept well, it outlasts the keeper.") : ("Work at " + F.station + ", done properly, holds the whole village up."); }, "Standards at {station} are not fussiness. They are how things last."],
+    walk: ["On my way to {station}. The village does not run itself; it is carried, daily, by people who show up."],
+    idle: ["A spare minute. I spend it looking for what needs mending before it breaks.", "Nothing urgent. That is what upkeep buys: quiet days that hold."]
+  },
+  liberty: {
+    sick: ["I feel rotten. My body has voted, and even I do not get to overrule it. Everything else can wait."],
+    rivalryHigh: ["{partner} and I keep circling the same work. Nobody chose this contest; it closes in like a fence.", "Every time {partner} is near, the same job turns into a contest, and I did not agree to compete."],
+    rivalryLow: ["{partner} is on the same work again. Fine, as long as the choosing stays mine."],
+    blamed: [function(F){ return F.blamed >= 2 ? ("Blamed " + F.blamed + " times, and never once asked for my side. A mob with a verdict is still a mob.") : "Being blamed once sits in the chest. Nobody asked me; they just pointed."; }, "Blame handed down without a hearing is force wearing a judge's coat."],
+    want: [function(F){ return F.slipping ? ("The want for " + F.station + " is slipping away. A want squeezed out by other people's plans is a small theft.") : ("My head keeps drifting to " + F.station + ". Nobody assigned this want, and that is why it is mine."); }, "{Station} is calling, and for once the call is my own."],
+    ordered: ["Ordered to {station}. My hours, handed over like they were never mine.", "Sent to {station}, no asking involved. I will go, but the going was not my choice."],
+    inspired: ["Working where {model} just worked, because I chose to follow that example. Freely copied is freely given.", "Nobody ordered me to learn from {model}. That is exactly why it works."],
+    resting: ["I am running on fumes. My rest is mine to take, and I am taking it.", "Rest first. Nobody owns my hours enough to spend the last of them."],
+    watch: ["I am watching {model}, because I picked them myself. You learn a trade by standing close, freely.", "I watch {model}. Imitation I choose is mine; imitation forced on me is a leash."],
+    work: [function(F){ return F.selfStation ? ("This is my work, " + F.station + ", and it is mine because I keep choosing it.") : ("Head down at " + F.station + ", by my own leave. Work chosen is work done well."); }, "Work I choose at {station} never feels like a cage."],
+    walk: ["On my way to {station}, at my own pace. The village does not run itself, and neither do I, for anyone."],
+    idle: ["A spare minute, and it is wholly mine. I spend it watching the village breathe.", "Nothing urgent, and nobody disposing of my time. That itself is worth noticing."]
+  }
+};
+function axisMain(a, cat, F, vi){
+  var row = AXIS_TPL[a.axis]; if(!row) return null;
+  var cell = row[cat]; if(!cell || !cell.length) return null;
+  var e = cell[vi % cell.length];
+  if(typeof e === "function") return e(F);
+  return String(e).split("{model}").join(F.model || "").split("{partner}").join(F.partner || "").split("{station}").join(F.station || "").split("{Station}").join(F.Station || "");
+}
 function composeThought(a, cause){
   var P = a.persona; if(!P) return null;
   var m = a.model ? agent(a.model) : null;
@@ -878,19 +957,24 @@ function composeThought(a, cause){
   var ten = topTension(a);
   var vi = Math.abs(Math.floor(a.seed + a.thoughtLog.length * 3 + Math.floor(G.t / 9))) % 2;
   var main = null, why = "because there is a quiet moment";
-  if(a.sick){ main = ["I feel rotten. Everything else can wait until this passes.", "Being sick shrinks the world to one chair. Let it."][vi]; why = "because I am unwell"; }
-  else if(ten && ten.v >= 50){ var pn = ten.who.name.split(" ")[0]; main = [pn + " and I keep circling the same work, and it is getting sharp between us.", "Every time " + pn + " is near, the same job turns into a contest."][vi]; why = "because the rivalry with " + pn + " is heating up"; }
-  else if((a.blamed || 0) >= 2){ main = "People look at me sideways now. Blamed " + a.blamed + " times does that to a person."; why = "because blame keeps landing on me"; }
-  else if((a.blamed || 0) >= 1){ main = "Being blamed once sits in the chest longer than people think."; why = "because blame landed on me"; }
-  else if(a.want && STATION3[a.want.station]){ var wn = artName(a.want.station); var rem = a.want.until - G.t; main = rem < 9 ? ("The want for " + wn + " is slipping away, and I hate leaving a thing undone.") : ["My head keeps drifting to " + wn + ". I want that today.", wn.charAt(0).toUpperCase() + wn.slice(1) + " is calling. Not loudly, but it will not stop."][vi]; why = "because the want for " + wn + " took hold"; }
-  else if(a.order && STATION3[a.order]){ main = "Orders are orders: " + artName(a.order) + ", until I am told otherwise."; why = "because I was given an order"; }
-  else if(a.inspUntil && G.t < a.inspUntil && mn){ main = "Working where " + mn + " just worked, and it is rubbing off. My hands know the rhythm now."; why = "because " + mn + " inspired me"; }
-  else if(a.resting || a.energy < 20){ main = "I am running on fumes. Rest first, then I am useful again."; why = "because I am worn out"; }
-  else if(a.state === "watch" && mn){ main = "I am watching " + mn + ". You learn a trade by standing close."; why = "because " + mn + " is the one I follow"; }
-  else if(ten && ten.v >= 28){ var pn2 = ten.who.name.split(" ")[0]; main = pn2 + " is on the same work again. I notice, even when I say nothing."; why = "because " + pn2 + " keeps pace with me"; }
-  else if(a.state === "act" && a.stationId && STATION3[a.stationId]){ var an = artName(a.stationId); main = a.stationId === a.aff ? ("This is my work, " + an + ". It suits me down to the ground.") : ["Work at " + an + ", done properly, holds the whole village up.", "Head down at " + an + ". This is where I am useful."][vi]; why = "because I am at " + an; }
-  else if(a.state === "walk" && a.stationId && STATION3[a.stationId]){ main = "On my way to " + artName(a.stationId) + ". The village does not run itself."; why = "because I am heading to " + artName(a.stationId); }
-  else { main = ["A spare minute. I spend it watching how the village breathes.", "Nothing urgent. That itself feels worth noticing."][vi]; }
+  var cat = "idle";
+  var F = {model:mn, partner:null, station:null, Station:null, blamed:(a.blamed || 0), slipping:false, selfStation:false};
+  function setStation(nm){ F.station = nm; F.Station = nm ? nm.charAt(0).toUpperCase() + nm.slice(1) : nm; }
+  if(a.sick){ cat = "sick"; main = ["I feel rotten. Everything else can wait until this passes.", "Being sick shrinks the world to one chair. Let it."][vi]; why = "because I am unwell"; }
+  else if(ten && ten.v >= 50){ var pn = ten.who.name.split(" ")[0]; cat = "rivalryHigh"; F.partner = pn; main = [pn + " and I keep circling the same work, and it is getting sharp between us.", "Every time " + pn + " is near, the same job turns into a contest."][vi]; why = "because the rivalry with " + pn + " is heating up"; }
+  else if((a.blamed || 0) >= 2){ cat = "blamed"; main = "People look at me sideways now. Blamed " + a.blamed + " times does that to a person."; why = "because blame keeps landing on me"; }
+  else if((a.blamed || 0) >= 1){ cat = "blamed"; main = "Being blamed once sits in the chest longer than people think."; why = "because blame landed on me"; }
+  else if(a.want && STATION3[a.want.station]){ var wn = artName(a.want.station); var rem = a.want.until - G.t; cat = "want"; setStation(wn); F.slipping = rem < 9; main = rem < 9 ? ("The want for " + wn + " is slipping away, and I hate leaving a thing undone.") : ["My head keeps drifting to " + wn + ". I want that today.", wn.charAt(0).toUpperCase() + wn.slice(1) + " is calling. Not loudly, but it will not stop."][vi]; why = "because the want for " + wn + " took hold"; }
+  else if(a.order && STATION3[a.order]){ cat = "ordered"; setStation(artName(a.order)); main = "Orders are orders: " + artName(a.order) + ", until I am told otherwise."; why = "because I was given an order"; }
+  else if(a.inspUntil && G.t < a.inspUntil && mn){ cat = "inspired"; main = "Working where " + mn + " just worked, and it is rubbing off. My hands know the rhythm now."; why = "because " + mn + " inspired me"; }
+  else if(a.resting || a.energy < 20){ cat = "resting"; main = "I am running on fumes. Rest first, then I am useful again."; why = "because I am worn out"; }
+  else if(a.state === "watch" && mn){ cat = "watch"; main = "I am watching " + mn + ". You learn a trade by standing close."; why = "because " + mn + " is the one I follow"; }
+  else if(ten && ten.v >= 28){ var pn2 = ten.who.name.split(" ")[0]; cat = "rivalryLow"; F.partner = pn2; main = pn2 + " is on the same work again. I notice, even when I say nothing."; why = "because " + pn2 + " keeps pace with me"; }
+  else if(a.state === "act" && a.stationId && STATION3[a.stationId]){ var an = artName(a.stationId); cat = "work"; setStation(an); F.selfStation = a.stationId === a.aff; main = a.stationId === a.aff ? ("This is my work, " + an + ". It suits me down to the ground.") : ["Work at " + an + ", done properly, holds the whole village up.", "Head down at " + an + ". This is where I am useful."][vi]; why = "because I am at " + an; }
+  else if(a.state === "walk" && a.stationId && STATION3[a.stationId]){ cat = "walk"; setStation(artName(a.stationId)); main = "On my way to " + artName(a.stationId) + ". The village does not run itself."; why = "because I am heading to " + artName(a.stationId); }
+  else { cat = "idle"; main = ["A spare minute. I spend it watching how the village breathes.", "Nothing urgent. That itself feels worth noticing."][vi]; }
+  var framed = axisMain(a, cat, F, vi);
+  if(framed) main = framed;
   var second = "";
   var pick = Math.abs(Math.floor(a.seed * 2 + a.thoughtLog.length * 5 + Math.floor(G.t / 13))) % 4;
   if(pick === 0) second = P.tic;
@@ -1506,12 +1590,13 @@ var CMDS = [
 var trayKey = "";
 function refreshTray(force){
   var a = G.selected ? agent(G.selected) : null;
-  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.want ? a.want.station : "") + (a.thought ? "#" + a.thought.at : "") : "") + "|" + (cam.follow || "") + "|" + (G.spotCd > G.t ? "cd" : "rdy") + "|" + G.armed;
+  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station : "") + (a.thought ? "#" + a.thought.at : "") : "") + "|" + (cam.follow || "") + "|" + (G.spotCd > G.t ? "cd" : "rdy") + "|" + G.armed;
   if(!force && key === trayKey) return;
   trayKey = key;
   var info = document.getElementById("selInfo");
   if(a){
-    info.innerHTML = "<div class='rl'>" + a.role + " · <span style='color:" + DISPO3[a.disp].col + "'>" + DISPO3[a.disp].icon + " " + a.disp + "</span>" + (a.want ? " · 💭" + STATION3[a.want.station].icon + " " + stationW(a.want.station).name : "") + "</div>"
+    var ax = axisOf(a);
+    info.innerHTML = "<div class='rl'>" + a.role + " · <span style='color:" + DISPO3[a.disp].col + "'>" + DISPO3[a.disp].icon + " " + a.disp + "</span>" + (a.want ? " · 💭" + STATION3[a.want.station].icon + " " + stationW(a.want.station).name : "") + (ax ? " · " + ax.icon + " " + ax.label : "") + "</div>"
       + "<div class='nm'>" + (a.vis >= 60 ? "🔥 " : "") + a.name + "</div>"
       + "<div class='st'>" + activityText(a) + " · ⚡" + Math.round(a.energy) + " ♥" + Math.round(a.morale) + " 👀" + Math.round(a.vis) + "</div>"
       + "<div class='st'>" + (a.reason ? a.reason + " · " : "") + watchLine(a) + "</div>" + innerVoiceHTML(a);
@@ -1634,6 +1719,8 @@ function shuffleArr(arr){ for(var i = arr.length - 1; i > 0; i--){ var j = Math.
 function shuffleCast(){
   var others = G.agents.filter(function(a){ return a.id !== "mara" && a.id !== "bram"; });
   var disps = shuffleArr(["Diligent","Helpful","Diligent","Helpful","Selfish","Helpful","Diligent","Withdrawn"]);
+  var axisPool2 = dealAxes();
+  G.agents.forEach(function(a, i){ a.axis = axisPool2[i]; });
   var affs = shuffleArr(others.map(function(a){ return a.aff; }));
   others.forEach(function(a, i){ a.disp = disps[i]; a.aff = affs[i]; a.vis = 22 + Math.floor(Math.random() * 22); });
   var models = shuffleArr(others.slice()).slice(0, 2);
@@ -2073,7 +2160,7 @@ if(ffm){
   updateCamera(0); Store.commit(); refreshTray(true);
   renderer.render(scene, camera);
 }
-window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, setModel: function(id, mid){ var a = agent(id); if(a) a.model = mid; }, select: function(id){ Store.dispatch("ui/select", {id:id}); refreshTray(true); }, pickProject: function(i){ pickProject(i || 0); }, thoughts: function(){ var out = {}; G.agents.forEach(function(a){ out[a.id] = {voice:(a.persona ? a.persona.voice.join(", ") : ""), thought:(a.thought ? a.thought.text : ""), cause:(a.thought ? a.thought.cause : ""), log:(a.thoughtLog ? a.thoughtLog.length : 0), events:(a.recentEvents ? a.recentEvents.length : 0)}; }); return out; }};
+window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, setModel: function(id, mid){ var a = agent(id); if(a) a.model = mid; }, select: function(id){ Store.dispatch("ui/select", {id:id}); refreshTray(true); }, pickProject: function(i){ pickProject(i || 0); }, thoughts: function(){ var out = {}; G.agents.forEach(function(a){ out[a.id] = {axis:(a.axis || ""), voice:(a.persona ? a.persona.voice.join(", ") : ""), thought:(a.thought ? a.thought.text : ""), cause:(a.thought ? a.thought.cause : ""), log:(a.thoughtLog ? a.thoughtLog.length : 0), events:(a.recentEvents ? a.recentEvents.length : 0)}; }); return out; }};
 </script>
 </body>
 </html>
