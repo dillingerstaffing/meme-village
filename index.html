@@ -1704,22 +1704,61 @@ function renderOverlay(s){
     if(m.bubble) a.bubbleEl.style.opacity = m.bubble.kind === "want" ? m.bubble.opacity.toFixed(2) : "1";
     placed.push(a);
   });
-  placed.sort(function(p, q){ return p._ovlModel.y - q._ovlModel.y; });
+  // Anchor discipline: an overlay belongs to its resident, and position
+  // is identity. A marker may shift only within a small budget (LIFT_MAX
+  // up, DX_MAX sideways; the screen clamps and a short HUD nudge count
+  // against the same budget). Past the budget it yields and hides for
+  // this frame instead of floating somewhere meaningless. Placement
+  // order is by priority (the selected resident, then event bubbles,
+  // want bubbles, then ambient markers, each by height on screen), so
+  // the signals that matter keep their anchors and ambient ones yield.
+  var LIFT_MAX = 56, DX_MAX = 110;
+  function ovlRank(a){
+    if(s.selected === a.id) return 0;
+    if(a._ovlModel.bubble) return a._ovlModel.bubble.kind === "event" ? 1 : 2;
+    return 3;
+  }
+  placed.sort(function(p, q){ var rp = ovlRank(p) - ovlRank(q); return rp !== 0 ? rp : p._ovlModel.y - q._ovlModel.y; });
   var boxes = [];
+  function ovlHit(x, y, hw, hh){
+    for(var i = 0; i < boxes.length; i++){
+      var b = boxes[i];
+      if(Math.abs(b.x - x) < (b.hw + hw) * 0.85 && (y - hh < b.y) && (y > b.y - b.hh)) return b;
+    }
+    return null;
+  }
   placed.forEach(function(a){
     var el = a.ovlEl, m = a._ovlModel;
     var hw = (el.offsetWidth || 46) / 2, hh = el.offsetHeight || 56;
     var x = Math.max(hw + 4, Math.min(window.innerWidth - hw - 4, m.x));
     var y = m.y;
-    if(hud && y > hud.top - 40 && y - hh < hud.bottom + 12 && x - hw < hud.right + 6) x = hud.right + 6 + hw;
-    var guard = 0, moved = true;
-    while(moved && guard++ < 10){
-      moved = false;
-      for(var i = 0; i < boxes.length; i++){
-        var b = boxes[i];
-        if(Math.abs(b.x - x) < (b.hw + hw) * 0.85 && (y - hh < b.y) && (y > b.y - b.hh)){ y = b.y - b.hh - 3; moved = true; }
+    if(hud && y > hud.top - 40 && y - hh < hud.bottom + 12 && x - hw < hud.right + 6){
+      var hx = hud.right + 6 + hw;
+      if(hx - m.x <= DX_MAX || s.selected === a.id) x = hx;
+      else { el.style.display = "none"; a._ovlSig = ""; return; }
+    }
+    var hit = ovlHit(x, y, hw, hh);
+    if(hit){
+      var cands = [hit.x - hit.hw - hw - 6, hit.x + hit.hw + hw + 6];
+      var sided = false;
+      for(var ci = 0; ci < cands.length; ci++){
+        var cx = Math.max(hw + 4, Math.min(window.innerWidth - hw - 4, cands[ci]));
+        if(Math.abs(cx - m.x) > DX_MAX) continue;
+        if(hud && y > hud.top - 40 && y - hh < hud.bottom + 12 && cx - hw < hud.right + 6) continue;
+        if(!ovlHit(cx, y, hw, hh)){ x = cx; sided = true; break; }
+      }
+      if(!sided){
+        var guard = 0;
+        while(hit && guard++ < 10){
+          var ny = hit.y - hit.hh - 3;
+          if(m.y - ny > LIFT_MAX){ y = -1; break; }
+          y = ny;
+          hit = ovlHit(x, y, hw, hh);
+        }
+        if(hit) y = -1;
       }
     }
+    if(y < 0){ el.style.display = "none"; a._ovlSig = ""; return; }
     if(y - hh < 4) y = hh + 4;
     el.style.left = x + "px"; el.style.top = y + "px";
     boxes.push({x:x, y:y, hw:hw, hh:hh});
