@@ -138,7 +138,11 @@ canvas{display:block}
 .seglabel{font-size:10px;letter-spacing:.22em;color:var(--gold);font-weight:800;margin-top:10px}
 @media (max-width:760px){#selInfo{min-width:118px}#objCard{width:206px}.cbtn{min-width:56px;padding:8px 4px 6px}}
 @media (max-width:560px){
-  #objCard{width:172px;padding:7px 9px}
+  #objCard{width:172px;padding:7px 9px;z-index:11}
+  /* Phone: the offer card (with its Accept/Ignore and project pick buttons)
+     paints above the transient toast pill, which otherwise covers the
+     lower pick button's label for its 3.6s life right at the decision
+     moment. Desktop keeps z-10 (its toast sits at the bottom, no clash). */
   #objCard .t{font-size:13px}
   #objCard .s{font-size:10px}
   #topRight{gap:4px}
