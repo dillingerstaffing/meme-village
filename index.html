@@ -1130,8 +1130,10 @@ function fireInitiative(a, p){
   if(p.kind === "shift"){
     var m = a.model ? agent(a.model) : null;
     a.reason = "Extra shift, following " + (m ? m.name.split(" ")[0] : "their model");
+    var fromSt = a.stationId;
+    if(p.station && a.stationId !== p.station) goStation(a, p.station);
     a.boostUntil = G.t + 8; setBubble(a, "⚡", 2);
-    G.agents.forEach(function(b){ if(b.model === a.id && b.stationId === a.stationId && Math.random() < 0.3){ b.boostUntil = G.t + 8; b.reason = "Joining " + nm; } });
+    G.agents.forEach(function(b){ if(b.model === a.id && b.stationId === fromSt && Math.random() < 0.3){ b.boostUntil = G.t + 8; b.reason = "Joining " + nm; } });
   }
   if(p.kind === "mediate"){
     var ids = p.pair.split("|"); var other = agent(ids[0] === a.id ? ids[1] : ids[0]);
