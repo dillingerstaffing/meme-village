@@ -280,6 +280,7 @@ var Store = (function(){
     "ui/toast": function(p){ state.ui.toast = {msg: String(p.msg || ""), until: Date.now() + (p.ms || 3600), focus: p.focus || null}; },
     "ui/select": function(p){ state.selected = p.id || null; if(state.ui && state.ui.sheet) state.ui.sheet = state.selected; },
     "ui/sheet": function(p){ if(state.ui) state.ui.sheet = p && p.id ? p.id : null; },
+    "ui/mute": function(p){ if(state.ui) state.ui.muted = (p && typeof p.on === "boolean") ? p.on : !state.ui.muted; },
     "thought/set": function(p){ var a = findA(p.id); if(a){ var nt = String(p.text || ""); if(!validThought(nt)) return; var cause = p.cause || "ambient"; var isNew = !a.thought || a.thought.text !== nt; a.thought = {text:nt, at:state.t, wk:state.week, cause:cause, why:p.why || "", cat:p.cat || "", source:"template"}; if(isNew && cause !== "start") a.thoughtFx = state.t + 2.5; if(a.thoughtLog){ for(var di = a.thoughtLog.length - 1; di >= 0; di--) if(a.thoughtLog[di].text === nt) a.thoughtLog.splice(di, 1); a.thoughtLog.push(a.thought); if(a.thoughtLog.length > 8) a.thoughtLog.shift(); } } }
   };
   function commit(){
@@ -679,7 +680,7 @@ function newSlice(){
     stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
     objStation:"clinic", objComplete:false, objDone:0, scapegoats:0, delays:[],
     weekWork:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0}, weekWorkP:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0},
-    ui:{toast:null, sheet:null}, policy:"hearth", difficulty:"standard", medicPatient:null, pendingIncident:null, curIncident:null, alerts:[], firstOrder:false};
+    ui:{toast:null, sheet:null, muted:false}, policy:"hearth", difficulty:"standard", medicPatient:null, pendingIncident:null, curIncident:null, alerts:[], firstOrder:false};
   g.agents.forEach(function(a){
     a.speedNow = 0; a.slot = null; a.fetch = null; a.fetchT = 0; a.watchCd = 0; a.mimicStation = null;
     a.pendingWatch = null; a.medicTask = 0; a.kneelT = 0; a.pendingSick = false; a.visitId = null;
@@ -923,6 +924,7 @@ function addTension(a, b, amt){
     var warnShared = (a.model && a.model === b.model) ? agent(a.model) : null;
     setBubble(a, "⚡", 2.0); setBubble(b, "⚡", 2.0);
     showToast("⚡ " + a.name.split(" ")[0] + " and " + b.name.split(" ")[0] + " are copying " + (warnShared ? warnShared.name.split(" ")[0] + " and getting heated" : "the same work and getting heated") + ". Separate them or cool them on the green.", {ids:[a.id, b.id]});
+    SND.play("warn");
     noteEvent(a, "rivalry", b.id); noteEvent(b, "rivalry", a.id);
   }
   if(G.pairs[k] >= 70 && (!G.feudCd[k] || G.t > G.feudCd[k])){
@@ -933,6 +935,7 @@ function addTension(a, b, amt){
     G.blame = Math.min(100, (G.blame || 0) + 5);
     var shared = (a.model && a.model === b.model) ? agent(a.model) : null;
     showToast("⚔ " + a.name.split(" ")[0] + " and " + b.name.split(" ")[0] + (shared ? " both follow " + shared.name.split(" ")[0] + ", and imitation has turned to rivalry" : " have fallen out over the same work"), {ids:[a.id, b.id]});
+    SND.play("feud");
     noteEvent(a, "rivalry", b.id); noteEvent(b, "rivalry", a.id);
   }
 }
@@ -1346,6 +1349,7 @@ function openIncident(inc){
   }).join("");
   box.innerHTML = "<div class='k'>WEEK " + G.week + " · IN THE VILLAGE</div><h3>" + inc.title + "</h3><p>" + inc.text + "</p><div class='opts'>" + opts + "</div>";
   box.style.display = "block";
+  SND.play("incident");
   box.querySelectorAll(".iopt").forEach(function(b){ b.addEventListener("click", function(){ chooseIncident(parseInt(b.getAttribute("data-i"), 10)); }); });
 }
 function chooseIncident(i){
@@ -1353,6 +1357,7 @@ function chooseIncident(i){
   var opt = G.curIncident.options[i];
   G.incidentOpen = false; G.incidentDone = true; G.curIncident = null;
   document.getElementById("incident").style.display = "none";
+  SND.play("decide");
   if(opt){
     if(opt.blame){ G.scapegoats++; G.delays.push({at: G.t + 2 * WEEK_LEN, mods:{trust:-7, cohesion:-6, rivalry:6}, msg:"🕯 The village remembers the blame"}); }
     if(opt.fx) opt.fx();
@@ -1442,6 +1447,7 @@ function projectTick(){
   if(pr.cost && G.stores >= pr.cost) G.stores -= pr.cost;
   G.perks.push(pr.id);
   showToast("🏗 Project complete: " + (def ? def.title : pr.id) + ". " + (def ? def.perkText : ""));
+  SND.play("objwin");
 }
 var OBJECTIVES = [
   {station:"clinic", icon:"🔨", title:"Repair the clinic roof", hint:"Planks land as the crew works", metric:function(){ return G.roof; }},
@@ -1480,6 +1486,7 @@ function objectiveTick(){
   if(o && o.metric() >= 100){
     G.objComplete = true; G.objDone++; applyStatMods({trust:3, cohesion:3});
     showToast("✓ Objective complete: " + o.title);
+    SND.play("objwin");
     var st = STATION3[o.station];
     if(st){
       var cx = st.x, cz = st.z, wi = 0, sx = 0, sz = 0;
@@ -1513,6 +1520,7 @@ function statDrift(dt){
     applyStatMods({cohesion:7, rivalry:-16, trust:-5});
     G.delays.push({at: G.t + WEEK_LEN, mods:{trust:-5}, msg:"🕯 The village remembers who it turned on"});
     showToast("🌩 The village turned on " + cand.name.split(" ")[0] + ". The quiet feels bought.", {ids:[cand.id]});
+    SND.play("blame");
   }
   G.agents.forEach(function(a){
     if(a.state === "act" && a.stationId && a.stationId !== "green" && a.stationId !== "home"){ workers++; if(!a.order) crowd[a.stationId] = (crowd[a.stationId] || 0) + 1; }
@@ -1545,6 +1553,7 @@ function endWeek(){
   G.agents.forEach(function(a){ a.alerted = false; a.loafT = 0; });
   G.fieldGrowth = 0.12; G.growthApplied = -1;
   setObjective();
+  SND.play("week");
   if(G.week === 7) setTimeout(function(){ if(!G.over) showToast("❄ Half the season gone. Winter is counting."); }, 1200);
 }
 
@@ -1717,7 +1726,7 @@ var CMDS = [
 var trayKey = "";
 function refreshTray(force){
   var a = G.selected ? agent(G.selected) : null;
-  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station : "") : "") + "|" + (cam.follow || "") + "|" + (G.spotCd > G.t ? "cd" : "rdy") + "|" + G.armed;
+  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station : "") : "") + "|" + (cam.follow || "") + "|" + (G.spotCd > G.t ? "cd" : "rdy") + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u");
   if(!force && key === trayKey) return;
   trayKey = key;
   var info = document.getElementById("selInfo");
@@ -1739,6 +1748,7 @@ function refreshTray(force){
   html += "<button class='cbtn" + (G.armed ? " on" : "") + "' data-o='spot'" + (!a || G.spotCd > G.t ? " disabled" : "") + "><span class='i'>✨</span><span class='l'>Spotlight</span></button>";
   html += "<button class='cbtn" + (G.modelArm ? " on" : "") + "' data-o='model'" + (!a ? " disabled" : "") + "><span class='i'>👁</span><span class='l'>Model</span></button>";
   html += "<button class='cbtn' data-o='thoughts'" + (!a ? " disabled" : "") + "><span class='i'>💭</span><span class='l'>Thoughts</span></button>";
+  html += "<button class='cbtn" + (G.ui && G.ui.muted ? " on" : "") + "' data-o='mute'><span class='i'>" + (G.ui && G.ui.muted ? "🔇" : "🔊") + "</span><span class='l'>Sound</span></button>";
   var cmds = document.getElementById("cmds");
   cmds.innerHTML = html;
   cmds.querySelectorAll(".cbtn").forEach(function(b){
@@ -1748,6 +1758,7 @@ function refreshTray(force){
       if(o === "spot"){ G.armed = true; G.modelArm = false; showToast("✨ Tap a resident to spotlight them"); refreshTray(true); return; }
       if(o === "model"){ G.modelArm = true; G.armed = false; showToast("👁 Tap who " + (a ? a.name.split(" ")[0] : "they") + " should look up to"); refreshTray(true); return; }
       if(o === "thoughts"){ if(G.selected) Store.dispatch("ui/sheet", {id:G.selected}); return; }
+      if(o === "mute"){ Store.dispatch("ui/mute"); try { if(typeof localStorage !== "undefined") localStorage.setItem("mv_muted", (G.ui && G.ui.muted) ? "1" : "0"); } catch(e){} SND.play("toggle"); refreshTray(true); return; }
       setOrder3(o);
     });
   });
@@ -1767,8 +1778,62 @@ function setOrder3(orderId){
   if(orderId !== "auto" && STATION3[orderId]){ var stp = STATION3[orderId]; spawnOrderPing(stp.x, stp.z); setBubble(a, stp.icon, 1.4); }
   a.state = "idle"; a.decideT = 0;
   noteEvent(a, "ordered", orderId);
+  SND.play(orderId === "auto" ? "tap" : "order");
   refreshTray(true);
 }
+/* ============ AUDIO: microinteraction feedback layer ============
+   A small WebAudio sound palette (no assets, no network): every
+   meaningful UI event answers back with a short, coherent blip,
+   following the microinteraction-audio principle that a well-made
+   click gives instant confirmation that the game registered the
+   input. Sound is display only: play() no-ops when muted or when
+   the AudioContext is not running, so the sim never depends on it.
+   The context is created on the begin-game gesture (autoplay
+   policy), with a document-level resume fallback. */
+var SND = {
+  ctx: null, log: [],
+  RECIPES: {
+    tap:     [[660, 0.05, "sine", 0.10]],
+    order:   [[523, 0.06, "sine", 0.10], [784, 0.07, "sine", 0.10, 0.07]],
+    objwin:  [[523, 0.09, "sine", 0.12], [659, 0.09, "sine", 0.12, 0.09], [784, 0.09, "sine", 0.12, 0.18], [1047, 0.14, "sine", 0.12, 0.27]],
+    incident:[[196, 0.20, "triangle", 0.14]],
+    decide:  [[330, 0.08, "sine", 0.12], [262, 0.10, "sine", 0.12, 0.08]],
+    warn:    [[880, 0.09, "triangle", 0.12], [880, 0.09, "triangle", 0.12, 0.12]],
+    feud:    [[440, 0.12, "sawtooth", 0.07], [180, 0.22, "sawtooth", 0.07, 0.12]],
+    blame:   [[140, 0.40, "sine", 0.12]],
+    week:    [[392, 0.12, "sine", 0.08]],
+    toggle:  [[700, 0.04, "sine", 0.10]]
+  },
+  init: function(){
+    if(this.ctx || typeof AudioContext === "undefined") return;
+    try { this.ctx = new AudioContext(); } catch(e){ this.ctx = null; }
+    if(this.ctx && this.ctx.state === "suspended"){ try { this.ctx.resume(); } catch(e){} }
+  },
+  resume: function(){ if(this.ctx && this.ctx.state === "suspended"){ try { this.ctx.resume(); } catch(e){} } },
+  muted: function(){ return (typeof G !== "undefined" && G.ui && G.ui.muted); },
+  play: function(name){
+    var rec = this.RECIPES[name]; if(!rec) return;
+    this.log.push(name);
+    if(this.muted()) return;
+    if(!this.ctx || this.ctx.state !== "running") return;
+    var t0 = this.ctx.currentTime, i, n;
+    for(i = 0; i < rec.length; i++){
+      n = rec[i];
+      (function(f, d, ty, pk, dl){
+        var osc = SND.ctx.createOscillator(), g = SND.ctx.createGain();
+        var at = t0 + (dl || 0);
+        osc.type = ty; osc.frequency.value = f;
+        g.gain.setValueAtTime(0.0001, at);
+        g.gain.exponentialRampToValueAtTime(pk, at + 0.012);
+        g.gain.exponentialRampToValueAtTime(0.0001, at + d);
+        osc.connect(g); g.connect(SND.ctx.destination);
+        osc.start(at); osc.stop(at + d + 0.05);
+      })(n[0], n[1], n[2], n[3], n[4]);
+    }
+  }
+};
+window.__snd = SND;
+document.addEventListener("pointerdown", function(){ SND.resume(); });
 function showToast(msg, focus){ Store.dispatch("ui/toast", {msg:msg, focus: focus || null}); }
 var hudAcc = 0;
 var mmCtx = null;
@@ -2190,11 +2255,11 @@ function tapAt(cx, cy, smart){
   var p = pickAt(cx, cy);
   if(G.modelArm){
     G.modelArm = false;
-    if(p.agent && G.selected && p.agent !== G.selected){ var me3 = agent(G.selected), nw3 = agent(p.agent); me3.model = nw3.id; me3.modelCd = 0; setBubble(me3, "👁", 2); spawnPulse(nw3, me3); showToast("👁 " + me3.name.split(" ")[0] + " now looks up to " + nw3.name.split(" ")[0]); }
+    if(p.agent && G.selected && p.agent !== G.selected){ var me3 = agent(G.selected), nw3 = agent(p.agent); me3.model = nw3.id; me3.modelCd = 0; setBubble(me3, "👁", 2); spawnPulse(nw3, me3); SND.play("order"); showToast("👁 " + me3.name.split(" ")[0] + " now looks up to " + nw3.name.split(" ")[0]); }
     refreshTray(true); return;
   }
   if(G.armed){
-    if(p.agent){ var t = agent(p.agent); t.vis = Math.min(100, t.vis + 26); t.spotUntil = G.t + 20; setBubble(t, "✨", 2.5); G.spotCd = G.t + 45; G.armed = false; showToast("✨ " + t.name.split(" ")[0] + " is watched now"); refreshTray(true); }
+    if(p.agent){ var t = agent(p.agent); t.vis = Math.min(100, t.vis + 26); t.spotUntil = G.t + 20; setBubble(t, "✨", 2.5); G.spotCd = G.t + 45; G.armed = false; SND.play("order"); showToast("✨ " + t.name.split(" ")[0] + " is watched now"); refreshTray(true); }
     else G.armed = false;
     return;
   }
@@ -2202,12 +2267,14 @@ function tapAt(cx, cy, smart){
     if(smart && G.selected && G.selected !== p.agent){
       var me = agent(G.selected), them = agent(p.agent);
       me.visitId = them.id; me.order = null; me.reason = "Visiting " + them.name.split(" ")[0]; goTo(me, them.x + 1.2, them.z + 0.6, me.stationId); spawnOrderPing(them.x, them.z); setBubble(me, "💬", 1.1);
+      SND.play("order");
       refreshTray(true); return;
     }
     var nowMs = Date.now();
-    if(G.lastTap && G.lastTap.id === p.agent && nowMs - G.lastTap.ms < 380){ cam.follow = (cam.follow === p.agent) ? null : p.agent; G.lastTap = null; G.selected = p.agent; refreshTray(true); return; }
+    if(G.lastTap && G.lastTap.id === p.agent && nowMs - G.lastTap.ms < 380){ cam.follow = (cam.follow === p.agent) ? null : p.agent; G.lastTap = null; G.selected = p.agent; SND.play("tap"); refreshTray(true); return; }
     G.lastTap = {id: p.agent, ms: nowMs};
     G.selected = p.agent;
+    SND.play("tap");
     if(!G.hintModel){ G.hintModel = true; var ha = agent(p.agent); if(ha && ha.model){ var hm = agent(ha.model); if(hm) showToast("👁 " + ha.name.split(" ")[0] + " looks up to " + hm.name.split(" ")[0] + ": their work follows the model"); } }
     refreshTray(true); return;
   }
@@ -2316,6 +2383,7 @@ document.querySelectorAll("#polSeg .segbtn").forEach(function(b){ b.addEventList
 function beginGame(){
   if(G.started) return;
   G.started = true;
+  SND.init();
   G.policy = chosenPolicy; G.difficulty = chosenDiff;
   if(chosenDiff === "hard"){ G.stats.scarcity = 68; G.stats.trust = 48; G.agents.forEach(function(a){ a.energy -= 10; }); }
   if(chosenDiff === "dry"){ G.stats.scarcity = 62; G.stats.prod = 40; }
@@ -2333,6 +2401,7 @@ initThree();
 buildWorld();
 G = newSlice();
 Store.init(G);
+try { if(typeof localStorage !== "undefined" && localStorage.getItem("mv_muted") === "1") Store.dispatch("ui/mute", {on:true}); } catch(e){}
 Store.subscribe(renderOverlay);
 Store.subscribe(renderHud);
 Store.subscribe(function(){ refreshTray(false); });
