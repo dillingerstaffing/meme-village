@@ -3623,7 +3623,7 @@ function refreshTray(force){
   html += "<button class='cbtn" + (G.modelArm ? " on" : "") + "' data-o='model'" + (!a ? " disabled" : "") + "><span class='i'>👁</span><span class='l'>Model</span></button>";
   html += "<button class='cbtn" + (G.proclaimArm ? " on" : "") + "' data-o='proclaim'><span class='i'>📣</span><span class='l'>Proclaim</span></button>";
   html += "<button class='cbtn' data-o='thoughts'" + (!a ? " disabled" : "") + "><span class='i'>💭</span><span class='l'>Thoughts</span></button>";
-  html += "<button class='cbtn" + (G.speakArm ? " on" : "") + "' data-o='speak'" + ((G.blame || 0) < HH.speakBlameMin || G.speakCd > G.t ? " disabled" : "") + "><span class='i'>🕊</span><span class='l'>Speak For</span></button>";
+  html += "<button class='cbtn" + (G.speakArm ? " on" : "") + "' data-o='speak'><span class='i'>🕊</span><span class='l'>Speak For</span></button>";
   if(a && !a.child && G.banked && a.bank != null) html += "<button class='cbtn' data-o='cover'><span class='i'>🛡</span><span class='l'>Cover: " + (a.tier && TTI[a.tier] ? TTI[a.tier].name : "None") + "</span></button>";
   if(a && !a.child && a.sick && !a.tier) html += "<button class='cbtn' data-o='callout'><span class='i'>🚑</span><span class='l'>Call Out · " + TTI.spotFee + "🪙</span></button>";
   html += "<button class='cbtn" + (G.ui && G.ui.muted ? " on" : "") + "' data-o='mute'><span class='i'>" + (G.ui && G.ui.muted ? "🔇" : "🔊") + "</span><span class='l'>Sound</span></button>";
@@ -3643,6 +3643,10 @@ function refreshTray(force){
       if(o === "thoughts"){ if(G.selected) Store.dispatch("ui/sheet", {id:G.selected}); return; }
       if(o === "speak"){
         if(G.speakArm){ G.speakArm = false; speakFor(); refreshTray(true); return; }
+        /* The button stays tappable in its gated states so the tap can teach:
+           speakFor() names the reason (blame too low, or a defense heard too
+           recently) instead of arming a commit that cannot happen. */
+        if((G.blame || 0) < HH.speakBlameMin || (G.speakCd && G.t < G.speakCd)){ speakFor(); refreshTray(true); return; }
         var splan = speakPlan();
         if(splan && !splan.fail){
           G.speakArm = true;
