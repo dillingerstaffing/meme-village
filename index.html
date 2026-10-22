@@ -388,7 +388,7 @@ function renderSheet(s){
   }
   var log = a.thoughtLog || [];
   var whSig = 0; if(a.workHist) for(var wkk in a.workHist) whSig += a.workHist[wkk];
-  var key = a.id + "|" + (a.thought ? a.thought.at + ":" + a.thought.text : "none") + "|" + log.length + "|" + NEED_DEFS.map(function(d){ return Math.round(needVal(a, d.id)); }).join(":") + ":" + whSig + "|" + (householdOf(a) ? householdOf(a).id : "") + "|" + Math.round(a.age || 34) + arcOf(a).id;
+  var key = a.id + "|" + (a.thought ? a.thought.at + ":" + a.thought.text : "none") + "|" + log.length + "|" + NEED_DEFS.map(function(d){ return Math.round(needVal(a, d.id)); }).join(":") + ":" + whSig + "|" + (householdOf(a) ? householdOf(a).id : "") + "|" + Math.round(a.age || 34) + arcOf(a).id + "|" + Math.floor(a.cash || 0) + ":" + (a.bank == null ? "x" : Math.floor(a.bank));
   if(key === sheetKey && el.style.display !== "none") return;
   sheetKey = key;
   var shirt = "#" + ("000000" + (a.shirt || 0).toString(16)).slice(-6);
@@ -408,6 +408,7 @@ function renderSheet(s){
   var hhP = householdPartner(a);
   if(hhP) h += "<div class='sh-work'>🏠 Shares a house with " + hhP.name + "</div>";
   h += "<div class='sh-work'>Age " + Math.round(a.age || 34) + " · " + arcOf(a).label + "</div>";
+  h += "<div class='sh-work'>🪙 Cash on hand: " + Math.floor(a.cash || 0) + " tokens" + (a.bank != null ? " · Bank account: " + Math.floor(a.bank) + " tokens" : "") + "</div>";
   if(a.thought){
     h += "<div class='sh-quote'>\u201C" + a.thought.text + "\u201D</div>";
     for(var i = log.length - 2; i >= 0; i--){
@@ -694,7 +695,7 @@ function makeAgents(){
       state:"idle", stationId:null, slot:null, actT:0, decideT:Math.random()*2, loafT:0, alerted:false,
       energy:80 - (i%4)*4, morale:72, phase:Math.random()*10, walkPhase:0,
       order:null, carrying:null, bubble:null, bubbleUntil:0, watchOf:null, watchT:0, want:null, wantCd:Math.random()*10, wantPend:null, driveObj:false, workHist:{},
-      idleT:0, sick:false, seed:Math.random()*100, model:d.admires, blamed:0, modelCd:0, axis:axisPool[i], age:34, thought:null, thoughtLog:[], recentEvents:[], thoughtAt:-99
+      idleT:0, sick:false, seed:Math.random()*100, model:d.admires, blamed:0, modelCd:0, axis:axisPool[i], age:34, cash:ECON.startCash, bank:null, thought:null, thoughtLog:[], recentEvents:[], thoughtAt:-99
     });
     a.needs = {};
     NEED_DEFS.forEach(function(d){ a.needs[d.id] = d.start(i); });
@@ -813,10 +814,11 @@ function goStation(a, stId){
   a.slot = {x:jx, z:jz};
   goTo(a, jx, jz, stId);
 }
-// CF-REF: driven-work-progress.md [26]
+// CF-REF: driven-work-progress.md [27]
 function wk(a, key, amt){
   if(a.boostUntil && G.t < a.boostUntil) amt *= 2;
   G.weekWork[key] += amt;
+  earnPay(a, key, amt);
   if(key === "build"){
     var sb = a.buildSite ? siteById(a.buildSite) : null;
     if(sb && !sb.done){
@@ -1310,7 +1312,7 @@ function spawnNewcomer(def){
     energy: 76, morale: HH.newcomerMorale, phase: Math.random() * 10, walkPhase: 0,
     order: null, carrying: null, bubble: null, bubbleUntil: 0, watchOf: null, watchT: 0, want: null, wantCd: 6 + Math.random() * 8, wantPend: null, driveObj: false, workHist: {},
     idleT: 0, sick: false, seed: Math.random() * 100, model: null, blamed: 0, modelCd: 0,
-    axis: AXES[Math.floor(Math.random() * AXES.length)].id, age: LIFE.newcomerAges[Math.floor(Math.random() * LIFE.newcomerAges.length)], thought: null, thoughtLog: [], recentEvents: [], thoughtAt: -99,
+    axis: AXES[Math.floor(Math.random() * AXES.length)].id, age: LIFE.newcomerAges[Math.floor(Math.random() * LIFE.newcomerAges.length)], cash: ECON.startCash, bank: G.banked ? 0 : null, thought: null, thoughtLog: [], recentEvents: [], thoughtAt: -99,
     newcomer: true, arrivedWeek: G.week, dwellingSite: dwSite, solo: true,
     speedNow: 0, fetch: null, fetchT: 0, watchCd: 0, mimicStation: null, buildSite: null, fetchSite: null,
     pendingWatch: null, medicTask: 0, kneelT: 0, pendingSick: false, visitId: null
@@ -1478,6 +1480,44 @@ var LIFE = {
   proclaimAd: 14, proclaimBuildAd: 10, proclaimVisRate: 0.25, proclaimRecost: 4,
   successionTension: 50
 };
+/* ================= ECONOMY (Stage 6) =================
+   The meme token. Work pays: every wk() call is a work event the
+   game already counts, and earnPay observes the same call from
+   inside wk(), on the same amount wk() counted, without touching
+   any ledger wk() keeps: weekWork, weekWorkP, driveObj, project
+   parts, and the build ledger all behave exactly as before, and
+   pay is not gated on driveObj, because pay is for work performed,
+   driven or not. Earnings land as cash on hand. A resident may
+   hold a bank account only once a bank stands completed (G.banked,
+   set by the Stage 3 site effect); accounts open automatically for
+   everyone the moment banking exists, and for a newcomer on
+   arrival while banked, because the gate in the spec is the bank
+   standing, not a choice, and no verb exists for opening one.
+   While banked, a sweep at the bank's completion and at every
+   season boundary (endWeek) deposits all cash on hand into the
+   account, so cash is what a resident earned since the last sweep
+   and the account is what they have kept. Balances are agent state
+   only; nothing spends, transfers, or prices anything yet. Every
+   number in the ECON table is a Stage 6 judgment call: the spec
+   leaves every rate unspecified. Rates are keyed by wk() work key
+   (harvest is the fields key, stores the storehouse key) so a
+   later stage can vary pay by editing this table alone. */
+var ECON = {
+  pay: {clinic: 0.5, harvest: 0.5, stores: 0.5, green: 0.5, well: 0.5, school: 0.5, mill: 0.5, build: 0.5},
+  startCash: 0
+};
+function earnPay(a, key, amt){
+  var r = ECON.pay[key];
+  if(r == null || !(amt > 0)) return;
+  a.cash = (a.cash || 0) + amt * r;
+}
+function bankSweep(){
+  if(!G.banked) return;
+  G.agents.forEach(function(a){
+    if(a.bank == null) a.bank = 0;
+    if(a.cash > 0){ a.bank += a.cash; a.cash = 0; }
+  });
+}
 var TIER_STATIONS = ["clinic", "fields", "store", "green", "mill", "school", "well"];
 var TIER_SPOTS = {
   clinic: [[-34, -13], [-22, -13]], fields: [[-39, 16], [-21, 16]],
@@ -2371,7 +2411,7 @@ function finishSite(site){
 function applySiteEffect(site){
   var eff = (BUILD_KINDS[site.kind] || {}).effect || {};
   if(eff.householdCapacity) G.houseCapacity = (G.houseCapacity || 0) + eff.householdCapacity;
-  if(eff.banking) G.banked = true;
+  if(eff.banking){ G.banked = true; bankSweep(); }
 }
 function siteTick(){
   if(!G.sites) return;
@@ -2632,6 +2672,9 @@ function endWeek(){
      the death roll, all before the arrival check below so a freed
      dwelling can be refilled at the same boundary. */
   if(seasonOfYear() === 1) G.agents.forEach(function(a){ a.age = (a.age || 34) + 1; });
+  /* Stage 6: while the bank stands, the season boundary sweeps
+     each resident's cash on hand into their account. */
+  bankSweep();
   if(seasonOfYear() === 3) telegraphFailing();
   if(seasonOfYear() === 4) winterDeaths();
   if(seasonOfYear() === 1){
@@ -3712,7 +3755,7 @@ if(ffm){
   updateCamera(0); Store.commit(); refreshTray(true);
   renderer.render(scene, camera);
 }
-window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, verdict: storyVerdict, setModel: function(id, mid){ var a = agent(id); if(a) a.model = mid; }, select: function(id){ Store.dispatch("ui/select", {id:id}); refreshTray(true); }, pickProject: function(i){ pickProject(i || 0); }, acceptOffer: function(){ acceptOffer(); }, ignoreOffer: function(){ ignoreOffer(); }, drawOffer: function(){ drawOffer(); }, found: function(ix, kind){ return foundSite(ix, kind || "cottage"); }, sites: function(){ return (G.sites || []).map(function(s){ return {id: s.id, kind: s.kind, plot: s.plot, projId: s.projId, station: s.station, stage: s.stage, stageLabor: Math.round(s.stageLabor || 0), labor: Math.round(s.labor || 0), matsIn: {stores: s.matsIn.stores, planks: s.matsIn.planks}, workers: Object.keys(s.workers || {}).length, done: s.done}; }); }, capacity: function(){ return G.houseCapacity || 0; }, speak: function(){ return speakFor(); }, social: function(){ return {contentment: Math.round(contentment()), households: (G.households || []).map(function(h){ return {id: h.id, members: h.members.slice(), site: h.site, since: h.since}; }), arrival: G.arrival ? G.arrival.names.slice() : null, soloHoused: G.soloHoused || 0, housingFree: housingFree(), departed: G.departed || 0, candidate: (function(){ var c = scapegoatCandidate(); return c ? c.id : null; })()}; }, life: function(){ return {deaths:(G.deaths || []).map(function(d){ return {name:d.name, year:d.year, season:d.season}; }), tiers:Object.assign({}, G.tiers), tierProg:(function(){ var o = {}; Object.keys(G.tierProg || {}).forEach(function(k){ o[k] = Math.round(G.tierProg[k]); }); return o; })(), spots:(function(){ var o = {}; TIER_STATIONS.forEach(function(st){ o[st] = STATION3[st].work.length; }); return o; })(), builtWealth:G.builtWealth || 0, level:villageLevel().name, levelCount:villageLevel().count, proclaim:G.proclaim ? {station:G.proclaim.station, site:G.proclaim.site, week:G.proclaim.week} : null, ages:(function(){ var o = {}; G.agents.forEach(function(a){ o[a.id] = a.age; }); return o; })(), arcs:(function(){ var o = {}; G.agents.forEach(function(a){ o[a.id] = arcOf(a).id; }); return o; })()}; }, wealth: function(){ return recomputeWealth(); }, proclaim: function(st){ return proclaimAt(st, null); }, proclaimSite: function(id){ var s = siteById(id); return s ? proclaimAt(s.station || null, s.id) : false; }, die: function(id){ var a = agent(id); if(!a) return false; dieAgent(a); return true; }, fail: function(id){ var a = agent(id); if(!a) return false; a.failing = true; return true; }, tier: function(st){ return tierOf(st); }, sheet: function(id){ Store.dispatch("ui/sheet", {id:id || null}); }, closeSheet: function(){ Store.dispatch("ui/sheet", {id:null}); }, thoughts: function(){ var out = {}; G.agents.forEach(function(a){ out[a.id] = {axis:(a.axis || ""), voice:(a.persona ? a.persona.voice.join(", ") : ""), thought:(a.thought ? a.thought.text : ""), cause:(a.thought ? a.thought.cause : ""), log:(a.thoughtLog ? a.thoughtLog.length : 0), events:(a.recentEvents ? a.recentEvents.length : 0)}; }); return out; }};
+window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, verdict: storyVerdict, setModel: function(id, mid){ var a = agent(id); if(a) a.model = mid; }, select: function(id){ Store.dispatch("ui/select", {id:id}); refreshTray(true); }, pickProject: function(i){ pickProject(i || 0); }, acceptOffer: function(){ acceptOffer(); }, ignoreOffer: function(){ ignoreOffer(); }, drawOffer: function(){ drawOffer(); }, found: function(ix, kind){ return foundSite(ix, kind || "cottage"); }, sites: function(){ return (G.sites || []).map(function(s){ return {id: s.id, kind: s.kind, plot: s.plot, projId: s.projId, station: s.station, stage: s.stage, stageLabor: Math.round(s.stageLabor || 0), labor: Math.round(s.labor || 0), matsIn: {stores: s.matsIn.stores, planks: s.matsIn.planks}, workers: Object.keys(s.workers || {}).length, done: s.done}; }); }, capacity: function(){ return G.houseCapacity || 0; }, speak: function(){ return speakFor(); }, social: function(){ return {contentment: Math.round(contentment()), households: (G.households || []).map(function(h){ return {id: h.id, members: h.members.slice(), site: h.site, since: h.since}; }), arrival: G.arrival ? G.arrival.names.slice() : null, soloHoused: G.soloHoused || 0, housingFree: housingFree(), departed: G.departed || 0, candidate: (function(){ var c = scapegoatCandidate(); return c ? c.id : null; })()}; }, econ: function(){ return {banked: !!G.banked, pay: Object.assign({}, ECON.pay), startCash: ECON.startCash, agents:(function(){ var o = {}; G.agents.forEach(function(a){ o[a.id] = {cash: Math.floor(a.cash || 0), cashRaw: a.cash || 0, bank: (a.bank == null ? null : Math.floor(a.bank)), bankRaw: (a.bank == null ? null : a.bank)}; }); return o; })()}; }, life: function(){ return {deaths:(G.deaths || []).map(function(d){ return {name:d.name, year:d.year, season:d.season}; }), tiers:Object.assign({}, G.tiers), tierProg:(function(){ var o = {}; Object.keys(G.tierProg || {}).forEach(function(k){ o[k] = Math.round(G.tierProg[k]); }); return o; })(), spots:(function(){ var o = {}; TIER_STATIONS.forEach(function(st){ o[st] = STATION3[st].work.length; }); return o; })(), builtWealth:G.builtWealth || 0, level:villageLevel().name, levelCount:villageLevel().count, proclaim:G.proclaim ? {station:G.proclaim.station, site:G.proclaim.site, week:G.proclaim.week} : null, ages:(function(){ var o = {}; G.agents.forEach(function(a){ o[a.id] = a.age; }); return o; })(), arcs:(function(){ var o = {}; G.agents.forEach(function(a){ o[a.id] = arcOf(a).id; }); return o; })()}; }, wealth: function(){ return recomputeWealth(); }, proclaim: function(st){ return proclaimAt(st, null); }, proclaimSite: function(id){ var s = siteById(id); return s ? proclaimAt(s.station || null, s.id) : false; }, die: function(id){ var a = agent(id); if(!a) return false; dieAgent(a); return true; }, fail: function(id){ var a = agent(id); if(!a) return false; a.failing = true; return true; }, tier: function(st){ return tierOf(st); }, sheet: function(id){ Store.dispatch("ui/sheet", {id:id || null}); }, closeSheet: function(){ Store.dispatch("ui/sheet", {id:null}); }, thoughts: function(){ var out = {}; G.agents.forEach(function(a){ out[a.id] = {axis:(a.axis || ""), voice:(a.persona ? a.persona.voice.join(", ") : ""), thought:(a.thought ? a.thought.text : ""), cause:(a.thought ? a.thought.cause : ""), log:(a.thoughtLog ? a.thoughtLog.length : 0), events:(a.recentEvents ? a.recentEvents.length : 0)}; }); return out; }};
 </script>
 </body>
 </html>

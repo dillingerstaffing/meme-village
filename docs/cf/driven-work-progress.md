@@ -14,6 +14,10 @@ any resident it sweeps along. A resident in their Established arc counts one ext
 synergy partner in `wk()`'s multiplier; the gate itself does not
 move. Station tier progress is not `wk()`'s business at all: it
 accrues in `stepAgents` under its own ledger (`G.tierProg`).
+Income (Stage 6) also observes `wk()` from inside it: `earnPay`
+pays the resident on every `wk()` call, driven or not, on the same
+amount `wk()` counted; it reads neither weekWork nor weekWorkP and
+writes only the resident's cash. A wallet is never progress.
 
 Why: if self-started or ambient work filled objectives, the player
 could win by watching and ordering people around would stop mattering.
