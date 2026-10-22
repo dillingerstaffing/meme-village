@@ -45,66 +45,72 @@
     {
       "article": "household-capacity-ledger.md",
       "ref_line": 1303,
-      "lines": 45,
-      "hash": "d655166c"
+      "lines": 46,
+      "hash": "c35b56cb"
     },
     {
       "article": "thoughts-local-inference-only.md",
-      "ref_line": 2154,
+      "ref_line": 2155,
       "lines": 31,
       "hash": "abf52637"
     },
     {
+      "article": "autonomous-founding-gates.md",
+      "ref_line": 2707,
+      "lines": 28,
+      "hash": "0727e0b6"
+    },
+    {
       "article": "driven-work-progress.md",
-      "ref_line": 2837,
+      "ref_line": 2893,
       "lines": 14,
       "hash": "c77a272b"
     },
     {
       "article": "chronicle-and-saves.md",
-      "ref_line": 3155,
+      "ref_line": 3214,
       "lines": 129,
       "hash": "26f0f0d3"
     },
     {
       "article": "axis-label-selected-surfaces.md",
-      "ref_line": 3370,
+      "ref_line": 3429,
       "lines": 2,
       "hash": "c00115e1"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 3492,
+      "ref_line": 3551,
       "lines": 20,
       "hash": "207fd11f"
     },
     {
       "article": "sheet-below-objective-card.md",
-      "ref_line": 3681,
+      "ref_line": 3740,
       "lines": 16,
       "hash": "6b2224dc"
     },
     {
       "article": "overlay-anchor-budget.md",
-      "ref_line": 3934,
+      "ref_line": 3993,
       "lines": 65,
       "hash": "74c15edb"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 4137,
+      "ref_line": 4196,
       "lines": 11,
       "hash": "a01f9ac4"
     },
     {
       "article": "pointercancel-never-a-tap.md",
-      "ref_line": 4150,
+      "ref_line": 4209,
       "lines": 4,
       "hash": "3471fc97"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 4229,
+      "ref_line": 4288,
       "lines": 4,
       "hash": "ce66959f"
     }

@@ -8,12 +8,13 @@ overlay, marker, bubble, name tag, hud, camera move, collision, anchor, hide
 | overlay-anchor-budget.md | Markers stay within 56px up and 110px sideways of their resident, or hide |
 
 ## Game Rules and Scoring
-objective, progress, project, parts, work credit, score, driven, order bonus, household, arrival, newcomer, cottage, capacity, speak for, blame
+objective, progress, project, parts, work credit, score, driven, order bonus, household, arrival, newcomer, cottage, capacity, speak for, blame, founding, growth, expansion, autonomous, plot
 
 | Article | Summary |
 |---------|---------|
 | driven-work-progress.md | Progress reads weekWorkP only, credited through the driveObj gate in wk() |
 | household-capacity-ledger.md | Housing is one ledger: households plus solo newcomers never exceed G.houseCapacity |
+| autonomous-founding-gates.md | The village founds at most one building a season, at the boundary, only when every GROWTH gate holds, through foundSite |
 
 ## State and Architecture
 state, store, dispatch, transact, render, dom, panel, new field, new event, chronicle, save, snapshot, ending, persistence, continue
