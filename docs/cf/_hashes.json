@@ -38,73 +38,85 @@
     },
     {
       "article": "driven-work-progress.md",
-      "ref_line": 880,
+      "ref_line": 881,
       "lines": 27,
       "hash": "f08cbff5"
     },
     {
       "article": "household-capacity-ledger.md",
-      "ref_line": 1303,
+      "ref_line": 1305,
       "lines": 45,
-      "hash": "d655166c"
+      "hash": "432a4df0"
+    },
+    {
+      "article": "membership-never-gates-the-medic.md",
+      "ref_line": 1637,
+      "lines": 14,
+      "hash": "be7265ac"
+    },
+    {
+      "article": "membership-never-gates-the-medic.md",
+      "ref_line": 1958,
+      "lines": 12,
+      "hash": "05a2a2ba"
     },
     {
       "article": "thoughts-local-inference-only.md",
-      "ref_line": 2154,
+      "ref_line": 2216,
       "lines": 31,
       "hash": "abf52637"
     },
     {
       "article": "driven-work-progress.md",
-      "ref_line": 2837,
+      "ref_line": 2974,
       "lines": 14,
       "hash": "c77a272b"
     },
     {
       "article": "chronicle-and-saves.md",
-      "ref_line": 3155,
+      "ref_line": 3298,
       "lines": 129,
-      "hash": "26f0f0d3"
+      "hash": "01dc32bd"
     },
     {
       "article": "axis-label-selected-surfaces.md",
-      "ref_line": 3370,
+      "ref_line": 3516,
       "lines": 2,
       "hash": "c00115e1"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 3492,
+      "ref_line": 3642,
       "lines": 20,
       "hash": "207fd11f"
     },
     {
       "article": "sheet-below-objective-card.md",
-      "ref_line": 3681,
+      "ref_line": 3833,
       "lines": 16,
       "hash": "6b2224dc"
     },
     {
       "article": "overlay-anchor-budget.md",
-      "ref_line": 3934,
+      "ref_line": 4086,
       "lines": 65,
       "hash": "74c15edb"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 4137,
+      "ref_line": 4289,
       "lines": 11,
       "hash": "a01f9ac4"
     },
     {
       "article": "pointercancel-never-a-tap.md",
-      "ref_line": 4150,
+      "ref_line": 4302,
       "lines": 4,
       "hash": "3471fc97"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 4229,
+      "ref_line": 4381,
       "lines": 4,
       "hash": "ce66959f"
     }
