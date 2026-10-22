@@ -1017,7 +1017,7 @@ function decide(a){
     green: 13 + (100 - a.morale) * 0.28,
     home: (100 - a.energy) * 0.95
   };
-  if(a.want && ads[a.want.station] != null) ads[a.want.station] += 34;
+  if(a.want && ads[a.want.station] != null) ads[a.want.station] += a.want.from ? MIM.copiedAd : 34;
   TIER_STATIONS.forEach(function(tst){ if(ads[tst] != null) ads[tst] += tierAdOf(tst); });
   if(G.proclaim && G.proclaim.week === G.week && G.proclaim.station && ads[G.proclaim.station] != null) ads[G.proclaim.station] += LIFE.proclaimAd;
   for(var ndi = 0; ndi < NEED_DEFS.length; ndi++) NEED_DEFS[ndi].press(a, ads);
@@ -1548,7 +1548,7 @@ var LIFE = {
    Desire travels the graph: every want carries an origin, spread
    follows model edges first, and fulfillment or a miss writes back
    into the graph. Every number lives in the MIM table below. */
-var MIM = { spreadFollower: 0.7, spreadNeighbor: 0.3, spreadVisMin: 60, rivalTension: 5, gratitudeTension: 8, resentTension: 6, fulfillCohesion: 0.5, fulfillPurposeSelf: 8 };
+var MIM = { spreadFollower: 0.7, spreadNeighbor: 0.3, spreadVisMin: 60, rivalTension: 5, gratitudeTension: 8, resentTension: 6, fulfillCohesion: 0.5, fulfillPurposeSelf: 8, copiedAd: 22, copiedSecs: 18 };
 /* ================= ECONOMY (Stage 6) =================
    The meme token. Work pays: every wk() call is a work event the
    game already counts, and earnPay observes the same call from
@@ -3562,11 +3562,11 @@ function pickWantStation(a){
   for(var i = 0; i < c.length; i++){ r -= c[i][1]; if(r <= 0) return c[i][0]; }
   return "green";
 }
-// CF-REF: desires-travel-the-graph.md [32]
+// CF-REF: desires-travel-the-graph.md [33]
 function giveWant(a, station, fromSync, fromId){
   if(!station || a.sick || a.want || a.child) return;
   if(!G.mimic) G.mimic = {spread:0, converged:0, doneCopied:0, doneSelf:0, missedCopied:0};
-  Store.dispatch("want/set", {id:a.id, station:station, secs:26, from: fromId || null});
+  Store.dispatch("want/set", {id:a.id, station:station, secs: fromId ? MIM.copiedSecs : 26, from: fromId || null});
   noteEvent(a, "want", station);
   setBubble(a, STATION3[station].icon, 1.2);
   for(var ci = 0; ci < G.agents.length; ci++){
@@ -3575,8 +3575,9 @@ function giveWant(a, station, fromSync, fromId){
     if(c.want && c.want.station === station){ addTension(a, c, MIM.rivalTension); G.mimic.converged++; break; }
   }
   var adopters = [];
-  G.agents.forEach(function(b){
+  if(!fromId) G.agents.forEach(function(b){
     if(b === a || b.want || b.wantPend || b.sick || b.child) return;
+    if(b.driveObj || b.order) return;
     var p = 0;
     if(b.model === a.id) p = MIM.spreadFollower;
     else if(visEff(a) >= MIM.spreadVisMin){

@@ -14,7 +14,16 @@ MIM.spreadVisMin, within the wanter's want range): a spotlighted
 wanter spreads at the follower rate, anyone else at
 MIM.spreadNeighbor. Never restore raw proximity contagion for
 everyone, and never spread to a resident who is sick, a child, or
-already holding a want or a pending want. Count each adoption in
+already holding a want or a pending want. Spread also never pulls
+a resident off driven work or an order: a resident whose driveObj
+is set, or who holds an order, is skipped as an adopter. Desire
+spreads through social time, not by breaking the work the game
+counts. A copied want is also weaker and shorter than an own
+want: it adds MIM.copiedAd (not the own-want 34) in decide() and
+lives MIM.copiedSecs (not 26). Desire travels one hop from its
+origin: giveWant runs its spread loop only for an origin want
+(fromId null). A copied want never spreads further; a borrowed
+want does not make its holder a source. Count each adoption in
 G.mimic.spread, and name the spread in a toast only when two or
 more residents adopt.
 

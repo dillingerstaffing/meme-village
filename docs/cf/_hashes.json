@@ -87,30 +87,30 @@
     {
       "article": "desires-travel-the-graph.md",
       "ref_line": 3565,
-      "lines": 32,
-      "hash": "3286092a"
+      "lines": 33,
+      "hash": "fb5c880a"
     },
     {
       "article": "overlay-anchor-budget.md",
-      "ref_line": 3750,
+      "ref_line": 3751,
       "lines": 65,
       "hash": "74c15edb"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 3953,
+      "ref_line": 3954,
       "lines": 11,
       "hash": "a01f9ac4"
     },
     {
       "article": "pointercancel-never-a-tap.md",
-      "ref_line": 3966,
+      "ref_line": 3967,
       "lines": 4,
       "hash": "3471fc97"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 4033,
+      "ref_line": 4034,
       "lines": 4,
       "hash": "ce66959f"
     }
