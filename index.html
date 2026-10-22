@@ -2116,7 +2116,7 @@ function tapAt(cx, cy, smart){
     refreshTray(true); return;
   }
   if(G.armed){
-    if(p.agent){ var t = agent(p.agent); t.vis = Math.min(100, t.vis + 26); t.spotUntil = G.t + 20; setBubble(t, "✨", 2.5); G.spotCd = G.t + 20; G.armed = false; showToast("✨ " + t.name.split(" ")[0] + " is watched now"); refreshTray(true); }
+    if(p.agent){ var t = agent(p.agent); t.vis = Math.min(100, t.vis + 26); t.spotUntil = G.t + 20; setBubble(t, "✨", 2.5); G.spotCd = G.t + 45; G.armed = false; showToast("✨ " + t.name.split(" ")[0] + " is watched now"); refreshTray(true); }
     else G.armed = false;
     return;
   }
