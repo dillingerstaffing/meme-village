@@ -254,7 +254,7 @@ var Store = (function(){
     "ui/toast": function(p){ state.ui.toast = {msg: String(p.msg || ""), until: Date.now() + (p.ms || 3600)}; },
     "ui/select": function(p){ state.selected = p.id || null; if(state.ui && state.ui.sheet) state.ui.sheet = state.selected; },
     "ui/sheet": function(p){ if(state.ui) state.ui.sheet = p && p.id ? p.id : null; },
-    "thought/set": function(p){ var a = findA(p.id); if(a){ a.thought = {text:String(p.text || ""), at:state.t, wk:state.week, cause:p.cause || "ambient", why:p.why || "", source:"template"}; if(a.thoughtLog){ a.thoughtLog.push(a.thought); if(a.thoughtLog.length > 8) a.thoughtLog.shift(); } } }
+    "thought/set": function(p){ var a = findA(p.id); if(a){ var nt = String(p.text || ""); a.thought = {text:nt, at:state.t, wk:state.week, cause:p.cause || "ambient", why:p.why || "", cat:p.cat || "", source:"template"}; if(a.thoughtLog){ for(var di = a.thoughtLog.length - 1; di >= 0; di--) if(a.thoughtLog[di].text === nt) a.thoughtLog.splice(di, 1); a.thoughtLog.push(a.thought); if(a.thoughtLog.length > 8) a.thoughtLog.shift(); } } }
   };
   function commit(){
     if(inTick > 0){ pending = true; return; }
@@ -294,8 +294,9 @@ function renderSheet(s){
   sheetKey = key;
   var shirt = "#" + ("000000" + (a.shirt || 0).toString(16)).slice(-6);
   var hair = "#" + ("000000" + (a.hairC || 0).toString(16)).slice(-6);
+  var ax2 = axisOf(a);
   var h = "<div class='sh-head'><div class='sh-chip' style='background:" + shirt + "'><div class='sh-hair' style='background:" + hair + "'></div><div class='sh-letter'>" + a.name.charAt(0) + "</div></div>"
-    + "<div><div class='sh-name'>" + a.name + "</div><div class='sh-role'>" + a.role + "</div></div>"
+    + "<div><div class='sh-name'>" + a.name + "</div><div class='sh-role'>" + a.role + (ax2 ? " · " + ax2.icon + " " + ax2.label : "") + "</div></div>"
     + "<button class='sh-x' type='button' aria-label='Close'>✕</button></div>";
   if(a.thought){
     h += "<div class='sh-quote'>\u201C" + a.thought.text + "\u201D</div>";
@@ -966,7 +967,7 @@ var AXIS_TPL = {
     rivalryLow: ["{partner} is on the same work again. Company at the task, if we keep it civil."],
     blamed: [function(F){ return F.blamed >= 2 ? ("Blamed " + F.blamed + " times. A village that lets blame do the work of judgment is a village coming apart.") : "Being blamed once sits in the chest. Order begins with owning what is yours; I will own mine."; }, "Blame is cheap and repair is dear. I know which one this village needs from me."],
     want: [function(F){ return F.slipping ? ("The want for " + F.station + " is slipping away, and a want let slip is a duty left to rot.") : ("My head keeps drifting to " + F.station + ". Wanting the right things is half of keeping a village."); }, "{Station} is calling. A kept place calls the people who keep it."],
-    ordered: [function(F){ return F.Station + " needs hands if it is to keep turning come winter. Orders are how a village holds together."; }, "Ordered to {station}. Work assigned is work that gets done, and done work is what stands between us and ruin."],
+    ordered: [function(F){ return "Hands are needed at " + F.station + " if it is to keep turning come winter. Orders are how a village holds together."; }, "Ordered to {station}. Work assigned is work that gets done, and done work is what stands between us and ruin."],
     inspired: ["Working where {model} just worked, and the standard they set is worth matching. Good work is a kind of inheritance.", "{model} keeps a high standard, and standing near it raises mine."],
     resting: ["I am running on fumes. Even a good tool is rested and oiled, or it breaks in the hand.", "Rest first, then I am useful again. A village that runs its people to ruin has no one left to mend it."],
     watch: ["I am watching {model}. You learn a trade by standing close to someone who keeps its standards.", "I watch {model}. Craft is passed down hand to hand, or it is lost."],
@@ -1027,15 +1028,15 @@ function composeThought(a, cause){
   else if(pick === 1) second = "What matters is " + P.values + ".";
   else if(pick === 2) second = a.morale < 62 ? ("I dread " + P.fear + ".") : P.pride;
   else second = a.morale >= 45 ? P.pride : ("I dread " + P.fear + ".");
-  return {text: main + (second ? " " + second : ""), why: why};
+  return {text: main + (second ? " " + second : ""), why: why, cat: cat};
 }
 function refreshThought(a, cause){
   if(!a || !a.persona) return;
   a.thoughtAt = G.t;
   var c = composeThought(a, cause);
   if(!c || !c.text) return;
-  if(cause === "ambient" && a.thought && a.thought.text === c.text) return;
-  Store.dispatch("thought/set", {id:a.id, text:c.text, cause:cause || "ambient", why:c.why});
+  if(a.thought && (a.thought.text === c.text || (a.thought.cat === c.cat && a.thought.text.split(". ")[0] === c.text.split(". ")[0]))) return;
+  Store.dispatch("thought/set", {id:a.id, text:c.text, cause:cause || "ambient", why:c.why, cat:c.cat});
 }
 function noteEvent(a, kind, detail){
   if(!a || !a.recentEvents) return;
