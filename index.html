@@ -1225,55 +1225,83 @@ function recoverPatient(id, morale){ var p = agent(id); if(!p) return; p.sick = 
 function restPatient(id){ var p = agent(id); if(!p) return; p.order = null; goStation(p, "home"); showToast("🏠 " + p.name.split(" ")[0] + " heads home to rest"); }
 function applyStatMods(mods){ if(!mods) return; Object.keys(mods).forEach(function(k){ if(G.stats[k] != null) G.stats[k] = Math.max(0, Math.min(100, G.stats[k] + mods[k])); }); }
 var INCIDENTS = [
-  {at:26, patient:"rosa", title:"Rosa feels faint", text:"She has sat down by the fire, pale. The village is watching what happens next.", options:[
+  {key:"rosafaint", at:26, patient:"rosa", title:"Rosa feels faint", text:"She has sat down by the fire, pale. The village is watching what happens next.", options:[
     {icon:"✚", label:"Send Jonah", hint:"The medic, in person", fx:function(){ sendMedic("rosa"); }},
     {icon:"🏠", label:"Let her rest", hint:"Home, quiet, slower", fx:function(){ restPatient("rosa"); }},
     {icon:"🔴", label:"Blame the well", hint:"Abel kept the water", mods:{rivalry:5},later:{trust:-7,cohesion:-6,rivalry:6}, blame:true, fx:function(){ blameAgent("abel"); recoverPatient("rosa", 45); }}]},
-  {at:30, title:"The roof still leaks", text:"Rain found the last gap over the clinic beds.", options:[
+  {key:"roofleak", at:30, title:"The roof still leaks", text:"Rain found the last gap over the clinic beds.", options:[
     {icon:"🔨", label:"Patch it tonight", hint:"Mara and Jonah, up the scaffold", mods:{prod:2}, fx:function(){ orderAgent("mara", "clinic"); orderAgent("jonah", "clinic"); applyStatMods({prod:2}); }},
     {icon:"🌧", label:"Wait for dry weather", hint:"Buckets under the drip", mods:{scarcity:3}, fx:function(){ applyStatMods({scarcity:3}); }},
     {icon:"🔴", label:"Blame the builders", hint:"Felix raised that roof", mods:{rivalry:5},later:{trust:-7,cohesion:-6,rivalry:6}, blame:true, fx:function(){ blameAgent("felix"); }}]},
-  {at:34, title:"Short stores", text:"The count comes up light. Dinner gets thin.", options:[
+  {key:"shortstores", at:34, title:"Short stores", text:"The count comes up light. Dinner gets thin.", options:[
     {icon:"⚖", label:"Ration fairly", hint:"Everyone a little hungry", mods:{trust:3,scarcity:3}, fx:function(){ applyStatMods({trust:3, scarcity:3}); }},
     {icon:"🌙", label:"Work double shifts", hint:"Fields and storehouse, late", mods:{prod:3}, fx:function(){ orderAgent("tomas", "fields"); orderAgent("nadia", "store"); orderAgent("ines", "store"); applyStatMods({prod:3}); }},
     {icon:"🔴", label:"Blame the storekeeper", hint:"Nadia holds the keys", mods:{rivalry:5},later:{trust:-7,cohesion:-6,rivalry:6}, blame:true, fx:function(){ blameAgent("nadia"); }}]},
-  {at:28, title:"A feud at the well", text:"Abel and Tomas both claim the morning water.", options:[
+  {key:"feudwell", at:28, title:"A feud at the well", text:"Abel and Tomas both claim the morning water.", options:[
     {icon:"🕊", label:"Mediate on the green", hint:"Sit them both down", mods:{cohesion:4,rivalry:-4}, fx:function(){ orderAgent("abel", "green"); orderAgent("tomas", "green"); applyStatMods({cohesion:4, rivalry:-4}); }},
     {icon:"❄", label:"Let them cool off", hint:"Separate houses, separate hours", mods:{rivalry:3}, fx:function(){ orderAgent("abel", "home"); orderAgent("tomas", "home"); applyStatMods({rivalry:3}); }},
     {icon:"🔴", label:"Blame Abel", hint:"His rope, his well", mods:{cohesion:2,rivalry:5},later:{trust:-7,cohesion:-6,rivalry:6}, blame:true, fx:function(){ blameAgent("abel"); applyStatMods({cohesion:2}); }}]},
-  {at:30, patient:"priya", title:"Fever in the schoolhouse", text:"Priya sat down mid-lesson, pale and hot.", options:[
+  {key:"feverpriya", at:30, patient:"priya", title:"Fever in the schoolhouse", text:"Priya sat down mid-lesson, pale and hot.", options:[
     {icon:"✚", label:"Send Jonah", hint:"The medic, in person", fx:function(){ sendMedic("priya"); }},
     {icon:"🏠", label:"Let her rest", hint:"Home, quiet, slower", fx:function(){ restPatient("priya"); }},
     {icon:"🔴", label:"Blame the well water", hint:"Abel kept the water", mods:{rivalry:5},later:{trust:-7,cohesion:-6,rivalry:6}, blame:true, fx:function(){ blameAgent("abel"); recoverPatient("priya", 45); }}]},
-  {at:32, title:"The mill wheel jams", text:"Grain waits in sacks. The wheel will not turn.", options:[
+  {key:"milljam", at:32, title:"The mill wheel jams", text:"Grain waits in sacks. The wheel will not turn.", options:[
     {icon:"⚙", label:"Felix fixes it", hint:"His mill, his hands", mods:{prod:2}, fx:function(){ orderAgent("felix", "mill"); applyStatMods({prod:2}); }},
     {icon:"💪", label:"Every hand pushes", hint:"Half the village on one wheel", fx:function(){ orderAgent("tomas", "mill"); orderAgent("bram", "mill"); orderAgent("felix", "mill"); }},
     {icon:"🔴", label:"Blame the miller", hint:"Felix let it seize", mods:{rivalry:5},later:{trust:-7,cohesion:-6,rivalry:6}, blame:true, fx:function(){ blameAgent("felix"); }}]},
-  {at:26, title:"A stranger at the river", text:"A trader with a full cart asks to camp by the green.", options:[
+  {key:"stranger", at:26, title:"A stranger at the river", text:"A trader with a full cart asks to camp by the green.", options:[
     {icon:"🤝", label:"Welcome them", hint:"A seat and a share of dinner", mods:{stores:-3,trust:4,cohesion:3}, fx:function(){ G.stores = Math.max(0, G.stores - 3); applyStatMods({trust:4, cohesion:3}); }},
     {icon:"⚖", label:"Trade fairly", hint:"Salt and tools for grain", mods:{stores:6,trust:1}, fx:function(){ G.stores += 6; applyStatMods({trust:1}); }},
     {icon:"🚪", label:"Turn them away", hint:"The valley keeps itself", mods:{autonomy:3,trust:-4}, fx:function(){ applyStatMods({autonomy:3, trust:-4}); }}]},
-  {at:30, title:"Storm in the night", text:"Wind took two fences and flattened half the rows.", options:[
+  {key:"storm", at:30, title:"Storm in the night", text:"Wind took two fences and flattened half the rows.", options:[
     {icon:"🌾", label:"All hands to the fields", hint:"Save what stands", fx:function(){ orderAgent("tomas", "fields"); orderAgent("bram", "fields"); orderAgent("ines", "fields"); orderAgent("abel", "fields"); }},
     {icon:"🏠", label:"Shelter and wait", hint:"Lose the flat rows", mods:{scarcity:4}, fx:function(){ G.fieldGrowth = Math.max(0, G.fieldGrowth - 0.25); applyStatMods({scarcity:4}); }},
     {icon:"🔴", label:"Blame the night watch", hint:"Bram was on watch", mods:{rivalry:5},later:{trust:-7,cohesion:-6,rivalry:6}, blame:true, fx:function(){ blameAgent("bram"); }}]},
-  {at:34, title:"The long table cracks", text:"The feast table split down the middle at lunch.", options:[
+  {key:"longtable", at:34, title:"The long table cracks", text:"The feast table split down the middle at lunch.", options:[
     {icon:"🍲", label:"Feast from the stores", hint:"Eat well on the broken table", mods:{stores:-5,cohesion:7,trust:2}, fx:function(){ G.stores = Math.max(0, G.stores - 5); applyStatMods({cohesion:7, trust:2}); }},
     {icon:"🪑", label:"Quiet meals apart", hint:"Every house its own pot", mods:{cohesion:-4,autonomy:3}, fx:function(){ applyStatMods({cohesion:-4, autonomy:3}); }},
     {icon:"🔴", label:"Blame the baker", hint:"Ines leaned the loaves on it", mods:{rivalry:5},later:{trust:-7,cohesion:-6,rivalry:6}, blame:true, fx:function(){ blameAgent("ines"); }}]},
-  {at:28, title:"Whispers about the stores", text:"Someone says the count is wrong. Nobody says it loudly.", options:[
+  {key:"whispers", at:28, title:"Whispers about the stores", text:"Someone says the count is wrong. Nobody says it loudly.", options:[
     {icon:"📖", label:"Open the books", hint:"Count it again, in public", mods:{trust:function(){ return G.policy === "open" ? 9 : 5; }}, fx:function(){ applyStatMods({trust: G.policy === "open" ? 9 : 5}); }},
     {icon:"🤫", label:"Say nothing", hint:"Let it pass, or fester", mods:{trust:-3}, fx:function(){ applyStatMods({trust:-3}); }},
     {icon:"🔴", label:"Blame the storekeeper", hint:"Nadia holds the keys", mods:{rivalry:5},later:{trust:-7,cohesion:-6,rivalry:6}, blame:true, fx:function(){ blameAgent("nadia"); }}]},
-  {at:32, title:"Two want the same field", text:"Tomas marked rows that Bram says were promised to him.", options:[
+  {key:"fieldclaim", at:32, title:"Two want the same field", text:"Tomas marked rows that Bram says were promised to him.", options:[
     {icon:"🌿", label:"Share the rows", hint:"Alternate days", mods:{cohesion:3}, fx:function(){ orderAgent("tomas", "fields"); orderAgent("bram", "fields"); applyStatMods({cohesion:3}); }},
     {icon:"🏁", label:"First come, first served", hint:"The marks stand", mods:{rivalry:4}, fx:function(){ applyStatMods({rivalry:4}); }},
     {icon:"🔴", label:"Blame Bram", hint:"Always claiming something", mods:{rivalry:5},later:{trust:-7,cohesion:-6,rivalry:6}, blame:true, fx:function(){ blameAgent("bram"); }}]},
-  {at:30, title:"The first frost", text:"Ice on the well rope. Winter is done knocking.", options:[
+  {key:"frost", at:30, title:"The first frost", text:"Ice on the well rope. Winter is done knocking.", options:[
     {icon:"🔥", label:"Light every hearth", hint:"Burn stores, warm houses", mods:{stores:-4,cohesion:4}, fx:function(){ G.stores = Math.max(0, G.stores - 4); applyStatMods({cohesion:4}); }},
     {icon:"🌳", label:"One fire on the green", hint:"Everyone around one flame", mods:{cohesion:2}, fx:function(){ orderAgent("mara", "green"); orderAgent("rosa", "green"); orderAgent("priya", "green"); applyStatMods({cohesion:2}); }},
     {icon:"❄", label:"Endure it quietly", hint:"No fuss, no fire", mods:{autonomy:4,trust:-1}, fx:function(){ applyStatMods({autonomy:4, trust:-1}); }}]}
 ];
+/* Storyteller deal: each week's incident is drawn from the remaining pool by
+   weight, instead of a season-start shuffle. Every weight is computed from live
+   village state (pair tension, blame pressure, stores, trust), so incidents
+   arrive because of the imitation graph, the way a storyteller reads a room. */
+function pairTensionOf(id1, id2){ return (G.pairs && G.pairs[pairKey(id1, id2)]) || 0; }
+function blameStoryW(id){ var a = agent(id); return 1 + (G.blame || 0) / 40 + (((a && a.blamed) || 0) * 0.5); }
+function incidentStoryWeight(inc){
+  switch(inc.key){
+    case "feudwell": return 1 + pairTensionOf("abel", "tomas") / 20;
+    case "fieldclaim": return 1 + pairTensionOf("tomas", "bram") / 20;
+    case "roofleak": case "milljam": return blameStoryW("felix");
+    case "feverpriya": return blameStoryW("abel");
+    case "shortstores": return 1 + Math.max(0, 6 - (G.stores || 0)) / 3 + (G.blame || 0) / 50;
+    case "whispers": return 1 + Math.max(0, 50 - ((G.stats && G.stats.trust) || 50)) / 50;
+    case "stranger": return 1 + Math.max(0, 8 - (G.stores || 0)) / 3;
+    case "frost": return 1 + (G.week - 1) / 6;
+    default: return 1;
+  }
+}
+function drawIncident(){
+  if(G.week === 1) return INCIDENTS[0];
+  var pool = G.incidents;
+  if(!pool || !pool.length) return null;
+  var tot = 0, ws = pool.map(function(ic){ var w = incidentStoryWeight(ic); tot += w; return w; });
+  var r = Math.random() * tot;
+  for(var i = 0; i < pool.length; i++){ r -= ws[i]; if(r <= 0) return pool.splice(i, 1)[0]; }
+  return pool.pop();
+}
 function triggerIncident(inc){
   if(inc.patient){
     var p = agent(inc.patient);
@@ -1499,7 +1527,7 @@ function endWeek(){
     else if(o.project && G.project && !G.project.done) showToast("Week " + G.week + " ends: " + projectTitle() + " carries on, parts stay filled");
     else showToast("Week " + G.week + " ends: " + o.title + " missed");
   }
-  G.week++; G.weekTime = 0; G.incidentDone = false; G.curIncident = null;
+  G.week++; G.weekTime = 0; G.incidentDone = false; G.curIncident = null; G.weekIncident = null;
   G.weekWork = {stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0}; G.weekWorkP = {stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0};
   G.calmT = 0; G.peakGreen = 0; G.objWorkers = {};
   G.agents.forEach(function(a){ a.alerted = false; a.loafT = 0; });
@@ -1511,7 +1539,8 @@ function endWeek(){
 function stepSim(dt){
   G.t += dt; G.weekTime += dt;
   for(var di = G.delays.length - 1; di >= 0; di--){ if(G.t >= G.delays[di].at){ var dl = G.delays[di]; G.delays.splice(di, 1); applyStatMods(dl.mods); if(dl.msg) showToast(dl.msg); if(dl.fn) dl.fn(); } }
-  var inc = (G.incidents || INCIDENTS)[G.week - 1];
+  var inc = G.weekIncident;
+  if(!G.incidentDone && !G.incidentOpen && !G.pendingIncident && !inc){ G.weekIncident = drawIncident(); inc = G.weekIncident; }
   if(inc && !G.incidentDone && !G.incidentOpen && !G.pendingIncident && G.weekTime >= inc.at) triggerIncident(inc);
   if(G.stats.rivalry < 45) G.calmT += dt;
   if(G.started && !G.over && !G.objComplete && G.pushWeek !== G.week && G.weekTime >= 30){
@@ -1815,7 +1844,7 @@ function shuffleCast(){
   models.forEach(function(a){ a.vis = 62 + Math.floor(Math.random() * 12); });
   G.seasonModels = models.map(function(a){ return a.name.split(" ")[0]; });
   G.objectives = [OBJECTIVES[0]].concat(shuffleArr(OBJECTIVES.slice(1)));
-  G.incidents = [INCIDENTS[0]].concat(shuffleArr(INCIDENTS.slice(1)));
+  G.incidents = INCIDENTS.slice(1);
 }
 function pickWantStation(a){
   if(a.energy < 35) return "home";
