@@ -356,7 +356,7 @@ function renderSheet(s){
   }
   var log = a.thoughtLog || [];
   var whSig = 0; if(a.workHist) for(var wkk in a.workHist) whSig += a.workHist[wkk];
-  var key = a.id + "|" + (a.thought ? a.thought.at + ":" + a.thought.text : "none") + "|" + log.length + "|" + NEED_DEFS.map(function(d){ return Math.round(needVal(a, d.id)); }).join(":") + ":" + whSig + "|" + (householdOf(a) ? householdOf(a).id : "");
+  var key = a.id + "|" + (a.thought ? a.thought.at + ":" + a.thought.text : "none") + "|" + log.length + "|" + NEED_DEFS.map(function(d){ return Math.round(needVal(a, d.id)); }).join(":") + ":" + whSig + "|" + (householdOf(a) ? householdOf(a).id : "") + "|" + Math.round(a.age || 34) + arcOf(a).id;
   if(key === sheetKey && el.style.display !== "none") return;
   sheetKey = key;
   var shirt = "#" + ("000000" + (a.shirt || 0).toString(16)).slice(-6);
@@ -375,6 +375,7 @@ function renderSheet(s){
   }
   var hhP = householdPartner(a);
   if(hhP) h += "<div class='sh-work'>🏠 Shares a house with " + hhP.name + "</div>";
+  h += "<div class='sh-work'>Age " + Math.round(a.age || 34) + " · " + arcOf(a).label + "</div>";
   if(a.thought){
     h += "<div class='sh-quote'>\u201C" + a.thought.text + "\u201D</div>";
     for(var i = log.length - 2; i >= 0; i--){
@@ -495,15 +496,15 @@ function buildWorld(){
     cropMesh.setMatrixAt(i, dummy.matrix);
   }
   scene.add(cropMesh);
-  buildBuilding(-28,-17, 12, 7.5, 0xe9e2d2, 0x9e4f36, "clinic");
-  buildBuilding(28,-17, 12, 7.5, 0xd9b98a, 0x7c4a30, "store");
+  stationMeshes.clinic = buildBuilding(-28,-17, 12, 7.5, 0xe9e2d2, 0x9e4f36, "clinic");
+  stationMeshes.store = buildBuilding(28,-17, 12, 7.5, 0xd9b98a, 0x7c4a30, "store");
   buildBuilding(-44, 6, 7, 5.4, 0xe3cf9f, 0x8a4f35, "house");
   buildBuilding(-16,-26, 7, 5.4, 0xdfc9a8, 0x74543a, "house");
   buildBuilding(2,-28, 7, 5.4, 0xe8d9b0, 0x8a4f35, "house");
   buildBuilding(42, 18, 7, 5.4, 0xdcc39a, 0x6e4f30, "house");
   buildBuilding(20, 40, 7, 5.4, 0xe3cf9f, 0x7c4a30, "house");
-  buildBuilding(32, 29, 10, 7, 0xd9c9a8, 0x7c4a30, "mill");
-  buildBuilding(-41, -16, 7, 5.6, 0xe8e2cc, 0x5a6d8e, "school");
+  stationMeshes.mill = buildBuilding(32, 29, 10, 7, 0xd9c9a8, 0x7c4a30, "mill");
+  stationMeshes.school = buildBuilding(-41, -16, 7, 5.6, 0xe8e2cc, 0x5a6d8e, "school");
   /* windmill blades on the mill front */
   millBlades = new THREE.Group(); millBlades.position.set(32, 7.6, 32.6); scene.add(millBlades);
   for(var bl=0; bl<4; bl++){ var blade = box(0.28, 3.4, 0.08, 0xe8e2cc, 0, 1.5, 0, millBlades); var holder = new THREE.Group(); holder.rotation.z = bl * Math.PI/2; millBlades.add(holder); holder.add(blade); blade.position.set(0, 1.5, 0); }
@@ -661,7 +662,7 @@ function makeAgents(){
       state:"idle", stationId:null, slot:null, actT:0, decideT:Math.random()*2, loafT:0, alerted:false,
       energy:80 - (i%4)*4, morale:72, phase:Math.random()*10, walkPhase:0,
       order:null, carrying:null, bubble:null, bubbleUntil:0, watchOf:null, watchT:0, want:null, wantCd:Math.random()*10, wantPend:null, driveObj:false, workHist:{},
-      idleT:0, sick:false, seed:Math.random()*100, model:d.admires, blamed:0, modelCd:0, axis:axisPool[i], thought:null, thoughtLog:[], recentEvents:[], thoughtAt:-99
+      idleT:0, sick:false, seed:Math.random()*100, model:d.admires, blamed:0, modelCd:0, axis:axisPool[i], age:34, thought:null, thoughtLog:[], recentEvents:[], thoughtAt:-99
     });
     a.needs = {};
     NEED_DEFS.forEach(function(d){ a.needs[d.id] = d.start(i); });
@@ -723,7 +724,7 @@ function animateAgent(a, dt){
   a.props.basket.visible = (a.state === "act" && a.stationId === "fields");
   /* selection ring + model aura */
   if(a.ring){ a.ring.visible = (G.selected === a.id); a.ring.rotation.z = G.t*0.8; }
-  if(a.aura){ a.aura.visible = a.vis >= 60; a.aura.material.opacity = 0.10 + Math.sin(G.t*2 + a.seed)*0.03; }
+  if(a.aura){ a.aura.visible = visEff(a) >= 60; a.aura.material.opacity = 0.10 + Math.sin(G.t*2 + a.seed)*0.03; }
 }
 
 /* ================= SLICE SIM ================= */
@@ -734,6 +735,7 @@ function newSlice(){
     rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0,
     sites:[], siteSeq:0, houseCapacity:10, banked:false, foundArm:false, foundPlot:null, buildPref:null,
     bonds:{}, households:[], householdSeq:0, soloHoused:0, departed:0, arrival:null, speakCd:0, newSeq:0,
+    tiers:{clinic:1, fields:1, store:1, green:1, mill:1, school:1, well:1}, tierProg:{}, tierWorkers:{}, builtWealth:0, deaths:[], proclaim:null, proclaimArm:false, lastHarmWeek:null,
     stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
     objStation:"clinic", objComplete:false, objDone:0, scapegoats:0, delays:[],
     weekWork:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0, build:0}, weekWorkP:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0},
@@ -779,7 +781,7 @@ function goStation(a, stId){
   a.slot = {x:jx, z:jz};
   goTo(a, jx, jz, stId);
 }
-// CF-REF: driven-work-progress.md [25]
+// CF-REF: driven-work-progress.md [26]
 function wk(a, key, amt){
   if(a.boostUntil && G.t < a.boostUntil) amt *= 2;
   G.weekWork[key] += amt;
@@ -799,6 +801,7 @@ function wk(a, key, amt){
     var syn = 0;
     G.agents.forEach(function(b){ if(b !== a && b.driveObj && b.stationId === a.stationId && (b.model === a.id || a.model === b.id || (a.model && b.model === a.model))) syn++; });
     var mult = (a.stationId === G.objStation && G.t < (G.pushUntil || 0)) ? 2 : 1;
+    if(arcOf(a).id === "established") syn = Math.min(3, syn + 1);
     mult *= (1 + 0.1 * Math.min(3, syn));
     G.weekWorkP[key] += amt * mult;
     if(G.objWorkers) G.objWorkers[a.id] = a.model || "";
@@ -924,6 +927,8 @@ function decide(a){
     home: (100 - a.energy) * 0.95
   };
   if(a.want && ads[a.want.station] != null) ads[a.want.station] += 34;
+  TIER_STATIONS.forEach(function(tst){ if(ads[tst] != null) ads[tst] += tierAdOf(tst); });
+  if(G.proclaim && G.proclaim.week === G.week && G.proclaim.station && ads[G.proclaim.station] != null) ads[G.proclaim.station] += LIFE.proclaimAd;
   for(var ndi = 0; ndi < NEED_DEFS.length; ndi++) NEED_DEFS[ndi].press(a, ads);
   var fit = {clinic:1, fields:1, store:1, mill:1, school:1, well:1, green:1, home:1};
   if(a.disp === "Diligent"){ fit.clinic = 1.3; fit.fields = 1.3; fit.store = 1.2; fit.mill = 1.25; fit.well = 1.2; fit.green = 0.65; }
@@ -981,7 +986,7 @@ function stepAgents(dt){
     if(a.state !== "walk") a.vel = 0;
     if(a.state === "walk"){
       var dx = a.tx - a.x, dz = a.tz - a.z, d = Math.sqrt(dx*dx + dz*dz);
-      var sp = (a.id === "bram" ? 3.6 : 3.1) * (a.carrying ? 0.82 : 1) * (a.energy < 25 ? 0.8 : 1);
+      var sp = (a.id === "bram" ? 3.6 : 3.1) * arcOf(a).speedMult * (a.carrying ? 0.82 : 1) * (a.energy < 25 ? 0.8 : 1);
       a.speedNow = sp;
       var targetHeading = Math.atan2(dx, dz);
       var dh = targetHeading - a.heading; while(dh > Math.PI) dh -= 6.283; while(dh < -Math.PI) dh += 6.283;
@@ -1007,7 +1012,8 @@ function stepAgents(dt){
       if(a.watchT <= 0){
         var m = agent(a.watchOf);
         a.state = "idle"; a.decideT = 0.2; a.watchCd = 25;
-        if(m && !a.model){ a.model = m.id; a.modelCd = 0; if(a.newcomer) showToast("👁 " + a.name.split(" ")[0] + " has found a model: " + m.name.split(" ")[0]); }
+        if(m){ if(!a.watchHist) a.watchHist = {}; a.watchHist[m.id] = (a.watchHist[m.id] || 0) + 1; }
+        if(m && !a.model){ a.model = m.id; a.modelCd = 0; a.successionPick = null; if(a.newcomer) showToast("👁 " + a.name.split(" ")[0] + " has found a model: " + m.name.split(" ")[0]); }
         if(m && m.disp !== a.disp){
           a.disp = m.disp; G.copied++; a.vis = Math.min(100, a.vis + 8);
           a.mimicStation = (m.state === "act") ? m.stationId : null; a.mimicFrom = m.name.split(" ")[0];
@@ -1034,11 +1040,11 @@ function stepAgents(dt){
     }
     if(a.state === "sit"){
       if(a.stationId === "home"){
-        a.energy = Math.min(100, a.energy + 6*dt); a.morale = Math.min(100, a.morale + 0.4*dt);
+        a.energy = Math.min(energyCapOf(a), a.energy + 6*dt); a.morale = Math.min(100, a.morale + 0.4*dt);
         if(a.sick && a.energy > (hasPerk("roofsealed") ? 40 : 55)){ a.sick = false; }
-        if(a.energy > 92 && !a.sick){ a.state = "idle"; a.decideT = 0.3; if(a.disp === "Withdrawn" && a.morale > 45) a.disp = "Helpful"; }
+        if(a.energy > Math.min(92, energyCapOf(a) - 4) && !a.sick){ a.state = "idle"; a.decideT = 0.3; if(a.disp === "Withdrawn" && a.morale > 45) a.disp = "Helpful"; }
       } else if(a.sick){ /* Rosa, waiting */ }
-      else { a.energy = Math.min(100, a.energy + 2*dt); a.actT -= dt; if(a.actT <= 0){ a.state = "idle"; a.decideT = 0.3; } }
+      else { a.energy = Math.min(energyCapOf(a), a.energy + 2*dt); a.actT -= dt; if(a.actT <= 0){ a.state = "idle"; a.decideT = 0.3; } }
     }
     if(a.state === "act"){
       a.actT -= dt;
@@ -1046,11 +1052,14 @@ function stepAgents(dt){
       a.lastActStation = st; a.lastActT = G.t;
       if(st && st !== "home" && a._histStation !== st){ a._histStation = st; if(!a.workHist) a.workHist = {}; a.workHist[st] = (a.workHist[st] || 0) + 1; }
       var mdI = a.model ? agent(a.model) : null;
-      if(mdI && mdI !== a && mdI.lastActStation === st && st !== "home" && (G.t - (mdI.lastActT || -99)) < 12 && G.t > (a.inspCd || 0)){
-        a.inspCd = G.t + 20; a.inspUntil = G.t + 5; a.inspMult = mdI.vis >= 60 ? 1.25 : (mdI.vis < 40 ? 1.10 : 1.18);
+      if(mdI && mdI !== a && mdI.lastActStation === st && st !== "home" && (G.t - (mdI.lastActT || -99)) < arcOf(a).inspWindow && G.t > (a.inspCd || 0)){
+        a.inspCd = G.t + arcOf(a).inspCd; a.inspUntil = G.t + 5; a.inspMult = mdI.vis >= 60 ? 1.25 : (mdI.vis < 40 ? 1.10 : 1.18);
         setBubble(a, "✨", 1.6); a.reason = "Inspired by " + mdI.name.split(" ")[0]; noteEvent(a, "inspired", mdI.id);
       }
       var pdt = dt * ((a.inspUntil && G.t < a.inspUntil) ? (a.inspMult || 1.25) : 1);
+      pdt *= arcOf(a).workMult;
+      if(st && st !== "home" && st !== "build") tierTick(a, st, pdt);
+      if(G.proclaim && G.proclaim.week === G.week && ((G.proclaim.station && st === G.proclaim.station) || (G.proclaim.site && st === "build" && a.buildSite === G.proclaim.site))) a.vis = Math.min(100, a.vis + LIFE.proclaimVisRate * dt);
       if(st === "clinic"){
         a.energy = Math.max(0, a.energy - 0.8*dt);
         if(a.carrying !== "plank"){
@@ -1269,7 +1278,7 @@ function spawnNewcomer(def){
     energy: 76, morale: HH.newcomerMorale, phase: Math.random() * 10, walkPhase: 0,
     order: null, carrying: null, bubble: null, bubbleUntil: 0, watchOf: null, watchT: 0, want: null, wantCd: 6 + Math.random() * 8, wantPend: null, driveObj: false, workHist: {},
     idleT: 0, sick: false, seed: Math.random() * 100, model: null, blamed: 0, modelCd: 0,
-    axis: AXES[Math.floor(Math.random() * AXES.length)].id, thought: null, thoughtLog: [], recentEvents: [], thoughtAt: -99,
+    axis: AXES[Math.floor(Math.random() * AXES.length)].id, age: LIFE.newcomerAges[Math.floor(Math.random() * LIFE.newcomerAges.length)], thought: null, thoughtLog: [], recentEvents: [], thoughtAt: -99,
     newcomer: true, arrivedWeek: G.week, dwellingSite: dwSite, solo: true,
     speedNow: 0, fetch: null, fetchT: 0, watchCd: 0, mimicStation: null, buildSite: null, fetchSite: null,
     pendingWatch: null, medicTask: 0, kneelT: 0, pendingSick: false, visitId: null
@@ -1320,11 +1329,12 @@ function arrivalCheck(){
   if(housingFree() <= 0 || G.agents.length >= POP_CAP) return;
   var band = null;
   for(var i = 0; i < CONTENTMENT_BANDS.length; i++) if(c >= CONTENTMENT_BANDS[i].min){ band = CONTENTMENT_BANDS[i]; break; }
-  if(!band || arrivalRand() > band.chance) return;
+  var wChance = band ? band.chance + Math.min(LIFE.arrivalWealthChanceCap, (G.builtWealth || 0) * LIFE.arrivalWealthChance) : 0;
+  if(!band || arrivalRand() > wChance) return;
   var usedNames = {}; G.agents.forEach(function(a){ usedNames[a.name] = 1; });
   var pool = NEWCOMERS.filter(function(n){ return !usedNames[n.name]; });
   if(!pool.length) return;
-  var party = Math.min(band.party, housingFree(), POP_CAP - G.agents.length, pool.length);
+  var party = Math.min(band.party + ((G.builtWealth || 0) >= LIFE.arrivalWealthParty ? 1 : 0), housingFree(), POP_CAP - G.agents.length, pool.length);
   if(party <= 0) return;
   var shuffled = pool.slice();
   for(var si = shuffled.length - 1; si > 0; si--){ var sj = Math.floor(arrivalRand() * (si + 1)); var st = shuffled[si]; shuffled[si] = shuffled[sj]; shuffled[sj] = st; }
@@ -1384,6 +1394,231 @@ function speakFor(){
   setBubble(voucher, "🕊", 2);
   showToast("🕊 " + voucher.name.split(" ")[0] + " speaks for " + target.name.split(" ")[0] + ", but the village is not ready to hear it.", {ids: [voucher.id, target.id]});
   SND.play("warn");
+  return true;
+}
+/* ================= AGING, DEATH, SUCCESSION, TIERS, LEVEL, PROCLAIM (Stage 5) =================
+   Life arcs are data: three arcs in the LIFE table, read off a.age,
+   which advances one year per in-game year and is dealt from
+   LIFE.ageDeal by shuffleCast (newcomers draw LIFE.newcomerAges).
+   Settled is the plain arc; Established reaches the inspiration and
+   synergy bonuses more easily (shorter inspiration cooldown, longer
+   recency window, one extra synergy partner inside wk); Elder walks
+   and works slower against a lower energy cap, while effective
+   visibility rises: elders qualify as public models sooner, are
+   watched more, and their wants broadcast further. An elder whose
+   health is failing is telegraphed in autumn (a failing thought and
+   bubble) and faces the death roll when winter opens. Death frees
+   the dwelling through the Stage 4 ledger, records G.deaths for the
+   chronicle, and sends followers to re-choose a model from the
+   residents they have watched most, weighted by visibility; a near
+   tie between two successors ignites their pair tension. Station
+   tiers are their own ledger (G.tierProg), fed from stepAgents so
+   wk() and the driven ledger never hear about them: work counts
+   more when more distinct models contribute it, and a tier raises
+   the station's decide() advertisement, adds a work spot, and
+   regrows its silhouette. G.builtWealth sums finished constructions
+   and tier growth; the village level is a name read off counts of
+   tiered buildings and finished sites, shown in the season chip,
+   and built wealth pulls arrivals and scales the storyteller's big
+   incidents, while the season after a death or an expulsion draws
+   the harm incidents light. Proclaim Focus is a season-long
+   advertisement on one station or build site, set by tap: it is
+   never driven work and never touches weekWorkP. Every number
+   lives in the LIFE table below. */
+var LIFE = {
+  ageDeal: [24, 27, 31, 34, 38, 41, 45, 49, 55, 63],
+  newcomerAges: [22, 26, 30, 35, 40, 47, 52, 58],
+  arcs: [
+    {id:"settled", label:"Settled", minAge:0, speedMult:1, energyCap:100, workMult:1, visBonus:0, inspCd:20, inspWindow:12, wantRange:10, wantChance:0.5},
+    {id:"established", label:"Established", minAge:40, speedMult:1, energyCap:100, workMult:1, visBonus:0, inspCd:12, inspWindow:18, wantRange:10, wantChance:0.5},
+    {id:"elder", label:"Elder", minAge:62, speedMult:0.78, energyCap:70, workMult:0.75, visBonus:18, inspCd:20, inspWindow:12, wantRange:16, wantChance:0.75}
+  ],
+  failBase: 0.18, failPerYear: 0.022, failMorale: 0.006,
+  dieBase: 0.42, diePerYear: 0.02, dieMorale: 0.005,
+  maxDeathsPerWinter: 2, minPopulation: 5,
+  tierNeed: [0, 100, 260],
+  tierAd: [0, 5, 11],
+  tierModelStep: 0.5, tierModelCap: 4,
+  siteWealth: {cottage: 6, bank: 14}, projectWealth: 10, tierWealth: 8,
+  levels: [{name:"Hamlet", min:0}, {name:"Village", min:2}, {name:"Large Village", min:5}, {name:"Town", min:9}],
+  arrivalWealthParty: 30, arrivalWealthChance: 0.002, arrivalWealthChanceCap: 0.15,
+  prosperityWealth: 50, prosperityCap: 1.2, adaptKeep: 0.45,
+  proclaimAd: 14, proclaimBuildAd: 10, proclaimVisRate: 0.25, proclaimRecost: 4,
+  successionTension: 50
+};
+var TIER_STATIONS = ["clinic", "fields", "store", "green", "mill", "school", "well"];
+var TIER_SPOTS = {
+  clinic: [[-34, -13], [-22, -13]], fields: [[-39, 16], [-21, 16]],
+  store: [[21.5, -11], [34.5, -11]], green: [[-6, 7], [6, 7]],
+  mill: [[25.5, 24], [38.5, 24]], school: [[-36, -13.5], [-44, -13.5]], well: [[7, 40.5], [13, 40.5]]
+};
+var STATION_BUILD = {
+  clinic: {x:-28, z:-17, w:12, h:7.5, wall:0xe9e2d2, roof:0x9e4f36, kind:"clinic", dw:0, dh:0.8},
+  store: {x:28, z:-17, w:12, h:7.5, wall:0xd9b98a, roof:0x7c4a30, kind:"store", dw:0, dh:0.8},
+  mill: {x:32, z:29, w:10, h:7, wall:0xd9c9a8, roof:0x7c4a30, kind:"mill", dw:1.6, dh:0},
+  school: {x:-41, z:-16, w:7, h:5.6, wall:0xe8e2cc, roof:0x5a6d8e, kind:"school", dw:0, dh:0.7}
+};
+var stationMeshes = {};
+var tierDressing = {};
+function arcOf(a){
+  var age = (a && a.age != null) ? a.age : 34, row = LIFE.arcs[0];
+  for(var i = 0; i < LIFE.arcs.length; i++) if(age >= LIFE.arcs[i].minAge) row = LIFE.arcs[i];
+  return row;
+}
+function visEff(a){ return Math.min(100, (a.vis || 0) + arcOf(a).visBonus); }
+function energyCapOf(a){ return arcOf(a).energyCap; }
+function tierOf(st){ return (G.tiers && G.tiers[st]) || 1; }
+function tierAdOf(st){ return LIFE.tierAd[tierOf(st) - 1] || 0; }
+function tierTick(a, st, amt){
+  if(!G.tiers || TIER_STATIONS.indexOf(st) < 0) return;
+  var t = tierOf(st); if(t >= 3) return;
+  if(!G.tierWorkers[st]) G.tierWorkers[st] = {};
+  G.tierWorkers[st][a.id] = a.model || "";
+  var models = {};
+  Object.keys(G.tierWorkers[st]).forEach(function(id){ var mv = G.tierWorkers[st][id]; if(mv) models[mv] = 1; });
+  var dm = Math.max(1, Math.min(LIFE.tierModelCap, Object.keys(models).length));
+  G.tierProg[st] = (G.tierProg[st] || 0) + amt * (1 + LIFE.tierModelStep * (dm - 1));
+  if(G.tierProg[st] >= LIFE.tierNeed[t]) tierUp(st);
+}
+function tierUp(st){
+  G.tiers[st] = tierOf(st) + 1;
+  var sp = TIER_SPOTS[st] && TIER_SPOTS[st][G.tiers[st] - 2];
+  if(sp && STATION3[st]) STATION3[st].work.push(sp);
+  applyTierMesh(st);
+  recomputeWealth();
+  var sn = STATION3[st];
+  showToast((sn ? sn.icon + " " : "") + "The " + (sn ? sn.name : st) + " has grown to tier " + G.tiers[st]);
+  SND.play("objwin");
+}
+function applyTierMesh(st){
+  var t = tierOf(st), b = STATION_BUILD[st];
+  if(b){
+    var oldB = stationMeshes[st]; if(oldB) scene.remove(oldB);
+    var gb = buildBuilding(b.x, b.z, b.w + b.dw * (t - 1), b.h + b.dh * (t - 1), b.wall, b.roof, b.kind);
+    if(t >= 3) box(0.5, 1.1, 0.5, 0xe8b34b, 0, (b.h + b.dh * (t - 1)) * 1.04 + 0.5, 0, gb);
+    stationMeshes[st] = gb;
+    return;
+  }
+  var old = tierDressing[st]; if(old) scene.remove(old);
+  if(st === "fields" && t >= 3){ tierDressing[st] = buildBuilding(-24, 23.5, 6, 4.6, 0xd9c9a8, 0x7c4a30, "shed"); return; }
+  var g = new THREE.Group(); scene.add(g); tierDressing[st] = g;
+  if(st === "green"){
+    if(t >= 2){
+      cyl(0.09, 0.09, 3.4, 0x6b4a2e, -5, 1.7, 9.5, g, 6); cyl(0.09, 0.09, 3.4, 0x6b4a2e, 5, 1.7, 9.5, g, 6);
+      box(10.4, 0.14, 0.14, 0x8a6a42, 0, 3.35, 9.5, g);
+      for(var gi = 0; gi < 5; gi++) box(0.5, 0.7, 0.05, gi % 2 ? 0xe8b34b : 0x9e4f36, -4 + gi * 2, 2.95, 9.5, g);
+    }
+    if(t >= 3){
+      [[-4, -4], [4, -4], [-4, 4], [4, 4]].forEach(function(p){ cyl(0.11, 0.11, 3.1, 0x6b4a2e, p[0], 1.55, 12 + p[1], g, 6); });
+      box(9.6, 0.18, 9.6, 0x7c4a30, 0, 3.2, 12, g);
+    }
+  } else if(st === "fields"){
+    if(t >= 2){
+      for(var fi = 0; fi < 6; fi++) box(0.18, 0.8, 0.18, 0x6b4a2e, -40 + fi * 4, 0.4, 10.2, g);
+      box(20.5, 0.12, 0.12, 0x8a6a42, -30, 0.72, 10.2, g);
+    }
+  } else if(st === "well"){
+    if(t >= 2) cyl(1.5, 1.65, 0.5, 0x8d99a0, 10, 0.25, 40, g, 10);
+    if(t >= 3){
+      box(0.24, 2.6, 0.24, 0x6b4a2e, 8.6, 1.3, 40, g); box(0.24, 2.6, 0.24, 0x6b4a2e, 11.4, 1.3, 40, g);
+      box(3.2, 0.22, 1.9, 0x7c4a30, 10, 2.7, 40, g);
+    }
+  }
+}
+function recomputeWealth(){
+  var w = 0;
+  if(G.sites) G.sites.forEach(function(s){
+    if(!s.done) return;
+    var kd = BUILD_KINDS[s.kind];
+    w += kd && kd.project ? LIFE.projectWealth : (LIFE.siteWealth[s.kind] || 6);
+  });
+  TIER_STATIONS.forEach(function(st){ w += (tierOf(st) - 1) * LIFE.tierWealth; });
+  G.builtWealth = w;
+  return w;
+}
+function villageLevel(){
+  var n = 0;
+  TIER_STATIONS.forEach(function(st){ if(tierOf(st) >= 2) n++; });
+  if(G.sites) G.sites.forEach(function(s){ if(s.done) n++; });
+  var lv = LIFE.levels[0];
+  LIFE.levels.forEach(function(L){ if(n >= L.min) lv = L; });
+  return {name: lv.name, count: n};
+}
+function elderRisk(a){
+  var arc = arcOf(a);
+  if(arc.id !== "elder") return 0;
+  return Math.max(0, Math.min(0.92, LIFE.failBase + (a.age - arc.minAge) * LIFE.failPerYear + Math.max(0, 55 - a.morale) * LIFE.failMorale));
+}
+function telegraphFailing(){
+  G.agents.forEach(function(a){
+    if(a.failing || arcOf(a).id !== "elder") return;
+    if(Math.random() < elderRisk(a)){
+      a.failing = true;
+      setBubble(a, "🤒", 4);
+      noteEvent(a, "failing", "");
+      showToast("🤒 " + a.name.split(" ")[0] + " is failing. The village walks slower around them now.", {ids: [a.id]});
+    }
+  });
+}
+function winterDeaths(){
+  var failing = G.agents.filter(function(a){ return a.failing; });
+  failing.forEach(function(a){ a.failing = false; });
+  failing.sort(function(x, y){ return elderRisk(y) - elderRisk(x); });
+  var deaths = 0;
+  for(var i = 0; i < failing.length && deaths < LIFE.maxDeathsPerWinter; i++){
+    if(G.agents.length <= LIFE.minPopulation) break;
+    var a = failing[i], arc = arcOf(a);
+    var p = Math.min(0.92, LIFE.dieBase + (a.age - arc.minAge) * LIFE.diePerYear + Math.max(0, 50 - a.morale) * LIFE.dieMorale);
+    if(Math.random() < p){ dieAgent(a); deaths++; }
+  }
+}
+function dieAgent(m){
+  if(!m) return;
+  var first = m.name.split(" ")[0];
+  /* Succession is decided before the graph is cut: each follower
+     picks, from the residents they have watched most (weighted by
+     effective visibility), the candidate imitationScan will walk
+     them to; a near tie between two candidates ignites their pair
+     tension, the village pulling two ways at once. */
+  var followers = G.agents.filter(function(b){ return b !== m && b.model === m.id; });
+  var pulls = {};
+  followers.forEach(function(f){
+    var best = null, bs = -1;
+    G.agents.forEach(function(c){
+      if(c === m || c === f) return;
+      var sc = ((f.watchHist && f.watchHist[c.id]) || 0) * 2 + visEff(c) / 25;
+      if(sc > bs){ bs = sc; best = c; }
+    });
+    if(best){ f.successionPick = best.id; pulls[best.id] = (pulls[best.id] || 0) + 1; }
+  });
+  var ranked = Object.keys(pulls).sort(function(x, y){ return pulls[y] - pulls[x]; });
+  if(ranked.length >= 2 && pulls[ranked[1]] >= 1 && pulls[ranked[0]] - pulls[ranked[1]] <= 1){
+    var c1 = agent(ranked[0]), c2 = agent(ranked[1]);
+    if(c1 && c2){
+      addTension(c1, c2, LIFE.successionTension);
+      showToast("⚔ " + first + " is gone, and the village pulls two ways: " + c1.name.split(" ")[0] + " or " + c2.name.split(" ")[0] + "?", {ids: [c1.id, c2.id]});
+    }
+  }
+  var h = householdOf(m);
+  if(h) freeHousehold(h);
+  removeAgent(m);
+  G.deaths.push({name: m.name, year: yearOf(), season: seasonName()});
+  G.lastHarmWeek = G.week;
+  G.agents.forEach(function(b){ if(b.successionPick) noteEvent(b, "succession", m.id); });
+  showToast("🕯 " + m.name + " has died. The village carries on, and remembers.");
+  SND.play("blame");
+}
+function proclaimAt(stationId, siteId){
+  if(!G.started || G.over) return false;
+  var early = !!(G.proclaim && G.proclaim.week === G.week);
+  if(early) applyStatMods({cohesion: -LIFE.proclaimRecost});
+  G.proclaim = {station: stationId || null, site: siteId || null, week: G.week};
+  var nm = "the village";
+  if(siteId){ var sk = siteById(siteId); var kd = sk ? BUILD_KINDS[sk.kind] : null; nm = kd ? kd.title : "the building site"; }
+  else if(stationId && STATION3[stationId]) nm = "the " + STATION3[stationId].name;
+  showToast("📣 Proclaimed: " + nm + " holds the village's focus this season" + (early ? " (shifting it early cost cohesion)" : ""));
+  SND.play("order");
+  refreshTray(true);
   return true;
 }
 function addTension(a, b, amt){
@@ -1518,6 +1753,7 @@ function composeThought(a, cause){
   var F = {model:mn, partner:null, station:null, Station:null, blamed:(a.blamed || 0), slipping:false, selfStation:false};
   function setStation(nm){ F.station = nm; F.Station = nm ? nm.charAt(0).toUpperCase() + nm.slice(1) : nm; }
   if(a.sick){ cat = "sick"; main = ["I feel rotten. Everything else can wait until this passes.", "Being sick shrinks the world to one chair. Let it."][vi]; why = "because I am unwell"; }
+  else if(a.failing){ cat = "failing"; main = ["My strength is going, a little more each week. What I cannot carry now, I will not carry again.", "Everything takes longer now. Even the walk to the green is a negotiation."][vi]; why = "because my strength is failing"; }
   else if(ten && ten.v >= 50){ var pn = ten.who.name.split(" ")[0]; cat = "rivalryHigh"; F.partner = pn; main = [pn + " and I keep circling the same work, and it is getting sharp between us.", "Every time " + pn + " is near, the same job turns into a contest."][vi]; why = "because the rivalry with " + pn + " is heating up"; }
   else if((a.blamed || 0) >= 2){ cat = "blamed"; main = "People look at me sideways now. Blamed " + a.blamed + " times does that to a person."; why = "because blame keeps landing on me"; }
   else if((a.blamed || 0) >= 1){ cat = "blamed"; main = "Being blamed once sits in the chest longer than people think."; why = "because blame landed on me"; }
@@ -1697,6 +1933,22 @@ function imitationScan(){
       else { a.state = "watch"; a.watchOf = m.id; a.watchT = 3.4; setBubble(a, "👀", 1.8); noteEvent(a, "copied", m.id); }
     }
   });
+  /* Succession: a resident whose model died shadow-watches the
+     candidate chosen for them at the death (watched most, weighted
+     by visibility); the completed watch makes the candidate their
+     model through the same completion path as a first model. */
+  G.agents.forEach(function(a){
+    if(a.model || !a.successionPick || a.sick || a.medicTask) return;
+    var freeToShadow = a.state === "idle" || (a.state === "act" && a.stationId === "green") || a.state === "sit"
+      || (!a.fetch && !a.order && !a.carrying && !a.buildSite && (a.state === "act" || a.state === "walk"));
+    if(!freeToShadow) return;
+    var t = agent(a.successionPick);
+    if(!t){ a.successionPick = null; return; }
+    if(t.state !== "act" || t.sick) return;
+    var d = Math.sqrt((t.x - a.x) * (t.x - a.x) + (t.z - a.z) * (t.z - a.z));
+    if(d > 3.4){ a.pendingWatch = t.id; var vx = a.x - t.x, vz = a.z - t.z, vl = Math.sqrt(vx * vx + vz * vz) || 1; goTo(a, t.x + vx / vl * 3.2, t.z + vz / vl * 3.2, a.stationId); }
+    else { a.state = "watch"; a.watchOf = t.id; a.watchT = 3.4; setBubble(a, "👀", 1.8); noteEvent(a, "copied", t.id); }
+  });
   G.agents.forEach(function(a){
     if(a.vis >= 60 || a.watchCd > 0 || a.sick || a.medicTask) return;
     /* A newcomer still hunting for their first model watches hungrily
@@ -1710,7 +1962,7 @@ function imitationScan(){
     if(!freeToWatch) return;
     var best = null, bd = 99;
     G.agents.forEach(function(m){
-      if(m === a || m.vis < 60 || m.state !== "act") return;
+      if(m === a || visEff(m) < 60 || m.state !== "act") return;
       var d = Math.sqrt((m.x-a.x)*(m.x-a.x) + (m.z-a.z)*(m.z-a.z));
       if(d < bd){ bd = d; best = m; }
     });
@@ -1786,17 +2038,29 @@ var INCIDENTS = [
 function pairTensionOf(id1, id2){ return (G.pairs && G.pairs[pairKey(id1, id2)]) || 0; }
 function blameStoryW(id){ var a = agent(id); return 1 + (G.blame || 0) / 40 + (((a && a.blamed) || 0) * 0.5); }
 function incidentStoryWeight(inc){
+  var w;
   switch(inc.key){
-    case "feudwell": return 1 + pairTensionOf("abel", "tomas") / 20;
-    case "fieldclaim": return 1 + pairTensionOf("tomas", "bram") / 20;
-    case "roofleak": case "milljam": return blameStoryW("felix");
-    case "feverpriya": return blameStoryW("abel");
-    case "shortstores": return 1 + Math.max(0, 6 - (G.stores || 0)) / 3 + (G.blame || 0) / 50;
-    case "whispers": return 1 + Math.max(0, 50 - ((G.stats && G.stats.trust) || 50)) / 50;
-    case "stranger": return 1 + Math.max(0, 8 - (G.stores || 0)) / 3;
-    case "frost": return 1 + (seasonOfYear() - 1) / 2;
-    default: return 1;
+    case "feudwell": w = 1 + pairTensionOf("abel", "tomas") / 20; break;
+    case "fieldclaim": w = 1 + pairTensionOf("tomas", "bram") / 20; break;
+    case "roofleak": case "milljam": w = blameStoryW("felix"); break;
+    case "feverpriya": w = blameStoryW("abel"); break;
+    case "shortstores": w = 1 + Math.max(0, 6 - (G.stores || 0)) / 3 + (G.blame || 0) / 50; break;
+    case "whispers": w = 1 + Math.max(0, 50 - ((G.stats && G.stats.trust) || 50)) / 50; break;
+    case "stranger": w = 1 + Math.max(0, 8 - (G.stores || 0)) / 3; break;
+    case "frost": w = 1 + (seasonOfYear() - 1) / 2; break;
+    default: w = 1;
   }
+  /* Stage 5 storyteller terms: prosperity scales the big incidents
+     with built wealth (bigger villages draw bigger opportunities and
+     bigger troubles), and in the season after a death or an expulsion
+     the harm incidents draw light, the director's breathing room. */
+  if(inc.key === "storm" || inc.key === "stranger" || inc.key === "longtable" || inc.key === "feudwell"){
+    w *= 1 + Math.min(LIFE.prosperityCap, (G.builtWealth || 0) / LIFE.prosperityWealth);
+  }
+  if(G.lastHarmWeek != null && G.week === G.lastHarmWeek + 1){
+    if(inc.key === "rosafaint" || inc.key === "feverpriya" || inc.key === "feudwell" || inc.key === "whispers" || inc.key === "roofleak" || inc.key === "milljam") w *= LIFE.adaptKeep;
+  }
+  return w;
 }
 function drawIncident(){
   if(G.week === 1) return INCIDENTS[0];
@@ -2016,6 +2280,7 @@ function buildAdFor(a){
     var sc = kind.project ? 9 : 12;
     if(a.disp === "Diligent") sc *= 1.35; else if(a.disp === "Helpful") sc *= 1.15; else if(a.disp === "Selfish") sc *= 0.55; else if(a.disp === "Withdrawn") sc *= 0.35;
     if(s.station && a.aff === s.station) sc *= 1.25;
+    if(G.proclaim && G.proclaim.week === G.week && G.proclaim.site === s.id) sc += LIFE.proclaimBuildAd;
     for(var j = 0; j < G.agents.length; j++){
       var b = G.agents[j];
       if(b !== a && b.buildSite === s.id && (b.state === "act" || b.state === "walk")){
@@ -2064,6 +2329,7 @@ function finishSite(site){
   site.done = true; if(kind.stages) site.stage = kind.stages.length;
   updateSiteMesh(site);
   applySiteEffect(site);
+  recomputeWealth();
   showToast(kind.icon + " " + kind.title + " finished. " + (kind.blurb || ""));
   SND.play("objwin");
   if(!firstSiteOpen()) G.agents.forEach(function(a){ if(a.order === "build") a.order = null; if(a.buildSite === site.id) a.buildSite = null; });
@@ -2292,7 +2558,7 @@ function statDrift(dt){
   }
   if((G.blame || 0) > 82) G.mediated = false;
   if(G.started && !G.over && (G.blame || 0) >= 100 && cand){
-    G.blame = 35; G.expelled++;
+    G.blame = 35; G.expelled++; G.lastHarmWeek = G.week;
     blameAgent(cand.id);
     applyStatMods({cohesion:7, rivalry:-16, trust:-5});
     G.delays.push({at: G.t + WEEK_LEN, mods:{trust:-5}, msg:"🕯 The village remembers who it turned on"});
@@ -2329,6 +2595,13 @@ function endWeek(){
   G.calmT = 0; G.peakGreen = 0; G.objWorkers = {};
   G.agents.forEach(function(a){ a.alerted = false; a.loafT = 0; });
   G.fieldGrowth = 0.12; G.growthApplied = -1;
+  /* Stage 5 lifecycle: ages advance with the new year, failing
+     health is telegraphed as autumn opens, and winter opens with
+     the death roll, all before the arrival check below so a freed
+     dwelling can be refilled at the same boundary. */
+  if(seasonOfYear() === 1) G.agents.forEach(function(a){ a.age = (a.age || 34) + 1; });
+  if(seasonOfYear() === 3) telegraphFailing();
+  if(seasonOfYear() === 4) winterDeaths();
   if(seasonOfYear() === 1){
     /* a new year: re-deal the commission and incident decks, then count the winter */
     redealCommissions();
@@ -2523,7 +2796,7 @@ var CMDS = [
 var trayKey = "";
 function refreshTray(force){
   var a = G.selected ? agent(G.selected) : null;
-  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station : "") : "") + "|" + (cam.follow || "") + "|" + (G.spotCd > G.t ? "cd" : "rdy") + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + "|" + (G.foundArm ? "F" : "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + ((G.arrival ? G.arrival.names.join("+") : ""));
+  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station : "") : "") + "|" + (cam.follow || "") + "|" + (G.spotCd > G.t ? "cd" : "rdy") + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + "|" + (G.foundArm ? "F" : "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "");
   if(!force && key === trayKey) return;
   trayKey = key;
   var info = document.getElementById("selInfo");
@@ -2545,6 +2818,7 @@ function refreshTray(force){
   html += "<button class='cbtn" + (cam.follow ? " on" : "") + "' data-o='follow'" + (!a ? " disabled" : "") + "><span class='i'>🎥</span><span class='l'>Follow</span></button>";
   html += "<button class='cbtn" + (G.armed ? " on" : "") + "' data-o='spot'" + (!a || G.spotCd > G.t ? " disabled" : "") + "><span class='i'>✨</span><span class='l'>Spotlight</span></button>";
   html += "<button class='cbtn" + (G.modelArm ? " on" : "") + "' data-o='model'" + (!a ? " disabled" : "") + "><span class='i'>👁</span><span class='l'>Model</span></button>";
+  html += "<button class='cbtn" + (G.proclaimArm ? " on" : "") + "' data-o='proclaim'><span class='i'>📣</span><span class='l'>Proclaim</span></button>";
   html += "<button class='cbtn' data-o='thoughts'" + (!a ? " disabled" : "") + "><span class='i'>💭</span><span class='l'>Thoughts</span></button>";
   html += "<button class='cbtn' data-o='speak'" + ((G.blame || 0) < HH.speakBlameMin || G.speakCd > G.t ? " disabled" : "") + "><span class='i'>🕊</span><span class='l'>Speak For</span></button>";
   html += "<button class='cbtn" + (G.ui && G.ui.muted ? " on" : "") + "' data-o='mute'><span class='i'>" + (G.ui && G.ui.muted ? "🔇" : "🔊") + "</span><span class='l'>Sound</span></button>";
@@ -2558,14 +2832,15 @@ function refreshTray(force){
     b.addEventListener("click", function(){
       var o = b.getAttribute("data-o");
       if(o === "follow"){ cam.follow = cam.follow ? null : G.selected; refreshTray(true); return; }
-      if(o === "spot"){ G.armed = true; G.modelArm = false; showToast("✨ Tap a resident to spotlight them"); refreshTray(true); return; }
-      if(o === "model"){ G.modelArm = true; G.armed = false; showToast("👁 Tap who " + (a ? a.name.split(" ")[0] : "they") + " should look up to"); refreshTray(true); return; }
+      if(o === "spot"){ G.armed = true; G.modelArm = false; G.proclaimArm = false; showToast("✨ Tap a resident to spotlight them"); refreshTray(true); return; }
+      if(o === "model"){ G.modelArm = true; G.armed = false; G.proclaimArm = false; showToast("👁 Tap who " + (a ? a.name.split(" ")[0] : "they") + " should look up to"); refreshTray(true); return; }
+      if(o === "proclaim"){ G.proclaimArm = !G.proclaimArm; G.armed = false; G.modelArm = false; G.foundArm = false; if(G.proclaimArm) showToast("📣 Tap a building, or a building site, to proclaim the village's focus for the season"); refreshTray(true); return; }
       if(o === "thoughts"){ if(G.selected) Store.dispatch("ui/sheet", {id:G.selected}); return; }
       if(o === "speak"){ speakFor(); refreshTray(true); return; }
       if(o === "mute"){ Store.dispatch("ui/mute"); try { if(typeof localStorage !== "undefined") localStorage.setItem("mv_muted", (G.ui && G.ui.muted) ? "1" : "0"); } catch(e){} SND.play("toggle"); refreshTray(true); return; }
       if(o === "story"){ storySoFar(false); return; }
       if(o === "build"){ setOrder3("build"); return; }
-      if(o === "found"){ G.foundArm = !G.foundArm; G.foundPlot = null; if(G.foundArm) showToast("🏗 Tap a surveyed plot (gold ring) to found a building"); refreshTray(true); return; }
+      if(o === "found"){ G.foundArm = !G.foundArm; G.foundPlot = null; G.proclaimArm = false; if(G.foundArm) showToast("🏗 Tap a surveyed plot (gold ring) to found a building"); refreshTray(true); return; }
       setOrder3(o);
     });
   });
@@ -2788,7 +3063,7 @@ function hudTick(dt){
   G.agents.forEach(function(a){ if(a.driveObj && a.stationId === G.objStation && (a.state === "act" || a.state === "walk")) eligHands++; });
   document.getElementById("objCard").classList.toggle("urgent", accepted && G.started && !G.over && !G.objComplete && G.weekTime > 30 && eligHands === 0);
   drawMinimap();
-  document.getElementById("weekChip").textContent = seasonLabel() + " · ☀ " + Math.round(G.weekTime / WEEK_LEN * 100) + "%";
+  document.getElementById("weekChip").textContent = seasonLabel() + " · " + villageLevel().name + " · ☀ " + Math.round(G.weekTime / WEEK_LEN * 100) + "%";
   document.getElementById("storesN").textContent = G.stores;
   document.getElementById("copiedN").textContent = G.copied;
   var bRow = document.getElementById("blameRow");
@@ -2884,6 +3159,8 @@ function shuffleCast(){
   var disps = shuffleArr(["Diligent","Helpful","Diligent","Helpful","Selfish","Helpful","Diligent","Withdrawn"]);
   var axisPool2 = dealAxes();
   G.agents.forEach(function(a, i){ a.axis = axisPool2[i]; });
+  var ageDeal = shuffleArr(LIFE.ageDeal.slice());
+  G.agents.forEach(function(a, i){ a.age = ageDeal[i % ageDeal.length]; });
   var affs = shuffleArr(others.map(function(a){ return a.aff; }));
   others.forEach(function(a, i){ a.disp = disps[i]; a.aff = affs[i]; a.vis = 22 + Math.floor(Math.random() * 22); });
   var models = shuffleArr(others.slice()).slice(0, 2);
@@ -2914,11 +3191,11 @@ function giveWant(a, station, fromSync){
   Store.dispatch("want/set", {id:a.id, station:station, secs:26});
   noteEvent(a, "want", station);
   setBubble(a, STATION3[station].icon, 1.2);
-  if(a.vis >= 60){
+  if(visEff(a) >= 60){
     G.agents.forEach(function(b){
       if(b === a || b.want || b.wantPend || b.sick) return;
       var d = Math.sqrt((b.x-a.x)*(b.x-a.x) + (b.z-a.z)*(b.z-a.z));
-      if(d < 10 && Math.random() < 0.5) b.wantPend = {station:station, at:G.t + 0.7 + Math.random()*1.6};
+      if(d < arcOf(a).wantRange && Math.random() < arcOf(a).wantChance) b.wantPend = {station:station, at:G.t + 0.7 + Math.random()*1.6};
     });
   }
   /* Household synchronization: a want one member takes up is offered
@@ -3045,7 +3322,7 @@ function overlayModel(a, s){
   var ii = intentIcon(a);
   if(ii && ii !== "\u{1F4AD}" && ii !== "\u2022" && (!bubble || bubble.icon !== ii)) intent = ii;
   var name = null;
-  if(s.selected === a.id || a.vis >= 60) name = (a.vis >= 60 ? "\u{1F525} " : "") + a.name.split(" ")[0] + (s.selected === a.id ? " \u00b7 " + a.role : "");
+  if(s.selected === a.id || visEff(a) >= 60) name = (visEff(a) >= 60 ? "\u{1F525} " : "") + a.name.split(" ")[0] + (s.selected === a.id ? " \u00b7 " + a.role : "");
   if(!bubble && !intent && !name) return null;
   return {x:sx, y:sy, bubble:bubble, intent:intent, name:name};
 }
@@ -3182,6 +3459,17 @@ function tapAt(cx, cy, smart){
   if(G.modelArm){
     G.modelArm = false;
     if(p.agent && G.selected && p.agent !== G.selected){ var me3 = agent(G.selected), nw3 = agent(p.agent); me3.model = nw3.id; me3.modelCd = 0; setBubble(me3, "👁", 2); spawnPulse(nw3, me3); SND.play("order"); showToast("👁 " + me3.name.split(" ")[0] + " now looks up to " + nw3.name.split(" ")[0]); }
+    refreshTray(true); return;
+  }
+  if(G.proclaimArm){
+    G.proclaimArm = false;
+    if(p.station){ proclaimAt(p.station, null); }
+    else if(p.plot !== undefined && p.plot !== null){
+      var ps2 = plotSite(p.plot);
+      if(ps2 && !ps2.done) proclaimAt(ps2.station || null, ps2.id);
+      else if(ps2) showToast("🏗 That building already stands finished");
+      else showToast("📣 Nothing stands there yet to proclaim");
+    }
     refreshTray(true); return;
   }
   if(G.armed){
@@ -3380,7 +3668,7 @@ if(ffm){
   updateCamera(0); Store.commit(); refreshTray(true);
   renderer.render(scene, camera);
 }
-window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, verdict: storyVerdict, setModel: function(id, mid){ var a = agent(id); if(a) a.model = mid; }, select: function(id){ Store.dispatch("ui/select", {id:id}); refreshTray(true); }, pickProject: function(i){ pickProject(i || 0); }, acceptOffer: function(){ acceptOffer(); }, ignoreOffer: function(){ ignoreOffer(); }, drawOffer: function(){ drawOffer(); }, found: function(ix, kind){ return foundSite(ix, kind || "cottage"); }, sites: function(){ return (G.sites || []).map(function(s){ return {id: s.id, kind: s.kind, plot: s.plot, projId: s.projId, station: s.station, stage: s.stage, stageLabor: Math.round(s.stageLabor || 0), labor: Math.round(s.labor || 0), matsIn: {stores: s.matsIn.stores, planks: s.matsIn.planks}, workers: Object.keys(s.workers || {}).length, done: s.done}; }); }, capacity: function(){ return G.houseCapacity || 0; }, speak: function(){ return speakFor(); }, social: function(){ return {contentment: Math.round(contentment()), households: (G.households || []).map(function(h){ return {id: h.id, members: h.members.slice(), site: h.site, since: h.since}; }), arrival: G.arrival ? G.arrival.names.slice() : null, soloHoused: G.soloHoused || 0, housingFree: housingFree(), departed: G.departed || 0, candidate: (function(){ var c = scapegoatCandidate(); return c ? c.id : null; })()}; }, sheet: function(id){ Store.dispatch("ui/sheet", {id:id || null}); }, closeSheet: function(){ Store.dispatch("ui/sheet", {id:null}); }, thoughts: function(){ var out = {}; G.agents.forEach(function(a){ out[a.id] = {axis:(a.axis || ""), voice:(a.persona ? a.persona.voice.join(", ") : ""), thought:(a.thought ? a.thought.text : ""), cause:(a.thought ? a.thought.cause : ""), log:(a.thoughtLog ? a.thoughtLog.length : 0), events:(a.recentEvents ? a.recentEvents.length : 0)}; }); return out; }};
+window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, verdict: storyVerdict, setModel: function(id, mid){ var a = agent(id); if(a) a.model = mid; }, select: function(id){ Store.dispatch("ui/select", {id:id}); refreshTray(true); }, pickProject: function(i){ pickProject(i || 0); }, acceptOffer: function(){ acceptOffer(); }, ignoreOffer: function(){ ignoreOffer(); }, drawOffer: function(){ drawOffer(); }, found: function(ix, kind){ return foundSite(ix, kind || "cottage"); }, sites: function(){ return (G.sites || []).map(function(s){ return {id: s.id, kind: s.kind, plot: s.plot, projId: s.projId, station: s.station, stage: s.stage, stageLabor: Math.round(s.stageLabor || 0), labor: Math.round(s.labor || 0), matsIn: {stores: s.matsIn.stores, planks: s.matsIn.planks}, workers: Object.keys(s.workers || {}).length, done: s.done}; }); }, capacity: function(){ return G.houseCapacity || 0; }, speak: function(){ return speakFor(); }, social: function(){ return {contentment: Math.round(contentment()), households: (G.households || []).map(function(h){ return {id: h.id, members: h.members.slice(), site: h.site, since: h.since}; }), arrival: G.arrival ? G.arrival.names.slice() : null, soloHoused: G.soloHoused || 0, housingFree: housingFree(), departed: G.departed || 0, candidate: (function(){ var c = scapegoatCandidate(); return c ? c.id : null; })()}; }, life: function(){ return {deaths:(G.deaths || []).map(function(d){ return {name:d.name, year:d.year, season:d.season}; }), tiers:Object.assign({}, G.tiers), tierProg:(function(){ var o = {}; Object.keys(G.tierProg || {}).forEach(function(k){ o[k] = Math.round(G.tierProg[k]); }); return o; })(), spots:(function(){ var o = {}; TIER_STATIONS.forEach(function(st){ o[st] = STATION3[st].work.length; }); return o; })(), builtWealth:G.builtWealth || 0, level:villageLevel().name, levelCount:villageLevel().count, proclaim:G.proclaim ? {station:G.proclaim.station, site:G.proclaim.site, week:G.proclaim.week} : null, ages:(function(){ var o = {}; G.agents.forEach(function(a){ o[a.id] = a.age; }); return o; })(), arcs:(function(){ var o = {}; G.agents.forEach(function(a){ o[a.id] = arcOf(a).id; }); return o; })()}; }, wealth: function(){ return recomputeWealth(); }, proclaim: function(st){ return proclaimAt(st, null); }, proclaimSite: function(id){ var s = siteById(id); return s ? proclaimAt(s.station || null, s.id) : false; }, die: function(id){ var a = agent(id); if(!a) return false; dieAgent(a); return true; }, fail: function(id){ var a = agent(id); if(!a) return false; a.failing = true; return true; }, tier: function(st){ return tierOf(st); }, sheet: function(id){ Store.dispatch("ui/sheet", {id:id || null}); }, closeSheet: function(){ Store.dispatch("ui/sheet", {id:null}); }, thoughts: function(){ var out = {}; G.agents.forEach(function(a){ out[a.id] = {axis:(a.axis || ""), voice:(a.persona ? a.persona.voice.join(", ") : ""), thought:(a.thought ? a.thought.text : ""), cause:(a.thought ? a.thought.cause : ""), log:(a.thoughtLog ? a.thoughtLog.length : 0), events:(a.recentEvents ? a.recentEvents.length : 0)}; }); return out; }};
 </script>
 </body>
 </html>
