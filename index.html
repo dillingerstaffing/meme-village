@@ -2028,7 +2028,19 @@ function hudTick(dt){
       if(window.innerWidth <= 560){
         var ab = alEl.offsetHeight, sb = (trayEl.offsetHeight + 12 + ab + (ab > 0 ? 8 : 0)) + "px";
         if(stEl.style.bottom !== sb) stEl.style.bottom = sb;
-      } else if(stEl.style.bottom){ stEl.style.bottom = ""; }
+        if(stEl.style.top) stEl.style.top = "";
+      } else {
+        /* Desktop: anchor the stats panel below the objective card's real
+           bottom instead of the fixed 146px CSS constant. The offer card grows
+           with the Accept/Ignore buttons (and the project pick row), and the
+           fixed offset let the card slide under the panel. The 146px floor
+           keeps the old layout whenever the card is short. */
+        var ocEl2 = document.getElementById("objCard");
+        var cardBottom = ocEl2 ? ocEl2.getBoundingClientRect().bottom : 146;
+        var stTop = Math.max(146, Math.ceil(cardBottom) + 8) + "px";
+        if(stEl.style.top !== stTop) stEl.style.top = stTop;
+        if(stEl.style.bottom) stEl.style.bottom = "";
+      }
     }
   }
   /* Phone character sheet: start it below the objective card. The sheet is
