@@ -2599,6 +2599,7 @@ function drawIncident(){
    a resident already close falls sick where they stand. */
 function makeSick(p){
   if(!p || p.sick || p.sickWalk) return false;
+  if(!G.coachSick && !p.child){ G.coachSick = true; showToast(G.banked ? "🚑 " + p.name.split(" ")[0] + " is sick. Jonah is the only medic: cover sends him to members first, and Call Out buys a visit for anyone else." : "🚑 " + p.name.split(" ")[0] + " is sick. Jonah is the only medic, and he takes people in turn."); }
   var d = Math.sqrt(p.x * p.x + (p.z - 8.6) * (p.z - 8.6));
   if(d > 3){ p.sickWalk = true; p.order = null; p.fetch = null; p.carrying = null; goTo(p, 0, 8.6, "green"); setBubble(p, "✚", 3); return true; }
   p.sick = true; p.state = "sit"; p.stationId = "green";
@@ -3205,6 +3206,11 @@ function endWeek(){
      sweep, so cash that just landed in the account counts toward
      this boundary's premium. */
   premiumSweep();
+  if(!G.coachBank){
+    if(G.banked){ G.coachBank = true; }
+    else { var richA = null; for(var ci = 0; ci < G.agents.length; ci++){ var ca = G.agents[ci]; if(!ca.child && (ca.cash || 0) >= 20){ richA = ca; break; } }
+      if(richA){ G.coachBank = true; showToast("💰 " + richA.name.split(" ")[0] + " is carrying " + Math.floor(richA.cash) + "🪙 in cash. A bank would let residents save what they earn, and buy cover."); } }
+  }
   if(seasonOfYear() === 3) telegraphFailing();
   if(seasonOfYear() === 4) winterDeaths();
   if(seasonOfYear() === 1){
