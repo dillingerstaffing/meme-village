@@ -44,6 +44,9 @@ canvas{display:block}
 @media (max-width:560px){#projPick .alert-chip{flex:1 1 100%}}
 #foundPick .alert-chip{min-height:44px;padding:10px 12px;font-size:13px;display:flex;align-items:center;gap:6px}
 @media (max-width:560px){#foundPick .alert-chip{flex:1 1 100%}}
+#arrPick .alert-chip{min-height:44px;padding:10px 12px;font-size:13px;display:flex;align-items:center;gap:6px}
+#arrPick .arr-note{display:flex;align-items:center;font-size:13px;padding:4px 2px}
+@media (max-width:560px){#arrPick .alert-chip{flex:1 1 100%}}
 #siteLine{font-size:11.5px;color:var(--ink2);margin-top:5px;display:none}
 #offerPick .alert-chip{min-height:44px;padding:10px 12px;font-size:13px;display:flex;align-items:center;gap:6px}
 @media (max-width:560px){#offerPick .alert-chip{flex:1 1 100%}}
@@ -181,6 +184,7 @@ canvas{display:block}
   <div id="projPick" style="display:none;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
   <div id="offerPick" style="display:none;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
   <div id="foundPick" style="display:none;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
+  <div id="arrPick" style="display:none;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
   <div id="siteLine"></div>
 </div>
 <div class="hud" id="stats">
@@ -352,7 +356,7 @@ function renderSheet(s){
   }
   var log = a.thoughtLog || [];
   var whSig = 0; if(a.workHist) for(var wkk in a.workHist) whSig += a.workHist[wkk];
-  var key = a.id + "|" + (a.thought ? a.thought.at + ":" + a.thought.text : "none") + "|" + log.length + "|" + NEED_DEFS.map(function(d){ return Math.round(needVal(a, d.id)); }).join(":") + ":" + whSig;
+  var key = a.id + "|" + (a.thought ? a.thought.at + ":" + a.thought.text : "none") + "|" + log.length + "|" + NEED_DEFS.map(function(d){ return Math.round(needVal(a, d.id)); }).join(":") + ":" + whSig + "|" + (householdOf(a) ? householdOf(a).id : "");
   if(key === sheetKey && el.style.display !== "none") return;
   sheetKey = key;
   var shirt = "#" + ("000000" + (a.shirt || 0).toString(16)).slice(-6);
@@ -369,6 +373,8 @@ function renderSheet(s){
   if(went.length){
     h += "<div class='sh-work'>Work: " + went.map(function(k){ var sn = STATION3[k]; return (k === "green" ? "Green" : (sn ? sn.name : k)) + " " + a.workHist[k]; }).join(" \u00B7 ") + "</div>";
   }
+  var hhP = householdPartner(a);
+  if(hhP) h += "<div class='sh-work'>🏠 Shares a house with " + hhP.name + "</div>";
   if(a.thought){
     h += "<div class='sh-quote'>\u201C" + a.thought.text + "\u201D</div>";
     for(var i = log.length - 2; i >= 0; i--){
@@ -727,6 +733,7 @@ function newSlice(){
     rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0, offer:null, offerAccepted:false,
     rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0,
     sites:[], siteSeq:0, houseCapacity:10, banked:false, foundArm:false, foundPlot:null, buildPref:null,
+    bonds:{}, households:[], householdSeq:0, soloHoused:0, departed:0, arrival:null, speakCd:0, newSeq:0,
     stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
     objStation:"clinic", objComplete:false, objDone:0, scapegoats:0, delays:[],
     weekWork:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0, build:0}, weekWorkP:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0},
@@ -1000,10 +1007,12 @@ function stepAgents(dt){
       if(a.watchT <= 0){
         var m = agent(a.watchOf);
         a.state = "idle"; a.decideT = 0.2; a.watchCd = 25;
+        if(m && !a.model){ a.model = m.id; a.modelCd = 0; if(a.newcomer) showToast("👁 " + a.name.split(" ")[0] + " has found a model: " + m.name.split(" ")[0]); }
         if(m && m.disp !== a.disp){
           a.disp = m.disp; G.copied++; a.vis = Math.min(100, a.vis + 8);
           a.mimicStation = (m.state === "act") ? m.stationId : null; a.mimicFrom = m.name.split(" ")[0];
           if(a.mimicStation) addNeed(m, "purpose", 16 * (m.disp === "Selfish" ? 1.3 : 1));
+          if(a.mimicStation){ var hp4 = householdPartner(m); if(hp4) addNeed(hp4, "purpose", 16 * (m.disp === "Selfish" ? 1.3 : 1)); }
           if(a.mimicStation && !(m.spotUntil && G.t < m.spotUntil)){
             addTension(a, m, 6);
             for(var bi = 0; bi < G.agents.length; bi++){ var b2 = G.agents[bi]; if(b2 !== a && b2 !== m && b2.model === m.id && b2.stationId === a.mimicStation && b2.state === "act"){ addTension(a, b2, 9); break; } }
@@ -1116,6 +1125,267 @@ function stepAgents(dt){
   }
 }
 function pairKey(x, y){ return x < y ? x + "|" + y : y + "|" + x; }
+/* ================= HOUSEHOLDS & ARRIVALS (Stage 4) =================
+   A household is a pair whose bond, accumulated from the history the
+   game already tracks (working the same station, time on the green,
+   tension staying low), crosses a threshold and claims a dwelling.
+   Housing is one ledger: G.houseCapacity dwellings (the starting
+   homes, +1 per finished cottage) are claimed by households (one
+   each) and by welcomed newcomers not yet in a household (G.soloHoused,
+   one each), and housingFree() is the only gate at both doors.
+   Arrivals are gated by the contentment composite in bands; newcomers
+   arrive with no model and take the first resident they complete a
+   watch on. Speak For spends a high-follower resident's standing
+   against blame pressure. Every rate and threshold lives in the HH
+   table or the band table below, nowhere else. */
+var POP_CAP = 16;
+var HH = {
+  bondThreshold: 60,
+  bondTensionMax: 25,
+  bondConverge: 0.38,
+  bondGreen: 0.5,
+  bondHotDecay: 0.25,
+  tensionDecayMult: 2,
+  spreadDiscount: 0.5,
+  wantSyncChance: 0.65,
+  newcomerMark: 20,
+  newcomerMorale: 60,
+  departContentment: 30,
+  departBlame: 60,
+  turnAwaySting: 3,
+  speakBlameMin: 50,
+  speakMarkMin: 25,
+  speakFollowersMin: 2,
+  speakStrength: 70,
+  speakBlameKeep: 0.35,
+  speakBlamedCut: 2,
+  speakBondGain: 25,
+  speakVisCost: 8,
+  speakCd: 30
+};
+var CONTENTMENT_BANDS = [
+  {min: 75, party: 2, chance: 0.85},
+  {min: 50, party: 1, chance: 0.7}
+];
+/* Newcomer personas are data: a future arrival is a new row here.
+   Fields mirror RES3 (persona cards included); affinity, disposition,
+   and axis are dealt at spawn, and the model starts null by design. */
+var NEWCOMERS = [
+  {name:"Wren Halloway", role:"Cooper", aff:"mill", disp:"Diligent", vis:26, skin:0xd9a878, hair:1, hairC:0x5a3a1e, shirt:0x7a5c8e, persona:{voice:["steady","plain spoken","hums at work"], values:"a barrel that does not leak", fear:"being a burden on a house that took her in", pride:"My hoops hold. Press them and see.", tic:"Tap it twice, trust it once.", stance:"New here; follows the first steady example the village offers.", secret:"to be asked to stay, out loud"}},
+  {name:"Silas Berg", role:"Shepherd", aff:"fields", disp:"Helpful", vis:30, skin:0xb57a48, hair:3, hairC:0x2e2018, shirt:0x5d7a45, persona:{voice:["quiet","patient","counts heads"], values:"nothing living left out overnight", fear:"losing one and not noticing", pride:"I have never lost a lamb I was watching.", tic:"Count them at the gate, count them at the fold.", stance:"New here; watches whoever the flock of people gathers around.", secret:"one night of sleep with nobody to count"}},
+  {name:"Odette Marchand", role:"Chandler", aff:"store", disp:"Helpful", vis:28, skin:0xe8bd93, hair:4, hairC:0x8a5a34, shirt:0x9e4f36, persona:{voice:["warm","quick laughing","trades stories"], values:"a lit window in every house", fear:"a house gone dark because she was slow", pride:"My candles burn even and long.", tic:"Wick first, then wax.", stance:"New here; follows the one whose table everyone ends up at.", secret:"to make something that glows for no reason"}},
+  {name:"Yusuf Adeyemi", role:"Mason", aff:"clinic", disp:"Diligent", vis:32, skin:0x6e4526, hair:2, hairC:0x0e0c0a, shirt:0x707a84, persona:{voice:["exact","calm","asks about foundations"], values:"walls that outlast the argument", fear:"building on ground nobody checked", pride:"Plumb, level, square. Check my corners.", tic:"Level it twice, lay it once.", stance:"New here; looks for the one whose work the others lean on.", secret:"to carve one stone with something beautiful"}},
+  {name:"Petra Lindgren", role:"Beekeeper", aff:"green", disp:"Helpful", vis:24, skin:0xcaa06a, hair:1, hairC:0xc8b294, shirt:0xc9862b, persona:{voice:["soft","unhurried","smells of smoke and honey"], values:"a hive left calmer than she found it", fear:"panic, hers or the bees", pride:"The bees know my step and stay gentle.", tic:"Slow hands, sweet work.", stance:"New here; drifts toward whoever the village treats as its centre.", secret:"to hear the hive hum at dawn, alone"}},
+  {name:"Callum Reid", role:"Ferryman", aff:"well", disp:"Withdrawn", vis:22, skin:0xe0b184, hair:2, hairC:0x6e5636, shirt:0x3e6d8e, persona:{voice:["sparse","dry","watches the water"], values:"a crossing made without fuss", fear:"being needed loudly and all at once", pride:"Nobody has ever waited long at my bank.", tic:"Read the current before you push off.", stance:"New here; keeps his distance until someone worth following shows.", secret:"to row somewhere with no far bank in mind"}},
+  {name:"Ana Beltrán", role:"Archivist", aff:"school", disp:"Diligent", vis:29, skin:0xa06a3c, hair:4, hairC:0x16120e, shirt:0x5a5f9e, persona:{voice:["precise","dry humour","finishes sentences"], values:"a record that matches what happened", fear:"a name written down wrong", pride:"Ask me who did what, and when. I have it.", tic:"Write it down before it wanders off.", stance:"New here; studies the village like a text, then chooses her teacher.", secret:"one page kept only for herself"}},
+  {name:"Milo Ferreira", role:"Tinker", aff:"mill", disp:"Selfish", vis:27, skin:0xdbac7d, hair:3, hairC:0x3a2415, shirt:0x4a7a9e, persona:{voice:["quick","teasing","takes things apart"], values:"knowing how every hinge in the valley works", fear:"a machine nobody lets him open", pride:"Give me a broken thing and an hour.", tic:"Everything opens, if you find the seam.", stance:"New here; copies whoever gets the most eyes, and plans to pass them.", secret:"to fix one thing so well it never breaks again"}}
+];
+function contentment(){
+  var s = G.stats;
+  return clamp100((s.trust + s.cohesion + (100 - s.scarcity) + (100 - (G.blame || 0))) / 4);
+}
+function bondVal(x, y){ return (G.bonds && G.bonds[pairKey(x, y)]) || 0; }
+function householdOf(a){
+  if(!a || !G.households) return null;
+  for(var i = 0; i < G.households.length; i++){ var h = G.households[i]; if(h.members[0] === a.id || h.members[1] === a.id) return h; }
+  return null;
+}
+function householdPartner(a){ var h = householdOf(a); if(!h) return null; return agent(h.members[0] === a.id ? h.members[1] : h.members[0]); }
+// CF-REF: household-capacity-ledger.md [43]
+function housingFree(){ return (G.houseCapacity || 0) - (G.households ? G.households.length : 0) - (G.soloHoused || 0); }
+function formHousehold(a, b){
+  if(householdOf(a) || householdOf(b)) return null;
+  var soloFrees = (a.solo ? 1 : 0) + (b.solo ? 1 : 0);
+  if(housingFree() + soloFrees < 1) return null;
+  var hid = "hh" + (++G.householdSeq);
+  var site = null;
+  if(G.sites) for(var i = 0; i < G.sites.length; i++){ var s = G.sites[i]; if(s.done && s.kind === "cottage" && !s.claimedBy){ site = s; break; } }
+  if(site) site.claimedBy = hid;
+  var h = {id: hid, members: [a.id, b.id], site: site ? site.id : null, since: G.week};
+  G.households.push(h);
+  [a, b].forEach(function(m){ if(m.solo){ m.solo = false; G.soloHoused = Math.max(0, (G.soloHoused || 0) - 1); } });
+  setBubble(a, "♥", 2.5); setBubble(b, "♥", 2.5);
+  showToast("🏠 " + a.name.split(" ")[0] + " and " + b.name.split(" ")[0] + " have made a household" + (site ? ", and claimed the new cottage" : ""), {ids: [a.id, b.id]});
+  noteEvent(a, "household", b.id); noteEvent(b, "household", a.id);
+  SND.play("objwin");
+  return h;
+}
+function freeHousehold(h){
+  if(h.site){ var s = siteById(h.site); if(s && s.claimedBy === h.id) s.claimedBy = null; }
+  G.households = G.households.filter(function(x){ return x !== h; });
+}
+function removeAgent(m){
+  var ix = G.agents.indexOf(m); if(ix < 0) return;
+  G.agents.splice(ix, 1);
+  if(m.root) scene.remove(m.root);
+  if(m.ovlEl && m.ovlEl.parentNode) m.ovlEl.parentNode.removeChild(m.ovlEl);
+  G.agents.forEach(function(b){ if(b.model === m.id) b.model = null; if(b.watchOf === m.id) b.watchOf = null; if(b.pendingWatch === m.id) b.pendingWatch = null; if(b.visitId === m.id) b.visitId = null; });
+  Object.keys(G.pairs || {}).forEach(function(k){ if(k.split("|").indexOf(m.id) >= 0) delete G.pairs[k]; });
+  Object.keys(G.bonds || {}).forEach(function(k){ if(k.split("|").indexOf(m.id) >= 0) delete G.bonds[k]; });
+  if(G.medicPatient === m.id) G.medicPatient = null;
+  if(m.solo){ m.solo = false; G.soloHoused = Math.max(0, (G.soloHoused || 0) - 1); }
+  if(G.selected === m.id) Store.dispatch("ui/select", {id: null});
+}
+function departHousehold(h){
+  var names = h.members.map(function(id){ var m = agent(id); return m ? m.name.split(" ")[0] : id; });
+  var members = h.members.map(function(id){ return agent(id); }).filter(Boolean);
+  freeHousehold(h);
+  members.forEach(function(m){ removeAgent(m); });
+  G.departed = (G.departed || 0) + members.length;
+  showToast("🚶 " + names.join(" and ") + " have left the valley. The village drove them out.");
+  SND.play("blame");
+}
+function bondTick(dt){
+  if(!G.bonds) G.bonds = {};
+  var ag = G.agents;
+  for(var i = 0; i < ag.length; i++) for(var j = i + 1; j < ag.length; j++){
+    var a = ag[i], b = ag[j], k = pairKey(a.id, b.id);
+    var ten = (G.pairs && G.pairs[k]) || 0, bv = G.bonds[k] || 0;
+    if(ten >= 50){ if(bv > 0) bv = Math.max(0, bv - HH.bondHotDecay * dt); }
+    else if(ten < HH.bondTensionMax && a.state === "act" && b.state === "act" && a.stationId && a.stationId === b.stationId && a.stationId !== "home"){
+      bv += (a.stationId === "green" ? HH.bondGreen : HH.bondConverge) * dt;
+    }
+    if(bv > 0) G.bonds[k] = Math.min(100, bv); else if(G.bonds[k]) delete G.bonds[k];
+  }
+  var best = null, bb = HH.bondThreshold;
+  for(var i2 = 0; i2 < ag.length; i2++) for(var j2 = i2 + 1; j2 < ag.length; j2++){
+    var a2 = ag[i2], b2 = ag[j2];
+    if(a2.sick || b2.sick || householdOf(a2) || householdOf(b2)) continue;
+    var v2 = bondVal(a2.id, b2.id);
+    if(v2 >= bb){ bb = v2; best = [a2, b2]; }
+  }
+  if(best) formHousehold(best[0], best[1]);
+}
+function spawnNewcomer(def){
+  G.newSeq = (G.newSeq || 0) + 1;
+  var home = [8 + Math.random() * 6 - 3, 20 + Math.random() * 4], dwSite = null;
+  if(G.sites) for(var i = 0; i < G.sites.length; i++){ var s = G.sites[i]; if(s.done && s.kind === "cottage" && !s.claimedBy){ home = [s.x + 2.5, s.z + 2.5]; dwSite = s.id; break; } }
+  var d = {id: "new" + G.newSeq, name: def.name, role: def.role, aff: def.aff, home: home, admires: null, vis: def.vis, disp: def.disp,
+    skin: def.skin, hair: def.hair, hairC: def.hairC, shirt: def.shirt, persona: def.persona};
+  var f = makeFigure(d);
+  var a = Object.assign({}, d, f, {
+    x: 10, z: 42, heading: 3.14, tx: 10, tz: 42,
+    state: "idle", stationId: null, slot: null, actT: 0, decideT: 0.5, loafT: 0, alerted: false,
+    energy: 76, morale: HH.newcomerMorale, phase: Math.random() * 10, walkPhase: 0,
+    order: null, carrying: null, bubble: null, bubbleUntil: 0, watchOf: null, watchT: 0, want: null, wantCd: 6 + Math.random() * 8, wantPend: null, driveObj: false, workHist: {},
+    idleT: 0, sick: false, seed: Math.random() * 100, model: null, blamed: 0, modelCd: 0,
+    axis: AXES[Math.floor(Math.random() * AXES.length)].id, thought: null, thoughtLog: [], recentEvents: [], thoughtAt: -99,
+    newcomer: true, arrivedWeek: G.week, dwellingSite: dwSite, solo: true,
+    speedNow: 0, fetch: null, fetchT: 0, watchCd: 0, mimicStation: null, buildSite: null, fetchSite: null,
+    pendingWatch: null, medicTask: 0, kneelT: 0, pendingSick: false, visitId: null
+  });
+  a.needs = {};
+  NEED_DEFS.forEach(function(nd){ a.needs[nd.id] = nd.start(G.agents.length); });
+  a.root.position.set(a.x, 0, a.z);
+  a.hit.userData.agentId = a.id;
+  var ovl = document.createElement("div"); ovl.className = "ovl"; ovl.id = "ovl-" + a.id;
+  var bub = document.createElement("div"); bub.className = "bubble"; bub.id = "bub-" + a.id;
+  var intEl = document.createElement("div"); intEl.className = "intent"; intEl.id = "int-" + a.id;
+  var label = document.createElement("div"); label.className = "label"; label.id = "lab-" + a.id;
+  ovl.appendChild(bub); ovl.appendChild(intEl); ovl.appendChild(label);
+  document.getElementById("labels").appendChild(ovl);
+  a.ovlEl = ovl; a.labelEl = label; a.bubbleEl = bub; a.intentEl = intEl; a._ovlSig = "";
+  var ring = new THREE.Mesh(new THREE.RingGeometry(0.72, 0.92, 28), new THREE.MeshBasicMaterial({color:0xf5c86a, transparent:true, opacity:0.95, side:THREE.DoubleSide}));
+  ring.rotation.x = -Math.PI/2; ring.position.y = 0.06; ring.visible = false; a.root.add(ring); a.ring = ring;
+  var aura = new THREE.Mesh(new THREE.CircleGeometry(2.7, 28), new THREE.MeshBasicMaterial({color:0xe8b34b, transparent:true, opacity:0.1, side:THREE.DoubleSide}));
+  aura.rotation.x = -Math.PI/2; aura.position.y = 0.04; aura.visible = a.vis >= 60; a.root.add(aura); a.aura = aura;
+  G.agents.push(a);
+  G.soloHoused = (G.soloHoused || 0) + 1;
+  goTo(a, home[0], home[1], "home");
+  return a;
+}
+function arrivalRand(){
+  /* Arrivals draw from their own stream, seeded by the village, so an
+     outside-world event never reshuffles the simulation's own dice. */
+  G.arrRng = ((G.arrRng || ((G.seed || 1) * 7919 + 13)) * 1103515245 + 12345) % 2147483648;
+  return G.arrRng / 2147483648;
+}
+function arrivalCheck(){
+  if(!G.started || G.over) return;
+  if(G.arrival){
+    if(G.arrival.weekSet < G.week){ G.arrival = null; showToast("🚶 The travelers at the valley edge have walked on."); }
+    return;
+  }
+  var c = contentment();
+  if(G.households && G.households.length && c < HH.departContentment && (G.blame || 0) >= HH.departBlame && arrivalRand() < 0.5){
+    var worst = null, wv = 999;
+    G.households.forEach(function(h){
+      var ms = h.members.map(function(id){ return agent(id); }).filter(Boolean);
+      if(ms.length < 2) return;
+      var avg = (ms[0].morale + ms[1].morale) / 2;
+      if(avg < wv){ wv = avg; worst = h; }
+    });
+    if(worst){ departHousehold(worst); return; }
+  }
+  if(housingFree() <= 0 || G.agents.length >= POP_CAP) return;
+  var band = null;
+  for(var i = 0; i < CONTENTMENT_BANDS.length; i++) if(c >= CONTENTMENT_BANDS[i].min){ band = CONTENTMENT_BANDS[i]; break; }
+  if(!band || arrivalRand() > band.chance) return;
+  var usedNames = {}; G.agents.forEach(function(a){ usedNames[a.name] = 1; });
+  var pool = NEWCOMERS.filter(function(n){ return !usedNames[n.name]; });
+  if(!pool.length) return;
+  var party = Math.min(band.party, housingFree(), POP_CAP - G.agents.length, pool.length);
+  if(party <= 0) return;
+  var shuffled = pool.slice();
+  for(var si = shuffled.length - 1; si > 0; si--){ var sj = Math.floor(arrivalRand() * (si + 1)); var st = shuffled[si]; shuffled[si] = shuffled[sj]; shuffled[sj] = st; }
+  var defs = shuffled.slice(0, party);
+  G.arrival = {defs: defs, names: defs.map(function(n){ return n.name.split(" ")[0]; }), weekSet: G.week};
+  showToast("🚶 " + defs.map(function(n){ return n.name; }).join(" and ") + " at the valley edge. Welcome them in, or turn them away?");
+  SND.play("warn");
+}
+function arrivalChoice(welcome){
+  var arr = G.arrival; if(!arr) return;
+  G.arrival = null;
+  if(welcome){
+    var made = arr.defs.map(function(d){ return spawnNewcomer(d); });
+    showToast("🤝 The village welcomes " + arr.names.join(" and ") + ". They will find a model by watching.");
+    made.forEach(function(a){ refreshThought(a, "start"); });
+    SND.play("objwin");
+  } else {
+    applyStatMods({cohesion: -HH.turnAwaySting});
+    showToast("🚪 Turned away at the edge. The village watched them go, and it stung.");
+    SND.play("decide");
+  }
+  refreshTray(true);
+  Store.commit();
+}
+function speakFor(){
+  if(!G.started || G.over) return false;
+  if((G.blame || 0) < HH.speakBlameMin){ showToast("🕊 Blame is not heavy enough to need a voice yet"); return false; }
+  if(G.speakCd && G.t < G.speakCd){ showToast("🕊 The village has heard a defense too recently"); return false; }
+  var cand = scapegoatCandidate();
+  var sel = G.selected ? agent(G.selected) : null;
+  var target = (sel && sel !== cand && (sel.blamed || 0) > 0 && scapegoatScore(sel) >= HH.speakMarkMin) ? sel : cand;
+  if(!target || scapegoatScore(target) < HH.speakMarkMin){ showToast("🕊 No one is marked enough to speak for"); return false; }
+  var voucher = null, vf = -1, vv = -1;
+  G.agents.forEach(function(v){
+    if(v === target || v.sick) return;
+    var f = followersOf(v);
+    if(f >= HH.speakFollowersMin && (f > vf || (f === vf && v.vis > vv))){ voucher = v; vf = f; vv = v.vis; }
+  });
+  if(!voucher){ showToast("🕊 No one has the standing to speak for " + target.name.split(" ")[0]); return false; }
+  G.speakCd = G.t + HH.speakCd;
+  var strength = vf * 20 + voucher.vis * 0.25 + G.stats.trust * 0.25;
+  if(strength >= HH.speakStrength){
+    var before = Math.round(G.blame);
+    G.blame = Math.round(G.blame * HH.speakBlameKeep);
+    target.blamed = Math.max(0, (target.blamed || 0) - HH.speakBlamedCut);
+    target.morale = Math.min(100, target.morale + 10);
+    if(!G.bonds) G.bonds = {};
+    var k = pairKey(voucher.id, target.id);
+    G.bonds[k] = Math.min(100, (G.bonds[k] || 0) + HH.speakBondGain);
+    setBubble(voucher, "🕊", 2.5); setBubble(target, "♥", 2.5);
+    showToast("🕊 " + voucher.name.split(" ")[0] + " speaks for " + target.name.split(" ")[0] + ". The pressure breaks (" + before + " to " + Math.round(G.blame) + ").", {ids: [voucher.id, target.id]});
+    noteEvent(target, "defended", voucher.id);
+    SND.play("decide");
+    return true;
+  }
+  voucher.vis = Math.max(0, voucher.vis - HH.speakVisCost);
+  setBubble(voucher, "🕊", 2);
+  showToast("🕊 " + voucher.name.split(" ")[0] + " speaks for " + target.name.split(" ")[0] + ", but the village is not ready to hear it.", {ids: [voucher.id, target.id]});
+  SND.play("warn");
+  return true;
+}
 function addTension(a, b, amt){
   if(!a || !b || a === b) return;
   var k = pairKey(a.id, b.id);
@@ -1139,10 +1409,20 @@ function addTension(a, b, amt){
     SND.play("feud");
     noteEvent(a, "rivalry", b.id); noteEvent(b, "rivalry", a.id);
   }
+  /* Household spread: a member's grudge against an outsider reaches
+     their partner at a discount, written raw so it cannot chain. */
+  var pa = householdPartner(a), pb = householdPartner(b);
+  if(pa && pa !== b){ var ka = pairKey(pa.id, b.id); G.pairs[ka] = Math.min(100, (G.pairs[ka] || 0) + amt * HH.spreadDiscount); }
+  if(pb && pb !== a){ var kb = pairKey(a.id, pb.id); G.pairs[kb] = Math.min(100, (G.pairs[kb] || 0) + amt * HH.spreadDiscount); }
+}
+function scapegoatScore(a){
+  var sc = (a.blamed || 0) * 14 + (62 - a.morale);
+  if(a.newcomer && G.week - (a.arrivedWeek || 0) <= 1) sc += HH.newcomerMark;
+  return sc;
 }
 function scapegoatCandidate(){
   var best = null, bs = -1;
-  G.agents.forEach(function(a){ if(a.sick) return; var sc = (a.blamed || 0) * 14 + (62 - a.morale); if(sc > bs){ bs = sc; best = a; } });
+  G.agents.forEach(function(a){ if(a.sick) return; var sc = scapegoatScore(a); if(sc > bs){ bs = sc; best = a; } });
   return best;
 }
 /* ============ INNER VOICE (Tier 0 template thoughts) ============
@@ -1419,7 +1699,15 @@ function imitationScan(){
   });
   G.agents.forEach(function(a){
     if(a.vis >= 60 || a.watchCd > 0 || a.sick || a.medicTask) return;
-    if(!(a.state === "idle" || (a.state === "act" && a.stationId === "green") || a.state === "sit")) return;
+    /* A newcomer still hunting for their first model watches hungrily
+       during their arrival season: any uncommitted pause can turn into
+       shadowing, not just idle moments, and they will cross the
+       village to do it. The first watch they complete becomes their
+       model (in stepAgents). */
+    var hungry = !a.model && a.newcomer && G.week === (a.arrivedWeek || 0);
+    var freeToWatch = a.state === "idle" || (a.state === "act" && a.stationId === "green") || a.state === "sit"
+      || (hungry && !a.order && !a.fetch && !a.carrying && !a.buildSite && (a.state === "act" || a.state === "walk"));
+    if(!freeToWatch) return;
     var best = null, bd = 99;
     G.agents.forEach(function(m){
       if(m === a || m.vis < 60 || m.state !== "act") return;
@@ -1428,7 +1716,7 @@ function imitationScan(){
     });
     if(!best) return;
     var guaranteed = (a.id === "bram" && best.id === "mara");
-    if(bd < 9 && (guaranteed || Math.random() < 0.45)){
+    if(bd < (hungry ? 45 : 9) && (guaranteed || Math.random() < (hungry ? 0.95 : 0.45))){
       if(bd > 3.4){ a.pendingWatch = best.id; var vx = a.x - best.x, vz = a.z - best.z, vl = Math.sqrt(vx*vx + vz*vz) || 1; goTo(a, best.x + vx/vl*3.2, best.z + vz/vl*3.2, a.stationId); }
       else { a.state = "watch"; a.watchOf = best.id; a.watchT = 3.4; setBubble(a, "👀", 1.8); noteEvent(a, "copied", best.id); }
     }
@@ -1986,10 +2274,13 @@ function objectiveTick(){
 function clamp100(v){ return Math.max(0, Math.min(100, v)); }
 function statDrift(dt){
   var s = G.stats, workers = 0, ordered = 0, crowd = {};
+  var hhPairs = {};
+  if(G.households) G.households.forEach(function(h){ hhPairs[pairKey(h.members[0], h.members[1])] = 1; });
   Object.keys(G.pairs).forEach(function(k){
     if(G.pairs[k] <= 0) return;
     var ids = k.split("|"), pa = agent(ids[0]), pb = agent(ids[1]);
     var cool = (pa && pb && (pa.stationId === "green" || pb.stationId === "green")) ? 2.4 : 0.5;
+    if(hhPairs[k]) cool *= HH.tensionDecayMult;
     G.pairs[k] = Math.max(0, G.pairs[k] - dt * cool);
   });
   if(s.rivalry > 52) G.blame = Math.min(100, (G.blame || 0) + dt * (s.rivalry - 52) * 0.055);
@@ -2047,6 +2338,7 @@ function endWeek(){
   drawOffer();
   SND.play("week");
   if(isWinter()) setTimeout(function(){ if(!G.over) showToast("❄ Winter: scarcity climbs faster. Keep the storehouse full."); }, 1200);
+  arrivalCheck();
 }
 
 function stepSim(dt){
@@ -2068,6 +2360,7 @@ function stepSim(dt){
   initiativeScan();
   projectTick();
   siteTick();
+  bondTick(dt);
   stepAgents(dt);
   G.agents.forEach(function(a){
     var working = a.medicTask || a.order || (a.state === "act" && a.stationId && a.stationId !== "green" && a.stationId !== "home") || (a.state === "walk" && a.stationId && a.stationId !== "green" && a.stationId !== "home");
@@ -2075,7 +2368,7 @@ function stepSim(dt){
     if(a.loafT > 15 && !a.alerted && G.started && !G.over){ a.alerted = true; G.alerts.push({id:a.id, name:a.name.split(" ")[0], at:G.t}); }
   });
   G.agents.forEach(function(a){
-    if(a.wantPend && G.t >= a.wantPend.at && !a.sick){ var wp = a.wantPend; a.wantPend = null; giveWant(a, wp.station); }
+    if(a.wantPend && G.t >= a.wantPend.at && !a.sick){ var wp = a.wantPend; a.wantPend = null; giveWant(a, wp.station, wp.sync); }
     if(a.want){
       if(G.t > a.want.until){ var wmiss = a.want.station; a.morale = Math.max(0, a.morale - 3); a.want = null; a.wantCd = 8; noteEvent(a, "wantMissed", wmiss); }
       else if(a.state === "act" && a.stationId === a.want.station){
@@ -2230,7 +2523,7 @@ var CMDS = [
 var trayKey = "";
 function refreshTray(force){
   var a = G.selected ? agent(G.selected) : null;
-  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station : "") : "") + "|" + (cam.follow || "") + "|" + (G.spotCd > G.t ? "cd" : "rdy") + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + "|" + (G.foundArm ? "F" : "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-");
+  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station : "") : "") + "|" + (cam.follow || "") + "|" + (G.spotCd > G.t ? "cd" : "rdy") + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + "|" + (G.foundArm ? "F" : "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + ((G.arrival ? G.arrival.names.join("+") : ""));
   if(!force && key === trayKey) return;
   trayKey = key;
   var info = document.getElementById("selInfo");
@@ -2253,6 +2546,7 @@ function refreshTray(force){
   html += "<button class='cbtn" + (G.armed ? " on" : "") + "' data-o='spot'" + (!a || G.spotCd > G.t ? " disabled" : "") + "><span class='i'>✨</span><span class='l'>Spotlight</span></button>";
   html += "<button class='cbtn" + (G.modelArm ? " on" : "") + "' data-o='model'" + (!a ? " disabled" : "") + "><span class='i'>👁</span><span class='l'>Model</span></button>";
   html += "<button class='cbtn' data-o='thoughts'" + (!a ? " disabled" : "") + "><span class='i'>💭</span><span class='l'>Thoughts</span></button>";
+  html += "<button class='cbtn' data-o='speak'" + ((G.blame || 0) < HH.speakBlameMin || G.speakCd > G.t ? " disabled" : "") + "><span class='i'>🕊</span><span class='l'>Speak For</span></button>";
   html += "<button class='cbtn" + (G.ui && G.ui.muted ? " on" : "") + "' data-o='mute'><span class='i'>" + (G.ui && G.ui.muted ? "🔇" : "🔊") + "</span><span class='l'>Sound</span></button>";
   var openSite = firstSiteOpen();
   html += "<button class='cbtn" + (a && a.order === "build" ? " on" : "") + "' data-o='build'" + (!a || !openSite ? " disabled" : "") + "><span class='i'>🔨</span><span class='l'>Build</span></button>";
@@ -2267,6 +2561,7 @@ function refreshTray(force){
       if(o === "spot"){ G.armed = true; G.modelArm = false; showToast("✨ Tap a resident to spotlight them"); refreshTray(true); return; }
       if(o === "model"){ G.modelArm = true; G.armed = false; showToast("👁 Tap who " + (a ? a.name.split(" ")[0] : "they") + " should look up to"); refreshTray(true); return; }
       if(o === "thoughts"){ if(G.selected) Store.dispatch("ui/sheet", {id:G.selected}); return; }
+      if(o === "speak"){ speakFor(); refreshTray(true); return; }
       if(o === "mute"){ Store.dispatch("ui/mute"); try { if(typeof localStorage !== "undefined") localStorage.setItem("mv_muted", (G.ui && G.ui.muted) ? "1" : "0"); } catch(e){} SND.play("toggle"); refreshTray(true); return; }
       if(o === "story"){ storySoFar(false); return; }
       if(o === "build"){ setOrder3("build"); return; }
@@ -2458,6 +2753,16 @@ function hudTick(dt){
     if(fpEl.innerHTML !== fpHtml) fpEl.innerHTML = fpHtml;
     fpEl.style.display = showFound ? "flex" : "none";
   }
+  var apEl = document.getElementById("arrPick");
+  if(apEl){
+    var arr2 = G.arrival;
+    var apHtml = "";
+    if(arr2) apHtml = "<span class='arr-note'>🚶 " + arr2.names.join(" and ") + " at the valley edge</span>"
+      + "<button class='alert-chip' onclick='__arrivalChoice(1)'>🤝 <b>Welcome</b></button>"
+      + "<button class='alert-chip' onclick='__arrivalChoice(0)'>🚪 <b>Turn away</b></button>";
+    if(apEl.innerHTML !== apHtml) apEl.innerHTML = apHtml;
+    apEl.style.display = arr2 ? "flex" : "none";
+  }
   var slEl = document.getElementById("siteLine");
   if(slEl){
     var slTxt = "";
@@ -2508,8 +2813,8 @@ function hudTick(dt){
     if(stEl){
       if(window.innerWidth <= 560){
         var ab = alEl.offsetHeight, sb = (trayEl.offsetHeight + 12 + ab + (ab > 0 ? 8 : 0)) + "px";
-        if(stEl.style.bottom !== sb) stEl.style.bottom = sb;
-      } else if(stEl.style.bottom){ stEl.style.bottom = ""; }
+        if(stEl.style.bottom !== sb) stEl.style.bottom = sb; if(stEl.style.top) stEl.style.top = "";
+      } else { if(stEl.style.bottom) stEl.style.bottom = ""; var ocE = document.getElementById("objCard"); var tp = ((ocE ? ocE.offsetHeight : 136) + 20) + "px"; if(stEl.style.top !== tp) stEl.style.top = tp; }
     }
   }
   // CF-REF: sheet-below-objective-card.md [16]
@@ -2592,7 +2897,7 @@ function pickWantStation(a){
   for(var i = 0; i < c.length; i++){ r -= c[i][1]; if(r <= 0) return c[i][0]; }
   return "green";
 }
-function giveWant(a, station){
+function giveWant(a, station, fromSync){
   if(!station || a.sick || a.want) return;
   Store.dispatch("want/set", {id:a.id, station:station, secs:26});
   noteEvent(a, "want", station);
@@ -2604,6 +2909,11 @@ function giveWant(a, station){
       if(d < 10 && Math.random() < 0.5) b.wantPend = {station:station, at:G.t + 0.7 + Math.random()*1.6};
     });
   }
+  /* Household synchronization: a want one member takes up is offered
+     to their partner as a pending want, marked so it cannot bounce
+     back and forth between them. */
+  var hp5 = householdPartner(a);
+  if(hp5 && !fromSync && !hp5.want && !hp5.wantPend && !hp5.sick && Math.random() < HH.wantSyncChance) hp5.wantPend = {station:station, at:G.t + 0.7 + Math.random()*1.6, sync:true};
 }
 function watchLine(a){
   var parts = [];
@@ -2684,6 +2994,7 @@ window.__acceptOffer = function(){ acceptOffer(); };
 window.__ignoreOffer = function(){ ignoreOffer(); };
 window.__foundPick = function(ix){ var pk = Object.keys(BUILD_KINDS).filter(function(k){ return BUILD_KINDS[k].plot; }); if(G.foundPlot !== null && G.foundPlot !== undefined && pk[ix]) foundSite(G.foundPlot, pk[ix]); G.foundPlot = null; refreshTray(true); };
 window.__foundCancel = function(){ G.foundPlot = null; refreshTray(true); };
+window.__arrivalChoice = function(w){ arrivalChoice(w === 1 || w === true); };
 var projV = null;
 function leftHudRect(){
   var o = document.getElementById("objCard"), s = document.getElementById("stats");
@@ -3057,7 +3368,7 @@ if(ffm){
   updateCamera(0); Store.commit(); refreshTray(true);
   renderer.render(scene, camera);
 }
-window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, verdict: storyVerdict, setModel: function(id, mid){ var a = agent(id); if(a) a.model = mid; }, select: function(id){ Store.dispatch("ui/select", {id:id}); refreshTray(true); }, pickProject: function(i){ pickProject(i || 0); }, acceptOffer: function(){ acceptOffer(); }, ignoreOffer: function(){ ignoreOffer(); }, drawOffer: function(){ drawOffer(); }, found: function(ix, kind){ return foundSite(ix, kind || "cottage"); }, sites: function(){ return (G.sites || []).map(function(s){ return {id: s.id, kind: s.kind, plot: s.plot, projId: s.projId, station: s.station, stage: s.stage, stageLabor: Math.round(s.stageLabor || 0), labor: Math.round(s.labor || 0), matsIn: {stores: s.matsIn.stores, planks: s.matsIn.planks}, workers: Object.keys(s.workers || {}).length, done: s.done}; }); }, capacity: function(){ return G.houseCapacity || 0; }, sheet: function(id){ Store.dispatch("ui/sheet", {id:id || null}); }, closeSheet: function(){ Store.dispatch("ui/sheet", {id:null}); }, thoughts: function(){ var out = {}; G.agents.forEach(function(a){ out[a.id] = {axis:(a.axis || ""), voice:(a.persona ? a.persona.voice.join(", ") : ""), thought:(a.thought ? a.thought.text : ""), cause:(a.thought ? a.thought.cause : ""), log:(a.thoughtLog ? a.thoughtLog.length : 0), events:(a.recentEvents ? a.recentEvents.length : 0)}; }); return out; }};
+window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, verdict: storyVerdict, setModel: function(id, mid){ var a = agent(id); if(a) a.model = mid; }, select: function(id){ Store.dispatch("ui/select", {id:id}); refreshTray(true); }, pickProject: function(i){ pickProject(i || 0); }, acceptOffer: function(){ acceptOffer(); }, ignoreOffer: function(){ ignoreOffer(); }, drawOffer: function(){ drawOffer(); }, found: function(ix, kind){ return foundSite(ix, kind || "cottage"); }, sites: function(){ return (G.sites || []).map(function(s){ return {id: s.id, kind: s.kind, plot: s.plot, projId: s.projId, station: s.station, stage: s.stage, stageLabor: Math.round(s.stageLabor || 0), labor: Math.round(s.labor || 0), matsIn: {stores: s.matsIn.stores, planks: s.matsIn.planks}, workers: Object.keys(s.workers || {}).length, done: s.done}; }); }, capacity: function(){ return G.houseCapacity || 0; }, speak: function(){ return speakFor(); }, social: function(){ return {contentment: Math.round(contentment()), households: (G.households || []).map(function(h){ return {id: h.id, members: h.members.slice(), site: h.site, since: h.since}; }), arrival: G.arrival ? G.arrival.names.slice() : null, soloHoused: G.soloHoused || 0, housingFree: housingFree(), departed: G.departed || 0, candidate: (function(){ var c = scapegoatCandidate(); return c ? c.id : null; })()}; }, sheet: function(id){ Store.dispatch("ui/sheet", {id:id || null}); }, closeSheet: function(){ Store.dispatch("ui/sheet", {id:null}); }, thoughts: function(){ var out = {}; G.agents.forEach(function(a){ out[a.id] = {axis:(a.axis || ""), voice:(a.persona ? a.persona.voice.join(", ") : ""), thought:(a.thought ? a.thought.text : ""), cause:(a.thought ? a.thought.cause : ""), log:(a.thoughtLog ? a.thoughtLog.length : 0), events:(a.recentEvents ? a.recentEvents.length : 0)}; }); return out; }};
 </script>
 </body>
 </html>
