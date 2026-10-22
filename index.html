@@ -132,6 +132,12 @@ canvas{display:block}
 .story-body h2{margin:10px 0 8px}
 .ledger{display:grid;grid-template-columns:1fr 1fr;column-gap:28px;margin-top:4px}
 .ledger .stat-row{border-bottom:1px solid var(--line)}
+.chronicle{margin-top:16px;border-top:1px solid var(--line);padding-top:10px}
+.chronicle h3{margin:0 0 6px;font-size:11px;letter-spacing:.14em;color:var(--ink2)}
+.centry{display:flex;gap:10px;padding:3px 0;border-bottom:1px solid rgba(242,236,217,.07);font-size:13.5px;line-height:1.45}
+.centry .cstamp{flex:none;color:var(--gold);font-size:11px;letter-spacing:.06em;padding-top:2px;white-space:nowrap}
+.story-close-btn{margin-top:18px;width:100%}
+#continueBtn{margin-top:10px;width:100%;background:none;border:1px solid var(--gold);color:var(--gold)}
 @media (max-width:560px){
   #endOverlay{align-items:flex-end;padding:14px 14px 0}
   #endCard{max-height:92vh;max-height:92dvh;max-height:92%;border-radius:12px 12px 0 0}
@@ -323,6 +329,7 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
         </div>
       </div>
       <button class="btn" id="beginBtn" type="button">Begin the season</button>
+      <button class="btn" id="continueBtn" type="button" style="display:none">Continue</button>
     </div>
   </div>
 </div>
@@ -828,7 +835,7 @@ function newSlice(){
     stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
     objStation:"clinic", objComplete:false, objDone:0, scapegoats:0, delays:[],
     weekWork:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0, build:0}, weekWorkP:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0},
-    ui:{toast:null, queue:[], sheet:null, muted:false}, policy:"hearth", difficulty:"standard", medicPatient:null, pendingIncident:null, curIncident:null, alerts:[], firstOrder:false};
+    ui:{toast:null, queue:[], sheet:null, muted:false}, policy:"hearth", difficulty:"standard", medicPatient:null, pendingIncident:null, curIncident:null, alerts:[], firstOrder:false, chronicle: [], endKind: null};
   g.agents.forEach(function(a){
     a.speedNow = 0; a.slot = null; a.fetch = null; a.fetchT = 0; a.watchCd = 0; a.mimicStation = null;
     a.buildSite = null; a.fetchSite = null;
@@ -1358,7 +1365,7 @@ function bondTick(dt){
     var v2 = bondVal(a2.id, b2.id);
     if(v2 >= bb){ bb = v2; best = [a2, b2]; }
   }
-  if(best) formHousehold(best[0], best[1]);
+  if(best){ formHousehold(best[0], best[1]); chronicle(best[0].name + " and " + best[1].name + " made a household."); }
 }
 function spawnNewcomer(def){
   G.newSeq = (G.newSeq || 0) + 1;
@@ -1419,7 +1426,14 @@ function arrivalCheck(){
       var avg = (ms[0].morale + ms[1].morale) / 2;
       if(avg < wv){ wv = avg; worst = h; }
     });
-    if(worst){ departHousehold(worst); return; }
+    if(worst){
+      var dNames = worst.members.map(function(id){ var m = agent(id); return m ? m.name : id; });
+      var dKids = G.agents.filter(function(a){ return a.parents && a.householdId === worst.id; }).length;
+      departHousehold(worst);
+      chronicle(dNames.join(" and ") + " left the valley" + (dKids ? " with their young ones" : "") + ".");
+      checkEnd();
+      return;
+    }
   }
   if(housingFree() <= 0 || G.agents.length >= POP_CAP) return;
   var band = null;
@@ -1446,10 +1460,12 @@ function arrivalChoice(welcome){
     showToast("🤝 The village welcomes " + arr.names.join(" and ") + ". They will find a model by watching.");
     made.forEach(function(a){ refreshThought(a, "start"); });
     SND.play("objwin");
+    chronicle(arr.defs.map(function(d){ return d.name; }).join(" and ") + " welcomed into the village.");
   } else {
     applyStatMods({cohesion: -HH.turnAwaySting});
     showToast("🚪 Turned away at the edge. The village watched them go, and it stung.");
     SND.play("decide");
+    chronicle(arr.defs.map(function(d){ return d.name; }).join(" and ") + " turned away at the valley edge.");
   }
   refreshTray(true);
   Store.commit();
@@ -1482,6 +1498,7 @@ function speakFor(){
     setBubble(voucher, "🕊", 2.5); setBubble(target, "♥", 2.5);
     showToast("🕊 " + voucher.name.split(" ")[0] + " speaks for " + target.name.split(" ")[0] + ". The pressure breaks (" + before + " to " + Math.round(G.blame) + ").", {ids: [voucher.id, target.id]});
     noteEvent(target, "defended", voucher.id);
+    chronicle(voucher.name + " spoke for " + target.name + ", and the blame lifted.");
     SND.play("decide");
     return true;
   }
@@ -1673,6 +1690,7 @@ function spawnChild(h){
   setBubble(a, "🌱", 2.5);
   showToast("🌱 " + p1.name.split(" ")[0] + " and " + p2.name.split(" ")[0] + " have a young one: " + first + ".", {ids: [p1.id, p2.id, a.id]});
   noteEvent(p1, "child", a.id); noteEvent(p2, "child", a.id);
+  chronicle("A young one, " + a.name + ", was born to " + p1.name + " and " + p2.name + ".");
   refreshThought(a, "start");
   return a;
 }
@@ -1756,6 +1774,7 @@ function matureChild(a){
   setBubble(a, "🌱", 2.5);
   showToast("🌱 " + a.name + " has grown up in the village" + (watchedParent ? ", still looking up to " + watchedParent.name.split(" ")[0] : "") + ".", {ids: [a.id]});
   noteEvent(a, "grown", watchedParent ? watchedParent.id : "");
+  chronicle(a.name + " came of age" + (watchedParent ? ", following " + watchedParent.name : "") + ".");
 }
 function matureCheck(){
   G.agents.slice().forEach(function(a){ if(a.child && (a.age || 0) >= KIDS.matureAge) matureChild(a); });
@@ -1803,6 +1822,7 @@ function tierUp(st){
   var sn = STATION3[st];
   showToast((sn ? sn.icon + " " : "") + "The " + (sn ? sn.name : st) + " has grown to tier " + G.tiers[st]);
   SND.play("objwin");
+  chronicle((sn && sn.name.indexOf("The ") === 0 ? sn.name : "The " + (sn ? sn.name : st)) + " reached tier " + G.tiers[st] + ".");
 }
 function applyTierMesh(st){
   var t = tierOf(st), b = STATION_BUILD[st];
@@ -1914,6 +1934,7 @@ function dieAgent(m){
     if(c1 && c2){
       addTension(c1, c2, LIFE.successionTension);
       showToast("⚔ " + first + " is gone, and the village pulls two ways: " + c1.name.split(" ")[0] + " or " + c2.name.split(" ")[0] + "?", {ids: [c1.id, c2.id]});
+      chronicle("The village pulled two ways over who follows " + first + ": " + c1.name + " or " + c2.name + ".");
     }
   }
   var h = householdOf(m);
@@ -1933,10 +1954,12 @@ function dieAgent(m){
     }
   });
   G.deaths.push({name: m.name, year: yearOf(), season: seasonName()});
+  chronicle(m.name + " died at " + (m.age || 0) + ".");
   G.lastHarmWeek = G.week;
   G.agents.forEach(function(b){ if(b.successionPick) noteEvent(b, "succession", m.id); });
   showToast("🕯 " + m.name + " has died. The village carries on, and remembers.", {x:dx, z:dz});
   SND.play("blame");
+  checkEnd();
 }
 function proclaimAt(stationId, siteId){
   if(!G.started || G.over) return false;
@@ -1951,6 +1974,18 @@ function proclaimAt(stationId, siteId){
   refreshTray(true);
   return true;
 }
+/* Stage 8: the chronicle. One writer, called by the systems that
+   already fire (never by a renderer); each entry is one factual line
+   about the village, stamped with the season it happened in. The list
+   is bounded: past the cap, the oldest entries drop. */
+var CHRONICLE_CAP = 400;
+function chronicle(text){
+  if(!G || !G.started) return;
+  if(!G.chronicle) G.chronicle = [];
+  G.chronicle.push({wk: G.week, yr: yearOf(), sn: seasonName(), text: text});
+  while(G.chronicle.length > CHRONICLE_CAP) G.chronicle.shift();
+}
+function chronicleStamp(e){ return "Year " + e.yr + " · " + e.sn; }
 function addTension(a, b, amt){
   if(!a || !b || a === b) return;
   var k = pairKey(a.id, b.id);
@@ -1973,6 +2008,7 @@ function addTension(a, b, amt){
     showToast("⚔ " + a.name.split(" ")[0] + " and " + b.name.split(" ")[0] + (shared ? " both follow " + shared.name.split(" ")[0] + ", and imitation has turned to rivalry" : " have fallen out over the same work"), {ids:[a.id, b.id]});
     SND.play("feud");
     noteEvent(a, "rivalry", b.id); noteEvent(b, "rivalry", a.id);
+    chronicle(a.name + " and " + b.name + " fell into a feud.");
   }
   /* Household spread: a member's grudge against an outsider reaches
      their partner at a discount, written raw so it cannot chain. */
@@ -2206,6 +2242,8 @@ function fireInitiative(a, p){
     goStation(a, "home"); setBubble(a, "🚪", 2);
     G.agents.forEach(function(b){ if(b.model === a.id) b.morale = Math.max(0, b.morale - 2); });
   }
+  if(p.kind === "mediate") chronicle(a.name + " led " + (other ? other.name : "another resident") + " to the green to cool a feud.");
+  if(p.kind === "refuse") chronicle(a.name + " refused work and went home.");
 }
 function initiativeScan(){
   G.agents.forEach(function(a){
@@ -2531,6 +2569,7 @@ function projectTick(){
   var def = projectDef();
   if(pr.cost && G.stores >= pr.cost) G.stores -= pr.cost;
   G.perks.push(pr.id);
+  chronicle((def ? def.title : pr.id) + " was completed.");
   showToast("🏗 Project complete: " + (def ? def.title : pr.id) + ". " + (def ? def.perkText : ""));
   SND.play("objwin");
 }
@@ -2634,6 +2673,7 @@ function foundSite(plotIx, kindId){
   if(plotMeshes[plotIx]) plotMeshes[plotIx].visible = false;
   showToast(kind.icon + " Founded: " + kind.title + ". The village will raise it.");
   SND.play("order");
+  chronicle(kind.title + " founded.");
   Store.commit();
   return site;
 }
@@ -2651,6 +2691,7 @@ function advanceSite(site){
   site.stage++; site.stageLabor = 0; site.matsIn = {stores: 0, planks: 0};
   if(site.stage >= kind.stages.length){ finishSite(site); return; }
   updateSiteMesh(site);
+  if(site.stage === kind.stages.length - 1) chronicle(kind.title + ": " + kind.stages[site.stage].name.toLowerCase() + " rising.");
   showToast("🏗 " + kind.title + ": " + kind.stages[site.stage].name.toLowerCase() + " rising");
   SND.play("order");
 }
@@ -2662,6 +2703,7 @@ function finishSite(site){
   recomputeWealth();
   showToast(kind.icon + " " + kind.title + " finished. " + (kind.blurb || ""));
   SND.play("objwin");
+  chronicle(kind.title + " finished.");
   if(!firstSiteOpen()) G.agents.forEach(function(a){ if(a.order === "build") a.order = null; if(a.buildSite === site.id) a.buildSite = null; });
 }
 /* Completion effects are data on the kind, applied generically: a new
@@ -2890,6 +2932,7 @@ function statDrift(dt){
   if(G.started && !G.over && (G.blame || 0) >= 100 && cand){
     G.blame = 35; G.expelled++; G.lastHarmWeek = G.week;
     blameAgent(cand.id);
+    chronicle("The village turned on " + cand.name + ".");
     applyStatMods({cohesion:7, rivalry:-16, trust:-5});
     G.delays.push({at: G.t + WEEK_LEN, mods:{trust:-5}, msg:"🕯 The village remembers who it turned on"});
     showToast("🌩 The village turned on " + cand.name.split(" ")[0] + ". The quiet feels bought.", {ids:[cand.id]});
@@ -2950,6 +2993,7 @@ function endWeek(){
   SND.play("week");
   if(isWinter()) setTimeout(function(){ if(!G.over) showToast("❄ Winter: scarcity climbs faster. Keep the storehouse full."); }, 1200);
   arrivalCheck();
+  saveGame();
 }
 
 function stepSim(dt){
@@ -3029,7 +3073,7 @@ function stepSim(dt){
    as "if the story ended today", in a panel the player opens at will. */
 function storyVerdict(){
   var s = G.stats;
-  var avgMorale = Math.round(G.agents.reduce(function(sm, a){ return sm + a.morale; }, 0) / G.agents.length);
+  var avgMorale = G.agents.length ? Math.round(G.agents.reduce(function(sm, a){ return sm + a.morale; }, 0) / G.agents.length) : 0;
   var ending, epi;
   if(G.scapegoats >= 3 || (G.scapegoats >= 2 && s.rivalry >= 55) || G.expelled >= 2){ ending = "The Blame Cycle"; epi = "Every problem found a person, and every person found a door. The village is quiet now, in the way empty places are quiet."; }
   else if(s.scarcity >= 72 || avgMorale < 38){ ending = "Quiet Breakdown"; epi = "No single disaster. Just a slow thinning, of stores, of hands, of reasons to stay at the table."; }
@@ -3042,12 +3086,29 @@ function storyVerdict(){
    the tray blocking orders. It dismisses itself after 15s; the tray Story
    button reopens it on demand. A manual open cancels any pending auto-dismiss. */
 var storyAutoSeq = 0;
-function storySoFar(auto){
+function storySoFar(auto, final){
+  /* After an ending, the auto Winter Count never replaces the final
+     panel; a manual open re-renders the final summary instead. */
+  if(G.over && !final){ if(auto) return; final = G.endKind || "closed"; }
   var v = storyVerdict(), s = G.stats;
   G.storyLens = v.ending;
   function row(label, val){ return "<div class='stat-row'><span>" + label + "</span><b>" + Math.round(val) + "</b></div>"; }
-  var kick = auto ? "THE WINTER COUNT · " + seasonLabel() : "THE STORY SO FAR · " + seasonLabel();
-  var sub = auto ? "The winter count. If the story ended with this winter: " : "If the story ended today: ";
+  var kick, sub;
+  if(final === "collapse"){ kick = "THE VILLAGE IS EMPTY · " + seasonLabel(); sub = "The chronicle closes. The story ended here: "; }
+  else if(final){ kick = "THE CHRONICLE CLOSES · " + seasonLabel(); sub = "The chronicle closes. The story ended here: "; }
+  else if(auto){ kick = "THE WINTER COUNT · " + seasonLabel(); sub = "The winter count. If the story ended with this winter: "; }
+  else { kick = "THE STORY SO FAR · " + seasonLabel(); sub = "If the story ended today: "; }
+  /* The chronicle section: the Winter Count lists the year that just
+     ended, a manual open lists the current year so far, and a final
+     panel lists the whole chronicle. */
+  var list = G.chronicle || [];
+  var yrShown = auto ? yearOf() - 1 : yearOf();
+  var entries = final ? list : list.filter(function(e){ return e.yr === yrShown; });
+  var chHtml = "<div class='chronicle'><h3>" + (final ? "THE CHRONICLE" : "THE CHRONICLE · YEAR " + yrShown) + "</h3>";
+  if(entries.length) entries.forEach(function(e){ chHtml += "<div class='centry'><span class='cstamp'>" + chronicleStamp(e) + "</span><span>" + e.text + "</span></div>"; });
+  else chHtml += "<div class='centry'><span>No entries yet.</span></div>";
+  chHtml += "</div>";
+  var closeBtn = (!auto && !final && !G.over) ? "<button type='button' class='btn story-close-btn' onclick='__closeChronicle()'>Close the Chronicle</button>" : "";
   var html = "<div class='story-head'><div class='kick2'>" + kick + "</div>"
     + "<button type='button' class='story-x' onclick='__closeStory()' aria-label='Close'>✕</button></div>"
     + "<div class='story-body'><h2>" + v.ending + "</h2>"
@@ -3061,17 +3122,166 @@ function storySoFar(auto){
     + "<div class='stat-row'><span>👀 Imitations witnessed</span><b>" + G.copied + "</b></div>"
     + "<div class='stat-row'><span>🔴 Scapegoats named</span><b>" + G.scapegoats + "</b></div>"
     + "<div class='stat-row'><span>♥ Village morale (avg)</span><b>" + v.avgMorale + "</b></div>"
-    + "</div></div>";
+    + "</div>" + chHtml + closeBtn + "</div>";
   document.getElementById("endCard").innerHTML = html;
   var ov = document.getElementById("endOverlay");
   ov.classList.add("open"); ov.classList.add("story"); ov.classList.toggle("manual", !auto);
   storyAutoSeq++;
-  if(auto){
+  if(auto && !final){
     (function(seq){ setTimeout(function(){ if(seq === storyAutoSeq){ ov.classList.remove("open"); ov.classList.remove("story"); ov.classList.remove("manual"); } }, 15000); })(storyAutoSeq);
   }
 }
 window.__closeStory = function(){ storyAutoSeq++; var ov = document.getElementById("endOverlay"); ov.classList.remove("open"); ov.classList.remove("story"); ov.classList.remove("manual"); };
 document.getElementById("endOverlay").addEventListener("click", function(e){ if(e.target === this && this.classList.contains("manual")) window.__closeStory(); });
+/* Stage 8: the two true endings. Collapse fires when the last resident
+   is gone, checked after every removal path (deaths, departures); the
+   winter death floor guards the death roll only, so a village drained
+   household by household through departures can still empty. Close
+   the Chronicle is the player's own ending, offered on a manual Story
+   open. Either way the final panel is the graded summary over the
+   final state with the full chronicle, and the village stays ended. */
+function endGame(kind){
+  if(!G || G.over) return;
+  G.over = true; G.endKind = kind;
+  clearSave();
+  storySoFar(false, kind);
+  showToast(kind === "collapse" ? "🕯 The valley is empty. The chronicle closes." : "🕯 The chronicle is closed. The village rests.");
+}
+function checkEnd(){
+  if(G && G.started && !G.over && G.agents.length === 0) endGame("collapse");
+}
+window.__closeChronicle = function(){ endGame("closed"); };
+
+/* CF-REF: chronicle-and-saves.md [129] */
+/* Stage 8: persistence. One localStorage snapshot lets a village
+   survive a reload. The save is the Store state as JSON with the
+   transient render objects stripped by key (figures, overlay
+   elements, site meshes) and the deck references (objectives, offer,
+   incidents) stored as table indices, rehydrated on restore. The
+   payload carries a version: an unknown version or a corrupt payload
+   is discarded and the game starts fresh, never a crash. Saves happen
+   at each season boundary and when the page hides, only while a game
+   is running and not ended. Restore happens only through the title
+   screen's Continue button: #play and #ff always start fresh and
+   never read the snapshot. Begin (the button) clears it, and so does
+   an ending. */
+var SAVE_KEY = "mv_save";
+var SAVE_VERSION = 1;
+var SAVE_STRIP = {root:1, legL:1, legR:1, torsoG:1, armL:1, armR:1, headG:1, props:1, hit:1, ovlEl:1, labelEl:1, bubbleEl:1, intentEl:1, ring:1, aura:1, group:1, layers:1, matMeshes:1, fn:1};
+function saveGame(){
+  try {
+    if(typeof localStorage === "undefined" || !G || !G.started || G.over) return false;
+    var copy = Object.assign({}, G);
+    copy.objectives = (G.objectives || []).map(function(o){ return OBJECTIVES.indexOf(o); });
+    copy.offer = G.offer ? OBJECTIVES.indexOf(G.offer) : null;
+    copy.incidents = (G.incidents || []).map(function(o){ return INCIDENTS.indexOf(o); });
+    copy.weekIncident = G.weekIncident ? INCIDENTS.indexOf(G.weekIncident) : null;
+    copy.pendingIncident = G.pendingIncident ? INCIDENTS.indexOf(G.pendingIncident) : null;
+    copy.curIncident = G.curIncident ? INCIDENTS.indexOf(G.curIncident) : null;
+    var text = JSON.stringify({v: SAVE_VERSION, state: copy}, function(k, val){
+      if(k && SAVE_STRIP[k]) return undefined;
+      if(typeof val === "function") return undefined;
+      return val;
+    });
+    if(!text) return false;
+    localStorage.setItem(SAVE_KEY, text);
+    return true;
+  } catch(e){ return false; }
+}
+function clearSave(){
+  try { if(typeof localStorage !== "undefined") localStorage.removeItem(SAVE_KEY); } catch(e){}
+}
+function peekSave(){
+  try {
+    if(typeof localStorage === "undefined") return null;
+    var raw = localStorage.getItem(SAVE_KEY);
+    if(!raw) return null;
+    var data = JSON.parse(raw);
+    if(!data || data.v !== SAVE_VERSION || !data.state || !Array.isArray(data.state.agents) || typeof data.state.week !== "number") return null;
+    return data.state;
+  } catch(e){ return null; }
+}
+function readSnapshot(){
+  var raw = null;
+  try { if(typeof localStorage !== "undefined") raw = localStorage.getItem(SAVE_KEY); } catch(e){}
+  if(!raw) return null;
+  var st = peekSave();
+  if(!st) clearSave();
+  return st;
+}
+/* Rebuild one resident's figure, overlay, ring, and aura from their
+   saved data, the same construction the spawn paths use. */
+function attachFigure(a){
+  var f = makeFigure(a);
+  a.root = f.root; a.legL = f.legL; a.legR = f.legR; a.torsoG = f.torsoG; a.armL = f.armL; a.armR = f.armR; a.headG = f.headG; a.props = f.props; a.hit = f.hit;
+  a.root.position.set(a.x || 0, 0, a.z || 0);
+  if(a.child) a.root.scale.setScalar(KIDS.scale);
+  a.hit.userData.agentId = a.id;
+  var ovl = document.createElement("div"); ovl.className = "ovl"; ovl.id = "ovl-" + a.id;
+  var bub = document.createElement("div"); bub.className = "bubble"; bub.id = "bub-" + a.id;
+  var intEl = document.createElement("div"); intEl.className = "intent"; intEl.id = "int-" + a.id;
+  var label = document.createElement("div"); label.className = "label"; label.id = "lab-" + a.id;
+  ovl.appendChild(bub); ovl.appendChild(intEl); ovl.appendChild(label);
+  document.getElementById("labels").appendChild(ovl);
+  a.ovlEl = ovl; a.labelEl = label; a.bubbleEl = bub; a.intentEl = intEl; a._ovlSig = "";
+  var ring = new THREE.Mesh(new THREE.RingGeometry(0.72, 0.92, 28), new THREE.MeshBasicMaterial({color:0xf5c86a, transparent:true, opacity:0.95, side:THREE.DoubleSide}));
+  ring.rotation.x = -Math.PI/2; ring.position.y = 0.06; ring.visible = false; a.root.add(ring); a.ring = ring;
+  var aura = new THREE.Mesh(new THREE.CircleGeometry(2.7, 28), new THREE.MeshBasicMaterial({color:0xe8b34b, transparent:true, opacity:0.1, side:THREE.DoubleSide}));
+  aura.rotation.x = -Math.PI/2; aura.position.y = 0.04; aura.visible = a.vis >= 60; a.root.add(aura); a.aura = aura;
+}
+/* Restore a saved village: the boot cast is torn down, the saved
+   residents get fresh figures, site meshes are rebuilt, station
+   tiers are re-applied (work spots and silhouettes), and state that
+   derives from G each frame (roof, crops, stores) follows on its own. */
+function restoreState(st){
+  G.agents.forEach(function(a){
+    if(a.root) scene.remove(a.root);
+    if(a.ovlEl && a.ovlEl.parentNode) a.ovlEl.parentNode.removeChild(a.ovlEl);
+  });
+  (G.sites || []).forEach(function(s2){ if(s2.group) scene.remove(s2.group); });
+  st.objectives = (st.objectives || []).map(function(i){ return OBJECTIVES[i]; }).filter(Boolean);
+  st.offer = (typeof st.offer === "number") ? (OBJECTIVES[st.offer] || null) : null;
+  st.incidents = (st.incidents || []).map(function(i){ return INCIDENTS[i]; }).filter(Boolean);
+  st.weekIncident = (typeof st.weekIncident === "number") ? (INCIDENTS[st.weekIncident] || null) : null;
+  st.pendingIncident = (typeof st.pendingIncident === "number") ? (INCIDENTS[st.pendingIncident] || null) : null;
+  st.curIncident = (typeof st.curIncident === "number") ? (INCIDENTS[st.curIncident] || null) : null;
+  if(!Array.isArray(st.chronicle)) st.chronicle = [];
+  if(!Array.isArray(st.deaths)) st.deaths = [];
+  if(!Array.isArray(st.agents)) st.agents = [];
+  st.agents.forEach(function(a){ attachFigure(a); });
+  G = st;
+  Store.init(G);
+  (G.sites || []).forEach(function(site){
+    buildSiteMesh(site);
+    if(site.plot >= 0 && plotMeshes[site.plot]) plotMeshes[site.plot].visible = false;
+  });
+  TIER_STATIONS.forEach(function(s3){
+    var t = tierOf(s3);
+    for(var lv = 2; lv <= t; lv++){ var sp = TIER_SPOTS[s3] && TIER_SPOTS[s3][lv - 2]; if(sp && STATION3[s3]) STATION3[s3].work.push(sp); }
+    if(t > 1) applyTierMesh(s3);
+  });
+  if(G.objStation && STATION3[G.objStation]){
+    var stn = STATION3[G.objStation];
+    if(objRing){ objRing.position.set(stn.x, 1.2, stn.z); objRing.visible = true; }
+    if(pipGroup){ pipGroup.position.set(stn.x, 0, stn.z); pipGroup.visible = true; }
+  }
+  chosenDiff = G.difficulty || "standard"; chosenPolicy = G.policy || "hearth";
+  document.getElementById("seasonLine").textContent = "Village #" + G.seed + " · the village reshuffles its commissions every year";
+}
+function continueGame(){
+  if(!pendingSave || (G && G.started)) return false;
+  var st = pendingSave; pendingSave = null;
+  restoreState(st);
+  G.started = true;
+  SND.init();
+  document.getElementById("startOverlay").classList.remove("open");
+  document.body.classList.remove("pre");
+  var cb = document.getElementById("continueBtn"); if(cb) cb.style.display = "none";
+  showToast("↩ The village resumes: " + seasonLabel() + ".");
+  refreshTray(true);
+  Store.commit();
+  return true;
+}
 
 /* ================= THREE SETUP ================= */
 var clock;
@@ -3981,9 +4191,13 @@ window.addEventListener("blur", function(){ mouseIn = false; ptrDown = false; })
 var chosenDiff = "standard", chosenPolicy = "hearth";
 document.querySelectorAll("#diffSeg .segbtn").forEach(function(b){ b.addEventListener("click", function(){ document.querySelectorAll("#diffSeg .segbtn").forEach(function(x){ x.classList.remove("on"); }); b.classList.add("on"); chosenDiff = b.getAttribute("data-d"); }); });
 document.querySelectorAll("#polSeg .segbtn").forEach(function(b){ b.addEventListener("click", function(){ document.querySelectorAll("#polSeg .segbtn").forEach(function(x){ x.classList.remove("on"); }); b.classList.add("on"); chosenPolicy = b.getAttribute("data-p"); }); });
-function beginGame(){
+function beginGame(fromButton){
   if(G.started) return;
   G.started = true;
+  /* Begin from the title is a new village: any saved snapshot goes.
+     The #play and #ff auto-begins pass no flag, so they start fresh
+     without ever reading or clearing a snapshot. */
+  if(fromButton){ clearSave(); pendingSave = null; var cb0 = document.getElementById("continueBtn"); if(cb0) cb0.style.display = "none"; }
   SND.init();
   G.policy = chosenPolicy; G.difficulty = chosenDiff;
   if(chosenDiff === "hard"){ G.stats.scarcity = 68; G.stats.trust = 48; G.agents.forEach(function(a){ a.energy -= 10; }); }
@@ -3997,13 +4211,21 @@ function beginGame(){
   showToast("🔨 Year 1, Spring: Mara is on the roof. Bram is watching.");
   G.agents.forEach(function(a){ refreshThought(a, "start"); });
 }
-document.getElementById("beginBtn").addEventListener("click", beginGame);
+document.getElementById("beginBtn").addEventListener("click", function(){ beginGame(true); });
 /* ================= MAIN LOOP ================= */
 initThree();
 buildWorld();
 G = newSlice();
 Store.init(G);
 try { if(typeof localStorage !== "undefined" && localStorage.getItem("mv_muted") === "1") Store.dispatch("ui/mute", {on:true}); } catch(e){}
+var pendingSave = readSnapshot();
+if(pendingSave){
+  var cb1 = document.getElementById("continueBtn");
+  if(cb1){ var pw = pendingSave.week || 1; cb1.textContent = "Continue · Year " + (Math.floor((pw - 1) / 4) + 1) + " · " + SEASON_NAMES[(pw - 1) % 4]; cb1.style.display = ""; }
+}
+document.getElementById("continueBtn").addEventListener("click", function(){ continueGame(); });
+window.addEventListener("pagehide", function(){ saveGame(); });
+document.addEventListener("visibilitychange", function(){ if(document.visibilityState === "hidden") saveGame(); });
 // CF-REF: store-single-source.md [4]
 Store.subscribe(renderOverlay);
 Store.subscribe(renderHud);
@@ -4050,7 +4272,7 @@ if(ffm){
   updateCamera(0); Store.commit(); refreshTray(true);
   renderer.render(scene, camera);
 }
-window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, verdict: storyVerdict, setModel: function(id, mid){ var a = agent(id); if(a) a.model = mid; }, select: function(id){ Store.dispatch("ui/select", {id:id}); refreshTray(true); }, pickProject: function(i){ pickProject(i || 0); }, acceptOffer: function(){ acceptOffer(); }, ignoreOffer: function(){ ignoreOffer(); }, drawOffer: function(){ drawOffer(); }, found: function(ix, kind){ return foundSite(ix, kind || "cottage"); }, sites: function(){ return (G.sites || []).map(function(s){ return {id: s.id, kind: s.kind, plot: s.plot, projId: s.projId, station: s.station, stage: s.stage, stageLabor: Math.round(s.stageLabor || 0), labor: Math.round(s.labor || 0), matsIn: {stores: s.matsIn.stores, planks: s.matsIn.planks}, workers: Object.keys(s.workers || {}).length, done: s.done}; }); }, capacity: function(){ return G.houseCapacity || 0; }, speak: function(){ return speakFor(); }, social: function(){ return {contentment: Math.round(contentment()), households: (G.households || []).map(function(h){ return {id: h.id, members: h.members.slice(), site: h.site, since: h.since}; }), arrival: G.arrival ? G.arrival.names.slice() : null, soloHoused: G.soloHoused || 0, housingFree: housingFree(), departed: G.departed || 0, candidate: (function(){ var c = scapegoatCandidate(); return c ? c.id : null; })()}; }, econ: function(){ return {banked: !!G.banked, pay: Object.assign({}, ECON.pay), startCash: ECON.startCash, agents:(function(){ var o = {}; G.agents.forEach(function(a){ o[a.id] = {cash: Math.floor(a.cash || 0), cashRaw: a.cash || 0, bank: (a.bank == null ? null : Math.floor(a.bank)), bankRaw: (a.bank == null ? null : a.bank)}; }); return o; })()}; }, family: function(){ return {births: G.births || 0, cap: POP_CAP, children: G.agents.filter(function(a){ return !!a.parents; }).map(function(a){ var wp = null, wv = -1; if(a.watched) Object.keys(a.watched).forEach(function(k){ if(a.watched[k] > wv){ wv = a.watched[k]; wp = k; } }); var ns = null, nv = -1; if(a.nearStation) Object.keys(a.nearStation).forEach(function(k){ if(a.nearStation[k] > nv){ nv = a.nearStation[k]; ns = k; } }); return {id: a.id, name: a.name, parents: (a.parents || []).slice(), parentNames: (a.parentNames || []).slice(), age: a.age, child: !!a.child, matured: !a.child, model: a.model, disp: a.disp, aff: a.aff, watchedMost: wp, nearStationMost: ns, scale: a.root ? a.root.scale.x : 1}; })}; }, birth: function(){ return birthCheck(true); }, life: function(){ return {deaths:(G.deaths || []).map(function(d){ return {name:d.name, year:d.year, season:d.season}; }), tiers:Object.assign({}, G.tiers), tierProg:(function(){ var o = {}; Object.keys(G.tierProg || {}).forEach(function(k){ o[k] = Math.round(G.tierProg[k]); }); return o; })(), spots:(function(){ var o = {}; TIER_STATIONS.forEach(function(st){ o[st] = STATION3[st].work.length; }); return o; })(), builtWealth:G.builtWealth || 0, level:villageLevel().name, levelCount:villageLevel().count, proclaim:G.proclaim ? {station:G.proclaim.station, site:G.proclaim.site, week:G.proclaim.week} : null, ages:(function(){ var o = {}; G.agents.forEach(function(a){ o[a.id] = a.age; }); return o; })(), arcs:(function(){ var o = {}; G.agents.forEach(function(a){ o[a.id] = arcOf(a).id; }); return o; })()}; }, wealth: function(){ return recomputeWealth(); }, proclaim: function(st){ return proclaimAt(st, null); }, proclaimSite: function(id){ var s = siteById(id); return s ? proclaimAt(s.station || null, s.id) : false; }, die: function(id){ var a = agent(id); if(!a) return false; dieAgent(a); return true; }, fail: function(id){ var a = agent(id); if(!a) return false; a.failing = true; return true; }, tier: function(st){ return tierOf(st); }, sheet: function(id){ Store.dispatch("ui/sheet", {id:id || null}); }, closeSheet: function(){ Store.dispatch("ui/sheet", {id:null}); }, thoughts: function(){ var out = {}; G.agents.forEach(function(a){ out[a.id] = {axis:(a.axis || ""), voice:(a.persona ? a.persona.voice.join(", ") : ""), thought:(a.thought ? a.thought.text : ""), cause:(a.thought ? a.thought.cause : ""), log:(a.thoughtLog ? a.thoughtLog.length : 0), events:(a.recentEvents ? a.recentEvents.length : 0)}; }); return out; }};
+window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, verdict: storyVerdict, setModel: function(id, mid){ var a = agent(id); if(a) a.model = mid; }, select: function(id){ Store.dispatch("ui/select", {id:id}); refreshTray(true); }, pickProject: function(i){ pickProject(i || 0); }, acceptOffer: function(){ acceptOffer(); }, ignoreOffer: function(){ ignoreOffer(); }, drawOffer: function(){ drawOffer(); }, found: function(ix, kind){ return foundSite(ix, kind || "cottage"); }, sites: function(){ return (G.sites || []).map(function(s){ return {id: s.id, kind: s.kind, plot: s.plot, projId: s.projId, station: s.station, stage: s.stage, stageLabor: Math.round(s.stageLabor || 0), labor: Math.round(s.labor || 0), matsIn: {stores: s.matsIn.stores, planks: s.matsIn.planks}, workers: Object.keys(s.workers || {}).length, done: s.done}; }); }, capacity: function(){ return G.houseCapacity || 0; }, speak: function(){ return speakFor(); }, social: function(){ return {contentment: Math.round(contentment()), households: (G.households || []).map(function(h){ return {id: h.id, members: h.members.slice(), site: h.site, since: h.since}; }), arrival: G.arrival ? G.arrival.names.slice() : null, soloHoused: G.soloHoused || 0, housingFree: housingFree(), departed: G.departed || 0, candidate: (function(){ var c = scapegoatCandidate(); return c ? c.id : null; })()}; }, econ: function(){ return {banked: !!G.banked, pay: Object.assign({}, ECON.pay), startCash: ECON.startCash, agents:(function(){ var o = {}; G.agents.forEach(function(a){ o[a.id] = {cash: Math.floor(a.cash || 0), cashRaw: a.cash || 0, bank: (a.bank == null ? null : Math.floor(a.bank)), bankRaw: (a.bank == null ? null : a.bank)}; }); return o; })()}; }, family: function(){ return {births: G.births || 0, cap: POP_CAP, children: G.agents.filter(function(a){ return !!a.parents; }).map(function(a){ var wp = null, wv = -1; if(a.watched) Object.keys(a.watched).forEach(function(k){ if(a.watched[k] > wv){ wv = a.watched[k]; wp = k; } }); var ns = null, nv = -1; if(a.nearStation) Object.keys(a.nearStation).forEach(function(k){ if(a.nearStation[k] > nv){ nv = a.nearStation[k]; ns = k; } }); return {id: a.id, name: a.name, parents: (a.parents || []).slice(), parentNames: (a.parentNames || []).slice(), age: a.age, child: !!a.child, matured: !a.child, model: a.model, disp: a.disp, aff: a.aff, watchedMost: wp, nearStationMost: ns, scale: a.root ? a.root.scale.x : 1}; })}; }, birth: function(){ return birthCheck(true); }, life: function(){ return {deaths:(G.deaths || []).map(function(d){ return {name:d.name, year:d.year, season:d.season}; }), tiers:Object.assign({}, G.tiers), tierProg:(function(){ var o = {}; Object.keys(G.tierProg || {}).forEach(function(k){ o[k] = Math.round(G.tierProg[k]); }); return o; })(), spots:(function(){ var o = {}; TIER_STATIONS.forEach(function(st){ o[st] = STATION3[st].work.length; }); return o; })(), builtWealth:G.builtWealth || 0, level:villageLevel().name, levelCount:villageLevel().count, proclaim:G.proclaim ? {station:G.proclaim.station, site:G.proclaim.site, week:G.proclaim.week} : null, ages:(function(){ var o = {}; G.agents.forEach(function(a){ o[a.id] = a.age; }); return o; })(), arcs:(function(){ var o = {}; G.agents.forEach(function(a){ o[a.id] = arcOf(a).id; }); return o; })()}; }, wealth: function(){ return recomputeWealth(); }, proclaim: function(st){ return proclaimAt(st, null); }, proclaimSite: function(id){ var s = siteById(id); return s ? proclaimAt(s.station || null, s.id) : false; }, die: function(id){ var a = agent(id); if(!a) return false; dieAgent(a); return true; }, fail: function(id){ var a = agent(id); if(!a) return false; a.failing = true; return true; }, tier: function(st){ return tierOf(st); }, sheet: function(id){ Store.dispatch("ui/sheet", {id:id || null}); }, closeSheet: function(){ Store.dispatch("ui/sheet", {id:null}); }, thoughts: function(){ var out = {}; G.agents.forEach(function(a){ out[a.id] = {axis:(a.axis || ""), voice:(a.persona ? a.persona.voice.join(", ") : ""), thought:(a.thought ? a.thought.text : ""), cause:(a.thought ? a.thought.cause : ""), log:(a.thoughtLog ? a.thoughtLog.length : 0), events:(a.recentEvents ? a.recentEvents.length : 0)}; }); return out; }, chronicle: function(){ return (G.chronicle || []).map(function(e){ return {wk: e.wk, yr: e.yr, sn: e.sn, stamp: chronicleStamp(e), text: e.text}; }); }, save: function(){ return saveGame(); }, hasSave: function(){ return !!peekSave(); }, continueSave: function(){ return continueGame(); }, closeChronicle: function(){ endGame("closed"); return !!G.over; }, wipeSave: function(){ clearSave(); }};
 </script>
 </body>
 </html>

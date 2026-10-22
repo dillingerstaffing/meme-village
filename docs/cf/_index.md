@@ -16,11 +16,12 @@ objective, progress, project, parts, work credit, score, driven, order bonus, ho
 | household-capacity-ledger.md | Housing is one ledger: households plus solo newcomers never exceed G.houseCapacity |
 
 ## State and Architecture
-state, store, dispatch, transact, render, dom, panel, new field, new event
+state, store, dispatch, transact, render, dom, panel, new field, new event, chronicle, save, snapshot, ending, persistence, continue
 
 | Article | Summary |
 |---------|---------|
 | store-single-source.md | Store.state is the only state; only the four subscribed renderers write DOM |
+| chronicle-and-saves.md | The chronicle is written by systems only; saves are versioned, index based, and restored only via Continue |
 
 ## Input and Touch
 tap, drag, scroll, touch, pointer, gesture, tray, alerts, minimap, button, click

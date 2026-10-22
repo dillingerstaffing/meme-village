@@ -20,85 +20,91 @@
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 225,
+      "ref_line": 231,
       "lines": 1,
       "hash": "5d65af3e"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 355,
+      "ref_line": 362,
       "lines": 76,
       "hash": "1057f4f8"
     },
     {
       "article": "axis-label-selected-surfaces.md",
-      "ref_line": 451,
+      "ref_line": 458,
       "lines": 4,
       "hash": "5edddeb8"
     },
     {
       "article": "driven-work-progress.md",
-      "ref_line": 873,
+      "ref_line": 880,
       "lines": 27,
       "hash": "f08cbff5"
     },
     {
       "article": "household-capacity-ledger.md",
-      "ref_line": 1296,
+      "ref_line": 1303,
       "lines": 45,
       "hash": "d655166c"
     },
     {
       "article": "thoughts-local-inference-only.md",
-      "ref_line": 2118,
+      "ref_line": 2154,
       "lines": 31,
       "hash": "abf52637"
     },
     {
       "article": "driven-work-progress.md",
-      "ref_line": 2795,
+      "ref_line": 2837,
       "lines": 14,
       "hash": "c77a272b"
     },
     {
+      "article": "chronicle-and-saves.md",
+      "ref_line": 3155,
+      "lines": 129,
+      "hash": "26f0f0d3"
+    },
+    {
       "article": "axis-label-selected-surfaces.md",
-      "ref_line": 3160,
+      "ref_line": 3370,
       "lines": 2,
       "hash": "c00115e1"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 3282,
+      "ref_line": 3492,
       "lines": 20,
       "hash": "207fd11f"
     },
     {
       "article": "sheet-below-objective-card.md",
-      "ref_line": 3471,
+      "ref_line": 3681,
       "lines": 16,
       "hash": "6b2224dc"
     },
     {
       "article": "overlay-anchor-budget.md",
-      "ref_line": 3724,
+      "ref_line": 3934,
       "lines": 65,
       "hash": "74c15edb"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 3927,
+      "ref_line": 4137,
       "lines": 11,
       "hash": "a01f9ac4"
     },
     {
       "article": "pointercancel-never-a-tap.md",
-      "ref_line": 3940,
+      "ref_line": 4150,
       "lines": 4,
       "hash": "3471fc97"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 4007,
+      "ref_line": 4229,
       "lines": 4,
       "hash": "ce66959f"
     }
