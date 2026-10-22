@@ -190,6 +190,13 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
   #objCard .s{font-size:10px}
   #topRight{gap:4px}
   .chip{font-size:11px;padding:5px 8px}
+  /* Phone: the season chip stacks into two lines so its left edge clears
+     the 172px offer card (the Stage 5 level name made the single line
+     ~25px too wide at 390/375, sliding under the card). Desktop keeps
+     the one-line chip; all four facts stay on screen either way. */
+  #weekChip{text-align:right}
+  #weekChip .wcA{display:block}
+  #weekChip .wcS{display:none}
   .sbtn{padding:6px 9px;font-size:12px}
   #sliceTag{top:136px;font-size:9px;padding:4px 8px;letter-spacing:.12em}
   #stats{top:auto;bottom:250px;width:150px;padding:6px 8px}
@@ -267,7 +274,7 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
   <div class="srow" id="blameRow" style="display:none"><span class="sl" id="blameLbl">🌩 Blame</span><span class="sb"><i id="blameBar" style="background:#e85a3c"></i></span><b id="blameVal">0</b></div>
 </div>
 <div class="hud" id="topRight">
-  <span class="chip" id="weekChip">YEAR 1 · SPRING · ☀ 0%</span>
+  <span class="chip" id="weekChip"><span class="wcA">YEAR 1 · SPRING</span><span class="wcS"> · </span><span class="wcB">Hamlet · ☀ 0%</span></span>
   <span class="chip">📦 Stores <b id="storesN">0</b> &nbsp; 👀 Copied <b id="copiedN">0</b></span>
   <div id="speeds">
     <button class="sbtn" id="sp0" type="button">❚❚</button>
@@ -3406,7 +3413,12 @@ function hudTick(dt){
   G.agents.forEach(function(a){ if(a.driveObj && a.stationId === G.objStation && (a.state === "act" || a.state === "walk")) eligHands++; });
   document.getElementById("objCard").classList.toggle("urgent", accepted && G.started && !G.over && !G.objComplete && G.weekTime > 30 && eligHands === 0);
   drawMinimap();
-  document.getElementById("weekChip").textContent = seasonLabel() + " · " + villageLevel().name + " · ☀ " + Math.round(G.weekTime / WEEK_LEN * 100) + "%";
+  /* The season chip is built from spans so the phone layout can stack it
+     into two lines after the season (single line on desktop). Diff-guarded
+     on a dataset flag: innerHTML never round-trips byte-identical. */
+  var wcEl = document.getElementById("weekChip");
+  var wcHtml = "<span class=\"wcA\">" + seasonLabel() + "</span><span class=\"wcS\"> · </span><span class=\"wcB\">" + villageLevel().name + " · ☀ " + Math.round(G.weekTime / WEEK_LEN * 100) + "%</span>";
+  if(wcEl.getAttribute("data-wc") !== wcHtml){ wcEl.setAttribute("data-wc", wcHtml); wcEl.innerHTML = wcHtml; }
   document.getElementById("storesN").textContent = G.stores;
   document.getElementById("copiedN").textContent = G.copied;
   var bRow = document.getElementById("blameRow");
