@@ -1123,24 +1123,30 @@ function warnInitiative(c){
 }
 function fireInitiative(a, p){
   a.driveObj = false;
+  var nm = a.name.split(" ")[0];
   if(p.kind === "shift"){
+    var m = a.model ? agent(a.model) : null;
+    a.reason = "Extra shift, following " + (m ? m.name.split(" ")[0] : "their model");
     a.boostUntil = G.t + 8; setBubble(a, "⚡", 2);
-    G.agents.forEach(function(b){ if(b.model === a.id && b.stationId === a.stationId && Math.random() < 0.3) b.boostUntil = G.t + 8; });
+    G.agents.forEach(function(b){ if(b.model === a.id && b.stationId === a.stationId && Math.random() < 0.3){ b.boostUntil = G.t + 8; b.reason = "Joining " + nm; } });
   }
   if(p.kind === "mediate"){
     var ids = p.pair.split("|"); var other = agent(ids[0] === a.id ? ids[1] : ids[0]);
+    a.reason = "Cooling a feud";
     goStation(a, "green"); setBubble(a, "🌿", 2);
-    if(other){ other.driveObj = false; goStation(other, "green"); }
+    if(other){ other.driveObj = false; goStation(other, "green"); other.reason = "Cooling a feud"; }
   }
   if(p.kind === "claim"){
     var crew = G.agents.filter(function(b){ return b !== a && b.stationId === p.station; });
     var disp = null, df = 99;
     crew.forEach(function(b){ var f = followersOf(b); if(f < df){ df = f; disp = b; } });
+    a.reason = "Claiming a spot";
     goStation(a, p.station); setBubble(a, "🧲", 2);
     if(disp) addTension(a, disp, 8);
-    G.agents.forEach(function(b){ if(b.model === a.id && Math.random() < 0.3){ goStation(b, p.station); return; } });
+    G.agents.forEach(function(b){ if(b.model === a.id && Math.random() < 0.3){ goStation(b, p.station); b.reason = "Joining " + nm; return; } });
   }
   if(p.kind === "refuse"){
+    a.reason = "Refusing, after the blame";
     goStation(a, "home"); setBubble(a, "🚪", 2);
     G.agents.forEach(function(b){ if(b.model === a.id) b.morale = Math.max(0, b.morale - 2); });
   }
