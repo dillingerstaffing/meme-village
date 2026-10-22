@@ -3611,9 +3611,9 @@ function hudTick(dt){
     var fpHtml = "";
     if(showFound) fpHtml = Object.keys(BUILD_KINDS).filter(function(k){ return BUILD_KINDS[k].plot; }).map(function(k, ix){
       var kd = BUILD_KINDS[k];
-      var mt = {stores: 0, planks: 0};
-      kd.stages.forEach(function(stg){ mt.stores += stg.stores; mt.planks += stg.planks; });
-      return "<button class='alert-chip' onclick='__foundPick(" + ix + ")'>" + kd.icon + " <b>" + kd.title + "</b> · 📦" + mt.stores + " 🪵" + mt.planks + "</button>";
+      var mt = {stores: 0, planks: 0, labor: 0};
+      kd.stages.forEach(function(stg){ mt.stores += stg.stores; mt.planks += stg.planks; mt.labor += stg.labor; });
+      return "<button class='alert-chip' onclick='__foundPick(" + ix + ")'>" + kd.icon + " <b>" + kd.title + "</b> · 📦" + mt.stores + " 🪵" + mt.planks + " 🔨" + mt.labor + "</button>";
     }).join("") + "<button class='alert-chip' onclick='__foundCancel()'>✕ Not yet</button>";
     if(fpEl.innerHTML !== fpHtml) fpEl.innerHTML = fpHtml;
     fpEl.style.display = showFound ? "flex" : "none";
