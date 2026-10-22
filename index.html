@@ -33,16 +33,24 @@ canvas{display:block}
 #sliceTag{top:10px;left:50%;transform:translateX(-50%);background:rgba(90,20,16,.85);border:1px solid var(--red);color:#ffd9d4;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:800;letter-spacing:.18em}
 #toast{bottom:118px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--gold);border-radius:22px;padding:8px 18px;font-size:14px;font-weight:700;display:none;white-space:nowrap;max-width:94vw}
 .toast-chip{background:none;border:none;color:inherit;font:inherit;font-weight:inherit;cursor:pointer;padding:0;text-decoration:underline dotted;text-underline-offset:3px}
+/* CF-REF: tray-passes-taps.md [2] */
 #alerts{position:fixed;left:10px;bottom:118px;display:flex;flex-direction:column;gap:6px;z-index:29;pointer-events:none}
 #alerts .alert-chip{pointer-events:auto}
 #pressure{position:fixed;z-index:9;transform:translate(-50%,-100%);pointer-events:none;background:rgba(80,18,12,.88);color:#ffd9d0;border:1px solid #e86a4b;border-radius:8px;padding:2px 8px;font:700 12px 'Inter',sans-serif;display:none}
 .alert-chip{background:rgba(14,20,16,.9);border:1px solid var(--gold);color:var(--ink);border-radius:8px;padding:7px 11px;font:600 12px 'Inter',sans-serif;cursor:pointer;text-align:left;box-shadow:0 4px 14px rgba(0,0,0,.35)}
 .alert-chip b{color:var(--gold)}
-#projPick .alert-chip, #offerPick .alert-chip{min-height:44px;padding:10px 12px;font-size:13px;display:flex;align-items:center;gap:6px}
-@media (max-width:560px){#projPick .alert-chip, #offerPick .alert-chip{flex:1 1 100%}}
+/* CF-REF: sheet-below-objective-card.md [1] */
+#projPick .alert-chip{min-height:44px;padding:10px 12px;font-size:13px;display:flex;align-items:center;gap:6px}
+@media (max-width:560px){#projPick .alert-chip{flex:1 1 100%}}
+#foundPick .alert-chip{min-height:44px;padding:10px 12px;font-size:13px;display:flex;align-items:center;gap:6px}
+@media (max-width:560px){#foundPick .alert-chip{flex:1 1 100%}}
+#siteLine{font-size:11.5px;color:var(--ink2);margin-top:5px;display:none}
+#offerPick .alert-chip{min-height:44px;padding:10px 12px;font-size:13px;display:flex;align-items:center;gap:6px}
+@media (max-width:560px){#offerPick .alert-chip{flex:1 1 100%}}
 .ovl .bubble.wantb{border:2px dashed var(--gold);background:rgba(255,244,214,.97)}
 .cbtn.wantpulse{animation:wantp 1s ease-in-out infinite;border-color:var(--gold)}
 @keyframes wantp{0%,100%{box-shadow:0 0 0 0 rgba(232,179,75,0)}50%{box-shadow:0 0 0 3px rgba(232,179,75,.55)}}
+/* CF-REF: tray-passes-taps.md [2] */
 #tray{position:fixed;z-index:10;bottom:0;left:0;right:0;background:linear-gradient(180deg,rgba(14,19,26,.92),rgba(9,12,17,.97));border-top:1px solid var(--line);padding:10px 12px;display:flex;gap:12px;align-items:center;min-height:96px;pointer-events:none}
 #tray button{pointer-events:auto}
 #selInfo{min-width:170px;max-width:230px}
@@ -62,6 +70,13 @@ canvas{display:block}
 #sheet .sh-x{margin-left:auto;background:#131a23;border:1px solid var(--line);color:var(--ink);border-radius:8px;width:34px;height:34px;font-size:15px;cursor:pointer;flex:none}
 #sheet .sh-x:hover{border-color:var(--gold)}
 #sheet .sh-quote{font-size:17px;line-height:1.45;margin-top:16px}
+#sheet .sh-needs{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+#sheet .sh-need{display:flex;align-items:center;gap:9px;margin:5px 0}
+#sheet .sh-need .nl{font-size:10px;letter-spacing:.16em;color:var(--ink2);text-transform:uppercase;font-weight:700;width:76px;flex:none}
+#sheet .sh-bar{flex:1;height:5px;background:rgba(255,255,255,.10)}
+#sheet .sh-bar i{display:block;height:100%;background:var(--gold)}
+#sheet .sh-need .nv{font-size:11px;color:var(--ink);width:26px;text-align:right;flex:none}
+#sheet .sh-work{font-size:12.5px;color:var(--ink2);margin-top:10px;line-height:1.5}
 #sheet .sh-empty{font-size:14px;color:var(--ink2);margin-top:16px}
 #sheet .sh-row{border-top:1px solid var(--line);margin-top:14px;padding-top:10px}
 #sheet .sh-wk{font-size:10px;letter-spacing:.16em;color:var(--ink2);text-transform:uppercase;font-weight:700}
@@ -147,6 +162,7 @@ canvas{display:block}
 }
 @media (max-width:560px){#alerts{bottom:216px}}
 #vignette{position:fixed;inset:0;pointer-events:none;z-index:5;background:radial-gradient(ellipse at center,transparent 56%,rgba(16,22,14,.42) 100%)}
+/* CF-REF: minimap-canvas-tap.md [1] */
 #minimap{position:fixed;right:10px;bottom:150px;width:192px;height:144px;z-index:11;pointer-events:none;background:#22301f;border:1px solid var(--line);border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.35)}
 @media (max-width:560px){#minimap{width:118px;height:88px;bottom:auto;top:202px}}
 </style>
@@ -164,6 +180,8 @@ canvas{display:block}
   <div id="wantStrip"></div>
   <div id="projPick" style="display:none;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
   <div id="offerPick" style="display:none;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
+  <div id="foundPick" style="display:none;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
+  <div id="siteLine"></div>
 </div>
 <div class="hud" id="stats">
   <div class="sh">THE VILLAGE</div>
@@ -248,6 +266,7 @@ function curObjective(){ var deck = (G.objectives && G.objectives.length) ? G.ob
 var scene, camera, renderer, sunLight;
 var cam = {target:new THREE.Vector3(0,0,4), yaw:0, pitch:0.94, dist:38, follow:null};
 var G = null;
+// CF-REF: store-single-source.md [71]
 /* ================= STORE =================
    Single source of truth for all game state.
    Rules:
@@ -332,15 +351,24 @@ function renderSheet(s){
     return;
   }
   var log = a.thoughtLog || [];
-  var key = a.id + "|" + (a.thought ? a.thought.at + ":" + a.thought.text : "none") + "|" + log.length;
+  var whSig = 0; if(a.workHist) for(var wkk in a.workHist) whSig += a.workHist[wkk];
+  var key = a.id + "|" + (a.thought ? a.thought.at + ":" + a.thought.text : "none") + "|" + log.length + "|" + NEED_DEFS.map(function(d){ return Math.round(needVal(a, d.id)); }).join(":") + ":" + whSig;
   if(key === sheetKey && el.style.display !== "none") return;
   sheetKey = key;
   var shirt = "#" + ("000000" + (a.shirt || 0).toString(16)).slice(-6);
   var hair = "#" + ("000000" + (a.hairC || 0).toString(16)).slice(-6);
+  // CF-REF: axis-label-selected-surfaces.md [4]
   var ax2 = axisOf(a);
   var h = "<div class='sh-head'><div class='sh-chip' style='background:" + shirt + "'><div class='sh-hair' style='background:" + hair + "'></div><div class='sh-letter'>" + a.name.charAt(0) + "</div></div>"
     + "<div><div class='sh-name'>" + a.name + "</div><div class='sh-role'>" + a.role + (ax2 ? " · " + ax2.icon + " " + ax2.label : "") + "</div></div>"
     + "<button class='sh-x' type='button' aria-label='Close'>✕</button></div>";
+  h += "<div class='sh-needs'>" + NEED_DEFS.map(function(d){ var nv = Math.round(needVal(a, d.id)); return "<div class='sh-need'><span class='nl'>" + d.label + "</span><div class='sh-bar'><i style='width:" + nv + "%'></i></div><span class='nv'>" + nv + "</span></div>"; }).join("") + "</div>";
+  var went = [];
+  if(a.workHist) Object.keys(a.workHist).forEach(function(k){ if(a.workHist[k] > 0) went.push(k); });
+  went.sort(function(x, y){ return a.workHist[y] - a.workHist[x]; });
+  if(went.length){
+    h += "<div class='sh-work'>Work: " + went.map(function(k){ var sn = STATION3[k]; return (k === "green" ? "Green" : (sn ? sn.name : k)) + " " + a.workHist[k]; }).join(" \u00B7 ") + "</div>";
+  }
   if(a.thought){
     h += "<div class='sh-quote'>\u201C" + a.thought.text + "\u201D</div>";
     for(var i = log.length - 2; i >= 0; i--){
@@ -391,6 +419,7 @@ var STATION3 = {
   home:{name:"Home", icon:"🏠", x:0, z:0, work:[], hit:[0,0,0,0]}
 };
 var roofPlanks = [], roofHole = null, storedCrates = [], cropMesh = null, cropData = [], flourSacks = [];
+var plotMeshes = [], plotHitMeshes = [];
 var fireLight = null, fireCore = null, millBlades = null, objRing = null;
 var pulses = [], coachStation = null, coachAgent = null, pipGroup = null, pipMats = [];
 var orderPings = [], selLine = null, netLines = null;
@@ -541,6 +570,7 @@ function buildWorld(){
     hit.position.set(s.hit[0], 2, s.hit[1]); hit.userData.stationId = id;
     scene.add(hit); s.hitMesh = hit;
   });
+  buildPlots();
 }
 function buildBuilding(x, z, w, h, wallC, roofC, kind){
   var g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
@@ -624,9 +654,11 @@ function makeAgents(){
       x:d.home[0], z:d.home[1], heading:Math.random()*6.28, tx:0, tz:0,
       state:"idle", stationId:null, slot:null, actT:0, decideT:Math.random()*2, loafT:0, alerted:false,
       energy:80 - (i%4)*4, morale:72, phase:Math.random()*10, walkPhase:0,
-      order:null, carrying:null, bubble:null, bubbleUntil:0, watchOf:null, watchT:0, want:null, wantCd:Math.random()*10, wantPend:null, driveObj:false,
+      order:null, carrying:null, bubble:null, bubbleUntil:0, watchOf:null, watchT:0, want:null, wantCd:Math.random()*10, wantPend:null, driveObj:false, workHist:{},
       idleT:0, sick:false, seed:Math.random()*100, model:d.admires, blamed:0, modelCd:0, axis:axisPool[i], thought:null, thoughtLog:[], recentEvents:[], thoughtAt:-99
     });
+    a.needs = {};
+    NEED_DEFS.forEach(function(d){ a.needs[d.id] = d.start(i); });
     a.tx = a.x; a.tz = a.z;
     a.root.position.set(a.x, 0, a.z);
     a.hit.userData.agentId = a.id;
@@ -679,7 +711,7 @@ function animateAgent(a, dt){
   a.torsoG.rotation.x = torsoPitch;
   a.headG.rotation.x = headPitch; a.headG.rotation.y = headYaw;
   a.torsoG.scale.y = 1 + Math.sin(G.t*1.7 + a.seed)*0.012;
-  a.props.hammer.visible = (a.state === "act" && a.stationId === "clinic" && a.carrying !== "plank");
+  a.props.hammer.visible = (a.state === "act" && ((a.stationId === "clinic" && a.carrying !== "plank") || (a.stationId === "build" && !a.carrying)));
   a.props.plank.visible = (a.carrying === "plank");
   a.props.crate.visible = (a.carrying === "crate");
   a.props.basket.visible = (a.state === "act" && a.stationId === "fields");
@@ -693,12 +725,15 @@ function newSlice(){
   var g = {t:0, weekTime:0, week:1, speed:1, started:false, over:false, agents:makeAgents(), selected:null,
     roof:30, stores:0, flour:0, copied:0, fieldGrowth:0, growthApplied:-1, incidentOpen:false, incidentDone:false,
     rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0, offer:null, offerAccepted:false,
+    rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0,
+    sites:[], siteSeq:0, houseCapacity:10, banked:false, foundArm:false, foundPlot:null, buildPref:null,
     stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
     objStation:"clinic", objComplete:false, objDone:0, scapegoats:0, delays:[],
-    weekWork:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0}, weekWorkP:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0},
+    weekWork:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0, build:0}, weekWorkP:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0},
     ui:{toast:null, sheet:null, muted:false}, policy:"hearth", difficulty:"standard", medicPatient:null, pendingIncident:null, curIncident:null, alerts:[], firstOrder:false};
   g.agents.forEach(function(a){
     a.speedNow = 0; a.slot = null; a.fetch = null; a.fetchT = 0; a.watchCd = 0; a.mimicStation = null;
+    a.buildSite = null; a.fetchSite = null;
     a.pendingWatch = null; a.medicTask = 0; a.kneelT = 0; a.pendingSick = false; a.visitId = null;
     var ring = new THREE.Mesh(new THREE.RingGeometry(0.72, 0.92, 28), new THREE.MeshBasicMaterial({color:0xf5c86a, transparent:true, opacity:0.95, side:THREE.DoubleSide}));
     ring.rotation.x = -Math.PI/2; ring.position.y = 0.06; ring.visible = false; a.root.add(ring); a.ring = ring;
@@ -719,6 +754,7 @@ function goTo(a, x, z, stationId){
   a.stuckT = 0; a.chkT = 0; a.lx = a.x; a.lz = a.z; a.walkT = 0; a.bestD = null; a.bestDT = 0;
 }
 function goStation(a, stId){
+  if(stId === "build"){ var bs = firstSiteOpen(); if(bs){ goSite(a, bs); return; } if(a.order === "build") a.order = null; stId = "green"; }
   if(stId === "home"){ a.slot = null; goTo(a, a.home[0] + (Math.random()*2-1), a.home[1] + 2.2, "home"); return; }
   var s = stationW(stId), w = s.work;
   function taken(px, pz){
@@ -736,9 +772,22 @@ function goStation(a, stId){
   a.slot = {x:jx, z:jz};
   goTo(a, jx, jz, stId);
 }
+// CF-REF: driven-work-progress.md [25]
 function wk(a, key, amt){
   if(a.boostUntil && G.t < a.boostUntil) amt *= 2;
   G.weekWork[key] += amt;
+  if(key === "build"){
+    var sb = a.buildSite ? siteById(a.buildSite) : null;
+    if(sb && !sb.done){
+      sb.labor += amt; sb.stageLabor = (sb.stageLabor || 0) + amt; sb.workers[a.id] = a.model || "";
+      var sk = BUILD_KINDS[sb.kind];
+      if(sk && !sk.project){
+        var nd = sk.stages[sb.stage];
+        if(nd && sb.stageLabor >= nd.labor && sb.matsIn.stores >= nd.stores && sb.matsIn.planks >= nd.planks) advanceSite(sb);
+      }
+    }
+    return;
+  }
   if(a.driveObj){
     var syn = 0;
     G.agents.forEach(function(b){ if(b !== a && b.driveObj && b.stationId === a.stationId && (b.model === a.id || a.model === b.id || (a.model && b.model === a.model))) syn++; });
@@ -747,8 +796,103 @@ function wk(a, key, amt){
     G.weekWorkP[key] += amt * mult;
     if(G.objWorkers) G.objWorkers[a.id] = a.model || "";
     var pr = G.project;
-    if(pr && !pr.done && pr.parts[key]){ pr.parts[key].have += amt * mult; if(pr.chainKey === key) pr.workers[a.id] = a.model || ""; }
+    if(pr && !pr.done && pr.parts[key]){ var pp2 = pr.parts[key]; var wasFull = pp2.have >= pp2.need; pp2.have += amt * mult; if(pr.chainKey === key) pr.workers[a.id] = a.model || ""; if(!wasFull && pp2.have >= pp2.need) addNeed(a, "purpose", 20); }
   }
+}
+/* The needs table: every need a resident carries is an entry here, with
+   its own starting value, personality weight, per-second drain and
+   refill terms, and the pressure it puts on decide(). Later stages add
+   needs by adding entries; the tick loop, the decide() hook, and the
+   character sheet all iterate this table rather than naming a need.
+   Values live per resident in a.needs, keyed by entry id. The tick
+   receives ctx, the resident's social situation this tick, computed
+   once: company (their model or a follower within reach), watched
+   (selected, camera following, or under a watch), atGreen, and
+   converging (a follower acting at the same station). Belonging is
+   defined over the imitation graph: it drains away from the resident's
+   model and followers, and refills at the green, in company, and under
+   attention; unmet belonging lowers morale over time. Purpose is
+   prestige as nutrition: it drains only out of work nobody copies and
+   nobody joins, and refills when a follower copies the resident's
+   station (the hook in stepAgents), when their driven work fills a
+   project part (the hook in wk), under a watch, and in converging
+   work. Need weights vary by disposition and axis, so the same need
+   is a different force in different people. */
+function needVal(a, id){
+  if(!a.needs) a.needs = {};
+  if(a.needs[id] == null){ for(var i = 0; i < NEED_DEFS.length; i++) if(NEED_DEFS[i].id === id) a.needs[id] = NEED_DEFS[i].start(0); }
+  return a.needs[id];
+}
+function addNeed(a, id, amt){
+  a.needs[id] = Math.max(0, Math.min(100, needVal(a, id) + amt));
+}
+var NEED_DEFS = [
+  { id:"belonging", label:"Belonging",
+    start:function(i){ return 62 + (i%5)*6; },
+    weight:function(a){
+      var w = 1;
+      if(a.disp === "Withdrawn") w = 0.5; else if(a.disp === "Helpful") w = 1.3; else if(a.disp === "Selfish") w = 1.1; else if(a.disp === "Diligent") w = 0.85;
+      if(a.axis === "liberty") w *= 0.85; else if(a.axis === "oppression") w *= 1.1;
+      return w;
+    },
+    tick:function(a, dt, ctx){
+      var v = needVal(a, "belonging");
+      if(ctx.atGreen) v += 2.6 * dt;
+      else if(ctx.watched) v += 1.8 * dt;
+      else if(ctx.company) v += 1.2 * dt;
+      else v -= 0.55 * this.weight(a) * dt;
+      v = Math.max(0, Math.min(100, v));
+      a.needs.belonging = v;
+      if(v < 25) a.morale = Math.max(0, a.morale - 0.3 * dt);
+    },
+    press:function(a, ads){
+      var v = needVal(a, "belonging");
+      if(v < 55){
+        var bp = 55 - v;
+        ads.green += bp * 0.55;
+        var m = a.model ? agent(a.model) : null;
+        if(m && m.stationId && ads[m.stationId] != null) ads[m.stationId] += bp * 0.4;
+      }
+    }
+  },
+  { id:"purpose", label:"Purpose",
+    start:function(i){ return 55 + (i%4)*7; },
+    weight:function(a){
+      var w = 1;
+      if(a.disp === "Selfish") w = 1.3; else if(a.disp === "Helpful") w = 0.8; else if(a.disp === "Diligent") w = 0.9; else if(a.disp === "Withdrawn") w = 0.7;
+      if(a.axis === "civilization") w *= 1.15; else if(a.axis === "liberty") w *= 0.9; else if(a.axis === "oppression") w *= 1.1;
+      return w;
+    },
+    tick:function(a, dt, ctx){
+      var v = needVal(a, "purpose");
+      if(ctx.converging) v += 0.9 * dt;
+      else if(ctx.watched) v += 1.2 * dt;
+      else if(a.state === "act") v -= 0.22 * this.weight(a) * dt;
+      a.needs.purpose = Math.max(0, Math.min(100, v));
+    },
+    press:function(a, ads){
+      var v = needVal(a, "purpose");
+      if(v < 45){
+        var pp = (45 - v) * 0.4;
+        if(ads[G.objStation] != null) ads[G.objStation] += pp;
+        var ps = projectStation();
+        if(ps && ads[ps] != null) ads[ps] += pp * 0.8;
+      }
+    }
+  }
+];
+function needsTick(a, dt){
+  var mdl = a.model ? agent(a.model) : null;
+  var ctx = {company:false, converging:false, watched:(G.selected === a.id) || (cam.follow === a.id),
+    atGreen: a.stationId === "green" && (a.state === "act" || a.state === "sit")};
+  for(var i = 0; i < G.agents.length; i++){
+    var b = G.agents[i]; if(b === a) continue;
+    var dx = b.x - a.x, dz = b.z - a.z, near = (dx*dx + dz*dz) < 49;
+    if(near && (b === mdl || b.model === a.id)) ctx.company = true;
+    if(b.watchOf === a.id && b.state === "watch") ctx.watched = true;
+    if(b.model === a.id && b.state === "act" && a.state === "act" && b.stationId === a.stationId) ctx.converging = true;
+  }
+  for(var j = 0; j < NEED_DEFS.length; j++) NEED_DEFS[j].tick(a, dt, ctx);
 }
 function decide(a){
   if(a.sick || a.medicTask) return;
@@ -773,6 +917,7 @@ function decide(a){
     home: (100 - a.energy) * 0.95
   };
   if(a.want && ads[a.want.station] != null) ads[a.want.station] += 34;
+  for(var ndi = 0; ndi < NEED_DEFS.length; ndi++) NEED_DEFS[ndi].press(a, ads);
   var fit = {clinic:1, fields:1, store:1, mill:1, school:1, well:1, green:1, home:1};
   if(a.disp === "Diligent"){ fit.clinic = 1.3; fit.fields = 1.3; fit.store = 1.2; fit.mill = 1.25; fit.well = 1.2; fit.green = 0.65; }
   if(a.disp === "Helpful"){ fit.clinic = 1.3; fit.store = 1.3; fit.school = 1.3; fit.green = 1.3; }
@@ -781,12 +926,18 @@ function decide(a){
   fit[a.aff] = (fit[a.aff] || 1) * 1.35;
   if(G.policy === "order"){ fit.clinic *= 1.12; fit.store *= 1.12; fit.mill *= 1.12; fit.home *= 0.85; }
   if(G.policy === "hearth"){ fit.green *= 1.3; }
+  var bAd = buildAdFor(a);
+  if(bAd){ ads.build = bAd.sc; fit.build = 1; }
   var scored = Object.keys(ads).map(function(id){ return {id:id, sc: ads[id] * fit[id] * (0.85 + Math.random()*0.3)}; }).sort(function(x,y){ return y.sc - x.sc; });
   var top = scored.slice(0, 3), tot = 0; top.forEach(function(s){ tot += s.sc; });
   var roll = Math.random() * tot, pick = top[0].id;
   for(var i=0;i<top.length;i++){ roll -= top[i].sc; if(roll <= 0){ pick = top[i].id; break; } }
+  if(pick === "build" && bAd){ a.driveObj = false; a.reason = "Building " + BUILD_KINDS[bAd.site.kind].title; goSite(a, bAd.site); return; }
   a.driveObj = !!(a.want && pick === a.want.station && pick === G.objStation);
   a.reason = (a.want && pick === a.want.station) ? "Following a want" : (pick === a.aff ? "Own specialty" : "Own idea");
+  var belNow2 = needVal(a, "belonging"), mdl3 = a.model ? agent(a.model) : null;
+  if(belNow2 < 35 && pick === "green") a.reason = "Looking for company";
+  else if(belNow2 < 35 && mdl3 && pick === mdl3.stationId) a.reason = "Seeking " + mdl3.name.split(" ")[0];
   goStation(a, pick);
 }
 function arrive(a){
@@ -794,6 +945,14 @@ function arrive(a){
   if(a.sickWalk){ a.sickWalk = false; a.sick = true; a.state = "sit"; a.stationId = "green"; if(G.pendingIncident){ var pi = G.pendingIncident; G.pendingIncident = null; openIncident(pi); } return; }
   if(a.pendingWatch){ var m = agent(a.pendingWatch); a.pendingWatch = null; if(m){ a.state = "watch"; a.watchOf = m.id; a.watchT = 3.4; setBubble(a, "👀", 1.8); noteEvent(a, "copied", m.id); return; } }
   if(a.medicTask === 1){ a.medicTask = 2; a.state = "kneel"; a.kneelT = 4; return; }
+  if(a.fetch === "siteplank-out"){ a.carrying = "plank"; a.fetch = "siteplank-back"; goTo(a, a.slot.x, a.slot.z, "build"); return; }
+  if(a.fetch === "siteplank-back"){ a.carrying = null; a.fetch = null; var sp1 = a.fetchSite ? siteById(a.fetchSite) : null; a.fetchSite = null; if(sp1){ sp1.matsIn.planks++; updateSiteMesh(sp1); } a.state = "act"; a.actT = 3 + Math.random()*2; return; }
+  if(a.fetch === "sitecrate-out"){
+    if(G.stores > 0){ G.stores--; if(storedCrates[Math.min(G.stores, 12)]) storedCrates[Math.min(G.stores, 12)].visible = false; a.carrying = "crate"; a.fetch = "sitecrate-back"; goTo(a, a.slot.x, a.slot.z, "build"); }
+    else { a.fetch = null; a.fetchSite = null; a.state = "act"; a.actT = 1; }
+    return;
+  }
+  if(a.fetch === "sitecrate-back"){ a.carrying = null; a.fetch = null; var sp2 = a.fetchSite ? siteById(a.fetchSite) : null; a.fetchSite = null; if(sp2){ sp2.matsIn.stores++; updateSiteMesh(sp2); } a.state = "act"; a.actT = 3 + Math.random()*2; return; }
   if(a.fetch === "plank-out"){ a.carrying = "plank"; a.fetch = "plank-back"; goTo(a, a.slot.x, a.slot.z, "clinic"); return; }
   if(a.fetch === "plank-back"){ a.carrying = null; a.fetch = null; a.fetchT = 0; G.roof = Math.min(100, G.roof + 2.5); a.state = "act"; a.actT = 6; return; }
   if(a.fetch === "crate-out"){ a.carrying = "crate"; a.fetch = "crate-back"; goTo(a, a.slot.x, a.slot.z, "store"); return; }
@@ -807,6 +966,8 @@ function arrive(a){
 function stepAgents(dt){
   G.agents.forEach(function(a){
     a.phase += dt;
+    needsTick(a, dt);
+    if(a.state !== "act") a._histStation = null;
     a.watchCd = Math.max(0, a.watchCd - dt);
     if(a.state === "idle"){ a.idleT += dt; a.decideT -= dt; if(a.decideT <= 0){ decide(a); a.decideT = 1 + Math.random(); } }
     else a.idleT = 0;
@@ -842,6 +1003,7 @@ function stepAgents(dt){
         if(m && m.disp !== a.disp){
           a.disp = m.disp; G.copied++; a.vis = Math.min(100, a.vis + 8);
           a.mimicStation = (m.state === "act") ? m.stationId : null; a.mimicFrom = m.name.split(" ")[0];
+          if(a.mimicStation) addNeed(m, "purpose", 16 * (m.disp === "Selfish" ? 1.3 : 1));
           if(a.mimicStation && !(m.spotUntil && G.t < m.spotUntil)){
             addTension(a, m, 6);
             for(var bi = 0; bi < G.agents.length; bi++){ var b2 = G.agents[bi]; if(b2 !== a && b2 !== m && b2.model === m.id && b2.stationId === a.mimicStation && b2.state === "act"){ addTension(a, b2, 9); break; } }
@@ -873,6 +1035,7 @@ function stepAgents(dt){
       a.actT -= dt;
       var st = a.stationId;
       a.lastActStation = st; a.lastActT = G.t;
+      if(st && st !== "home" && a._histStation !== st){ a._histStation = st; if(!a.workHist) a.workHist = {}; a.workHist[st] = (a.workHist[st] || 0) + 1; }
       var mdI = a.model ? agent(a.model) : null;
       if(mdI && mdI !== a && mdI.lastActStation === st && st !== "home" && (G.t - (mdI.lastActT || -99)) < 12 && G.t > (a.inspCd || 0)){
         a.inspCd = G.t + 20; a.inspUntil = G.t + 5; a.inspMult = mdI.vis >= 60 ? 1.25 : (mdI.vis < 40 ? 1.10 : 1.18);
@@ -909,6 +1072,28 @@ function stepAgents(dt){
       } else if(st === "well"){
         a.energy = Math.max(0, a.energy - 0.6*dt);
         wk(a, "well", pdt);
+      } else if(st === "build"){
+        a.energy = Math.max(0, a.energy - 0.8*dt);
+        var bs2 = a.buildSite ? siteById(a.buildSite) : null;
+        if(!bs2 || bs2.done){ a.state = "idle"; a.decideT = 0.2; }
+        else if(!a.fetch){
+          var bk = BUILD_KINDS[bs2.kind];
+          var nd3 = bk.project ? null : bk.stages[bs2.stage];
+          var incS = 0, incP = 0;
+          if(nd3) G.agents.forEach(function(o){ if(o.fetchSite === bs2.id){ if(o.fetch === "sitecrate-out" || o.fetch === "sitecrate-back") incS++; if(o.fetch === "siteplank-out" || o.fetch === "siteplank-back") incP++; } });
+          if(nd3 && bs2.matsIn.planks + incP < nd3.planks){ a.fetch = "siteplank-out"; a.fetchSite = bs2.id; goTo(a, -15.5, -8.6, "build"); }
+          else if(nd3 && bs2.matsIn.stores + incS < nd3.stores){
+            if(G.stores > 0){ a.fetch = "sitecrate-out"; a.fetchSite = bs2.id; goTo(a, 16.5, -8.8, "build"); }
+            else if(Math.random() < dt * 0.25) setBubble(a, "📦", 1.2);
+          }
+          else if(nd3 && (bs2.matsIn.planks < nd3.planks || bs2.matsIn.stores < nd3.stores)){
+            if(Math.random() < dt * 0.1) setBubble(a, "🧱", 1.2);
+          }
+          else {
+            wk(a, "build", pdt);
+            if(Math.random() < dt * 0.12) setBubble(a, "🔨", 0.9);
+          }
+        }
       }
       if(a.energy < 18 && st !== "home"){ setBubble(a, "💤", 1.6); if(a.order) a.resting = true; goStation(a, "home"); }
       else if(a.actT <= 0 && st !== "clinic" && st !== "store" && st !== "mill"){ a.state = "idle"; a.decideT = 0.3 + Math.random()*0.7; }
@@ -971,7 +1156,7 @@ function scapegoatCandidate(){
    hooks in the sim) plus a slow ambient sweep in stepSim: at most
    one resident per tick, each resident at most every 6 sim
    seconds, so the tick never allocates per frame chatter. */
-function artName(id){ var s = STATION3[id]; if(!s) return null; if(id === "green") return "the Green"; if(id === "home") return "home"; return "the " + s.name; }
+function artName(id){ if(id === "build") return "the building site"; var s = STATION3[id]; if(!s) return null; if(id === "green") return "the Green"; if(id === "home") return "home"; return "the " + s.name; }
 function topTension(a){
   var best = null, bv = 0;
   Object.keys(G.pairs).forEach(function(k){
@@ -1084,6 +1269,7 @@ function refreshThought(a, cause){
   Store.dispatch("thought/set", {id:a.id, text:c.text, cause:cause || "ambient", why:c.why, cat:c.cat});
   return true;
 }
+// CF-REF: thoughts-local-inference-only.md [31]
 /* ThoughtService (stage 2): one paced queue for every thought in the game.
    Event requests carry priority (major events first); ambient fills only
    when nothing eventful is waiting. At most one generation per 4
@@ -1200,7 +1386,7 @@ function initiativeScan(){
       G.agents.forEach(function(b){ if(b !== a && b.stationId && (b.state === "act" || b.state === "walk")){ (bySt[b.stationId] = bySt[b.stationId] || []).push(b); } });
       Object.keys(bySt).forEach(function(st){
         var crew = bySt[st];
-        if(crew.length >= 3 && st !== "home" && st !== "green"){
+        if(crew.length >= 3 && st !== "home" && st !== "green" && st !== "build"){
           var top = null, tf = -1;
           crew.forEach(function(b){ var f = followersOf(b); if(f > tf){ tf = f; top = b; } });
           if(top && a.model === top.id && a.stationId !== st) cands.push({a:a, kind:"claim", w:0.012 + 0.004 * crew.length, station:st, target:top.id});
@@ -1448,6 +1634,7 @@ function pickProject(i){
   Object.keys(def.parts).forEach(function(k){ G.project.parts[k] = {have:0, need:def.parts[k]}; });
   if(def.cost) G.project.cost = def.cost;
   G.objStation = projectStation();
+  registerProjectSite(def);
   showToast(def.icon + " Project chosen: " + def.title + ". Parts fill from driven work, in any order.");
   Store.commit();
 }
@@ -1465,6 +1652,263 @@ function projectTick(){
   showToast("🏗 Project complete: " + (def ? def.title : pr.id) + ". " + (def ? def.perkText : ""));
   SND.play("objwin");
 }
+/* ============ CONSTRUCTION ============
+   Building is a general system, not a list of one-off buildings.
+   Every buildable kind is a row in BUILD_KINDS: its materials, its
+   labor, its stages, its meshes, and its completion effect are all
+   data, so a later stage adds a kind by adding a row. Surveyed plots
+   live in PLOTS, a list the village can extend; founding a plot kind
+   creates a site in G.sites, and residents raise it through the same
+   utility choice as every other kind of work: the build advertisement
+   computed by buildAdFor. Site labor is its own ledger (the wk build
+   key): it never writes weekWorkP and never sets driveObj, so the
+   driven-work rule stands untouched. Project kinds are the four
+   PROJECTS re-expressed as named special constructions: picking one
+   registers its site at its station, its parts stay its stages, the
+   chain rule and the perks stay exactly where they always lived (the
+   project ledger and projectTick), and the site mesh rises with
+   projectProgress. */
+var PLOTS = [
+  {x:-8, z:30}, {x:48, z:8}, {x:-38, z:4}, {x:46, z:-2}, {x:14, z:-34}, {x:-20, z:-36}
+];
+var PROJ_SITE_POS = {granary:[-19.5, 25], longtable:[4.5, 14.5], roofsealed:[-19, -19], schoolbell:[-34, -20]};
+var BUILD_KINDS = {
+  cottage: {id:"cottage", title:"Cottage", icon:"🏠", plot:true, mesh:"cottage", wall:0xdfc9a8, roof:0x74543a,
+    stages:[{name:"Foundation", labor:10, stores:2, planks:0}, {name:"Frame", labor:12, stores:1, planks:2}, {name:"Roof", labor:10, stores:1, planks:2}],
+    effect:{householdCapacity:1}, blurb:"It stands ready for a household."},
+  bank: {id:"bank", title:"The Bank", icon:"🏦", plot:true, mesh:"civic", wall:0xd8d2c2, roof:0x5a6d8e,
+    stages:[{name:"Foundation", labor:12, stores:3, planks:1}, {name:"Frame", labor:14, stores:2, planks:2}, {name:"Vault", labor:12, stores:2, planks:2}],
+    effect:{banking:true}, blurb:"The village can bank here now."}
+};
+PROJECTS.forEach(function(p){
+  BUILD_KINDS[p.id] = {id:p.id, title:p.title, icon:p.icon, plot:false, project:true, projId:p.id, station:p.station,
+    mesh:"annex", x:PROJ_SITE_POS[p.id][0], z:PROJ_SITE_POS[p.id][1], wall:0xd9c9a8, roof:0x7c4a30,
+    effect:{perk:p.id}, blurb:p.perkText};
+});
+function siteById(id){ if(!G.sites) return null; for(var i = 0; i < G.sites.length; i++) if(G.sites[i].id === id) return G.sites[i]; return null; }
+function plotSite(ix){ if(!G.sites) return null; for(var i = 0; i < G.sites.length; i++) if(G.sites[i].plot === ix) return G.sites[i]; return null; }
+function firstSiteOpen(){
+  if(!G.sites) return null;
+  if(G.buildPref){ var p = siteById(G.buildPref); if(p && !p.done) return p; }
+  for(var i = 0; i < G.sites.length; i++) if(!G.sites[i].done) return G.sites[i];
+  return null;
+}
+function siteWorkSpots(site){
+  var o = [[2.7, 0], [-2.7, 0], [0, 2.7], [0, -2.7], [1.9, 1.9], [-1.9, 1.9], [1.9, -1.9], [-1.9, -1.9]];
+  return o.map(function(p){ return [site.x + p[0], site.z + p[1]]; });
+}
+function goSite(a, site){
+  a.buildSite = site.id;
+  var w = siteWorkSpots(site);
+  function taken(px, pz){
+    for(var i = 0; i < G.agents.length; i++){ var b = G.agents[i]; if(b === a) continue;
+      if(b.state === "walk" && Math.abs(b.tx - px) < 1.2 && Math.abs(b.tz - pz) < 1.2) return true;
+      if(b.slot && b.state !== "walk" && Math.abs(b.slot.x - px) < 1.2 && Math.abs(b.slot.z - pz) < 1.2) return true;
+    }
+    return false;
+  }
+  var free = w.filter(function(sp){ return !taken(sp[0], sp[1]); });
+  var pool = free.length ? free : w;
+  var spot = pool[Math.floor(Math.random() * pool.length)];
+  var jx = spot[0], jz = spot[1];
+  if(!free.length){ jx += Math.random() * 2 - 1; jz += Math.random() * 2 - 1; }
+  a.slot = {x: jx, z: jz};
+  goTo(a, jx, jz, "build");
+}
+/* The build advertisement: how strongly a site calls to this resident.
+   Disposition fit first (Diligent high, Withdrawn low), then the social
+   pull of the graph: a site your model is already building on calls
+   loudest, and a watched resident building there lends it prestige. */
+function buildAdFor(a){
+  if(!G.sites || !G.sites.length) return null;
+  var best = null, bs = 0;
+  for(var i = 0; i < G.sites.length; i++){
+    var s = G.sites[i]; if(s.done) continue;
+    var kind = BUILD_KINDS[s.kind];
+    var sc = kind.project ? 9 : 12;
+    if(a.disp === "Diligent") sc *= 1.35; else if(a.disp === "Helpful") sc *= 1.15; else if(a.disp === "Selfish") sc *= 0.55; else if(a.disp === "Withdrawn") sc *= 0.35;
+    if(s.station && a.aff === s.station) sc *= 1.25;
+    for(var j = 0; j < G.agents.length; j++){
+      var b = G.agents[j];
+      if(b !== a && b.buildSite === s.id && (b.state === "act" || b.state === "walk")){
+        sc += 2.5;
+        if(a.model === b.id) sc += 9;
+        else if(b.vis >= 60) sc += 4;
+      }
+    }
+    if(sc > bs){ bs = sc; best = s; }
+  }
+  return best ? {site: best, sc: bs} : null;
+}
+function foundSite(plotIx, kindId){
+  var kind = BUILD_KINDS[kindId]; if(!kind || !kind.plot) return null;
+  var plot = PLOTS[plotIx]; if(!plot) return null;
+  if(plotSite(plotIx)) return null;
+  var site = {id: "site" + (++G.siteSeq), kind: kindId, plot: plotIx, x: plot.x, z: plot.z, station: null, projId: null,
+    stage: 0, stageLabor: 0, labor: 0, matsIn: {stores: 0, planks: 0}, workers: {}, done: false, foundedAt: G.t};
+  G.sites.push(site);
+  buildSiteMesh(site);
+  if(plotMeshes[plotIx]) plotMeshes[plotIx].visible = false;
+  showToast(kind.icon + " Founded: " + kind.title + ". The village will raise it.");
+  SND.play("order");
+  Store.commit();
+  return site;
+}
+function registerProjectSite(def){
+  if(!G.sites) return;
+  for(var i = 0; i < G.sites.length; i++) if(G.sites[i].projId === def.id && !G.sites[i].done) return;
+  var kind = BUILD_KINDS[def.id]; if(!kind) return;
+  var site = {id: "site" + (++G.siteSeq), kind: def.id, plot: -1, x: kind.x, z: kind.z, station: def.station, projId: def.id,
+    stage: 0, stageLabor: 0, labor: 0, matsIn: {stores: 0, planks: 0}, workers: {}, done: false, foundedAt: G.t};
+  G.sites.push(site);
+  buildSiteMesh(site);
+}
+function advanceSite(site){
+  var kind = BUILD_KINDS[site.kind];
+  site.stage++; site.stageLabor = 0; site.matsIn = {stores: 0, planks: 0};
+  if(site.stage >= kind.stages.length){ finishSite(site); return; }
+  updateSiteMesh(site);
+  showToast("🏗 " + kind.title + ": " + kind.stages[site.stage].name.toLowerCase() + " rising");
+  SND.play("order");
+}
+function finishSite(site){
+  var kind = BUILD_KINDS[site.kind];
+  site.done = true; if(kind.stages) site.stage = kind.stages.length;
+  updateSiteMesh(site);
+  applySiteEffect(site);
+  showToast(kind.icon + " " + kind.title + " finished. " + (kind.blurb || ""));
+  SND.play("objwin");
+  if(!firstSiteOpen()) G.agents.forEach(function(a){ if(a.order === "build") a.order = null; if(a.buildSite === site.id) a.buildSite = null; });
+}
+/* Completion effects are data on the kind, applied generically: a new
+   effect key is one new line here, never a branch per building. */
+function applySiteEffect(site){
+  var eff = (BUILD_KINDS[site.kind] || {}).effect || {};
+  if(eff.householdCapacity) G.houseCapacity = (G.houseCapacity || 0) + eff.householdCapacity;
+  if(eff.banking) G.banked = true;
+}
+function siteTick(){
+  if(!G.sites) return;
+  for(var i = 0; i < G.sites.length; i++){
+    var s = G.sites[i]; if(s.done) continue;
+    var kind = BUILD_KINDS[s.kind];
+    if(kind.project){
+      if(G.projDone.indexOf(s.projId) >= 0){ s.done = true; }
+      updateSiteMesh(s);
+    } else {
+      var nd = kind.stages[s.stage];
+      if(nd && s.stageLabor >= nd.labor && s.matsIn.stores >= nd.stores && s.matsIn.planks >= nd.planks) advanceSite(s);
+      else updateSiteMesh(s);
+    }
+  }
+}
+function siteProgressFrac(site){
+  var kind = BUILD_KINDS[site.kind];
+  if(site.done) return 1;
+  if(kind.project){
+    if(G.project && G.project.id === site.projId) return projectProgress() / 100;
+    return G.projDone.indexOf(site.projId) >= 0 ? 1 : 0;
+  }
+  var st = kind.stages[site.stage]; if(!st) return 1;
+  return (site.stage + Math.min(1, site.stageLabor / st.labor)) / kind.stages.length;
+}
+function siteStatusText(site){
+  var kind = BUILD_KINDS[site.kind];
+  if(site.done) return kind.icon + " " + kind.title + ": finished and standing.";
+  if(kind.project) return kind.icon + " " + kind.title + ": its parts fill from driven work at the " + STATION3[site.station].name + ", and builders here keep the site rising.";
+  var nd = kind.stages[site.stage];
+  return kind.icon + " " + kind.title + ": " + nd.name.toLowerCase() + " under way, labor " + Math.floor(site.stageLabor) + "/" + nd.labor + ", materials " + (site.matsIn.stores + site.matsIn.planks) + "/" + (nd.stores + nd.planks) + " on site.";
+}
+/* Staged meshes: three layers (base, frame, top) plus a finish layer,
+   following the roofPlanks precedent that a structure shows its own
+   progress. The in-progress layer grows with the stage fraction. */
+function buildSiteMesh(site){
+  var kind = BUILD_KINDS[site.kind];
+  var g = new THREE.Group(); g.position.set(site.x, 0, site.z); scene.add(g);
+  site.group = g;
+  var L = {};
+  if(kind.mesh === "annex"){
+    L.base = new THREE.Group(); g.add(L.base);
+    [[-2.4, -2], [2.4, -2], [-2.4, 2], [2.4, 2]].forEach(function(p){ box(0.18, 3.4, 0.18, 0x8a6a42, p[0], 1.7, p[1], L.base); });
+    box(5.4, 0.16, 4.6, 0xa87f52, 0, 3.3, 0, L.base);
+    box(5.4, 0.16, 4.6, 0xa87f52, 0, 0.6, 0, L.base);
+    L.frame = new THREE.Group(); g.add(L.frame);
+    box(1.6, 1.1, 1.1, 0xb5854e, -1.4, 0.55, 0.8, L.frame); box(1.6, 1.1, 1.1, 0x9a7448, 0.3, 0.55, -0.9, L.frame);
+    box(2.6, 0.22, 0.5, 0xb5854e, 1.2, 0.15, 1.6, L.frame); box(2.6, 0.22, 0.5, 0xb5854e, 1.2, 0.4, 1.6, L.frame);
+    L.top = new THREE.Group(); g.add(L.top);
+    box(4.6, 1.5, 3.6, kind.wall, 0, 0.75, 0, L.top);
+    L.done = new THREE.Group(); g.add(L.done);
+    buildDressing(kind, L.done);
+  } else {
+    L.base = new THREE.Group(); g.add(L.base);
+    box(6.6, 0.35, 5.8, 0x9a958c, 0, 0.18, 0, L.base);
+    [[-3, -2.5], [3, -2.5], [-3, 2.5], [3, 2.5]].forEach(function(p){ box(0.22, 1.1, 0.22, 0x8a6a42, p[0], 0.55, p[1], L.base); });
+    L.frame = new THREE.Group(); g.add(L.frame);
+    box(6.6, 3.1, 5.8, kind.wall, 0, 1.9, 0, L.frame);
+    L.top = new THREE.Group(); g.add(L.top);
+    var roof = new THREE.Mesh(new THREE.ConeGeometry(6.6 * 0.72, 5.4 * 0.42, 4), mat(kind.roof));
+    roof.position.y = 3.45 + 5.4 * 0.21; roof.rotation.y = Math.PI / 4; roof.scale.z = 5.8 / (6.6 * 0.72) * 0.72;
+    roof.castShadow = true; L.top.add(roof);
+    L.done = new THREE.Group(); g.add(L.done);
+    box(1.3, 2.3, 0.16, 0x5a4230, 0, 1.15, 2.94, L.done);
+    box(1.1, 1.0, 0.14, new THREE.MeshBasicMaterial({color: 0xffe9a3}), -1.7, 2.2, 2.94, L.done, false);
+    box(1.1, 1.0, 0.14, new THREE.MeshBasicMaterial({color: 0xffe9a3}), 1.7, 2.2, 2.94, L.done, false);
+    buildDressing(kind, L.done);
+  }
+  var mg = new THREE.Group(); mg.position.set(4.4, 0, 2.6); g.add(mg);
+  site.matMeshes = [];
+  for(var mi = 0; mi < 3; mi++){ var cm = box(0.85, 0.85, 0.85, 0xa87f52, (mi % 2) * 0.95, 0.43 + Math.floor(mi / 2) * 0.9, 0, mg); cm.visible = false; site.matMeshes.push(cm); }
+  site.layers = L;
+  updateSiteMesh(site);
+}
+function buildDressing(kind, g){
+  if(kind.id === "bank"){
+    box(0.35, 2.6, 0.35, 0xe8e2cc, -2.2, 1.3, 3.3, g); box(0.35, 2.6, 0.35, 0xe8e2cc, 2.2, 1.3, 3.3, g);
+    var disc = cyl(0.55, 0.55, 0.12, 0xf5c86a, 0, 3.1, 3.3, g, 16); disc.rotation.x = Math.PI / 2;
+  } else if(kind.id === "cottage"){
+    box(0.7, 1.4, 0.7, 0x9a958c, 1.9, 4.6, -1.2, g);
+  } else if(kind.id === "granary"){
+    cyl(0.9, 1.05, 3.4, 0xc79a5e, 3.4, 1.7, -1.5, g, 10);
+    var cap = new THREE.Mesh(new THREE.ConeGeometry(1.25, 0.9, 10), mat(0x7c4a30)); cap.position.set(3.4, 3.85, -1.5); cap.castShadow = true; g.add(cap);
+  } else if(kind.id === "longtable"){
+    box(4.4, 0.18, 1.3, 0x8a6a42, 0, 0.95, 0, g); box(0.18, 0.95, 1.1, 0x6b4a2e, -1.9, 0.47, 0, g); box(0.18, 0.95, 1.1, 0x6b4a2e, 1.9, 0.47, 0, g);
+  } else if(kind.id === "roofsealed"){
+    box(3.4, 0.22, 0.5, 0x7c4a30, 0, 1.2, 0, g);
+  } else if(kind.id === "schoolbell"){
+    box(0.18, 3.2, 0.18, 0x6b4a2e, -1.6, 1.6, 0, g); box(0.18, 3.2, 0.18, 0x6b4a2e, 1.6, 1.6, 0, g); box(3.8, 0.18, 0.3, 0x6b4a2e, 0, 3.2, 0, g);
+    sph(0.42, 0xf5c86a, 0, 2.75, 0, g);
+  }
+}
+function updateSiteMesh(site){
+  if(!site.layers) return;
+  var kind = BUILD_KINDS[site.kind];
+  var frac = siteProgressFrac(site);
+  var L = site.layers;
+  var inFrame = kind.project ? frac > 0.04 : (site.stage >= 1 || site.done);
+  var inTop = kind.project ? frac > 0.55 : (site.stage >= 2 || site.done);
+  L.frame.visible = !!inFrame; L.top.visible = !!inTop; L.done.visible = !!site.done;
+  if(L.frame.visible && !site.done){
+    var ff = kind.project ? Math.min(1, frac * 1.8) : (site.stage === 1 ? Math.min(1, site.stageLabor / kind.stages[1].labor) : 1);
+    L.frame.scale.y = 0.3 + 0.7 * Math.max(0.15, ff);
+  } else L.frame.scale.y = 1;
+  var mats = Math.min(3, site.matsIn ? site.matsIn.stores + site.matsIn.planks : 0);
+  if(site.matMeshes) site.matMeshes.forEach(function(m, i){ m.visible = !site.done && i < mats; });
+}
+function buildPlots(){
+  var ringMat = new THREE.MeshBasicMaterial({color: 0xf5c86a, transparent: true, opacity: 0.85, side: THREE.DoubleSide});
+  PLOTS.forEach(function(p, ix){
+    var g = new THREE.Group(); g.position.set(p.x, 0, p.z); scene.add(g);
+    var ring = new THREE.Mesh(new THREE.RingGeometry(3.1, 3.5, 28), ringMat);
+    ring.rotation.x = -Math.PI / 2; ring.position.y = 0.06; g.add(ring);
+    [[-3.2, -2.7], [3.2, -2.7], [-3.2, 2.7], [3.2, 2.7]].forEach(function(c){ box(0.16, 0.8, 0.16, 0x8a6a42, c[0], 0.4, c[1], g); });
+    plotMeshes.push(g);
+    var hit = new THREE.Mesh(new THREE.CircleGeometry(3.6, 12), new THREE.MeshBasicMaterial({visible: false}));
+    hit.rotation.x = -Math.PI / 2; hit.position.set(p.x, 0.1, p.z); hit.userData.plotIx = ix; scene.add(hit);
+    plotHitMeshes.push(hit);
+  });
+}
+
+// CF-REF: driven-work-progress.md [14]
 var OBJECTIVES = [
   {station:"clinic", icon:"🔨", title:"Repair the clinic roof", hint:"Planks land as the crew works", metric:function(){ return G.roof; }},
   {station:"store", icon:"📦", title:"Fill the storehouse", hint:"Crates and harvests, all season food", metric:function(){ return G.weekWorkP.stores * 100 / 10; }},
@@ -1565,7 +2009,7 @@ function statDrift(dt){
     SND.play("blame");
   }
   G.agents.forEach(function(a){
-    if(a.state === "act" && a.stationId && a.stationId !== "green" && a.stationId !== "home"){ workers++; if(!a.order) crowd[a.stationId] = (crowd[a.stationId] || 0) + 1; }
+    if(a.state === "act" && a.stationId && a.stationId !== "green" && a.stationId !== "home" && a.stationId !== "build"){ workers++; if(!a.order) crowd[a.stationId] = (crowd[a.stationId] || 0) + 1; }
     if(a.order) ordered++;
   });
   s.prod += (workers * 11 - s.prod) * dt * 0.03;
@@ -1590,7 +2034,7 @@ function endWeek(){
   }
   /* an offer the player never accepted lapses here, silently: no toast, no penalty */
   G.week++; G.weekTime = 0; G.incidentDone = false; G.curIncident = null; G.weekIncident = null;
-  G.weekWork = {stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0}; G.weekWorkP = {stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0};
+  G.weekWork = {stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0, build:0}; G.weekWorkP = {stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0};
   G.calmT = 0; G.peakGreen = 0; G.objWorkers = {};
   G.agents.forEach(function(a){ a.alerted = false; a.loafT = 0; });
   G.fieldGrowth = 0.12; G.growthApplied = -1;
@@ -1623,6 +2067,7 @@ function stepSim(dt){
   if(G.imitateT > 2.5){ G.imitateT = 0; imitationScan(); }
   initiativeScan();
   projectTick();
+  siteTick();
   stepAgents(dt);
   G.agents.forEach(function(a){
     var working = a.medicTask || a.order || (a.state === "act" && a.stationId && a.stationId !== "green" && a.stationId !== "home") || (a.state === "walk" && a.stationId && a.stationId !== "green" && a.stationId !== "home");
@@ -1770,6 +2215,7 @@ function activityText(a){
     if(a.stationId === "well") return "💧 Drawing water";
     if(a.stationId === "mill") return a.carrying === "crate" ? "Carrying grain" : "🌾 Milling grain";
     if(a.stationId === "school") return "📚 At the school";
+    if(a.stationId === "build") return a.carrying ? "🪵 Hauling materials" : "🔨 Raising a building";
     return "Working";
   }
   return "Idle";
@@ -1784,11 +2230,12 @@ var CMDS = [
 var trayKey = "";
 function refreshTray(force){
   var a = G.selected ? agent(G.selected) : null;
-  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station : "") : "") + "|" + (cam.follow || "") + "|" + (G.spotCd > G.t ? "cd" : "rdy") + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u");
+  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station : "") : "") + "|" + (cam.follow || "") + "|" + (G.spotCd > G.t ? "cd" : "rdy") + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + "|" + (G.foundArm ? "F" : "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-");
   if(!force && key === trayKey) return;
   trayKey = key;
   var info = document.getElementById("selInfo");
   if(a){
+    // CF-REF: axis-label-selected-surfaces.md [2]
     var ax = axisOf(a);
     info.innerHTML = "<div class='rl'>" + a.role + " · <span style='color:" + DISPO3[a.disp].col + "'>" + DISPO3[a.disp].icon + " " + a.disp + "</span>" + (a.want ? " · 💭" + STATION3[a.want.station].icon + " " + stationW(a.want.station).name : "") + (ax ? " · " + ax.icon + " " + ax.label : "") + "</div>"
       + "<div class='nm'>" + (a.vis >= 60 ? "🔥 " : "") + a.name + "</div>"
@@ -1807,6 +2254,9 @@ function refreshTray(force){
   html += "<button class='cbtn" + (G.modelArm ? " on" : "") + "' data-o='model'" + (!a ? " disabled" : "") + "><span class='i'>👁</span><span class='l'>Model</span></button>";
   html += "<button class='cbtn' data-o='thoughts'" + (!a ? " disabled" : "") + "><span class='i'>💭</span><span class='l'>Thoughts</span></button>";
   html += "<button class='cbtn" + (G.ui && G.ui.muted ? " on" : "") + "' data-o='mute'><span class='i'>" + (G.ui && G.ui.muted ? "🔇" : "🔊") + "</span><span class='l'>Sound</span></button>";
+  var openSite = firstSiteOpen();
+  html += "<button class='cbtn" + (a && a.order === "build" ? " on" : "") + "' data-o='build'" + (!a || !openSite ? " disabled" : "") + "><span class='i'>🔨</span><span class='l'>Build</span></button>";
+  html += "<button class='cbtn" + (G.foundArm ? " on" : "") + "' data-o='found'><span class='i'>🏗</span><span class='l'>Found</span></button>";
   html += "<button class='cbtn' data-o='story'><span class='i'>📖</span><span class='l'>Story</span></button>";
   var cmds = document.getElementById("cmds");
   cmds.innerHTML = html;
@@ -1819,6 +2269,8 @@ function refreshTray(force){
       if(o === "thoughts"){ if(G.selected) Store.dispatch("ui/sheet", {id:G.selected}); return; }
       if(o === "mute"){ Store.dispatch("ui/mute"); try { if(typeof localStorage !== "undefined") localStorage.setItem("mv_muted", (G.ui && G.ui.muted) ? "1" : "0"); } catch(e){} SND.play("toggle"); refreshTray(true); return; }
       if(o === "story"){ storySoFar(false); return; }
+      if(o === "build"){ setOrder3("build"); return; }
+      if(o === "found"){ G.foundArm = !G.foundArm; G.foundPlot = null; if(G.foundArm) showToast("🏗 Tap a surveyed plot (gold ring) to found a building"); refreshTray(true); return; }
       setOrder3(o);
     });
   });
@@ -1898,6 +2350,7 @@ function showToast(msg, focus){ Store.dispatch("ui/toast", {msg:msg, focus: focu
 var hudAcc = 0;
 var mmCtx = null;
 try { var mmEl0 = document.getElementById("minimap"); if(mmEl0 && mmEl0.getContext){ mmCtx = mmEl0.getContext("2d"); } } catch(e) { mmCtx = null; }
+// CF-REF: minimap-canvas-tap.md [20]
 /* Minimap tap-to-jump, restored after the scroll fix. The minimap canvas is
    pointer-events:none so camera drags pass through to the game canvas, which
    means its old on-element click listener could never fire. The jump is
@@ -1992,6 +2445,34 @@ function hudTick(dt){
     }
     ppEl.style.display = showPick ? "flex" : "none";
   }
+  var fpEl = document.getElementById("foundPick");
+  if(fpEl){
+    var showFound = (G.foundPlot !== null && G.foundPlot !== undefined) && !plotSite(G.foundPlot);
+    var fpHtml = "";
+    if(showFound) fpHtml = Object.keys(BUILD_KINDS).filter(function(k){ return BUILD_KINDS[k].plot; }).map(function(k, ix){
+      var kd = BUILD_KINDS[k];
+      var mt = {stores: 0, planks: 0};
+      kd.stages.forEach(function(stg){ mt.stores += stg.stores; mt.planks += stg.planks; });
+      return "<button class='alert-chip' onclick='__foundPick(" + ix + ")'>" + kd.icon + " <b>" + kd.title + "</b> · 📦" + mt.stores + " 🪵" + mt.planks + "</button>";
+    }).join("") + "<button class='alert-chip' onclick='__foundCancel()'>✕ Not yet</button>";
+    if(fpEl.innerHTML !== fpHtml) fpEl.innerHTML = fpHtml;
+    fpEl.style.display = showFound ? "flex" : "none";
+  }
+  var slEl = document.getElementById("siteLine");
+  if(slEl){
+    var slTxt = "";
+    if(G.sites && G.sites.length){
+      var openSites = G.sites.filter(function(s){ return !s.done; });
+      if(openSites.length) slTxt = openSites.map(function(s){
+        var kd = BUILD_KINDS[s.kind];
+        var stg = kd.project ? Math.round(siteProgressFrac(s) * 100) + "%" : (kd.stages[s.stage] ? kd.stages[s.stage].name + " " + Math.min(100, Math.round(s.stageLabor / kd.stages[s.stage].labor * 100)) + "%" : "");
+        return kd.icon + " " + kd.title + " · " + stg;
+      }).join("  ·  ");
+      else slTxt = "🏗 All founded work stands finished";
+    }
+    if(slEl.textContent !== slTxt) slEl.textContent = slTxt;
+    slEl.style.display = slTxt ? "block" : "none";
+  }
   var wc2 = {};
   G.agents.forEach(function(a){ if(a.want) wc2[a.want.station] = (wc2[a.want.station] || 0) + 1; });
   var wks = Object.keys(wc2).sort(function(x, y){ return wc2[y] - wc2[x]; }).slice(0, 3);
@@ -2031,6 +2512,7 @@ function hudTick(dt){
       } else if(stEl.style.bottom){ stEl.style.bottom = ""; }
     }
   }
+  // CF-REF: sheet-below-objective-card.md [16]
   /* Phone character sheet: start it below the objective card. The sheet is
      z-above the card, and at 86% height it covered the card's project pick
      buttons entirely, so the choice read as flaky and the sheet ate every
@@ -2052,7 +2534,7 @@ function intentIcon(a){
   if(a.sick || a.state === "sit") return "✚";
   if(a.medicTask || a.state === "kneel") return "✚";
   if(a.state === "watch") return "👀";
-  if(a.state === "walk" || a.state === "act"){ var st = STATION3[a.stationId]; return st ? st.icon : "•"; }
+  if(a.state === "walk" || a.state === "act"){ if(a.stationId === "build") return "🔨"; var st = STATION3[a.stationId]; return st ? st.icon : "•"; }
   return "💭";
 }
 function shuffleArr(arr){ for(var i = arr.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)); var t = arr[i]; arr[i] = arr[j]; arr[j] = t; } return arr; }
@@ -2104,7 +2586,7 @@ function pickWantStation(a){
   if(a.disp === "Selfish") c.push(["green", 2.4], ["home", 1.6]);
   if(a.disp === "Withdrawn") c.push(["home", 3]);
   var md = a.model ? agent(a.model) : null;
-  if(md){ if(md.stationId && md.stationId !== "home") c.push([md.stationId, 2.6]); if(md.want) c.push([md.want.station, (hasPerk("schoolbell") && followersOf(md) >= 2) ? 3.2 : 2.2]); }
+  if(md){ if(md.stationId && md.stationId !== "home" && md.stationId !== "build") c.push([md.stationId, 2.6]); if(md.want) c.push([md.want.station, (hasPerk("schoolbell") && followersOf(md) >= 2) ? 3.2 : 2.2]); }
   var tot = 0; c.forEach(function(x){ tot += x[1]; });
   var r = Math.random() * tot;
   for(var i = 0; i < c.length; i++){ r -= c[i][1]; if(r <= 0) return c[i][0]; }
@@ -2200,6 +2682,8 @@ window.__toastFocus = function(){ var tst = G.ui && G.ui.toast, f = tst && tst.f
 window.__pickProject = function(i){ pickProject(i); };
 window.__acceptOffer = function(){ acceptOffer(); };
 window.__ignoreOffer = function(){ ignoreOffer(); };
+window.__foundPick = function(ix){ var pk = Object.keys(BUILD_KINDS).filter(function(k){ return BUILD_KINDS[k].plot; }); if(G.foundPlot !== null && G.foundPlot !== undefined && pk[ix]) foundSite(G.foundPlot, pk[ix]); G.foundPlot = null; refreshTray(true); };
+window.__foundCancel = function(){ G.foundPlot = null; refreshTray(true); };
 var projV = null;
 function leftHudRect(){
   var o = document.getElementById("objCard"), s = document.getElementById("stats");
@@ -2267,6 +2751,7 @@ function renderOverlay(s){
     if(m.bubble) a.bubbleEl.style.opacity = m.bubble.kind === "want" ? m.bubble.opacity.toFixed(2) : "1";
     placed.push(a);
   });
+  // CF-REF: overlay-anchor-budget.md [65]
   // Anchor discipline: an overlay belongs to its resident, and position
   // is identity. A marker may shift only within a small budget (LIFT_MAX
   // up, DX_MAX sideways; the screen clamps and a short HUD nudge count
@@ -2333,7 +2818,7 @@ function renderOverlay(s){
     boxes.push({x:x, y:y, hw:hw, hh:hh});
   });
   var press = {}, pressSt = null, pressN = 3;
-  s.agents.forEach(function(a2){ if(!a2.order && (a2.state === "act" || a2.state === "walk") && a2.stationId && a2.stationId !== "green" && a2.stationId !== "home") press[a2.stationId] = (press[a2.stationId] || 0) + 1; });
+  s.agents.forEach(function(a2){ if(!a2.order && (a2.state === "act" || a2.state === "walk") && a2.stationId && a2.stationId !== "green" && a2.stationId !== "home" && a2.stationId !== "build") press[a2.stationId] = (press[a2.stationId] || 0) + 1; });
   Object.keys(press).forEach(function(k){ if(press[k] > pressN){ pressN = press[k]; pressSt = k; } });
   var pEl = document.getElementById("pressure");
   if(pressSt && s.started && !s.over){
@@ -2363,6 +2848,8 @@ function pickAt(cx, cy){
     if(d < bestD){ bestD = d; best = a.id; }
   });
   if(best) return {agent: best};
+  var fpl = raycaster.intersectObjects(plotHitMeshes, false);
+  if(fpl.length) return {plot: fpl[0].object.userData.plotIx};
   var fs = raycaster.intersectObjects(sHits, false);
   if(fs.length) return {station: fs[0].object.userData.stationId};
   return {};
@@ -2393,6 +2880,21 @@ function tapAt(cx, cy, smart){
     SND.play("tap");
     if(!G.hintModel){ G.hintModel = true; var ha = agent(p.agent); if(ha && ha.model){ var hm = agent(ha.model); if(hm) showToast("👁 " + ha.name.split(" ")[0] + " looks up to " + hm.name.split(" ")[0] + ": their work follows the model"); } }
     refreshTray(true); return;
+  }
+  if(p.plot !== undefined && p.plot !== null){
+    var ps = plotSite(p.plot);
+    if(G.foundArm){
+      G.foundArm = false;
+      if(!ps){ G.foundPlot = p.plot; showToast("🏗 Choose what rises on this plot"); }
+      else showToast("🏗 That plot already holds the " + BUILD_KINDS[ps.kind].title);
+      refreshTray(true); return;
+    }
+    if(ps){
+      if(G.selected){ G.buildPref = ps.id; setOrder3("build"); }
+      else showToast(siteStatusText(ps));
+    }
+    else showToast("🏗 A surveyed plot. Tap Found in the tray, then tap the plot to raise a building.");
+    return;
   }
   if(p.station){
     if(G.selected){ setOrder3(p.station); }
@@ -2441,6 +2943,7 @@ function bindInput(){
       pinchD = nd; pinchA = na;
     }
   });
+  // CF-REF: minimap-canvas-tap.md [11]
   function endPointer(e){
     var wasDrag = dragged;
     var d0 = downAt;
@@ -2453,6 +2956,7 @@ function bindInput(){
     }
   }
   el.addEventListener("pointerup", endPointer);
+  // CF-REF: pointercancel-never-a-tap.md [4]
   el.addEventListener("pointercancel", function(e){
     pointers.delete(e.pointerId);
     if(pointers.size === 0){ downAt = null; dragged = false; }
@@ -2518,6 +3022,7 @@ buildWorld();
 G = newSlice();
 Store.init(G);
 try { if(typeof localStorage !== "undefined" && localStorage.getItem("mv_muted") === "1") Store.dispatch("ui/mute", {on:true}); } catch(e){}
+// CF-REF: store-single-source.md [4]
 Store.subscribe(renderOverlay);
 Store.subscribe(renderHud);
 Store.subscribe(function(){ refreshTray(false); });
@@ -2552,7 +3057,7 @@ if(ffm){
   updateCamera(0); Store.commit(); refreshTray(true);
   renderer.render(scene, camera);
 }
-window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, verdict: storyVerdict, setModel: function(id, mid){ var a = agent(id); if(a) a.model = mid; }, select: function(id){ Store.dispatch("ui/select", {id:id}); refreshTray(true); }, pickProject: function(i){ pickProject(i || 0); }, acceptOffer: function(){ acceptOffer(); }, ignoreOffer: function(){ ignoreOffer(); }, drawOffer: function(){ drawOffer(); }, sheet: function(id){ Store.dispatch("ui/sheet", {id:id || null}); }, closeSheet: function(){ Store.dispatch("ui/sheet", {id:null}); }, thoughts: function(){ var out = {}; G.agents.forEach(function(a){ out[a.id] = {axis:(a.axis || ""), voice:(a.persona ? a.persona.voice.join(", ") : ""), thought:(a.thought ? a.thought.text : ""), cause:(a.thought ? a.thought.cause : ""), log:(a.thoughtLog ? a.thoughtLog.length : 0), events:(a.recentEvents ? a.recentEvents.length : 0)}; }); return out; }};
+window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, verdict: storyVerdict, setModel: function(id, mid){ var a = agent(id); if(a) a.model = mid; }, select: function(id){ Store.dispatch("ui/select", {id:id}); refreshTray(true); }, pickProject: function(i){ pickProject(i || 0); }, acceptOffer: function(){ acceptOffer(); }, ignoreOffer: function(){ ignoreOffer(); }, drawOffer: function(){ drawOffer(); }, found: function(ix, kind){ return foundSite(ix, kind || "cottage"); }, sites: function(){ return (G.sites || []).map(function(s){ return {id: s.id, kind: s.kind, plot: s.plot, projId: s.projId, station: s.station, stage: s.stage, stageLabor: Math.round(s.stageLabor || 0), labor: Math.round(s.labor || 0), matsIn: {stores: s.matsIn.stores, planks: s.matsIn.planks}, workers: Object.keys(s.workers || {}).length, done: s.done}; }); }, capacity: function(){ return G.houseCapacity || 0; }, sheet: function(id){ Store.dispatch("ui/sheet", {id:id || null}); }, closeSheet: function(){ Store.dispatch("ui/sheet", {id:null}); }, thoughts: function(){ var out = {}; G.agents.forEach(function(a){ out[a.id] = {axis:(a.axis || ""), voice:(a.persona ? a.persona.voice.join(", ") : ""), thought:(a.thought ? a.thought.text : ""), cause:(a.thought ? a.thought.cause : ""), log:(a.thoughtLog ? a.thoughtLog.length : 0), events:(a.recentEvents ? a.recentEvents.length : 0)}; }); return out; }};
 </script>
 </body>
 </html>

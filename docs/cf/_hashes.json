@@ -1,0 +1,100 @@
+{
+  "index.html": [
+    {
+      "article": "tray-passes-taps.md",
+      "ref_line": 36,
+      "lines": 2,
+      "hash": "c6915fec"
+    },
+    {
+      "article": "sheet-below-objective-card.md",
+      "ref_line": 42,
+      "lines": 1,
+      "hash": "c5e85f50"
+    },
+    {
+      "article": "tray-passes-taps.md",
+      "ref_line": 51,
+      "lines": 2,
+      "hash": "e7804bb3"
+    },
+    {
+      "article": "minimap-canvas-tap.md",
+      "ref_line": 163,
+      "lines": 1,
+      "hash": "5d65af3e"
+    },
+    {
+      "article": "store-single-source.md",
+      "ref_line": 263,
+      "lines": 71,
+      "hash": "ada8b649"
+    },
+    {
+      "article": "axis-label-selected-surfaces.md",
+      "ref_line": 354,
+      "lines": 4,
+      "hash": "5edddeb8"
+    },
+    {
+      "article": "driven-work-progress.md",
+      "ref_line": 768,
+      "lines": 25,
+      "hash": "311efb86"
+    },
+    {
+      "article": "thoughts-local-inference-only.md",
+      "ref_line": 1265,
+      "lines": 31,
+      "hash": "abf52637"
+    },
+    {
+      "article": "driven-work-progress.md",
+      "ref_line": 1904,
+      "lines": 14,
+      "hash": "c77a272b"
+    },
+    {
+      "article": "axis-label-selected-surfaces.md",
+      "ref_line": 2204,
+      "lines": 2,
+      "hash": "c00115e1"
+    },
+    {
+      "article": "minimap-canvas-tap.md",
+      "ref_line": 2319,
+      "lines": 20,
+      "hash": "207fd11f"
+    },
+    {
+      "article": "sheet-below-objective-card.md",
+      "ref_line": 2453,
+      "lines": 16,
+      "hash": "6b2224dc"
+    },
+    {
+      "article": "overlay-anchor-budget.md",
+      "ref_line": 2664,
+      "lines": 65,
+      "hash": "74c15edb"
+    },
+    {
+      "article": "minimap-canvas-tap.md",
+      "ref_line": 2856,
+      "lines": 11,
+      "hash": "a01f9ac4"
+    },
+    {
+      "article": "pointercancel-never-a-tap.md",
+      "ref_line": 2869,
+      "lines": 4,
+      "hash": "3471fc97"
+    },
+    {
+      "article": "store-single-source.md",
+      "ref_line": 2935,
+      "lines": 4,
+      "hash": "ce66959f"
+    }
+  ]
+}
