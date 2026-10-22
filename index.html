@@ -38,8 +38,8 @@ canvas{display:block}
 #pressure{position:fixed;z-index:9;transform:translate(-50%,-100%);pointer-events:none;background:rgba(80,18,12,.88);color:#ffd9d0;border:1px solid #e86a4b;border-radius:8px;padding:2px 8px;font:700 12px 'Inter',sans-serif;display:none}
 .alert-chip{background:rgba(14,20,16,.9);border:1px solid var(--gold);color:var(--ink);border-radius:8px;padding:7px 11px;font:600 12px 'Inter',sans-serif;cursor:pointer;text-align:left;box-shadow:0 4px 14px rgba(0,0,0,.35)}
 .alert-chip b{color:var(--gold)}
-#projPick .alert-chip{min-height:44px;padding:10px 12px;font-size:13px;display:flex;align-items:center;gap:6px}
-@media (max-width:560px){#projPick .alert-chip{flex:1 1 100%}}
+#projPick .alert-chip, #offerPick .alert-chip{min-height:44px;padding:10px 12px;font-size:13px;display:flex;align-items:center;gap:6px}
+@media (max-width:560px){#projPick .alert-chip, #offerPick .alert-chip{flex:1 1 100%}}
 .ovl .bubble.wantb{border:2px dashed var(--gold);background:rgba(255,244,214,.97)}
 .cbtn.wantpulse{animation:wantp 1s ease-in-out infinite;border-color:var(--gold)}
 @keyframes wantp{0%,100%{box-shadow:0 0 0 0 rgba(232,179,75,0)}50%{box-shadow:0 0 0 3px rgba(232,179,75,.55)}}
@@ -163,6 +163,7 @@ canvas{display:block}
   <div class="s"><span id="objHint">Planks land as the crew works</span><span id="objPct">0%</span></div>
   <div id="wantStrip"></div>
   <div id="projPick" style="display:none;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
+  <div id="offerPick" style="display:none;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
 </div>
 <div class="hud" id="stats">
   <div class="sh">THE VILLAGE</div>
@@ -240,6 +241,9 @@ function seasonName(){ return SEASON_NAMES[seasonOfYear() - 1]; }
 function isWinter(){ return seasonOfYear() === 4; }
 function seasonLabel(){ return "YEAR " + yearOf() + " · " + seasonName().toUpperCase(); }
 /* The objective deck is re-dealt every year; the wrap is a safety net. */
+/* The season's offered commission: the deck entry on offer this season. It becomes
+   the tracked commission only when the player accepts it (G.offerAccepted).
+   An offer the player ignores, or never answers, lapses silently at season end. */
 function curObjective(){ var deck = (G.objectives && G.objectives.length) ? G.objectives : OBJECTIVES; return deck[(G.week - 1) % deck.length]; }
 var scene, camera, renderer, sunLight;
 var cam = {target:new THREE.Vector3(0,0,4), yaw:0, pitch:0.94, dist:38, follow:null};
@@ -688,7 +692,7 @@ function animateAgent(a, dt){
 function newSlice(){
   var g = {t:0, weekTime:0, week:1, speed:1, started:false, over:false, agents:makeAgents(), selected:null,
     roof:30, stores:0, flour:0, copied:0, fieldGrowth:0, growthApplied:-1, incidentOpen:false, incidentDone:false,
-    rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0,
+    rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0, offer:null, offerAccepted:false,
     stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
     objStation:"clinic", objComplete:false, objDone:0, scapegoats:0, delays:[],
     weekWork:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0}, weekWorkP:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0},
@@ -1475,10 +1479,27 @@ var OBJECTIVES = [
   {station:"green", icon:"🍲", title:"The long table", hint:"Everyone on the green, often", metric:function(){ return G.weekWorkP.green * 100 / 48; }},
   {station:"store", icon:"❄", title:"The Winter Count", hint:"Final stores before the snow", metric:function(){ return G.weekWorkP.stores * 100 / 10; }}
 ];
-function setObjective(){
+/* Seasonal offers: each season draws one commission from the deck and offers it.
+   The player may accept it (it becomes the tracked commission), ignore it, or
+   let it lapse at season end. A lapsed offer costs nothing: no toast, no penalty.
+   An unfinished project carries on as the new season's commission, already
+   accepted, exactly as before. */
+function drawOffer(){
   var o = curObjective();
-  if(!o) return;
-  G.objStation = o.station; G.objComplete = false;
+  G.objComplete = false; G.objStation = null; G.projectOffer = null; G.objTarget = null;
+  if(o && o.project && G.project && !G.project.done){
+    G.offer = o; G.offerAccepted = true; G.objStation = projectStation();
+  } else {
+    G.offer = o || null; G.offerAccepted = false;
+  }
+  var st = STATION3[G.objStation];
+  if(objRing){ if(st){ objRing.position.set(st.x, 1.2, st.z); objRing.visible = true; } else objRing.visible = false; }
+  if(pipGroup){ if(st){ pipGroup.position.set(st.x, 0, st.z); pipGroup.visible = true; } else pipGroup.visible = false; }
+}
+function acceptOffer(){
+  var o = curObjective();
+  if(!o || !G.offer || G.offerAccepted) return;
+  G.offerAccepted = true; G.objComplete = false; G.objStation = o.station;
   if(o.project){
     if(G.project && G.project.done) G.project = null;
     if(!G.project){
@@ -1487,13 +1508,22 @@ function setObjective(){
       if(avail.length) G.objStation = avail[0].station;
     } else G.objStation = projectStation();
   }
-  var st = STATION3[o.station];
-  if(objRing && st) objRing.position.set(st.x, 1.2, st.z);
+  var st = STATION3[G.objStation];
+  if(objRing && st){ objRing.position.set(st.x, 1.2, st.z); objRing.visible = true; }
   if(pipGroup && st){ pipGroup.position.set(st.x, 0, st.z); pipGroup.visible = true; }
   if(o.dynModel){ var lv = null; G.agents.forEach(function(a){ if(!lv || a.vis < lv.vis) lv = a; }); G.objTarget = lv ? lv.id : null; }
+  showToast("📜 Commission accepted: " + (o.titleDyn ? o.titleDyn() : o.title));
+  Store.commit();
+}
+function ignoreOffer(){
+  if(!G.offer || G.offerAccepted) return;
+  G.offer = null; G.offerAccepted = false; G.objComplete = false; G.objStation = null; G.projectOffer = null; G.objTarget = null;
+  if(objRing) objRing.visible = false;
+  if(pipGroup) pipGroup.visible = false;
+  Store.commit();
 }
 function objectiveTick(){
-  if(G.objComplete) return;
+  if(!G.offerAccepted || G.objComplete) return;
   var o = curObjective();
   if(o && o.metric() >= 100){
     G.objComplete = true; G.objDone++; applyStatMods({trust:3, cohesion:3});
@@ -1553,11 +1583,12 @@ function statDrift(dt){
 }
 function endWeek(){
   var o = curObjective();
-  if(o){
+  if(G.offerAccepted && o){
     if(G.objComplete) showToast("✓ " + seasonName() + " done: " + o.title + " · " + G.objDone + " all time");
     else if(o.project && G.project && !G.project.done) showToast(seasonLabel() + " ends: " + projectTitle() + " carries on, parts stay filled");
     else showToast(seasonLabel() + " ends: " + o.title + " missed at " + Math.round(clamp100(o.metric())) + "%");
   }
+  /* an offer the player never accepted lapses here, silently: no toast, no penalty */
   G.week++; G.weekTime = 0; G.incidentDone = false; G.curIncident = null; G.weekIncident = null;
   G.weekWork = {stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0}; G.weekWorkP = {stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0};
   G.calmT = 0; G.peakGreen = 0; G.objWorkers = {};
@@ -1565,11 +1596,11 @@ function endWeek(){
   G.fieldGrowth = 0.12; G.growthApplied = -1;
   if(seasonOfYear() === 1){
     /* a new year: re-deal the commission and incident decks, then count the winter */
-    G.objectives = shuffleArr(OBJECTIVES.slice());
+    redealCommissions();
     G.incidents = INCIDENTS.slice(1);
     storySoFar(true);
   }
-  setObjective();
+  drawOffer();
   SND.play("week");
   if(isWinter()) setTimeout(function(){ if(!G.over) showToast("❄ Winter: scarcity climbs faster. Keep the storehouse full."); }, 1200);
 }
@@ -1581,7 +1612,7 @@ function stepSim(dt){
   if(!G.incidentDone && !G.incidentOpen && !G.pendingIncident && !inc){ G.weekIncident = drawIncident(); inc = G.weekIncident; }
   if(inc && !G.incidentDone && !G.incidentOpen && !G.pendingIncident && G.weekTime >= inc.at) triggerIncident(inc);
   if(G.stats.rivalry < 45) G.calmT += dt;
-  if(G.started && !G.over && !G.objComplete && G.pushWeek !== G.week && G.weekTime >= 30){
+  if(G.started && !G.over && G.offerAccepted && !G.objComplete && G.pushWeek !== G.week && G.weekTime >= 30){
     G.pushWeek = G.week; G.pushUntil = G.t + 12;
     var pst = STATION3[G.objStation];
     showToast("⏰ Midweek push: driven hands at the " + (pst ? pst.name : "objective") + " count double for 12 seconds");
@@ -1919,18 +1950,46 @@ function hudTick(dt){
   if(hudAcc < 0.15) return;
   hudAcc = 0;
   var o = curObjective();
-  var pct = o ? Math.max(0, Math.min(100, Math.round(o.metric()))) : 0;
-  document.getElementById("objK").textContent = "OBJECTIVE · " + seasonName().toUpperCase() + (G.objComplete ? " · ✓ DONE" : "");
-  document.getElementById("objT").textContent = o ? (o.icon + " " + (o.titleDyn ? o.titleDyn() : o.title)) : "";
-  document.getElementById("objHint").textContent = o ? (o.hintDyn ? o.hintDyn() : o.hint) : "";
+  var accepted = !!(G.offerAccepted && G.offer);
+  var pct = accepted ? Math.max(0, Math.min(100, Math.round(o.metric()))) : 0;
+  if(accepted){
+    document.getElementById("objK").textContent = "COMMISSION · " + seasonName().toUpperCase() + (G.objComplete ? " · ✓ DONE" : "");
+    document.getElementById("objT").textContent = o.icon + " " + (o.titleDyn ? o.titleDyn() : o.title);
+    document.getElementById("objHint").textContent = o.hintDyn ? o.hintDyn() : o.hint;
+    document.getElementById("objPct").textContent = pct + "% · 👥" + countHands(G.objStation);
+  } else if(G.offer){
+    document.getElementById("objK").textContent = "OFFER · " + seasonName().toUpperCase();
+    document.getElementById("objT").textContent = o.icon + " " + (o.titleDyn ? o.titleDyn() : o.title);
+    document.getElementById("objHint").textContent = o.hintDyn ? o.hintDyn() : o.hint;
+    document.getElementById("objPct").textContent = "-";
+  } else {
+    document.getElementById("objK").textContent = "SEASON · " + seasonName().toUpperCase();
+    document.getElementById("objT").textContent = "No commission";
+    document.getElementById("objHint").textContent = "The village runs itself. A new offer comes with the next season.";
+    document.getElementById("objPct").textContent = "-";
+  }
   document.getElementById("objBar").style.width = pct + "%";
-  document.getElementById("objPct").textContent = pct + "% · 👥" + countHands(G.objStation);
+  var offEl = document.getElementById("offerPick");
+  if(offEl){
+    var showOffer = !!(G.offer && !G.offerAccepted);
+    /* keyed diff: innerHTML serializes quotes differently than the source
+       string, so a raw string compare would rewrite (and detach) the buttons
+       every tick. */
+    var offKey = showOffer ? "offer" : "";
+    if(offEl.dataset.k !== offKey){
+      offEl.dataset.k = offKey;
+      offEl.innerHTML = showOffer ? "<button class='alert-chip' onclick='__acceptOffer()'>✓ <b>Accept</b></button><button class='alert-chip' onclick='__ignoreOffer()'>Ignore</button>" : "";
+    }
+    offEl.style.display = showOffer ? "flex" : "none";
+  }
   var ppEl = document.getElementById("projPick");
   if(ppEl){
-    var showPick = !!(o && o.project && G.projectOffer && G.projectOffer.length && !G.project);
-    var ppHtml = "";
-    if(showPick) ppHtml = G.projectOffer.map(function(pid, ix){ var pd = null; PROJECTS.forEach(function(p){ if(p.id === pid) pd = p; }); return pd ? "<button class='alert-chip' onclick='__pickProject(" + ix + ")'>" + pd.icon + " <b>" + pd.title + "</b></button>" : ""; }).join("");
-    if(ppEl.innerHTML !== ppHtml) ppEl.innerHTML = ppHtml;
+    var showPick = !!(accepted && o.project && G.projectOffer && G.projectOffer.length && !G.project);
+    var ppKey = showPick ? ("pick:" + G.projectOffer.join(",")) : "";
+    if(ppEl.dataset.k !== ppKey){
+      ppEl.dataset.k = ppKey;
+      ppEl.innerHTML = showPick ? G.projectOffer.map(function(pid, ix){ var pd = null; PROJECTS.forEach(function(p){ if(p.id === pid) pd = p; }); return pd ? "<button class='alert-chip' onclick='__pickProject(" + ix + ")'>" + pd.icon + " <b>" + pd.title + "</b></button>" : ""; }).join("") : "";
+    }
     ppEl.style.display = showPick ? "flex" : "none";
   }
   var wc2 = {};
@@ -1941,7 +2000,7 @@ function hudTick(dt){
   if(wsEl.textContent !== wtop) wsEl.textContent = wtop;
   var eligHands = 0;
   G.agents.forEach(function(a){ if(a.driveObj && a.stationId === G.objStation && (a.state === "act" || a.state === "walk")) eligHands++; });
-  document.getElementById("objCard").classList.toggle("urgent", G.started && !G.over && !G.objComplete && G.weekTime > 30 && eligHands === 0);
+  document.getElementById("objCard").classList.toggle("urgent", accepted && G.started && !G.over && !G.objComplete && G.weekTime > 30 && eligHands === 0);
   drawMinimap();
   document.getElementById("weekChip").textContent = seasonLabel() + " · ☀ " + Math.round(G.weekTime / WEEK_LEN * 100) + "%";
   document.getElementById("storesN").textContent = G.stores;
@@ -1997,6 +2056,30 @@ function intentIcon(a){
   return "💭";
 }
 function shuffleArr(arr){ for(var i = arr.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)); var t = arr[i]; arr[i] = arr[j]; arr[j] = t; } return arr; }
+/* The yearly commission re-deal. The storyteller always keeps a project on the
+   year's offer slate while any remain unbuilt: a village that can go a whole
+   year without being offered anything to build stalls its growth on deck luck.
+   Deterministic swap, no RNG consumed. */
+function redealCommissions(){
+  G.objectives = shuffleArr(OBJECTIVES.slice());
+  ensureProjectInSlate((G.week - 1) % 12, 4);
+}
+function ensureProjectInSlate(base, count){
+  var unbuilt = PROJECTS.some(function(p){ return G.projDone.indexOf(p.id) < 0; });
+  if(!unbuilt) return;
+  var hasProj = false, projIx = -1, i;
+  for(i = 0; i < 12; i++){
+    if(G.objectives[i].project){
+      if(i >= base && i < base + count) hasProj = true;
+      else if(projIx < 0) projIx = i;
+    }
+  }
+  if(!hasProj && projIx >= 0){
+    var tmp = G.objectives[base];
+    G.objectives[base] = G.objectives[projIx];
+    G.objectives[projIx] = tmp;
+  }
+}
 function shuffleCast(){
   var others = G.agents.filter(function(a){ return a.id !== "mara" && a.id !== "bram"; });
   var disps = shuffleArr(["Diligent","Helpful","Diligent","Helpful","Selfish","Helpful","Diligent","Withdrawn"]);
@@ -2008,12 +2091,14 @@ function shuffleCast(){
   models.forEach(function(a){ a.vis = 62 + Math.floor(Math.random() * 12); });
   G.seasonModels = models.map(function(a){ return a.name.split(" ")[0]; });
   G.objectives = [OBJECTIVES[0]].concat(shuffleArr(OBJECTIVES.slice(1)));
+  ensureProjectInSlate(1, 3); /* year 1 keeps the clinic as the opening offer, but still slates a project in weeks 2-4 */
   G.incidents = INCIDENTS.slice(1);
 }
 function pickWantStation(a){
   if(a.energy < 35) return "home";
   if(a.morale < 45) return "green";
-  var c = [[a.aff, 3], [G.objStation, 2], ["green", 1.4], ["store", 1.2], ["fields", 1.2]];
+  var c = [[a.aff, 3], ["green", 1.4], ["store", 1.2], ["fields", 1.2]];
+  if(G.objStation) c.push([G.objStation, 2]);
   if(a.disp === "Diligent") c.push(["clinic", 2], ["mill", 2]);
   if(a.disp === "Helpful") c.push(["clinic", 2], ["school", 2]);
   if(a.disp === "Selfish") c.push(["green", 2.4], ["home", 1.6]);
@@ -2113,6 +2198,8 @@ function fxTick(dt){
 window.__pickAlert = function(id){ var a = agent(id); G.selected = id; cam.follow = null; if(a){ cam.target.x = a.x; cam.target.z = a.z; } refreshTray(true); };
 window.__toastFocus = function(){ var tst = G.ui && G.ui.toast, f = tst && tst.focus; if(!f) return; var x = 0, z = 0, n = 0; if(f.ids) f.ids.forEach(function(id){ var a = agent(id); if(a){ x += a.x; z += a.z; n++; } }); else if(f.x !== undefined){ x = f.x; z = f.z; n = 1; } if(n){ cam.target.x = Math.max(-62, Math.min(62, x / n)); cam.target.z = Math.max(-48, Math.min(48, z / n)); cam.follow = null; } };
 window.__pickProject = function(i){ pickProject(i); };
+window.__acceptOffer = function(){ acceptOffer(); };
+window.__ignoreOffer = function(){ ignoreOffer(); };
 var projV = null;
 function leftHudRect(){
   var o = document.getElementById("objCard"), s = document.getElementById("stats");
@@ -2416,9 +2503,9 @@ function beginGame(){
   G.policy = chosenPolicy; G.difficulty = chosenDiff;
   if(chosenDiff === "hard"){ G.stats.scarcity = 68; G.stats.trust = 48; G.agents.forEach(function(a){ a.energy -= 10; }); }
   if(chosenDiff === "dry"){ G.stats.scarcity = 62; G.stats.prod = 40; }
-  setObjective();
-  /* the season opens framed on the objective site, so the first thing a player sees is the work itself */
-  var st0 = STATION3[G.objStation];
+  drawOffer();
+  /* the season opens framed on the offered commission's site, so the first thing a player sees is the work on offer */
+  var st0 = STATION3[G.offer ? G.offer.station : null];
   if(st0){ cam.target.x = Math.max(-62, Math.min(62, st0.x)); cam.target.z = Math.max(-48, Math.min(48, st0.z)); cam.follow = null; }
   document.getElementById("startOverlay").classList.remove("open");
   showToast("🔨 Year 1, Spring: Mara is on the roof. Bram is watching.");
@@ -2465,7 +2552,7 @@ if(ffm){
   updateCamera(0); Store.commit(); refreshTray(true);
   renderer.render(scene, camera);
 }
-window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, verdict: storyVerdict, setModel: function(id, mid){ var a = agent(id); if(a) a.model = mid; }, select: function(id){ Store.dispatch("ui/select", {id:id}); refreshTray(true); }, pickProject: function(i){ pickProject(i || 0); }, sheet: function(id){ Store.dispatch("ui/sheet", {id:id || null}); }, closeSheet: function(){ Store.dispatch("ui/sheet", {id:null}); }, thoughts: function(){ var out = {}; G.agents.forEach(function(a){ out[a.id] = {axis:(a.axis || ""), voice:(a.persona ? a.persona.voice.join(", ") : ""), thought:(a.thought ? a.thought.text : ""), cause:(a.thought ? a.thought.cause : ""), log:(a.thoughtLog ? a.thoughtLog.length : 0), events:(a.recentEvents ? a.recentEvents.length : 0)}; }); return out; }};
+window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, verdict: storyVerdict, setModel: function(id, mid){ var a = agent(id); if(a) a.model = mid; }, select: function(id){ Store.dispatch("ui/select", {id:id}); refreshTray(true); }, pickProject: function(i){ pickProject(i || 0); }, acceptOffer: function(){ acceptOffer(); }, ignoreOffer: function(){ ignoreOffer(); }, drawOffer: function(){ drawOffer(); }, sheet: function(id){ Store.dispatch("ui/sheet", {id:id || null}); }, closeSheet: function(){ Store.dispatch("ui/sheet", {id:null}); }, thoughts: function(){ var out = {}; G.agents.forEach(function(a){ out[a.id] = {axis:(a.axis || ""), voice:(a.persona ? a.persona.voice.join(", ") : ""), thought:(a.thought ? a.thought.text : ""), cause:(a.thought ? a.thought.cause : ""), log:(a.thoughtLog ? a.thoughtLog.length : 0), events:(a.recentEvents ? a.recentEvents.length : 0)}; }); return out; }};
 </script>
 </body>
 </html>
