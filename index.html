@@ -42,6 +42,9 @@ canvas{display:block}
 /* CF-REF: sheet-below-objective-card.md [1] */
 #projPick .alert-chip{min-height:44px;padding:10px 12px;font-size:13px;display:flex;align-items:center;gap:6px}
 @media (max-width:560px){#projPick .alert-chip{flex:1 1 100%}}
+#foundPick .alert-chip{min-height:44px;padding:10px 12px;font-size:13px;display:flex;align-items:center;gap:6px}
+@media (max-width:560px){#foundPick .alert-chip{flex:1 1 100%}}
+#siteLine{font-size:11.5px;color:var(--ink2);margin-top:5px;display:none}
 .ovl .bubble.wantb{border:2px dashed var(--gold);background:rgba(255,244,214,.97)}
 .cbtn.wantpulse{animation:wantp 1s ease-in-out infinite;border-color:var(--gold)}
 @keyframes wantp{0%,100%{box-shadow:0 0 0 0 rgba(232,179,75,0)}50%{box-shadow:0 0 0 3px rgba(232,179,75,.55)}}
@@ -174,6 +177,8 @@ canvas{display:block}
   <div class="s"><span id="objHint">Planks land as the crew works</span><span id="objPct">0%</span></div>
   <div id="wantStrip"></div>
   <div id="projPick" style="display:none;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
+  <div id="foundPick" style="display:none;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
+  <div id="siteLine"></div>
 </div>
 <div class="hud" id="stats">
   <div class="sh">THE VILLAGE</div>
@@ -408,6 +413,7 @@ var STATION3 = {
   home:{name:"Home", icon:"🏠", x:0, z:0, work:[], hit:[0,0,0,0]}
 };
 var roofPlanks = [], roofHole = null, storedCrates = [], cropMesh = null, cropData = [], flourSacks = [];
+var plotMeshes = [], plotHitMeshes = [];
 var fireLight = null, fireCore = null, millBlades = null, objRing = null;
 var pulses = [], coachStation = null, coachAgent = null, pipGroup = null, pipMats = [];
 var orderPings = [], selLine = null, netLines = null;
@@ -558,6 +564,7 @@ function buildWorld(){
     hit.position.set(s.hit[0], 2, s.hit[1]); hit.userData.stationId = id;
     scene.add(hit); s.hitMesh = hit;
   });
+  buildPlots();
 }
 function buildBuilding(x, z, w, h, wallC, roofC, kind){
   var g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
@@ -698,7 +705,7 @@ function animateAgent(a, dt){
   a.torsoG.rotation.x = torsoPitch;
   a.headG.rotation.x = headPitch; a.headG.rotation.y = headYaw;
   a.torsoG.scale.y = 1 + Math.sin(G.t*1.7 + a.seed)*0.012;
-  a.props.hammer.visible = (a.state === "act" && a.stationId === "clinic" && a.carrying !== "plank");
+  a.props.hammer.visible = (a.state === "act" && ((a.stationId === "clinic" && a.carrying !== "plank") || (a.stationId === "build" && !a.carrying)));
   a.props.plank.visible = (a.carrying === "plank");
   a.props.crate.visible = (a.carrying === "crate");
   a.props.basket.visible = (a.state === "act" && a.stationId === "fields");
@@ -712,12 +719,14 @@ function newSlice(){
   var g = {t:0, weekTime:0, week:1, speed:1, started:false, over:false, agents:makeAgents(), selected:null,
     roof:30, stores:0, flour:0, copied:0, fieldGrowth:0, growthApplied:-1, incidentOpen:false, incidentDone:false,
     rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0,
+    sites:[], siteSeq:0, houseCapacity:10, banked:false, foundArm:false, foundPlot:null, buildPref:null,
     stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
     objStation:"clinic", objComplete:false, objDone:0, scapegoats:0, delays:[],
-    weekWork:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0}, weekWorkP:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0},
+    weekWork:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0, build:0}, weekWorkP:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0},
     ui:{toast:null, sheet:null, muted:false}, policy:"hearth", difficulty:"standard", medicPatient:null, pendingIncident:null, curIncident:null, alerts:[], firstOrder:false};
   g.agents.forEach(function(a){
     a.speedNow = 0; a.slot = null; a.fetch = null; a.fetchT = 0; a.watchCd = 0; a.mimicStation = null;
+    a.buildSite = null; a.fetchSite = null;
     a.pendingWatch = null; a.medicTask = 0; a.kneelT = 0; a.pendingSick = false; a.visitId = null;
     var ring = new THREE.Mesh(new THREE.RingGeometry(0.72, 0.92, 28), new THREE.MeshBasicMaterial({color:0xf5c86a, transparent:true, opacity:0.95, side:THREE.DoubleSide}));
     ring.rotation.x = -Math.PI/2; ring.position.y = 0.06; ring.visible = false; a.root.add(ring); a.ring = ring;
@@ -738,6 +747,7 @@ function goTo(a, x, z, stationId){
   a.stuckT = 0; a.chkT = 0; a.lx = a.x; a.lz = a.z; a.walkT = 0; a.bestD = null; a.bestDT = 0;
 }
 function goStation(a, stId){
+  if(stId === "build"){ var bs = firstSiteOpen(); if(bs){ goSite(a, bs); return; } if(a.order === "build") a.order = null; stId = "green"; }
   if(stId === "home"){ a.slot = null; goTo(a, a.home[0] + (Math.random()*2-1), a.home[1] + 2.2, "home"); return; }
   var s = stationW(stId), w = s.work;
   function taken(px, pz){
@@ -759,6 +769,18 @@ function goStation(a, stId){
 function wk(a, key, amt){
   if(a.boostUntil && G.t < a.boostUntil) amt *= 2;
   G.weekWork[key] += amt;
+  if(key === "build"){
+    var sb = a.buildSite ? siteById(a.buildSite) : null;
+    if(sb && !sb.done){
+      sb.labor += amt; sb.stageLabor = (sb.stageLabor || 0) + amt; sb.workers[a.id] = a.model || "";
+      var sk = BUILD_KINDS[sb.kind];
+      if(sk && !sk.project){
+        var nd = sk.stages[sb.stage];
+        if(nd && sb.stageLabor >= nd.labor && sb.matsIn.stores >= nd.stores && sb.matsIn.planks >= nd.planks) advanceSite(sb);
+      }
+    }
+    return;
+  }
   if(a.driveObj){
     var syn = 0;
     G.agents.forEach(function(b){ if(b !== a && b.driveObj && b.stationId === a.stationId && (b.model === a.id || a.model === b.id || (a.model && b.model === a.model))) syn++; });
@@ -897,10 +919,13 @@ function decide(a){
   fit[a.aff] = (fit[a.aff] || 1) * 1.35;
   if(G.policy === "order"){ fit.clinic *= 1.12; fit.store *= 1.12; fit.mill *= 1.12; fit.home *= 0.85; }
   if(G.policy === "hearth"){ fit.green *= 1.3; }
+  var bAd = buildAdFor(a);
+  if(bAd){ ads.build = bAd.sc; fit.build = 1; }
   var scored = Object.keys(ads).map(function(id){ return {id:id, sc: ads[id] * fit[id] * (0.85 + Math.random()*0.3)}; }).sort(function(x,y){ return y.sc - x.sc; });
   var top = scored.slice(0, 3), tot = 0; top.forEach(function(s){ tot += s.sc; });
   var roll = Math.random() * tot, pick = top[0].id;
   for(var i=0;i<top.length;i++){ roll -= top[i].sc; if(roll <= 0){ pick = top[i].id; break; } }
+  if(pick === "build" && bAd){ a.driveObj = false; a.reason = "Building " + BUILD_KINDS[bAd.site.kind].title; goSite(a, bAd.site); return; }
   a.driveObj = !!(a.want && pick === a.want.station && pick === G.objStation);
   a.reason = (a.want && pick === a.want.station) ? "Following a want" : (pick === a.aff ? "Own specialty" : "Own idea");
   var belNow2 = needVal(a, "belonging"), mdl3 = a.model ? agent(a.model) : null;
@@ -913,6 +938,14 @@ function arrive(a){
   if(a.sickWalk){ a.sickWalk = false; a.sick = true; a.state = "sit"; a.stationId = "green"; if(G.pendingIncident){ var pi = G.pendingIncident; G.pendingIncident = null; openIncident(pi); } return; }
   if(a.pendingWatch){ var m = agent(a.pendingWatch); a.pendingWatch = null; if(m){ a.state = "watch"; a.watchOf = m.id; a.watchT = 3.4; setBubble(a, "👀", 1.8); noteEvent(a, "copied", m.id); return; } }
   if(a.medicTask === 1){ a.medicTask = 2; a.state = "kneel"; a.kneelT = 4; return; }
+  if(a.fetch === "siteplank-out"){ a.carrying = "plank"; a.fetch = "siteplank-back"; goTo(a, a.slot.x, a.slot.z, "build"); return; }
+  if(a.fetch === "siteplank-back"){ a.carrying = null; a.fetch = null; var sp1 = a.fetchSite ? siteById(a.fetchSite) : null; a.fetchSite = null; if(sp1){ sp1.matsIn.planks++; updateSiteMesh(sp1); } a.state = "act"; a.actT = 3 + Math.random()*2; return; }
+  if(a.fetch === "sitecrate-out"){
+    if(G.stores > 0){ G.stores--; if(storedCrates[Math.min(G.stores, 12)]) storedCrates[Math.min(G.stores, 12)].visible = false; a.carrying = "crate"; a.fetch = "sitecrate-back"; goTo(a, a.slot.x, a.slot.z, "build"); }
+    else { a.fetch = null; a.fetchSite = null; a.state = "act"; a.actT = 1; }
+    return;
+  }
+  if(a.fetch === "sitecrate-back"){ a.carrying = null; a.fetch = null; var sp2 = a.fetchSite ? siteById(a.fetchSite) : null; a.fetchSite = null; if(sp2){ sp2.matsIn.stores++; updateSiteMesh(sp2); } a.state = "act"; a.actT = 3 + Math.random()*2; return; }
   if(a.fetch === "plank-out"){ a.carrying = "plank"; a.fetch = "plank-back"; goTo(a, a.slot.x, a.slot.z, "clinic"); return; }
   if(a.fetch === "plank-back"){ a.carrying = null; a.fetch = null; a.fetchT = 0; G.roof = Math.min(100, G.roof + 2.5); a.state = "act"; a.actT = 6; return; }
   if(a.fetch === "crate-out"){ a.carrying = "crate"; a.fetch = "crate-back"; goTo(a, a.slot.x, a.slot.z, "store"); return; }
@@ -1032,6 +1065,28 @@ function stepAgents(dt){
       } else if(st === "well"){
         a.energy = Math.max(0, a.energy - 0.6*dt);
         wk(a, "well", pdt);
+      } else if(st === "build"){
+        a.energy = Math.max(0, a.energy - 0.8*dt);
+        var bs2 = a.buildSite ? siteById(a.buildSite) : null;
+        if(!bs2 || bs2.done){ a.state = "idle"; a.decideT = 0.2; }
+        else if(!a.fetch){
+          var bk = BUILD_KINDS[bs2.kind];
+          var nd3 = bk.project ? null : bk.stages[bs2.stage];
+          var incS = 0, incP = 0;
+          if(nd3) G.agents.forEach(function(o){ if(o.fetchSite === bs2.id){ if(o.fetch === "sitecrate-out" || o.fetch === "sitecrate-back") incS++; if(o.fetch === "siteplank-out" || o.fetch === "siteplank-back") incP++; } });
+          if(nd3 && bs2.matsIn.planks + incP < nd3.planks){ a.fetch = "siteplank-out"; a.fetchSite = bs2.id; goTo(a, -15.5, -8.6, "build"); }
+          else if(nd3 && bs2.matsIn.stores + incS < nd3.stores){
+            if(G.stores > 0){ a.fetch = "sitecrate-out"; a.fetchSite = bs2.id; goTo(a, 16.5, -8.8, "build"); }
+            else if(Math.random() < dt * 0.25) setBubble(a, "📦", 1.2);
+          }
+          else if(nd3 && (bs2.matsIn.planks < nd3.planks || bs2.matsIn.stores < nd3.stores)){
+            if(Math.random() < dt * 0.1) setBubble(a, "🧱", 1.2);
+          }
+          else {
+            wk(a, "build", pdt);
+            if(Math.random() < dt * 0.12) setBubble(a, "🔨", 0.9);
+          }
+        }
       }
       if(a.energy < 18 && st !== "home"){ setBubble(a, "💤", 1.6); if(a.order) a.resting = true; goStation(a, "home"); }
       else if(a.actT <= 0 && st !== "clinic" && st !== "store" && st !== "mill"){ a.state = "idle"; a.decideT = 0.3 + Math.random()*0.7; }
@@ -1094,7 +1149,7 @@ function scapegoatCandidate(){
    hooks in the sim) plus a slow ambient sweep in stepSim: at most
    one resident per tick, each resident at most every 6 sim
    seconds, so the tick never allocates per frame chatter. */
-function artName(id){ var s = STATION3[id]; if(!s) return null; if(id === "green") return "the Green"; if(id === "home") return "home"; return "the " + s.name; }
+function artName(id){ if(id === "build") return "the building site"; var s = STATION3[id]; if(!s) return null; if(id === "green") return "the Green"; if(id === "home") return "home"; return "the " + s.name; }
 function topTension(a){
   var best = null, bv = 0;
   Object.keys(G.pairs).forEach(function(k){
@@ -1324,7 +1379,7 @@ function initiativeScan(){
       G.agents.forEach(function(b){ if(b !== a && b.stationId && (b.state === "act" || b.state === "walk")){ (bySt[b.stationId] = bySt[b.stationId] || []).push(b); } });
       Object.keys(bySt).forEach(function(st){
         var crew = bySt[st];
-        if(crew.length >= 3 && st !== "home" && st !== "green"){
+        if(crew.length >= 3 && st !== "home" && st !== "green" && st !== "build"){
           var top = null, tf = -1;
           crew.forEach(function(b){ var f = followersOf(b); if(f > tf){ tf = f; top = b; } });
           if(top && a.model === top.id && a.stationId !== st) cands.push({a:a, kind:"claim", w:0.012 + 0.004 * crew.length, station:st, target:top.id});
@@ -1572,6 +1627,7 @@ function pickProject(i){
   Object.keys(def.parts).forEach(function(k){ G.project.parts[k] = {have:0, need:def.parts[k]}; });
   if(def.cost) G.project.cost = def.cost;
   G.objStation = projectStation();
+  registerProjectSite(def);
   showToast(def.icon + " Project chosen: " + def.title + ". Parts fill from driven work, in any order.");
   Store.commit();
 }
@@ -1589,6 +1645,262 @@ function projectTick(){
   showToast("🏗 Project complete: " + (def ? def.title : pr.id) + ". " + (def ? def.perkText : ""));
   SND.play("objwin");
 }
+/* ============ CONSTRUCTION ============
+   Building is a general system, not a list of one-off buildings.
+   Every buildable kind is a row in BUILD_KINDS: its materials, its
+   labor, its stages, its meshes, and its completion effect are all
+   data, so a later stage adds a kind by adding a row. Surveyed plots
+   live in PLOTS, a list the village can extend; founding a plot kind
+   creates a site in G.sites, and residents raise it through the same
+   utility choice as every other kind of work: the build advertisement
+   computed by buildAdFor. Site labor is its own ledger (the wk build
+   key): it never writes weekWorkP and never sets driveObj, so the
+   driven-work rule stands untouched. Project kinds are the four
+   PROJECTS re-expressed as named special constructions: picking one
+   registers its site at its station, its parts stay its stages, the
+   chain rule and the perks stay exactly where they always lived (the
+   project ledger and projectTick), and the site mesh rises with
+   projectProgress. */
+var PLOTS = [
+  {x:-8, z:30}, {x:48, z:8}, {x:-38, z:4}, {x:46, z:-2}, {x:14, z:-34}, {x:-20, z:-36}
+];
+var PROJ_SITE_POS = {granary:[-19.5, 25], longtable:[4.5, 14.5], roofsealed:[-19, -19], schoolbell:[-34, -20]};
+var BUILD_KINDS = {
+  cottage: {id:"cottage", title:"Cottage", icon:"🏠", plot:true, mesh:"cottage", wall:0xdfc9a8, roof:0x74543a,
+    stages:[{name:"Foundation", labor:10, stores:2, planks:0}, {name:"Frame", labor:12, stores:1, planks:2}, {name:"Roof", labor:10, stores:1, planks:2}],
+    effect:{householdCapacity:1}, blurb:"It stands ready for a household."},
+  bank: {id:"bank", title:"The Bank", icon:"🏦", plot:true, mesh:"civic", wall:0xd8d2c2, roof:0x5a6d8e,
+    stages:[{name:"Foundation", labor:12, stores:3, planks:1}, {name:"Frame", labor:14, stores:2, planks:2}, {name:"Vault", labor:12, stores:2, planks:2}],
+    effect:{banking:true}, blurb:"The village can bank here now."}
+};
+PROJECTS.forEach(function(p){
+  BUILD_KINDS[p.id] = {id:p.id, title:p.title, icon:p.icon, plot:false, project:true, projId:p.id, station:p.station,
+    mesh:"annex", x:PROJ_SITE_POS[p.id][0], z:PROJ_SITE_POS[p.id][1], wall:0xd9c9a8, roof:0x7c4a30,
+    effect:{perk:p.id}, blurb:p.perkText};
+});
+function siteById(id){ if(!G.sites) return null; for(var i = 0; i < G.sites.length; i++) if(G.sites[i].id === id) return G.sites[i]; return null; }
+function plotSite(ix){ if(!G.sites) return null; for(var i = 0; i < G.sites.length; i++) if(G.sites[i].plot === ix) return G.sites[i]; return null; }
+function firstSiteOpen(){
+  if(!G.sites) return null;
+  if(G.buildPref){ var p = siteById(G.buildPref); if(p && !p.done) return p; }
+  for(var i = 0; i < G.sites.length; i++) if(!G.sites[i].done) return G.sites[i];
+  return null;
+}
+function siteWorkSpots(site){
+  var o = [[2.7, 0], [-2.7, 0], [0, 2.7], [0, -2.7], [1.9, 1.9], [-1.9, 1.9], [1.9, -1.9], [-1.9, -1.9]];
+  return o.map(function(p){ return [site.x + p[0], site.z + p[1]]; });
+}
+function goSite(a, site){
+  a.buildSite = site.id;
+  var w = siteWorkSpots(site);
+  function taken(px, pz){
+    for(var i = 0; i < G.agents.length; i++){ var b = G.agents[i]; if(b === a) continue;
+      if(b.state === "walk" && Math.abs(b.tx - px) < 1.2 && Math.abs(b.tz - pz) < 1.2) return true;
+      if(b.slot && b.state !== "walk" && Math.abs(b.slot.x - px) < 1.2 && Math.abs(b.slot.z - pz) < 1.2) return true;
+    }
+    return false;
+  }
+  var free = w.filter(function(sp){ return !taken(sp[0], sp[1]); });
+  var pool = free.length ? free : w;
+  var spot = pool[Math.floor(Math.random() * pool.length)];
+  var jx = spot[0], jz = spot[1];
+  if(!free.length){ jx += Math.random() * 2 - 1; jz += Math.random() * 2 - 1; }
+  a.slot = {x: jx, z: jz};
+  goTo(a, jx, jz, "build");
+}
+/* The build advertisement: how strongly a site calls to this resident.
+   Disposition fit first (Diligent high, Withdrawn low), then the social
+   pull of the graph: a site your model is already building on calls
+   loudest, and a watched resident building there lends it prestige. */
+function buildAdFor(a){
+  if(!G.sites || !G.sites.length) return null;
+  var best = null, bs = 0;
+  for(var i = 0; i < G.sites.length; i++){
+    var s = G.sites[i]; if(s.done) continue;
+    var kind = BUILD_KINDS[s.kind];
+    var sc = kind.project ? 9 : 12;
+    if(a.disp === "Diligent") sc *= 1.35; else if(a.disp === "Helpful") sc *= 1.15; else if(a.disp === "Selfish") sc *= 0.55; else if(a.disp === "Withdrawn") sc *= 0.35;
+    if(s.station && a.aff === s.station) sc *= 1.25;
+    for(var j = 0; j < G.agents.length; j++){
+      var b = G.agents[j];
+      if(b !== a && b.buildSite === s.id && (b.state === "act" || b.state === "walk")){
+        sc += 2.5;
+        if(a.model === b.id) sc += 9;
+        else if(b.vis >= 60) sc += 4;
+      }
+    }
+    if(sc > bs){ bs = sc; best = s; }
+  }
+  return best ? {site: best, sc: bs} : null;
+}
+function foundSite(plotIx, kindId){
+  var kind = BUILD_KINDS[kindId]; if(!kind || !kind.plot) return null;
+  var plot = PLOTS[plotIx]; if(!plot) return null;
+  if(plotSite(plotIx)) return null;
+  var site = {id: "site" + (++G.siteSeq), kind: kindId, plot: plotIx, x: plot.x, z: plot.z, station: null, projId: null,
+    stage: 0, stageLabor: 0, labor: 0, matsIn: {stores: 0, planks: 0}, workers: {}, done: false, foundedAt: G.t};
+  G.sites.push(site);
+  buildSiteMesh(site);
+  if(plotMeshes[plotIx]) plotMeshes[plotIx].visible = false;
+  showToast(kind.icon + " Founded: " + kind.title + ". The village will raise it.");
+  SND.play("order");
+  Store.commit();
+  return site;
+}
+function registerProjectSite(def){
+  if(!G.sites) return;
+  for(var i = 0; i < G.sites.length; i++) if(G.sites[i].projId === def.id && !G.sites[i].done) return;
+  var kind = BUILD_KINDS[def.id]; if(!kind) return;
+  var site = {id: "site" + (++G.siteSeq), kind: def.id, plot: -1, x: kind.x, z: kind.z, station: def.station, projId: def.id,
+    stage: 0, stageLabor: 0, labor: 0, matsIn: {stores: 0, planks: 0}, workers: {}, done: false, foundedAt: G.t};
+  G.sites.push(site);
+  buildSiteMesh(site);
+}
+function advanceSite(site){
+  var kind = BUILD_KINDS[site.kind];
+  site.stage++; site.stageLabor = 0; site.matsIn = {stores: 0, planks: 0};
+  if(site.stage >= kind.stages.length){ finishSite(site); return; }
+  updateSiteMesh(site);
+  showToast("🏗 " + kind.title + ": " + kind.stages[site.stage].name.toLowerCase() + " rising");
+  SND.play("order");
+}
+function finishSite(site){
+  var kind = BUILD_KINDS[site.kind];
+  site.done = true; if(kind.stages) site.stage = kind.stages.length;
+  updateSiteMesh(site);
+  applySiteEffect(site);
+  showToast(kind.icon + " " + kind.title + " finished. " + (kind.blurb || ""));
+  SND.play("objwin");
+  if(!firstSiteOpen()) G.agents.forEach(function(a){ if(a.order === "build") a.order = null; if(a.buildSite === site.id) a.buildSite = null; });
+}
+/* Completion effects are data on the kind, applied generically: a new
+   effect key is one new line here, never a branch per building. */
+function applySiteEffect(site){
+  var eff = (BUILD_KINDS[site.kind] || {}).effect || {};
+  if(eff.householdCapacity) G.houseCapacity = (G.houseCapacity || 0) + eff.householdCapacity;
+  if(eff.banking) G.banked = true;
+}
+function siteTick(){
+  if(!G.sites) return;
+  for(var i = 0; i < G.sites.length; i++){
+    var s = G.sites[i]; if(s.done) continue;
+    var kind = BUILD_KINDS[s.kind];
+    if(kind.project){
+      if(G.projDone.indexOf(s.projId) >= 0){ s.done = true; }
+      updateSiteMesh(s);
+    } else {
+      var nd = kind.stages[s.stage];
+      if(nd && s.stageLabor >= nd.labor && s.matsIn.stores >= nd.stores && s.matsIn.planks >= nd.planks) advanceSite(s);
+      else updateSiteMesh(s);
+    }
+  }
+}
+function siteProgressFrac(site){
+  var kind = BUILD_KINDS[site.kind];
+  if(site.done) return 1;
+  if(kind.project){
+    if(G.project && G.project.id === site.projId) return projectProgress() / 100;
+    return G.projDone.indexOf(site.projId) >= 0 ? 1 : 0;
+  }
+  var st = kind.stages[site.stage]; if(!st) return 1;
+  return (site.stage + Math.min(1, site.stageLabor / st.labor)) / kind.stages.length;
+}
+function siteStatusText(site){
+  var kind = BUILD_KINDS[site.kind];
+  if(site.done) return kind.icon + " " + kind.title + ": finished and standing.";
+  if(kind.project) return kind.icon + " " + kind.title + ": its parts fill from driven work at the " + STATION3[site.station].name + ", and builders here keep the site rising.";
+  var nd = kind.stages[site.stage];
+  return kind.icon + " " + kind.title + ": " + nd.name.toLowerCase() + " under way, labor " + Math.floor(site.stageLabor) + "/" + nd.labor + ", materials " + (site.matsIn.stores + site.matsIn.planks) + "/" + (nd.stores + nd.planks) + " on site.";
+}
+/* Staged meshes: three layers (base, frame, top) plus a finish layer,
+   following the roofPlanks precedent that a structure shows its own
+   progress. The in-progress layer grows with the stage fraction. */
+function buildSiteMesh(site){
+  var kind = BUILD_KINDS[site.kind];
+  var g = new THREE.Group(); g.position.set(site.x, 0, site.z); scene.add(g);
+  site.group = g;
+  var L = {};
+  if(kind.mesh === "annex"){
+    L.base = new THREE.Group(); g.add(L.base);
+    [[-2.4, -2], [2.4, -2], [-2.4, 2], [2.4, 2]].forEach(function(p){ box(0.18, 3.4, 0.18, 0x8a6a42, p[0], 1.7, p[1], L.base); });
+    box(5.4, 0.16, 4.6, 0xa87f52, 0, 3.3, 0, L.base);
+    box(5.4, 0.16, 4.6, 0xa87f52, 0, 0.6, 0, L.base);
+    L.frame = new THREE.Group(); g.add(L.frame);
+    box(1.6, 1.1, 1.1, 0xb5854e, -1.4, 0.55, 0.8, L.frame); box(1.6, 1.1, 1.1, 0x9a7448, 0.3, 0.55, -0.9, L.frame);
+    box(2.6, 0.22, 0.5, 0xb5854e, 1.2, 0.15, 1.6, L.frame); box(2.6, 0.22, 0.5, 0xb5854e, 1.2, 0.4, 1.6, L.frame);
+    L.top = new THREE.Group(); g.add(L.top);
+    box(4.6, 1.5, 3.6, kind.wall, 0, 0.75, 0, L.top);
+    L.done = new THREE.Group(); g.add(L.done);
+    buildDressing(kind, L.done);
+  } else {
+    L.base = new THREE.Group(); g.add(L.base);
+    box(6.6, 0.35, 5.8, 0x9a958c, 0, 0.18, 0, L.base);
+    [[-3, -2.5], [3, -2.5], [-3, 2.5], [3, 2.5]].forEach(function(p){ box(0.22, 1.1, 0.22, 0x8a6a42, p[0], 0.55, p[1], L.base); });
+    L.frame = new THREE.Group(); g.add(L.frame);
+    box(6.6, 3.1, 5.8, kind.wall, 0, 1.9, 0, L.frame);
+    L.top = new THREE.Group(); g.add(L.top);
+    var roof = new THREE.Mesh(new THREE.ConeGeometry(6.6 * 0.72, 5.4 * 0.42, 4), mat(kind.roof));
+    roof.position.y = 3.45 + 5.4 * 0.21; roof.rotation.y = Math.PI / 4; roof.scale.z = 5.8 / (6.6 * 0.72) * 0.72;
+    roof.castShadow = true; L.top.add(roof);
+    L.done = new THREE.Group(); g.add(L.done);
+    box(1.3, 2.3, 0.16, 0x5a4230, 0, 1.15, 2.94, L.done);
+    box(1.1, 1.0, 0.14, new THREE.MeshBasicMaterial({color: 0xffe9a3}), -1.7, 2.2, 2.94, L.done, false);
+    box(1.1, 1.0, 0.14, new THREE.MeshBasicMaterial({color: 0xffe9a3}), 1.7, 2.2, 2.94, L.done, false);
+    buildDressing(kind, L.done);
+  }
+  var mg = new THREE.Group(); mg.position.set(4.4, 0, 2.6); g.add(mg);
+  site.matMeshes = [];
+  for(var mi = 0; mi < 3; mi++){ var cm = box(0.85, 0.85, 0.85, 0xa87f52, (mi % 2) * 0.95, 0.43 + Math.floor(mi / 2) * 0.9, 0, mg); cm.visible = false; site.matMeshes.push(cm); }
+  site.layers = L;
+  updateSiteMesh(site);
+}
+function buildDressing(kind, g){
+  if(kind.id === "bank"){
+    box(0.35, 2.6, 0.35, 0xe8e2cc, -2.2, 1.3, 3.3, g); box(0.35, 2.6, 0.35, 0xe8e2cc, 2.2, 1.3, 3.3, g);
+    var disc = cyl(0.55, 0.55, 0.12, 0xf5c86a, 0, 3.1, 3.3, g, 16); disc.rotation.x = Math.PI / 2;
+  } else if(kind.id === "cottage"){
+    box(0.7, 1.4, 0.7, 0x9a958c, 1.9, 4.6, -1.2, g);
+  } else if(kind.id === "granary"){
+    cyl(0.9, 1.05, 3.4, 0xc79a5e, 3.4, 1.7, -1.5, g, 10);
+    var cap = new THREE.Mesh(new THREE.ConeGeometry(1.25, 0.9, 10), mat(0x7c4a30)); cap.position.set(3.4, 3.85, -1.5); cap.castShadow = true; g.add(cap);
+  } else if(kind.id === "longtable"){
+    box(4.4, 0.18, 1.3, 0x8a6a42, 0, 0.95, 0, g); box(0.18, 0.95, 1.1, 0x6b4a2e, -1.9, 0.47, 0, g); box(0.18, 0.95, 1.1, 0x6b4a2e, 1.9, 0.47, 0, g);
+  } else if(kind.id === "roofsealed"){
+    box(3.4, 0.22, 0.5, 0x7c4a30, 0, 1.2, 0, g);
+  } else if(kind.id === "schoolbell"){
+    box(0.18, 3.2, 0.18, 0x6b4a2e, -1.6, 1.6, 0, g); box(0.18, 3.2, 0.18, 0x6b4a2e, 1.6, 1.6, 0, g); box(3.8, 0.18, 0.3, 0x6b4a2e, 0, 3.2, 0, g);
+    sph(0.42, 0xf5c86a, 0, 2.75, 0, g);
+  }
+}
+function updateSiteMesh(site){
+  if(!site.layers) return;
+  var kind = BUILD_KINDS[site.kind];
+  var frac = siteProgressFrac(site);
+  var L = site.layers;
+  var inFrame = kind.project ? frac > 0.04 : (site.stage >= 1 || site.done);
+  var inTop = kind.project ? frac > 0.55 : (site.stage >= 2 || site.done);
+  L.frame.visible = !!inFrame; L.top.visible = !!inTop; L.done.visible = !!site.done;
+  if(L.frame.visible && !site.done){
+    var ff = kind.project ? Math.min(1, frac * 1.8) : (site.stage === 1 ? Math.min(1, site.stageLabor / kind.stages[1].labor) : 1);
+    L.frame.scale.y = 0.3 + 0.7 * Math.max(0.15, ff);
+  } else L.frame.scale.y = 1;
+  var mats = Math.min(3, site.matsIn ? site.matsIn.stores + site.matsIn.planks : 0);
+  if(site.matMeshes) site.matMeshes.forEach(function(m, i){ m.visible = !site.done && i < mats; });
+}
+function buildPlots(){
+  var ringMat = new THREE.MeshBasicMaterial({color: 0xf5c86a, transparent: true, opacity: 0.85, side: THREE.DoubleSide});
+  PLOTS.forEach(function(p, ix){
+    var g = new THREE.Group(); g.position.set(p.x, 0, p.z); scene.add(g);
+    var ring = new THREE.Mesh(new THREE.RingGeometry(3.1, 3.5, 28), ringMat);
+    ring.rotation.x = -Math.PI / 2; ring.position.y = 0.06; g.add(ring);
+    [[-3.2, -2.7], [3.2, -2.7], [-3.2, 2.7], [3.2, 2.7]].forEach(function(c){ box(0.16, 0.8, 0.16, 0x8a6a42, c[0], 0.4, c[1], g); });
+    plotMeshes.push(g);
+    var hit = new THREE.Mesh(new THREE.CircleGeometry(3.6, 12), new THREE.MeshBasicMaterial({visible: false}));
+    hit.rotation.x = -Math.PI / 2; hit.position.set(p.x, 0.1, p.z); hit.userData.plotIx = ix; scene.add(hit);
+    plotHitMeshes.push(hit);
+  });
+}
+
 // CF-REF: driven-work-progress.md [14]
 var OBJECTIVES = [
   {station:"clinic", icon:"🔨", title:"Repair the clinic roof", hint:"Planks land as the crew works", metric:function(){ return G.roof; }},
@@ -1664,7 +1976,7 @@ function statDrift(dt){
     SND.play("blame");
   }
   G.agents.forEach(function(a){
-    if(a.state === "act" && a.stationId && a.stationId !== "green" && a.stationId !== "home"){ workers++; if(!a.order) crowd[a.stationId] = (crowd[a.stationId] || 0) + 1; }
+    if(a.state === "act" && a.stationId && a.stationId !== "green" && a.stationId !== "home" && a.stationId !== "build"){ workers++; if(!a.order) crowd[a.stationId] = (crowd[a.stationId] || 0) + 1; }
     if(a.order) ordered++;
   });
   s.prod += (workers * 11 - s.prod) * dt * 0.03;
@@ -1688,7 +2000,7 @@ function endWeek(){
     else showToast(seasonLabel() + " ends: " + o.title + " missed at " + Math.round(clamp100(o.metric())) + "%");
   }
   G.week++; G.weekTime = 0; G.incidentDone = false; G.curIncident = null; G.weekIncident = null;
-  G.weekWork = {stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0}; G.weekWorkP = {stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0};
+  G.weekWork = {stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0, build:0}; G.weekWorkP = {stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0};
   G.calmT = 0; G.peakGreen = 0; G.objWorkers = {};
   G.agents.forEach(function(a){ a.alerted = false; a.loafT = 0; });
   G.fieldGrowth = 0.12; G.growthApplied = -1;
@@ -1721,6 +2033,7 @@ function stepSim(dt){
   if(G.imitateT > 2.5){ G.imitateT = 0; imitationScan(); }
   initiativeScan();
   projectTick();
+  siteTick();
   stepAgents(dt);
   G.agents.forEach(function(a){
     var working = a.medicTask || a.order || (a.state === "act" && a.stationId && a.stationId !== "green" && a.stationId !== "home") || (a.state === "walk" && a.stationId && a.stationId !== "green" && a.stationId !== "home");
@@ -1868,6 +2181,7 @@ function activityText(a){
     if(a.stationId === "well") return "💧 Drawing water";
     if(a.stationId === "mill") return a.carrying === "crate" ? "Carrying grain" : "🌾 Milling grain";
     if(a.stationId === "school") return "📚 At the school";
+    if(a.stationId === "build") return a.carrying ? "🪵 Hauling materials" : "🔨 Raising a building";
     return "Working";
   }
   return "Idle";
@@ -1882,7 +2196,7 @@ var CMDS = [
 var trayKey = "";
 function refreshTray(force){
   var a = G.selected ? agent(G.selected) : null;
-  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station : "") : "") + "|" + (cam.follow || "") + "|" + (G.spotCd > G.t ? "cd" : "rdy") + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u");
+  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station : "") : "") + "|" + (cam.follow || "") + "|" + (G.spotCd > G.t ? "cd" : "rdy") + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + "|" + (G.foundArm ? "F" : "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-");
   if(!force && key === trayKey) return;
   trayKey = key;
   var info = document.getElementById("selInfo");
@@ -1906,6 +2220,9 @@ function refreshTray(force){
   html += "<button class='cbtn" + (G.modelArm ? " on" : "") + "' data-o='model'" + (!a ? " disabled" : "") + "><span class='i'>👁</span><span class='l'>Model</span></button>";
   html += "<button class='cbtn' data-o='thoughts'" + (!a ? " disabled" : "") + "><span class='i'>💭</span><span class='l'>Thoughts</span></button>";
   html += "<button class='cbtn" + (G.ui && G.ui.muted ? " on" : "") + "' data-o='mute'><span class='i'>" + (G.ui && G.ui.muted ? "🔇" : "🔊") + "</span><span class='l'>Sound</span></button>";
+  var openSite = firstSiteOpen();
+  html += "<button class='cbtn" + (a && a.order === "build" ? " on" : "") + "' data-o='build'" + (!a || !openSite ? " disabled" : "") + "><span class='i'>🔨</span><span class='l'>Build</span></button>";
+  html += "<button class='cbtn" + (G.foundArm ? " on" : "") + "' data-o='found'><span class='i'>🏗</span><span class='l'>Found</span></button>";
   html += "<button class='cbtn' data-o='story'><span class='i'>📖</span><span class='l'>Story</span></button>";
   var cmds = document.getElementById("cmds");
   cmds.innerHTML = html;
@@ -1918,6 +2235,8 @@ function refreshTray(force){
       if(o === "thoughts"){ if(G.selected) Store.dispatch("ui/sheet", {id:G.selected}); return; }
       if(o === "mute"){ Store.dispatch("ui/mute"); try { if(typeof localStorage !== "undefined") localStorage.setItem("mv_muted", (G.ui && G.ui.muted) ? "1" : "0"); } catch(e){} SND.play("toggle"); refreshTray(true); return; }
       if(o === "story"){ storySoFar(false); return; }
+      if(o === "build"){ setOrder3("build"); return; }
+      if(o === "found"){ G.foundArm = !G.foundArm; G.foundPlot = null; if(G.foundArm) showToast("🏗 Tap a surveyed plot (gold ring) to found a building"); refreshTray(true); return; }
       setOrder3(o);
     });
   });
@@ -2064,6 +2383,34 @@ function hudTick(dt){
     if(ppEl.innerHTML !== ppHtml) ppEl.innerHTML = ppHtml;
     ppEl.style.display = showPick ? "flex" : "none";
   }
+  var fpEl = document.getElementById("foundPick");
+  if(fpEl){
+    var showFound = (G.foundPlot !== null && G.foundPlot !== undefined) && !plotSite(G.foundPlot);
+    var fpHtml = "";
+    if(showFound) fpHtml = Object.keys(BUILD_KINDS).filter(function(k){ return BUILD_KINDS[k].plot; }).map(function(k, ix){
+      var kd = BUILD_KINDS[k];
+      var mt = {stores: 0, planks: 0};
+      kd.stages.forEach(function(stg){ mt.stores += stg.stores; mt.planks += stg.planks; });
+      return "<button class='alert-chip' onclick='__foundPick(" + ix + ")'>" + kd.icon + " <b>" + kd.title + "</b> · 📦" + mt.stores + " 🪵" + mt.planks + "</button>";
+    }).join("") + "<button class='alert-chip' onclick='__foundCancel()'>✕ Not yet</button>";
+    if(fpEl.innerHTML !== fpHtml) fpEl.innerHTML = fpHtml;
+    fpEl.style.display = showFound ? "flex" : "none";
+  }
+  var slEl = document.getElementById("siteLine");
+  if(slEl){
+    var slTxt = "";
+    if(G.sites && G.sites.length){
+      var openSites = G.sites.filter(function(s){ return !s.done; });
+      if(openSites.length) slTxt = openSites.map(function(s){
+        var kd = BUILD_KINDS[s.kind];
+        var stg = kd.project ? Math.round(siteProgressFrac(s) * 100) + "%" : (kd.stages[s.stage] ? kd.stages[s.stage].name + " " + Math.min(100, Math.round(s.stageLabor / kd.stages[s.stage].labor * 100)) + "%" : "");
+        return kd.icon + " " + kd.title + " · " + stg;
+      }).join("  ·  ");
+      else slTxt = "🏗 All founded work stands finished";
+    }
+    if(slEl.textContent !== slTxt) slEl.textContent = slTxt;
+    slEl.style.display = slTxt ? "block" : "none";
+  }
   var wc2 = {};
   G.agents.forEach(function(a){ if(a.want) wc2[a.want.station] = (wc2[a.want.station] || 0) + 1; });
   var wks = Object.keys(wc2).sort(function(x, y){ return wc2[y] - wc2[x]; }).slice(0, 3);
@@ -2125,7 +2472,7 @@ function intentIcon(a){
   if(a.sick || a.state === "sit") return "✚";
   if(a.medicTask || a.state === "kneel") return "✚";
   if(a.state === "watch") return "👀";
-  if(a.state === "walk" || a.state === "act"){ var st = STATION3[a.stationId]; return st ? st.icon : "•"; }
+  if(a.state === "walk" || a.state === "act"){ if(a.stationId === "build") return "🔨"; var st = STATION3[a.stationId]; return st ? st.icon : "•"; }
   return "💭";
 }
 function shuffleArr(arr){ for(var i = arr.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)); var t = arr[i]; arr[i] = arr[j]; arr[j] = t; } return arr; }
@@ -2151,7 +2498,7 @@ function pickWantStation(a){
   if(a.disp === "Selfish") c.push(["green", 2.4], ["home", 1.6]);
   if(a.disp === "Withdrawn") c.push(["home", 3]);
   var md = a.model ? agent(a.model) : null;
-  if(md){ if(md.stationId && md.stationId !== "home") c.push([md.stationId, 2.6]); if(md.want) c.push([md.want.station, (hasPerk("schoolbell") && followersOf(md) >= 2) ? 3.2 : 2.2]); }
+  if(md){ if(md.stationId && md.stationId !== "home" && md.stationId !== "build") c.push([md.stationId, 2.6]); if(md.want) c.push([md.want.station, (hasPerk("schoolbell") && followersOf(md) >= 2) ? 3.2 : 2.2]); }
   var tot = 0; c.forEach(function(x){ tot += x[1]; });
   var r = Math.random() * tot;
   for(var i = 0; i < c.length; i++){ r -= c[i][1]; if(r <= 0) return c[i][0]; }
@@ -2245,6 +2592,8 @@ function fxTick(dt){
 window.__pickAlert = function(id){ var a = agent(id); G.selected = id; cam.follow = null; if(a){ cam.target.x = a.x; cam.target.z = a.z; } refreshTray(true); };
 window.__toastFocus = function(){ var tst = G.ui && G.ui.toast, f = tst && tst.focus; if(!f) return; var x = 0, z = 0, n = 0; if(f.ids) f.ids.forEach(function(id){ var a = agent(id); if(a){ x += a.x; z += a.z; n++; } }); else if(f.x !== undefined){ x = f.x; z = f.z; n = 1; } if(n){ cam.target.x = Math.max(-62, Math.min(62, x / n)); cam.target.z = Math.max(-48, Math.min(48, z / n)); cam.follow = null; } };
 window.__pickProject = function(i){ pickProject(i); };
+window.__foundPick = function(ix){ var pk = Object.keys(BUILD_KINDS).filter(function(k){ return BUILD_KINDS[k].plot; }); if(G.foundPlot !== null && G.foundPlot !== undefined && pk[ix]) foundSite(G.foundPlot, pk[ix]); G.foundPlot = null; refreshTray(true); };
+window.__foundCancel = function(){ G.foundPlot = null; refreshTray(true); };
 var projV = null;
 function leftHudRect(){
   var o = document.getElementById("objCard"), s = document.getElementById("stats");
@@ -2379,7 +2728,7 @@ function renderOverlay(s){
     boxes.push({x:x, y:y, hw:hw, hh:hh});
   });
   var press = {}, pressSt = null, pressN = 3;
-  s.agents.forEach(function(a2){ if(!a2.order && (a2.state === "act" || a2.state === "walk") && a2.stationId && a2.stationId !== "green" && a2.stationId !== "home") press[a2.stationId] = (press[a2.stationId] || 0) + 1; });
+  s.agents.forEach(function(a2){ if(!a2.order && (a2.state === "act" || a2.state === "walk") && a2.stationId && a2.stationId !== "green" && a2.stationId !== "home" && a2.stationId !== "build") press[a2.stationId] = (press[a2.stationId] || 0) + 1; });
   Object.keys(press).forEach(function(k){ if(press[k] > pressN){ pressN = press[k]; pressSt = k; } });
   var pEl = document.getElementById("pressure");
   if(pressSt && s.started && !s.over){
@@ -2409,6 +2758,8 @@ function pickAt(cx, cy){
     if(d < bestD){ bestD = d; best = a.id; }
   });
   if(best) return {agent: best};
+  var fpl = raycaster.intersectObjects(plotHitMeshes, false);
+  if(fpl.length) return {plot: fpl[0].object.userData.plotIx};
   var fs = raycaster.intersectObjects(sHits, false);
   if(fs.length) return {station: fs[0].object.userData.stationId};
   return {};
@@ -2439,6 +2790,21 @@ function tapAt(cx, cy, smart){
     SND.play("tap");
     if(!G.hintModel){ G.hintModel = true; var ha = agent(p.agent); if(ha && ha.model){ var hm = agent(ha.model); if(hm) showToast("👁 " + ha.name.split(" ")[0] + " looks up to " + hm.name.split(" ")[0] + ": their work follows the model"); } }
     refreshTray(true); return;
+  }
+  if(p.plot !== undefined && p.plot !== null){
+    var ps = plotSite(p.plot);
+    if(G.foundArm){
+      G.foundArm = false;
+      if(!ps){ G.foundPlot = p.plot; showToast("🏗 Choose what rises on this plot"); }
+      else showToast("🏗 That plot already holds the " + BUILD_KINDS[ps.kind].title);
+      refreshTray(true); return;
+    }
+    if(ps){
+      if(G.selected){ G.buildPref = ps.id; setOrder3("build"); }
+      else showToast(siteStatusText(ps));
+    }
+    else showToast("🏗 A surveyed plot. Tap Found in the tray, then tap the plot to raise a building.");
+    return;
   }
   if(p.station){
     if(G.selected){ setOrder3(p.station); }
@@ -2601,7 +2967,7 @@ if(ffm){
   updateCamera(0); Store.commit(); refreshTray(true);
   renderer.render(scene, camera);
 }
-window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, verdict: storyVerdict, setModel: function(id, mid){ var a = agent(id); if(a) a.model = mid; }, select: function(id){ Store.dispatch("ui/select", {id:id}); refreshTray(true); }, pickProject: function(i){ pickProject(i || 0); }, sheet: function(id){ Store.dispatch("ui/sheet", {id:id || null}); }, closeSheet: function(){ Store.dispatch("ui/sheet", {id:null}); }, thoughts: function(){ var out = {}; G.agents.forEach(function(a){ out[a.id] = {axis:(a.axis || ""), voice:(a.persona ? a.persona.voice.join(", ") : ""), thought:(a.thought ? a.thought.text : ""), cause:(a.thought ? a.thought.cause : ""), log:(a.thoughtLog ? a.thoughtLog.length : 0), events:(a.recentEvents ? a.recentEvents.length : 0)}; }); return out; }};
+window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, verdict: storyVerdict, setModel: function(id, mid){ var a = agent(id); if(a) a.model = mid; }, select: function(id){ Store.dispatch("ui/select", {id:id}); refreshTray(true); }, pickProject: function(i){ pickProject(i || 0); }, found: function(ix, kind){ return foundSite(ix, kind || "cottage"); }, sites: function(){ return (G.sites || []).map(function(s){ return {id: s.id, kind: s.kind, plot: s.plot, projId: s.projId, station: s.station, stage: s.stage, stageLabor: Math.round(s.stageLabor || 0), labor: Math.round(s.labor || 0), matsIn: {stores: s.matsIn.stores, planks: s.matsIn.planks}, workers: Object.keys(s.workers || {}).length, done: s.done}; }); }, capacity: function(){ return G.houseCapacity || 0; }, sheet: function(id){ Store.dispatch("ui/sheet", {id:id || null}); }, closeSheet: function(){ Store.dispatch("ui/sheet", {id:null}); }, thoughts: function(){ var out = {}; G.agents.forEach(function(a){ out[a.id] = {axis:(a.axis || ""), voice:(a.persona ? a.persona.voice.join(", ") : ""), thought:(a.thought ? a.thought.text : ""), cause:(a.thought ? a.thought.cause : ""), log:(a.thoughtLog ? a.thoughtLog.length : 0), events:(a.recentEvents ? a.recentEvents.length : 0)}; }); return out; }};
 </script>
 </body>
 </html>
