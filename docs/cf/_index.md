@@ -27,11 +27,12 @@ state, store, dispatch, transact, render, dom, panel, new field, new event, chro
 | chronicle-and-saves.md | The chronicle is written by systems only; saves are versioned, index based, and restored only via Continue |
 
 ## Input and Touch
-tap, drag, scroll, touch, pointer, gesture, tray, alerts, minimap, button, click
+tap, drag, scroll, touch, pointer, gesture, tray, alerts, minimap, button, click, highlight, armed, selection panel
 
 | Article | Summary |
 |---------|---------|
 | tray-passes-taps.md | Overlay containers are pointer-events none; only their buttons capture |
+| highlight-vocabulary.md | Each tray treatment means one thing: teal is the current order, gold is the one armed verb, status is chips never lit buttons |
 | minimap-canvas-tap.md | Minimap jump is detected in endPointer at canvas level, never on the element |
 | pointercancel-never-a-tap.md | pointercancel only resets pointer state; only pointerup can become a tap |
 

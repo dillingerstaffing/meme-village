@@ -51,8 +51,7 @@ canvas{display:block}
 #offerPick .alert-chip{min-height:44px;padding:10px 12px;font-size:13px;display:flex;align-items:center;gap:6px}
 @media (max-width:560px){#offerPick .alert-chip{flex:1 1 100%}}
 .ovl .bubble.wantb{border:2px dashed var(--gold);background:rgba(255,244,214,.97)}
-.cbtn.wantpulse{animation:wantp 1s ease-in-out infinite;border-color:var(--gold)}
-@keyframes wantp{0%,100%{box-shadow:0 0 0 0 rgba(232,179,75,0)}50%{box-shadow:0 0 0 3px rgba(232,179,75,.55)}}
+.cbtn .wb{position:absolute;top:1px;right:3px;font-size:10px;line-height:1}
 /* CF-REF: tray-passes-taps.md [2] */
 #tray{position:fixed;z-index:10;bottom:0;left:0;right:0;background:linear-gradient(180deg,rgba(14,19,26,.92),rgba(9,12,17,.97));border-top:1px solid var(--line);padding:10px 12px;display:flex;gap:12px;align-items:center;min-height:96px;pointer-events:none}
 #tray button{pointer-events:auto}
@@ -61,7 +60,12 @@ canvas{display:block}
 #selInfo .rl{font-size:10.5px;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;font-weight:700}
 #selInfo .st{font-size:12px;color:var(--ink2);margin-top:2px}
 #selInfo .selX{display:none}
-#cmds{display:flex;gap:7px;flex-wrap:wrap}
+#cmds{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start}
+.cgrp{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.cgrp.sep{border-left:1px solid var(--line);padding-left:14px}
+.glab{font-size:9.5px;letter-spacing:.14em;color:var(--ink2);text-transform:uppercase;font-weight:700;flex:none}
+#selInfo .chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}
+#selInfo .chip2{font-size:10.5px;border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--ink2);white-space:nowrap}
 #sheet{position:fixed;z-index:20;display:none;background:linear-gradient(180deg,rgba(14,19,26,.97),rgba(9,12,17,.98));border:1px solid var(--line);overflow-y:auto;padding:16px 18px}
 @media (min-width:721px){#sheet{right:12px;top:76px;bottom:12px;width:380px;border-radius:11px}}
 @media (max-width:720px){#sheet{left:0;right:0;bottom:0;top:auto;height:86%;border-radius:14px 14px 0 0;border-bottom:none}}
@@ -85,9 +89,12 @@ canvas{display:block}
 #sheet .sh-row{border-top:1px solid var(--line);margin-top:14px;padding-top:10px}
 #sheet .sh-wk{font-size:10px;letter-spacing:.16em;color:var(--ink2);text-transform:uppercase;font-weight:700}
 #sheet .sh-tx{font-size:15px;line-height:1.5;margin-top:3px}
-.cbtn{background:#131a23;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:9px 6px 7px;min-width:64px;cursor:pointer;text-align:center}
-.cbtn:hover{border-color:var(--gold)}
+.cbtn{position:relative;background:#131a23;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:9px 6px 7px;min-width:64px;cursor:pointer;text-align:center}
+.cbtn:hover{border-color:#46586c}
 .cbtn.on{border-color:var(--teal);background:rgba(92,201,167,.13)}
+.cbtn.armed{border-color:var(--gold);background:rgba(232,179,75,.14)}
+.cbtn.cam{border-style:dashed;border-color:#46586c}
+.cbtn.cur{border-color:#46586c;background:rgba(255,255,255,.06)}
 .cbtn .i{font-size:21px;display:block}
 .cbtn .l{font-size:10.5px;font-weight:700;color:var(--ink2);display:block;margin-top:1px}
 .cbtn:disabled{opacity:.4;cursor:not-allowed}
@@ -249,6 +256,7 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
   #tray:not(.selopen) #selInfo, #tray:not(.selopen) #cmds{display:none}
   #selInfo{order:1;min-width:0;max-width:none;position:relative;padding-right:38px}
   #cmds{order:2;flex:1 1 auto;min-height:0;overflow-y:auto;align-content:flex-start}
+  .cgrp.sep{border-left:none;padding-left:0;border-top:1px solid var(--line);padding-top:8px}
   #tray #speeds{order:3;flex-basis:auto;flex:none}
   #selInfo .selX{display:block;position:absolute;top:0;right:0;width:30px;height:30px;background:#131a23;border:1px solid var(--line);color:var(--ink);border-radius:8px;font-size:13px;cursor:pointer;padding:0}
 }
@@ -833,7 +841,7 @@ function newSlice(){
     rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0, offer:null, offerAccepted:false,
     rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0,
     sites:[], siteSeq:0, lastFoundSeason:0, houseCapacity:10, banked:false, foundArm:false, foundPlot:null, buildPref:null,
-    bonds:{}, households:[], householdSeq:0, soloHoused:0, departed:0, arrival:null, speakCd:0, speakArm:false, newSeq:0, kidSeq:0, births:0,
+    bonds:{}, households:[], householdSeq:0, soloHoused:0, departed:0, arrival:null, speakCd:0, speakArm:false, coverArm:false, coachBank:false, coachSick:false, newSeq:0, kidSeq:0, births:0,
     tiers:{clinic:1, fields:1, store:1, green:1, mill:1, school:1, well:1}, tierProg:{}, tierWorkers:{}, builtWealth:0, deaths:[], proclaim:null, proclaimArm:false, lastHarmWeek:null,
     stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
     objStation:"clinic", objComplete:false, objDone:0, scapegoats:0, delays:[],
@@ -2591,6 +2599,7 @@ function drawIncident(){
    a resident already close falls sick where they stand. */
 function makeSick(p){
   if(!p || p.sick || p.sickWalk) return false;
+  if(!G.coachSick && !p.child){ G.coachSick = true; showToast(G.banked ? "🚑 " + p.name.split(" ")[0] + " is sick. Jonah is the only medic: cover sends him to members first, and Call Out buys a visit for anyone else." : "🚑 " + p.name.split(" ")[0] + " is sick. Jonah is the only medic, and he takes people in turn."); }
   var d = Math.sqrt(p.x * p.x + (p.z - 8.6) * (p.z - 8.6));
   if(d > 3){ p.sickWalk = true; p.order = null; p.fetch = null; p.carrying = null; goTo(p, 0, 8.6, "green"); setBubble(p, "✚", 3); return true; }
   p.sick = true; p.state = "sit"; p.stationId = "green";
@@ -3197,6 +3206,11 @@ function endWeek(){
      sweep, so cash that just landed in the account counts toward
      this boundary's premium. */
   premiumSweep();
+  if(!G.coachBank){
+    if(G.banked){ G.coachBank = true; }
+    else { var richA = null; for(var ci = 0; ci < G.agents.length; ci++){ var ca = G.agents[ci]; if(!ca.child && (ca.cash || 0) >= 20){ richA = ca; break; } }
+      if(richA){ G.coachBank = true; showToast("💰 " + richA.name.split(" ")[0] + " is carrying " + Math.floor(richA.cash) + "🪙 in cash. A bank would let residents save what they earn, and buy cover."); } }
+  }
   if(seasonOfYear() === 3) telegraphFailing();
   if(seasonOfYear() === 4) winterDeaths();
   if(seasonOfYear() === 1){
@@ -3378,7 +3392,7 @@ function checkEnd(){
 }
 window.__closeChronicle = function(){ endGame("closed"); };
 
-/* CF-REF: chronicle-and-saves.md [129] */
+/* CF-REF: chronicle-and-saves.md [132] */
 /* Stage 8: persistence. One localStorage snapshot lets a village
    survive a reload. The save is the Store state as JSON with the
    transient render objects stripped by key (figures, overlay
@@ -3473,6 +3487,9 @@ function restoreState(st){
   st.curIncident = (typeof st.curIncident === "number") ? (INCIDENTS[st.curIncident] || null) : null;
   if(!Array.isArray(st.chronicle)) st.chronicle = [];
   if(!Array.isArray(st.medicQueue)) st.medicQueue = [];
+  st.coverArm = false;
+  if(typeof st.coachBank !== "boolean") st.coachBank = false;
+  if(typeof st.coachSick !== "boolean") st.coachSick = false;
   if(typeof st.ttiPaid !== "number") st.ttiPaid = 0;
   if(typeof st.ttiSavesUsed !== "number") st.ttiSavesUsed = 0;
   if(!Array.isArray(st.deaths)) st.deaths = [];
@@ -3584,6 +3601,7 @@ var CMDS = [
   {id:"home", icon:"🏠", label:"Rest"}
 ];
 var trayKey = "";
+var traySelId = null;
 function refreshTray(force){
   var a = G.selected ? agent(G.selected) : null;
   /* Phone bottom-sheet state derives from the selection alone: the
@@ -3596,10 +3614,11 @@ function refreshTray(force){
      moment the verb comes back reads at a glance (display only, no sim change). */
   var spotCdN = Math.ceil(G.spotCd - G.t), spotOnCd = G.spotCd > G.t;
   var spotFresh = !spotOnCd && !!a && G.spotCd > 0 && G.t - G.spotCd < 4;
-  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.sick ? "S" : "") : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + "|" + (G.foundArm ? "F" : "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "");
+  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.sick ? "S" : "") : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + "|" + (G.foundArm ? "F" : "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "") + "|" + (G.modelArm ? "MA" : "") + (G.coverArm ? "CA" : "") + (G.banked ? "BK" : "") + (a && a.bank != null ? "AC" : "") + (a && a.child ? "K" : "") + (a && a.spotUntil ? Math.ceil(Math.max(0, a.spotUntil - G.t)) : "") + (G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : "");
   if(!force && key === trayKey) return;
   trayKey = key;
   var info = document.getElementById("selInfo");
+  if((G.selected || null) !== traySelId){ traySelId = G.selected || null; G.coverArm = false; }
   if(a){
     // CF-REF: axis-label-selected-surfaces.md [2]
     var ax = axisOf(a);
@@ -3607,41 +3626,61 @@ function refreshTray(force){
       + "<div class='nm'>" + (a.vis >= 60 ? "🔥 " : "") + a.name + "</div>"
       + "<div class='st'>" + activityText(a) + " · ⚡" + Math.round(a.energy) + " ♥" + Math.round(a.morale) + " 👀" + Math.round(a.vis) + "</div>"
       + "<div class='st'>" + (a.reason ? a.reason + " · " : "") + watchLine(a) + "</div>"
+      + (function(){ var ch = []; if(a.sick) ch.push("🚑 Sick"); if(a.child) ch.push("🧒 Child"); if(a.tier && TTI[a.tier]) ch.push(TTI[a.tier].glyph + " " + TTI[a.tier].name + " cover"); if(a.spotUntil && a.spotUntil > G.t) ch.push("✨ Watched"); return ch.length ? "<div class='chips'>" + ch.map(function(c2){ return "<span class='chip2'>" + c2 + "</span>"; }).join("") + "</div>" : ""; })()
       + "<button class='selX' id='selX' type='button' aria-label='Close'>✕</button>";
   } else {
     info.innerHTML = "<div class='rl'>Village</div><div class='nm'>No selection</div><div class='st'>Tap a resident. Tap a building to send them. Drag to look around.</div>";
   }
   var selX = document.getElementById("selX");
   if(selX) selX.addEventListener("click", function(){ Store.dispatch("ui/select", {id: null}); refreshTray(true); });
-  var html = CMDS.map(function(c){
+  /* CF-REF: highlight-vocabulary.md [36] */
+  var speakCdN = G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : 0;
+  var html = "<div class='cgrp'><span class='glab'>Send to</span>" + CMDS.map(function(c){
     var on = a && ((c.id === "auto" && !a.order) || a.order === c.id);
     var wnt = a && a.want && a.want.station === c.id;
-    return "<button class='cbtn" + (on ? " on" : "") + (wnt ? " wantpulse" : "") + "' data-o='" + c.id + "'" + (!a ? " disabled" : "") + "><span class='i'>" + c.icon + "</span><span class='l'>" + c.label + "</span></button>";
+    return "<button class='cbtn" + (on ? " on" : "") + "' data-o='" + c.id + "'" + (!a ? " disabled" : "") + "><span class='i'>" + c.icon + "</span><span class='l'>" + c.label + "</span>" + (wnt ? "<span class='wb'>💭</span>" : "") + "</button>";
   }).join("");
-  html += "<button class='cbtn" + (cam.follow ? " on" : "") + "' data-o='follow'" + (!a ? " disabled" : "") + "><span class='i'>🎥</span><span class='l'>Follow</span></button>";
-  html += "<button class='cbtn" + (G.armed ? " on" : "") + (spotFresh ? " rdyflash" : "") + "' data-o='spot'" + (!a || spotOnCd ? " disabled" : "") + "><span class='i'>✨</span><span class='l'>Spotlight" + (spotOnCd ? " · " + spotCdN + "s" : "") + "</span></button>";
-  html += "<button class='cbtn" + (G.modelArm ? " on" : "") + "' data-o='model'" + (!a ? " disabled" : "") + "><span class='i'>👁</span><span class='l'>Model</span></button>";
-  html += "<button class='cbtn" + (G.proclaimArm ? " on" : "") + "' data-o='proclaim'><span class='i'>📣</span><span class='l'>Proclaim</span></button>";
-  html += "<button class='cbtn' data-o='thoughts'" + (!a ? " disabled" : "") + "><span class='i'>💭</span><span class='l'>Thoughts</span></button>";
-  html += "<button class='cbtn" + (G.speakArm ? " on" : "") + "' data-o='speak'><span class='i'>🕊</span><span class='l'>Speak For</span></button>";
-  if(a && !a.child && G.banked && a.bank != null) html += "<button class='cbtn' data-o='cover'><span class='i'>🛡</span><span class='l'>Cover: " + (a.tier && TTI[a.tier] ? TTI[a.tier].name : "None") + "</span></button>";
-  if(a && !a.child && a.sick && !a.tier) html += "<button class='cbtn' data-o='callout'><span class='i'>🚑</span><span class='l'>Call Out · " + TTI.spotFee + "🪙</span></button>";
-  html += "<button class='cbtn" + (G.ui && G.ui.muted ? " on" : "") + "' data-o='mute'><span class='i'>" + (G.ui && G.ui.muted ? "🔇" : "🔊") + "</span><span class='l'>Sound</span></button>";
-  var openSite = firstSiteOpen();
-  html += "<button class='cbtn" + (a && a.order === "build" ? " on" : "") + "' data-o='build'" + (!a || !openSite ? " disabled" : "") + "><span class='i'>🔨</span><span class='l'>Build</span></button>";
-  html += "<button class='cbtn" + (G.foundArm ? " on" : "") + "' data-o='found'><span class='i'>🏗</span><span class='l'>Found</span></button>";
+  html += "<button class='cbtn" + (a && a.order === "build" ? " on" : "") + "' data-o='build'" + (!a ? " disabled" : "") + "><span class='i'>🔨</span><span class='l'>Build</span></button></div>";
+  html += "<div class='cgrp sep'><span class='glab'>Influence</span>";
+  html += "<button class='cbtn" + (G.armed ? " armed" : "") + (spotFresh ? " rdyflash" : "") + "' data-o='spot'" + (!a || spotOnCd ? " disabled" : "") + "><span class='i'>✨</span><span class='l'>Spotlight" + (spotOnCd ? " · " + spotCdN + "s" : "") + "</span></button>";
+  html += "<button class='cbtn" + (G.modelArm ? " armed" : "") + "' data-o='model'" + (!a ? " disabled" : "") + "><span class='i'>👁</span><span class='l'>Model</span></button>";
+  html += "<button class='cbtn" + (G.speakArm ? " armed" : "") + "' data-o='speak'><span class='i'>🕊</span><span class='l'>Speak For" + (speakCdN ? " · " + speakCdN + "s" : "") + "</span></button>";
+  html += "<button class='cbtn' data-o='thoughts'" + (!a ? " disabled" : "") + "><span class='i'>💭</span><span class='l'>Thoughts</span></button></div>";
+  if(a && !a.child && ((G.banked && a.bank != null) || (a.sick && !a.tier))){
+    html += "<div class='cgrp sep'><span class='glab'>Care</span>";
+    if(a.sick && !a.tier) html += "<button class='cbtn' data-o='callout'><span class='i'>🚑</span><span class='l'>Call Out · " + TTI.spotFee + "🪙</span></button>";
+    if(G.banked && a.bank != null){
+      if(!G.coverArm){
+        html += "<button class='cbtn' data-o='cover'><span class='i'>🛡</span><span class='l'>Cover: " + (a.tier && TTI[a.tier] ? TTI[a.tier].name : "None") + "</span></button>";
+      } else {
+        html += [null, "silver", "executive", "platinum"].map(function(tid){
+          var cur = (a.tier || null) === tid;
+          var lb = tid ? TTI[tid].name + " · " + TTI[tid].premium + "🪙" : "None";
+          var ic = tid ? TTI[tid].glyph : "🛡";
+          return "<button class='cbtn" + (cur ? " cur" : "") + "' data-o='covertier' data-t='" + (tid || "") + "'><span class='i'>" + ic + "</span><span class='l'>" + (cur ? "✓ " : "") + lb + "</span></button>";
+        }).join("");
+      }
+    }
+    html += "</div>";
+  }
+  html += "<div class='cgrp sep'><span class='glab'>Village</span>";
+  html += "<button class='cbtn" + (cam.follow ? " cam" : "") + "' data-o='follow'" + (!a ? " disabled" : "") + "><span class='i'>🎥</span><span class='l'>Follow</span></button>";
+  html += "<button class='cbtn" + (G.proclaimArm ? " armed" : "") + "' data-o='proclaim'><span class='i'>📣</span><span class='l'>Proclaim</span></button>";
+  html += "<button class='cbtn" + (G.foundArm ? " armed" : "") + "' data-o='found'><span class='i'>🏗</span><span class='l'>Found</span></button>";
   html += "<button class='cbtn' data-o='story'><span class='i'>📖</span><span class='l'>Story</span></button>";
+  html += "<button class='cbtn' data-o='mute'><span class='i'>" + (G.ui && G.ui.muted ? "🔇" : "🔊") + "</span><span class='l'>Sound</span></button></div>";
   var cmds = document.getElementById("cmds");
   cmds.innerHTML = html;
   cmds.querySelectorAll(".cbtn").forEach(function(b){
     b.addEventListener("click", function(){
       var o = b.getAttribute("data-o");
       if(o === "follow"){ cam.follow = cam.follow ? null : G.selected; refreshTray(true); return; }
-      if(o === "spot"){ G.armed = true; G.modelArm = false; G.proclaimArm = false; G.speakArm = false; showToast("✨ Tap a resident to spotlight them"); refreshTray(true); return; }
-      if(o === "model"){ G.modelArm = true; G.armed = false; G.proclaimArm = false; G.speakArm = false; showToast("👁 Tap who " + (a ? a.name.split(" ")[0] : "they") + " should look up to"); refreshTray(true); return; }
-      if(o === "proclaim"){ G.proclaimArm = !G.proclaimArm; G.armed = false; G.modelArm = false; G.foundArm = false; G.speakArm = false; if(G.proclaimArm){ var pcEarly = !!(G.proclaim && G.proclaim.week === G.week); showToast("📣 Tap a building, or a building site, to proclaim the village's focus for the season" + (pcEarly ? ". Shifting the focus early costs " + LIFE.proclaimRecost + " cohesion" : "")); } refreshTray(true); return; }
+      if(o === "spot"){ G.armed = true; G.modelArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; showToast("✨ Tap a resident to spotlight them"); refreshTray(true); return; }
+      if(o === "model"){ G.modelArm = true; G.armed = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; showToast("👁 Tap who " + (a ? a.name.split(" ")[0] : "they") + " should look up to"); refreshTray(true); return; }
+      if(o === "proclaim"){ G.proclaimArm = !G.proclaimArm; G.armed = false; G.modelArm = false; G.foundArm = false; G.speakArm = false; G.coverArm = false; if(G.proclaimArm){ var pcEarly = !!(G.proclaim && G.proclaim.week === G.week); showToast("📣 Tap a building, or a building site, to proclaim the village's focus for the season" + (pcEarly ? ". Shifting the focus early costs " + LIFE.proclaimRecost + " cohesion" : "")); } refreshTray(true); return; }
       if(o === "thoughts"){ if(G.selected) Store.dispatch("ui/sheet", {id:G.selected}); return; }
       if(o === "speak"){
+        G.coverArm = false;
         if(G.speakArm){ G.speakArm = false; speakFor(); refreshTray(true); return; }
         /* The button stays tappable in its gated states so the tap can teach:
            speakFor() names the reason (blame too low, or a defense heard too
@@ -3655,12 +3694,13 @@ function refreshTray(force){
         } else { speakFor(); }
         refreshTray(true); return;
       }
-      if(o === "cover"){ if(a && setTier(a, [null, "silver", "executive", "platinum"][([null, "silver", "executive", "platinum"].indexOf(a.tier || null) + 1) % 4])) showToast("🛡 " + a.name.split(" ")[0] + ": " + (a.tier ? TTI[a.tier].name + " cover" : "no cover")); refreshTray(true); return; }
+      if(o === "cover"){ if(a && !a.child && G.banked && a.bank != null){ G.coverArm = true; G.armed = false; G.modelArm = false; G.proclaimArm = false; G.speakArm = false; G.foundArm = false; showToast("🛡 Cover for " + a.name.split(" ")[0] + " is " + (a.tier ? TTI[a.tier].name : "none") + " now. Premiums come out of the bank account each season. Platinum goes first in the medic queue, winter deaths are halved, and one death a year is turned away."); } refreshTray(true); return; }
+      if(o === "covertier"){ if(a){ var tid2 = b.getAttribute("data-t") || null; G.coverArm = false; if((a.tier || null) !== tid2 && setTier(a, tid2)) showToast("🛡 " + a.name.split(" ")[0] + ": " + (tid2 ? TTI[tid2].name + " cover, " + TTI[tid2].premium + "🪙 a season" : "no cover")); } refreshTray(true); return; }
       if(o === "callout"){ if(a) callOut(a); refreshTray(true); return; }
       if(o === "mute"){ Store.dispatch("ui/mute"); try { if(typeof localStorage !== "undefined") localStorage.setItem("mv_muted", (G.ui && G.ui.muted) ? "1" : "0"); } catch(e){} SND.play("toggle"); refreshTray(true); return; }
       if(o === "story"){ storySoFar(false); return; }
-      if(o === "build"){ setOrder3("build"); return; }
-      if(o === "found"){ G.foundArm = !G.foundArm; G.foundPlot = null; G.proclaimArm = false; G.speakArm = false; if(G.foundArm) showToast("🏗 Tap a surveyed plot (gold ring) to found a building"); refreshTray(true); return; }
+      if(o === "build"){ if(a && !firstSiteOpen()){ showToast("🔨 No building site is open right now. Found a building first, or let the current one finish."); return; } setOrder3("build"); return; }
+      if(o === "found"){ G.foundArm = !G.foundArm; G.foundPlot = null; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; if(G.foundArm) showToast("🏗 Tap a surveyed plot (gold ring) to found a building"); refreshTray(true); return; }
       setOrder3(o);
     });
   });
