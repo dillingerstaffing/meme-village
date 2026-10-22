@@ -4080,7 +4080,10 @@ function fxTick(dt){
   var showCoach = G.started && !G.over && !G.firstOrder;
   if(coachStation){ coachStation.rotation.y += dt * 1.8; coachAgent.rotation.y += dt * 1.8;
     var st = STATION3[G.objStation];
-    coachStation.visible = !!(showCoach && st && G.selected);
+    /* Teach by doing: the destination cone shows before any selection, so a
+       first-session player who never taps still sees both ends of the loop
+       (loafer cone, station cone) with no text. */
+    coachStation.visible = !!(showCoach && st);
     if(st){ coachStation.position.set(st.x, 9.4 + Math.sin(G.t * 3.2) * 0.6, st.z); var cs = 1 + 0.13 * Math.sin(G.t * 5); coachStation.scale.set(cs, cs, cs); }
   }
   if(coachAgent){
