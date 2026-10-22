@@ -4210,6 +4210,13 @@ function overlayModel(a, s){
      bubbles still win while fresh, but the marker always returns until
      winter resolves it. Position is the resident's own anchor. */
   else if(a.failing) bubble = {icon:"🤒", kind:"event", opacity:1};
+  /* A sick resident carries the 🩺 as a persistent resting state until
+     recovery or the medic's visit: the sim acts on sickness (medic queue,
+     Call Out, lost labor), and the intent slot cannot carry the signal
+     because every resting resident shows the ✚ there too. Same priority
+     and anchor rules as the failing marker above; transient bubbles
+     still win while fresh. */
+  else if(a.sick || a.sickWalk) bubble = {icon:"🩺", kind:"event", opacity:1};
   if(bubble && !bubble.icon) bubble = null;
   var intent = null;
   var ii = intentIcon(a);
