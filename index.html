@@ -33,10 +33,13 @@ canvas{display:block}
 #sliceTag{top:10px;left:50%;transform:translateX(-50%);background:rgba(90,20,16,.85);border:1px solid var(--red);color:#ffd9d4;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:800;letter-spacing:.18em}
 #toast{bottom:118px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--gold);border-radius:22px;padding:8px 18px;font-size:14px;font-weight:700;display:none;white-space:nowrap;max-width:94vw}
 .toast-chip{background:none;border:none;color:inherit;font:inherit;font-weight:inherit;cursor:pointer;padding:0;text-decoration:underline dotted;text-underline-offset:3px}
-#alerts{position:fixed;left:10px;bottom:118px;display:flex;flex-direction:column;gap:6px;z-index:29}
+#alerts{position:fixed;left:10px;bottom:118px;display:flex;flex-direction:column;gap:6px;z-index:29;pointer-events:none}
+#alerts .alert-chip{pointer-events:auto}
 #pressure{position:fixed;z-index:9;transform:translate(-50%,-100%);pointer-events:none;background:rgba(80,18,12,.88);color:#ffd9d0;border:1px solid #e86a4b;border-radius:8px;padding:2px 8px;font:700 12px 'Inter',sans-serif;display:none}
 .alert-chip{background:rgba(14,20,16,.9);border:1px solid var(--gold);color:var(--ink);border-radius:8px;padding:7px 11px;font:600 12px 'Inter',sans-serif;cursor:pointer;text-align:left;box-shadow:0 4px 14px rgba(0,0,0,.35)}
 .alert-chip b{color:var(--gold)}
+#projPick .alert-chip{min-height:44px;padding:10px 12px;font-size:13px;display:flex;align-items:center;gap:6px}
+@media (max-width:560px){#projPick .alert-chip{flex:1 1 100%}}
 .ovl .bubble.wantb{border:2px dashed var(--gold);background:rgba(255,244,214,.97)}
 .cbtn.wantpulse{animation:wantp 1s ease-in-out infinite;border-color:var(--gold)}
 @keyframes wantp{0%,100%{box-shadow:0 0 0 0 rgba(232,179,75,0)}50%{box-shadow:0 0 0 3px rgba(232,179,75,.55)}}
@@ -141,7 +144,7 @@ canvas{display:block}
 }
 @media (max-width:560px){#alerts{bottom:216px}}
 #vignette{position:fixed;inset:0;pointer-events:none;z-index:5;background:radial-gradient(ellipse at center,transparent 56%,rgba(16,22,14,.42) 100%)}
-#minimap{position:fixed;right:10px;bottom:150px;width:192px;height:144px;z-index:11;background:#22301f;border:1px solid var(--line);border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+#minimap{position:fixed;right:10px;bottom:150px;width:192px;height:144px;z-index:11;pointer-events:none;background:#22301f;border:1px solid var(--line);border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.35)}
 @media (max-width:560px){#minimap{width:118px;height:88px;bottom:auto;top:202px}}
 </style>
 </head>
@@ -1853,6 +1856,22 @@ function hudTick(dt){
       } else if(stEl.style.bottom){ stEl.style.bottom = ""; }
     }
   }
+  /* Phone character sheet: start it below the objective card. The sheet is
+     z-above the card, and at 86% height it covered the card's project pick
+     buttons entirely, so the choice read as flaky and the sheet ate every
+     camera drag. top + bottom define the height here (height set to auto). */
+  var shEl2 = document.getElementById("sheet");
+  if(shEl2){
+    if(window.innerWidth <= 720 && shEl2.style.display === "block"){
+      var ocEl = document.getElementById("objCard");
+      var sTop = ((ocEl ? ocEl.offsetHeight : 150) + 20) + "px";
+      if(shEl2.style.top !== sTop) shEl2.style.top = sTop;
+      if(shEl2.style.height !== "auto") shEl2.style.height = "auto";
+    } else {
+      if(shEl2.style.top) shEl2.style.top = "";
+      if(shEl2.style.height) shEl2.style.height = "";
+    }
+  }
 }
 function intentIcon(a){
   if(a.sick || a.state === "sit") return "✚";
@@ -2020,6 +2039,7 @@ function overlayModel(a, s){
   if(!bubble && !intent && !name) return null;
   return {x:sx, y:sy, bubble:bubble, intent:intent, name:name};
 }
+var _ovlCamX = null, _ovlCamY = null, _ovlCamZ = null, _ovlMoveAt = 0;
 function renderOverlay(s){
   if(!s || !s.agents || !camera) return;
   var hud = leftHudRect();
@@ -2059,6 +2079,12 @@ function renderOverlay(s){
     return 3;
   }
   placed.sort(function(p, q){ var rp = ovlRank(p) - ovlRank(q); return rp !== 0 ? rp : p._ovlModel.y - q._ovlModel.y; });
+  var camMoving = false;
+  if(camera){
+    if(_ovlCamX !== null && (Math.abs(camera.position.x - _ovlCamX) > 0.02 || Math.abs(camera.position.y - _ovlCamY) > 0.02 || Math.abs(camera.position.z - _ovlCamZ) > 0.02)) _ovlMoveAt = performance.now();
+    _ovlCamX = camera.position.x; _ovlCamY = camera.position.y; _ovlCamZ = camera.position.z;
+    camMoving = (performance.now() - _ovlMoveAt) < 150;
+  }
   var boxes = [];
   function ovlHit(x, y, hw, hh){
     for(var i = 0; i < boxes.length; i++){
@@ -2072,12 +2098,12 @@ function renderOverlay(s){
     var hw = (el.offsetWidth || 46) / 2, hh = el.offsetHeight || 56;
     var x = Math.max(hw + 4, Math.min(window.innerWidth - hw - 4, m.x));
     var y = m.y;
-    if(hud && y > hud.top - 40 && y - hh < hud.bottom + 12 && x - hw < hud.right + 6){
+    if(!camMoving && hud && y > hud.top - 40 && y - hh < hud.bottom + 12 && x - hw < hud.right + 6){
       var hx = hud.right + 6 + hw;
       if(hx - m.x <= DX_MAX || s.selected === a.id) x = hx;
       else { el.style.display = "none"; a._ovlSig = ""; return; }
     }
-    var hit = ovlHit(x, y, hw, hh);
+    var hit = camMoving ? null : ovlHit(x, y, hw, hh);
     if(hit){
       var cands = [hit.x - hit.hw - hw - 6, hit.x + hit.hw + hw + 6];
       var sided = false;
@@ -2219,7 +2245,10 @@ function bindInput(){
     }
   }
   el.addEventListener("pointerup", endPointer);
-  el.addEventListener("pointercancel", endPointer);
+  el.addEventListener("pointercancel", function(e){
+    pointers.delete(e.pointerId);
+    if(pointers.size === 0){ downAt = null; dragged = false; }
+  });
   el.addEventListener("wheel", function(e){ e.preventDefault(); cam.dist = Math.max(15, Math.min(62, cam.dist * (e.deltaY > 0 ? 1.1 : 0.9))); }, {passive:false});
   el.addEventListener("contextmenu", function(e){ e.preventDefault(); tapAt(e.clientX, e.clientY, true); });
   el.addEventListener("dblclick", function(e){
