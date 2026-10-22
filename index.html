@@ -62,6 +62,13 @@ canvas{display:block}
 #sheet .sh-x{margin-left:auto;background:#131a23;border:1px solid var(--line);color:var(--ink);border-radius:8px;width:34px;height:34px;font-size:15px;cursor:pointer;flex:none}
 #sheet .sh-x:hover{border-color:var(--gold)}
 #sheet .sh-quote{font-size:17px;line-height:1.45;margin-top:16px}
+#sheet .sh-needs{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+#sheet .sh-need{display:flex;align-items:center;gap:9px;margin:5px 0}
+#sheet .sh-need .nl{font-size:10px;letter-spacing:.16em;color:var(--ink2);text-transform:uppercase;font-weight:700;width:76px;flex:none}
+#sheet .sh-bar{flex:1;height:5px;background:rgba(255,255,255,.10)}
+#sheet .sh-bar i{display:block;height:100%;background:var(--gold)}
+#sheet .sh-need .nv{font-size:11px;color:var(--ink);width:26px;text-align:right;flex:none}
+#sheet .sh-work{font-size:12.5px;color:var(--ink2);margin-top:10px;line-height:1.5}
 #sheet .sh-empty{font-size:14px;color:var(--ink2);margin-top:16px}
 #sheet .sh-row{border-top:1px solid var(--line);margin-top:14px;padding-top:10px}
 #sheet .sh-wk{font-size:10px;letter-spacing:.16em;color:var(--ink2);text-transform:uppercase;font-weight:700}
@@ -328,7 +335,8 @@ function renderSheet(s){
     return;
   }
   var log = a.thoughtLog || [];
-  var key = a.id + "|" + (a.thought ? a.thought.at + ":" + a.thought.text : "none") + "|" + log.length;
+  var whSig = 0; if(a.workHist) for(var wkk in a.workHist) whSig += a.workHist[wkk];
+  var key = a.id + "|" + (a.thought ? a.thought.at + ":" + a.thought.text : "none") + "|" + log.length + "|" + NEED_DEFS.map(function(d){ return Math.round(needVal(a, d.id)); }).join(":") + ":" + whSig;
   if(key === sheetKey && el.style.display !== "none") return;
   sheetKey = key;
   var shirt = "#" + ("000000" + (a.shirt || 0).toString(16)).slice(-6);
@@ -337,6 +345,13 @@ function renderSheet(s){
   var h = "<div class='sh-head'><div class='sh-chip' style='background:" + shirt + "'><div class='sh-hair' style='background:" + hair + "'></div><div class='sh-letter'>" + a.name.charAt(0) + "</div></div>"
     + "<div><div class='sh-name'>" + a.name + "</div><div class='sh-role'>" + a.role + (ax2 ? " · " + ax2.icon + " " + ax2.label : "") + "</div></div>"
     + "<button class='sh-x' type='button' aria-label='Close'>✕</button></div>";
+  h += "<div class='sh-needs'>" + NEED_DEFS.map(function(d){ var nv = Math.round(needVal(a, d.id)); return "<div class='sh-need'><span class='nl'>" + d.label + "</span><div class='sh-bar'><i style='width:" + nv + "%'></i></div><span class='nv'>" + nv + "</span></div>"; }).join("") + "</div>";
+  var went = [];
+  if(a.workHist) Object.keys(a.workHist).forEach(function(k){ if(a.workHist[k] > 0) went.push(k); });
+  went.sort(function(x, y){ return a.workHist[y] - a.workHist[x]; });
+  if(went.length){
+    h += "<div class='sh-work'>Work: " + went.map(function(k){ var sn = STATION3[k]; return (k === "green" ? "Green" : (sn ? sn.name : k)) + " " + a.workHist[k]; }).join(" \u00B7 ") + "</div>";
+  }
   if(a.thought){
     h += "<div class='sh-quote'>\u201C" + a.thought.text + "\u201D</div>";
     for(var i = log.length - 2; i >= 0; i--){
@@ -620,9 +635,11 @@ function makeAgents(){
       x:d.home[0], z:d.home[1], heading:Math.random()*6.28, tx:0, tz:0,
       state:"idle", stationId:null, slot:null, actT:0, decideT:Math.random()*2, loafT:0, alerted:false,
       energy:80 - (i%4)*4, morale:72, phase:Math.random()*10, walkPhase:0,
-      order:null, carrying:null, bubble:null, bubbleUntil:0, watchOf:null, watchT:0, want:null, wantCd:Math.random()*10, wantPend:null, driveObj:false,
+      order:null, carrying:null, bubble:null, bubbleUntil:0, watchOf:null, watchT:0, want:null, wantCd:Math.random()*10, wantPend:null, driveObj:false, workHist:{},
       idleT:0, sick:false, seed:Math.random()*100, model:d.admires, blamed:0, modelCd:0, axis:axisPool[i], thought:null, thoughtLog:[], recentEvents:[], thoughtAt:-99
     });
+    a.needs = {};
+    NEED_DEFS.forEach(function(d){ a.needs[d.id] = d.start(i); });
     a.tx = a.x; a.tz = a.z;
     a.root.position.set(a.x, 0, a.z);
     a.hit.userData.agentId = a.id;
@@ -743,8 +760,103 @@ function wk(a, key, amt){
     G.weekWorkP[key] += amt * mult;
     if(G.objWorkers) G.objWorkers[a.id] = a.model || "";
     var pr = G.project;
-    if(pr && !pr.done && pr.parts[key]){ pr.parts[key].have += amt * mult; if(pr.chainKey === key) pr.workers[a.id] = a.model || ""; }
+    if(pr && !pr.done && pr.parts[key]){ var pp2 = pr.parts[key]; var wasFull = pp2.have >= pp2.need; pp2.have += amt * mult; if(pr.chainKey === key) pr.workers[a.id] = a.model || ""; if(!wasFull && pp2.have >= pp2.need) addNeed(a, "purpose", 20); }
   }
+}
+/* The needs table: every need a resident carries is an entry here, with
+   its own starting value, personality weight, per-second drain and
+   refill terms, and the pressure it puts on decide(). Later stages add
+   needs by adding entries; the tick loop, the decide() hook, and the
+   character sheet all iterate this table rather than naming a need.
+   Values live per resident in a.needs, keyed by entry id. The tick
+   receives ctx, the resident's social situation this tick, computed
+   once: company (their model or a follower within reach), watched
+   (selected, camera following, or under a watch), atGreen, and
+   converging (a follower acting at the same station). Belonging is
+   defined over the imitation graph: it drains away from the resident's
+   model and followers, and refills at the green, in company, and under
+   attention; unmet belonging lowers morale over time. Purpose is
+   prestige as nutrition: it drains only out of work nobody copies and
+   nobody joins, and refills when a follower copies the resident's
+   station (the hook in stepAgents), when their driven work fills a
+   project part (the hook in wk), under a watch, and in converging
+   work. Need weights vary by disposition and axis, so the same need
+   is a different force in different people. */
+function needVal(a, id){
+  if(!a.needs) a.needs = {};
+  if(a.needs[id] == null){ for(var i = 0; i < NEED_DEFS.length; i++) if(NEED_DEFS[i].id === id) a.needs[id] = NEED_DEFS[i].start(0); }
+  return a.needs[id];
+}
+function addNeed(a, id, amt){
+  a.needs[id] = Math.max(0, Math.min(100, needVal(a, id) + amt));
+}
+var NEED_DEFS = [
+  { id:"belonging", label:"Belonging",
+    start:function(i){ return 62 + (i%5)*6; },
+    weight:function(a){
+      var w = 1;
+      if(a.disp === "Withdrawn") w = 0.5; else if(a.disp === "Helpful") w = 1.3; else if(a.disp === "Selfish") w = 1.1; else if(a.disp === "Diligent") w = 0.85;
+      if(a.axis === "liberty") w *= 0.85; else if(a.axis === "oppression") w *= 1.1;
+      return w;
+    },
+    tick:function(a, dt, ctx){
+      var v = needVal(a, "belonging");
+      if(ctx.atGreen) v += 2.6 * dt;
+      else if(ctx.watched) v += 1.8 * dt;
+      else if(ctx.company) v += 1.2 * dt;
+      else v -= 0.55 * this.weight(a) * dt;
+      v = Math.max(0, Math.min(100, v));
+      a.needs.belonging = v;
+      if(v < 25) a.morale = Math.max(0, a.morale - 0.3 * dt);
+    },
+    press:function(a, ads){
+      var v = needVal(a, "belonging");
+      if(v < 55){
+        var bp = 55 - v;
+        ads.green += bp * 0.55;
+        var m = a.model ? agent(a.model) : null;
+        if(m && m.stationId && ads[m.stationId] != null) ads[m.stationId] += bp * 0.4;
+      }
+    }
+  },
+  { id:"purpose", label:"Purpose",
+    start:function(i){ return 55 + (i%4)*7; },
+    weight:function(a){
+      var w = 1;
+      if(a.disp === "Selfish") w = 1.3; else if(a.disp === "Helpful") w = 0.8; else if(a.disp === "Diligent") w = 0.9; else if(a.disp === "Withdrawn") w = 0.7;
+      if(a.axis === "civilization") w *= 1.15; else if(a.axis === "liberty") w *= 0.9; else if(a.axis === "oppression") w *= 1.1;
+      return w;
+    },
+    tick:function(a, dt, ctx){
+      var v = needVal(a, "purpose");
+      if(ctx.converging) v += 0.9 * dt;
+      else if(ctx.watched) v += 1.2 * dt;
+      else if(a.state === "act") v -= 0.22 * this.weight(a) * dt;
+      a.needs.purpose = Math.max(0, Math.min(100, v));
+    },
+    press:function(a, ads){
+      var v = needVal(a, "purpose");
+      if(v < 45){
+        var pp = (45 - v) * 0.4;
+        if(ads[G.objStation] != null) ads[G.objStation] += pp;
+        var ps = projectStation();
+        if(ps && ads[ps] != null) ads[ps] += pp * 0.8;
+      }
+    }
+  }
+];
+function needsTick(a, dt){
+  var mdl = a.model ? agent(a.model) : null;
+  var ctx = {company:false, converging:false, watched:(G.selected === a.id) || (cam.follow === a.id),
+    atGreen: a.stationId === "green" && (a.state === "act" || a.state === "sit")};
+  for(var i = 0; i < G.agents.length; i++){
+    var b = G.agents[i]; if(b === a) continue;
+    var dx = b.x - a.x, dz = b.z - a.z, near = (dx*dx + dz*dz) < 49;
+    if(near && (b === mdl || b.model === a.id)) ctx.company = true;
+    if(b.watchOf === a.id && b.state === "watch") ctx.watched = true;
+    if(b.model === a.id && b.state === "act" && a.state === "act" && b.stationId === a.stationId) ctx.converging = true;
+  }
+  for(var j = 0; j < NEED_DEFS.length; j++) NEED_DEFS[j].tick(a, dt, ctx);
 }
 function decide(a){
   if(a.sick || a.medicTask) return;
@@ -769,6 +881,7 @@ function decide(a){
     home: (100 - a.energy) * 0.95
   };
   if(a.want && ads[a.want.station] != null) ads[a.want.station] += 34;
+  for(var ndi = 0; ndi < NEED_DEFS.length; ndi++) NEED_DEFS[ndi].press(a, ads);
   var fit = {clinic:1, fields:1, store:1, mill:1, school:1, well:1, green:1, home:1};
   if(a.disp === "Diligent"){ fit.clinic = 1.3; fit.fields = 1.3; fit.store = 1.2; fit.mill = 1.25; fit.well = 1.2; fit.green = 0.65; }
   if(a.disp === "Helpful"){ fit.clinic = 1.3; fit.store = 1.3; fit.school = 1.3; fit.green = 1.3; }
@@ -783,6 +896,9 @@ function decide(a){
   for(var i=0;i<top.length;i++){ roll -= top[i].sc; if(roll <= 0){ pick = top[i].id; break; } }
   a.driveObj = !!(a.want && pick === a.want.station && pick === G.objStation);
   a.reason = (a.want && pick === a.want.station) ? "Following a want" : (pick === a.aff ? "Own specialty" : "Own idea");
+  var belNow2 = needVal(a, "belonging"), mdl3 = a.model ? agent(a.model) : null;
+  if(belNow2 < 35 && pick === "green") a.reason = "Looking for company";
+  else if(belNow2 < 35 && mdl3 && pick === mdl3.stationId) a.reason = "Seeking " + mdl3.name.split(" ")[0];
   goStation(a, pick);
 }
 function arrive(a){
@@ -803,6 +919,8 @@ function arrive(a){
 function stepAgents(dt){
   G.agents.forEach(function(a){
     a.phase += dt;
+    needsTick(a, dt);
+    if(a.state !== "act") a._histStation = null;
     a.watchCd = Math.max(0, a.watchCd - dt);
     if(a.state === "idle"){ a.idleT += dt; a.decideT -= dt; if(a.decideT <= 0){ decide(a); a.decideT = 1 + Math.random(); } }
     else a.idleT = 0;
@@ -838,6 +956,7 @@ function stepAgents(dt){
         if(m && m.disp !== a.disp){
           a.disp = m.disp; G.copied++; a.vis = Math.min(100, a.vis + 8);
           a.mimicStation = (m.state === "act") ? m.stationId : null; a.mimicFrom = m.name.split(" ")[0];
+          if(a.mimicStation) addNeed(m, "purpose", 16 * (m.disp === "Selfish" ? 1.3 : 1));
           if(a.mimicStation && !(m.spotUntil && G.t < m.spotUntil)){
             addTension(a, m, 6);
             for(var bi = 0; bi < G.agents.length; bi++){ var b2 = G.agents[bi]; if(b2 !== a && b2 !== m && b2.model === m.id && b2.stationId === a.mimicStation && b2.state === "act"){ addTension(a, b2, 9); break; } }
@@ -869,6 +988,7 @@ function stepAgents(dt){
       a.actT -= dt;
       var st = a.stationId;
       a.lastActStation = st; a.lastActT = G.t;
+      if(st && st !== "home" && a._histStation !== st){ a._histStation = st; if(!a.workHist) a.workHist = {}; a.workHist[st] = (a.workHist[st] || 0) + 1; }
       var mdI = a.model ? agent(a.model) : null;
       if(mdI && mdI !== a && mdI.lastActStation === st && st !== "home" && (G.t - (mdI.lastActT || -99)) < 12 && G.t > (a.inspCd || 0)){
         a.inspCd = G.t + 20; a.inspUntil = G.t + 5; a.inspMult = mdI.vis >= 60 ? 1.25 : (mdI.vis < 40 ? 1.10 : 1.18);
