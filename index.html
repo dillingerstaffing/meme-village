@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Meme Village: THE VILLAGE MODEL (3D)</title>
-<meta name="description" content="Meme Village: THE VILLAGE MODEL. A 12-week 3D village simulation about imitation. Direct ten living residents; what they copy decides how the season ends.">
+<meta name="description" content="Meme Village: THE VILLAGE MODEL. An open-ended 3D village simulation about imitation. Watch ten living residents across the years; what they copy decides how the village unfolds.">
 <style>
 :root{--panel:rgba(10,14,19,.88);--line:#3b4c63;--ink:#f2ecd9;--ink2:#b6ac8f;--gold:#e8b34b;--teal:#5cc9a7;--red:#e05a4e}
 *{box-sizing:border-box}
@@ -96,6 +96,9 @@ canvas{display:block}
 .iopt .ilater{display:block;margin-top:2px;font-size:10.5px;color:var(--ink2)}
 .overlay{position:fixed;inset:0;background:rgba(3,5,8,.78);display:none;align-items:center;justify-content:center;padding:14px;z-index:50;backdrop-filter:blur(3px)}
 .overlay.open{display:flex}
+/* The Story So Far never blocks play: taps pass around the card, the sim runs on. */
+#endOverlay.story{pointer-events:none;background:rgba(3,5,8,.42)}
+#endOverlay.story .modal{pointer-events:auto}
 .modal{background:linear-gradient(180deg,#18202b,#0f141b);border:1px solid var(--line);border-radius:12px;max-width:640px;width:100%;padding:24px;max-height:92vh;overflow:auto}
 .modal h2{margin:4px 0 8px;font-size:30px;letter-spacing:.04em}
 .modal h2 span{color:var(--gold)}
@@ -154,7 +157,7 @@ canvas{display:block}
 <canvas id="minimap" width="192" height="144"></canvas>
 
 <div class="hud" id="objCard">
-  <div class="k" id="objK">OBJECTIVE · WEEK 1</div>
+  <div class="k" id="objK">OBJECTIVE · SPRING</div>
   <div class="t" id="objT">🔨 Repair the clinic roof</div>
   <div class="bar"><i id="objBar"></i></div>
   <div class="s"><span id="objHint">Planks land as the crew works</span><span id="objPct">0%</span></div>
@@ -172,7 +175,7 @@ canvas{display:block}
   <div class="srow" id="blameRow" style="display:none"><span class="sl" id="blameLbl">🌩 Blame</span><span class="sb"><i id="blameBar" style="background:#e85a3c"></i></span><b id="blameVal">0</b></div>
 </div>
 <div class="hud" id="topRight">
-  <span class="chip" id="weekChip">WEEK 1 · ☀ 0%</span>
+  <span class="chip" id="weekChip">YEAR 1 · SPRING · ☀ 0%</span>
   <span class="chip">📦 Stores <b id="storesN">0</b> &nbsp; 👀 Copied <b id="copiedN">0</b></span>
   <div id="speeds">
     <button class="sbtn" id="sp0" type="button">❚❚</button>
@@ -194,11 +197,11 @@ canvas{display:block}
 
 <div class="overlay open" id="startOverlay">
   <div class="modal">
-    <div class="kick2">MEME VILLAGE · THE VILLAGE MODEL · 12 WEEKS</div>
+    <div class="kick2">MEME VILLAGE · THE VILLAGE MODEL · OPEN YEARS</div>
     <h2>THE VILLAGE <span>MODEL</span></h2>
-    <p style="color:var(--ink2);margin:0">Ten people, one valley, twelve weeks to winter. They work, rest, watch each other, and copy what they see. You direct them, but you do not control what they become. That part spreads on its own.</p>
+    <p style="color:var(--ink2);margin:0">Ten people, one valley, year after year. They work, rest, watch each other, and copy what they see. Tend the conditions, but you do not control what they become. That part spreads on its own.</p>
     <div class="watch">
-      <div>🔨 <b>Every week has an objective.</b> The gold ring marks where it happens.</div>
+      <div>🔨 <b>Every season has an objective.</b> The gold ring marks where it happens.</div>
       <div>👀 <b>Everyone looks up to someone, and copies them.</b> Set the models, and the village follows.</div>
       <div>⚖ <b>Blame works fast and bills later.</b> Choose carefully when things go wrong.</div>
     </div>
@@ -228,7 +231,16 @@ canvas{display:block}
 "use strict";
 /* ================= CORE ================= */
 var WEEK_LEN = 60;
-var SEASON_WEEKS = 12;
+/* Freeplay time: the WEEK_LEN tick is now a season. Four seasons make a year,
+   winter is the fourth, and the count runs open-ended: no final season. */
+var SEASON_NAMES = ["Spring", "Summer", "Autumn", "Winter"];
+function seasonOfYear(){ return ((G.week - 1) % 4) + 1; }
+function yearOf(){ return Math.floor((G.week - 1) / 4) + 1; }
+function seasonName(){ return SEASON_NAMES[seasonOfYear() - 1]; }
+function isWinter(){ return seasonOfYear() === 4; }
+function seasonLabel(){ return "YEAR " + yearOf() + " · " + seasonName().toUpperCase(); }
+/* The objective deck is re-dealt every year; the wrap is a safety net. */
+function curObjective(){ var deck = (G.objectives && G.objectives.length) ? G.objectives : OBJECTIVES; return deck[(G.week - 1) % deck.length]; }
 var scene, camera, renderer, sunLight;
 var cam = {target:new THREE.Vector3(0,0,4), yaw:0, pitch:0.94, dist:38, follow:null};
 var G = null;
@@ -329,8 +341,8 @@ function renderSheet(s){
     h += "<div class='sh-quote'>\u201C" + a.thought.text + "\u201D</div>";
     for(var i = log.length - 2; i >= 0; i--){
       var e = log[i];
-      var wk = e.wk || Math.min(12, Math.floor(e.at / 60) + 1);
-      h += "<div class='sh-row'><div class='sh-wk'>Week " + wk + "</div><div class='sh-tx'>" + e.text + "</div></div>";
+      var wk = e.wk || Math.floor(e.at / 60) + 1;
+      h += "<div class='sh-row'><div class='sh-wk'>Season " + wk + "</div><div class='sh-tx'>" + e.text + "</div></div>";
     }
   } else {
     h += "<div class='sh-empty'>Nothing yet.</div>";
@@ -1304,7 +1316,7 @@ function incidentStoryWeight(inc){
     case "shortstores": return 1 + Math.max(0, 6 - (G.stores || 0)) / 3 + (G.blame || 0) / 50;
     case "whispers": return 1 + Math.max(0, 50 - ((G.stats && G.stats.trust) || 50)) / 50;
     case "stranger": return 1 + Math.max(0, 8 - (G.stores || 0)) / 3;
-    case "frost": return 1 + (G.week - 1) / 6;
+    case "frost": return 1 + (seasonOfYear() - 1) / 2;
     default: return 1;
   }
 }
@@ -1344,10 +1356,10 @@ function openIncident(inc){
   var box = document.getElementById("incident");
   var opts = inc.options.map(function(o, i){
     var prev = modTicks(o.mods);
-    var late = o.later ? "<span class='ilater'>\u231B in 2 weeks: " + modTicks(o.later) + "</span>" : "";
+    var late = o.later ? "<span class='ilater'>\u231B in 2 seasons: " + modTicks(o.later) + "</span>" : "";
     return "<button class='iopt" + (o.blame ? " blame" : "") + "' data-i='" + i + "'><span class='ii'>" + o.icon + "</span><span class='il'>" + o.label + "</span><span class='ih'>" + o.hint + "</span>" + (prev ? "<span class='iprev'>" + prev + "</span>" : "") + late + "</button>";
   }).join("");
-  box.innerHTML = "<div class='k'>WEEK " + G.week + " · IN THE VILLAGE</div><h3>" + inc.title + "</h3><p>" + inc.text + "</p><div class='opts'>" + opts + "</div>";
+  box.innerHTML = "<div class='k'>" + seasonLabel() + " · IN THE VILLAGE</div><h3>" + inc.title + "</h3><p>" + inc.text + "</p><div class='opts'>" + opts + "</div>";
   box.style.display = "block";
   SND.play("incident");
   box.querySelectorAll(".iopt").forEach(function(b){ b.addEventListener("click", function(){ chooseIncident(parseInt(b.getAttribute("data-i"), 10)); }); });
@@ -1464,7 +1476,7 @@ var OBJECTIVES = [
   {station:"store", icon:"❄", title:"The Winter Count", hint:"Final stores before the snow", metric:function(){ return G.weekWorkP.stores * 100 / 10; }}
 ];
 function setObjective(){
-  var o = (G.objectives || OBJECTIVES)[G.week - 1];
+  var o = curObjective();
   if(!o) return;
   G.objStation = o.station; G.objComplete = false;
   if(o.project){
@@ -1482,7 +1494,7 @@ function setObjective(){
 }
 function objectiveTick(){
   if(G.objComplete) return;
-  var o = (G.objectives || OBJECTIVES)[G.week - 1];
+  var o = curObjective();
   if(o && o.metric() >= 100){
     G.objComplete = true; G.objDone++; applyStatMods({trust:3, cohesion:3});
     showToast("✓ Objective complete: " + o.title);
@@ -1527,7 +1539,7 @@ function statDrift(dt){
     if(a.order) ordered++;
   });
   s.prod += (workers * 11 - s.prod) * dt * 0.03;
-  var scarT = clamp100(80 - Math.min(62, G.stores) * 1.15 + (G.difficulty === "hard" ? 9 : (G.difficulty === "dry" ? 6 : 0)) - (hasPerk("granary") ? 6 : 0));
+  var scarT = clamp100(80 - Math.min(62, G.stores) * 1.15 + (G.difficulty === "hard" ? 9 : (G.difficulty === "dry" ? 6 : 0)) - (hasPerk("granary") ? 6 : 0) + (isWinter() ? 8 : 0));
   s.scarcity += (scarT - s.scarcity) * dt * 0.18;
   var avgM = G.agents.reduce(function(sm, a){ return sm + a.morale; }, 0) / G.agents.length;
   s.trust += (clamp100(avgM * 0.72 + (G.policy === "open" ? 7 : 0)) - s.trust) * dt * 0.05;
@@ -1540,21 +1552,26 @@ function statDrift(dt){
   Object.keys(s).forEach(function(k){ s[k] = clamp100(s[k]); });
 }
 function endWeek(){
-  var o = (G.objectives || OBJECTIVES)[G.week - 1];
-  if(G.week >= SEASON_WEEKS){ finishGame(); return; }
+  var o = curObjective();
   if(o){
-    if(G.objComplete) showToast("✓ Week " + G.week + " done: " + o.title + " · " + G.objDone + "/12");
-    else if(o.project && G.project && !G.project.done) showToast("Week " + G.week + " ends: " + projectTitle() + " carries on, parts stay filled");
-    else showToast("Week " + G.week + " ends: " + o.title + " missed at " + Math.round(clamp100(o.metric())) + "%");
+    if(G.objComplete) showToast("✓ " + seasonName() + " done: " + o.title + " · " + G.objDone + " all time");
+    else if(o.project && G.project && !G.project.done) showToast(seasonLabel() + " ends: " + projectTitle() + " carries on, parts stay filled");
+    else showToast(seasonLabel() + " ends: " + o.title + " missed at " + Math.round(clamp100(o.metric())) + "%");
   }
   G.week++; G.weekTime = 0; G.incidentDone = false; G.curIncident = null; G.weekIncident = null;
   G.weekWork = {stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0}; G.weekWorkP = {stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0};
   G.calmT = 0; G.peakGreen = 0; G.objWorkers = {};
   G.agents.forEach(function(a){ a.alerted = false; a.loafT = 0; });
   G.fieldGrowth = 0.12; G.growthApplied = -1;
+  if(seasonOfYear() === 1){
+    /* a new year: re-deal the commission and incident decks, then count the winter */
+    G.objectives = shuffleArr(OBJECTIVES.slice());
+    G.incidents = INCIDENTS.slice(1);
+    storySoFar(true);
+  }
   setObjective();
   SND.play("week");
-  if(G.week === 7) setTimeout(function(){ if(!G.over) showToast("❄ Half the season gone. Winter is counting."); }, 1200);
+  if(isWinter()) setTimeout(function(){ if(!G.over) showToast("❄ Winter: scarcity climbs faster. Keep the storehouse full."); }, 1200);
 }
 
 function stepSim(dt){
@@ -1627,8 +1644,9 @@ function stepSim(dt){
   if(G.weekTime >= WEEK_LEN && !G.over) endWeek();
 }
 
-function finishGame(){
-  G.over = true;
+/* The old graded ending is now a lens, not a verdict: the same five gates read
+   as "if the story ended today", in a panel the player opens at will. */
+function storyVerdict(){
   var s = G.stats;
   var avgMorale = Math.round(G.agents.reduce(function(sm, a){ return sm + a.morale; }, 0) / G.agents.length);
   var ending, epi;
@@ -1637,21 +1655,30 @@ function finishGame(){
   else if(G.objDone >= 6 && s.trust >= 54 && s.cohesion >= 54 && s.scarcity < 56){ ending = "Mutual Aid"; epi = "Winter came to a village that had practiced needing each other. The stores were shared, the work was shared, and so was the cold."; }
   else if(s.prod >= 62 && s.autonomy < 42){ ending = "Order at a Price"; epi = "The stores are full and the lanes are swept. Everything got done. Almost nobody remembers choosing any of it."; }
   else { ending = "The Village Chooses"; epi = "No pattern won. The village goes into winter as itself: uneven, unscripted, and still deciding what it is."; }
+  return {ending: ending, epi: epi, avgMorale: avgMorale};
+}
+function storySoFar(auto){
+  var v = storyVerdict(), s = G.stats;
+  G.storyLens = v.ending;
   function row(label, val){ return "<div class='stat-row'><span>" + label + "</span><b>" + Math.round(val) + "</b></div>"; }
-  var html = "<div class='kick2'>THE WINTER COUNT · AFTER 12 WEEKS</div><h2>" + ending + "</h2>"
-    + "<p style='color:var(--ink2)'>" + epi + "</p>"
-    + "<p style='color:var(--ink2)'>Season #" + G.seed + " · watched this season: " + (G.seasonModels || []).join(", ") + "</p>"
+  var kick = auto ? "THE WINTER COUNT · " + seasonLabel() : "THE STORY SO FAR · " + seasonLabel();
+  var sub = auto ? "The winter count. If the story ended with this winter: " : "If the story ended today: ";
+  var html = "<div class='kick2'>" + kick + "</div><h2>" + v.ending + "</h2>"
+    + "<p style='color:var(--ink2)'>" + sub + v.epi + "</p>"
+    + "<p style='color:var(--ink2)'>Village #" + G.seed + " · watched: " + (G.seasonModels || []).join(", ") + "</p>"
     + row("⚒ Productivity", s.prod) + row("♥ Trust", s.trust) + row("🌳 Cohesion", s.cohesion)
     + row("⚔ Rivalry", s.rivalry) + row("🌾 Scarcity", s.scarcity) + row("🕊 Autonomy", s.autonomy)
-    + "<div class='stat-row'><span>🎯 Objectives met</span><b>" + G.objDone + " / 12</b></div>"
+    + "<div class='stat-row'><span>🎯 Objectives met</span><b>" + G.objDone + "</b></div>"
     + "<div class='stat-row'><span>📦 Stores gathered</span><b>" + G.stores + "</b></div>"
     + "<div class='stat-row'><span>👀 Imitations witnessed</span><b>" + G.copied + "</b></div>"
     + "<div class='stat-row'><span>🔴 Scapegoats named</span><b>" + G.scapegoats + "</b></div>"
-    + "<div class='stat-row'><span>♥ Village morale (avg)</span><b>" + avgMorale + "</b></div>"
-    + "<button class='btn' onclick='location.reload()' style='margin-top:12px'>Play another season</button>";
+    + "<div class='stat-row'><span>♥ Village morale (avg)</span><b>" + v.avgMorale + "</b></div>"
+    + "<button class='btn' onclick='__closeStory()' style='margin-top:12px'>Close</button>";
   document.getElementById("endCard").innerHTML = html;
-  document.getElementById("endOverlay").classList.add("open");
+  var ov = document.getElementById("endOverlay");
+  ov.classList.add("open"); ov.classList.add("story");
 }
+window.__closeStory = function(){ var ov = document.getElementById("endOverlay"); ov.classList.remove("open"); ov.classList.remove("story"); };
 
 /* ================= THREE SETUP ================= */
 var clock;
@@ -1749,6 +1776,7 @@ function refreshTray(force){
   html += "<button class='cbtn" + (G.modelArm ? " on" : "") + "' data-o='model'" + (!a ? " disabled" : "") + "><span class='i'>👁</span><span class='l'>Model</span></button>";
   html += "<button class='cbtn' data-o='thoughts'" + (!a ? " disabled" : "") + "><span class='i'>💭</span><span class='l'>Thoughts</span></button>";
   html += "<button class='cbtn" + (G.ui && G.ui.muted ? " on" : "") + "' data-o='mute'><span class='i'>" + (G.ui && G.ui.muted ? "🔇" : "🔊") + "</span><span class='l'>Sound</span></button>";
+  html += "<button class='cbtn' data-o='story'><span class='i'>📖</span><span class='l'>Story</span></button>";
   var cmds = document.getElementById("cmds");
   cmds.innerHTML = html;
   cmds.querySelectorAll(".cbtn").forEach(function(b){
@@ -1759,6 +1787,7 @@ function refreshTray(force){
       if(o === "model"){ G.modelArm = true; G.armed = false; showToast("👁 Tap who " + (a ? a.name.split(" ")[0] : "they") + " should look up to"); refreshTray(true); return; }
       if(o === "thoughts"){ if(G.selected) Store.dispatch("ui/sheet", {id:G.selected}); return; }
       if(o === "mute"){ Store.dispatch("ui/mute"); try { if(typeof localStorage !== "undefined") localStorage.setItem("mv_muted", (G.ui && G.ui.muted) ? "1" : "0"); } catch(e){} SND.play("toggle"); refreshTray(true); return; }
+      if(o === "story"){ storySoFar(false); return; }
       setOrder3(o);
     });
   });
@@ -1889,9 +1918,9 @@ function hudTick(dt){
   else if(t.style.display !== "none") t.style.display = "none";
   if(hudAcc < 0.15) return;
   hudAcc = 0;
-  var o = (G.objectives || OBJECTIVES)[G.week - 1];
+  var o = curObjective();
   var pct = o ? Math.max(0, Math.min(100, Math.round(o.metric()))) : 0;
-  document.getElementById("objK").textContent = "OBJECTIVE · WEEK " + G.week + (G.objComplete ? " · ✓ DONE" : "");
+  document.getElementById("objK").textContent = "OBJECTIVE · " + seasonName().toUpperCase() + (G.objComplete ? " · ✓ DONE" : "");
   document.getElementById("objT").textContent = o ? (o.icon + " " + (o.titleDyn ? o.titleDyn() : o.title)) : "";
   document.getElementById("objHint").textContent = o ? (o.hintDyn ? o.hintDyn() : o.hint) : "";
   document.getElementById("objBar").style.width = pct + "%";
@@ -1914,7 +1943,7 @@ function hudTick(dt){
   G.agents.forEach(function(a){ if(a.driveObj && a.stationId === G.objStation && (a.state === "act" || a.state === "walk")) eligHands++; });
   document.getElementById("objCard").classList.toggle("urgent", G.started && !G.over && !G.objComplete && G.weekTime > 30 && eligHands === 0);
   drawMinimap();
-  document.getElementById("weekChip").textContent = "WEEK " + G.week + "/12 · ☀ " + Math.round(G.weekTime / WEEK_LEN * 100) + "%";
+  document.getElementById("weekChip").textContent = seasonLabel() + " · ☀ " + Math.round(G.weekTime / WEEK_LEN * 100) + "%";
   document.getElementById("storesN").textContent = G.stores;
   document.getElementById("copiedN").textContent = G.copied;
   var bRow = document.getElementById("blameRow");
@@ -2392,7 +2421,7 @@ function beginGame(){
   var st0 = STATION3[G.objStation];
   if(st0){ cam.target.x = Math.max(-62, Math.min(62, st0.x)); cam.target.z = Math.max(-48, Math.min(48, st0.z)); cam.follow = null; }
   document.getElementById("startOverlay").classList.remove("open");
-  showToast("🔨 Week 1: Mara is on the roof. Bram is watching.");
+  showToast("🔨 Year 1, Spring: Mara is on the roof. Bram is watching.");
   G.agents.forEach(function(a){ refreshThought(a, "start"); });
 }
 document.getElementById("beginBtn").addEventListener("click", beginGame);
@@ -2423,7 +2452,7 @@ renderer.setAnimationLoop(function(){
 });
 G.seed = 10000 + Math.floor(Math.random() * 89999);
 shuffleCast();
-document.getElementById("seasonLine").textContent = "Season #" + G.seed + " · Watched this season: 🔥 " + G.seasonModels.join(" · 🔥 ") + " · every season reshuffles the village";
+document.getElementById("seasonLine").textContent = "Village #" + G.seed + " · the village reshuffles its commissions every year";
 if(location.hash.indexOf("play") >= 0) beginGame();
 var cmm = location.hash.match(/cam=(-?\d+),(-?\d+)/);
 if(cmm){ cam.target.x = parseInt(cmm[1], 10); cam.target.z = parseInt(cmm[2], 10); }
@@ -2436,7 +2465,7 @@ if(ffm){
   updateCamera(0); Store.commit(); refreshTray(true);
   renderer.render(scene, camera);
 }
-window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, setModel: function(id, mid){ var a = agent(id); if(a) a.model = mid; }, select: function(id){ Store.dispatch("ui/select", {id:id}); refreshTray(true); }, pickProject: function(i){ pickProject(i || 0); }, sheet: function(id){ Store.dispatch("ui/sheet", {id:id || null}); }, closeSheet: function(){ Store.dispatch("ui/sheet", {id:null}); }, thoughts: function(){ var out = {}; G.agents.forEach(function(a){ out[a.id] = {axis:(a.axis || ""), voice:(a.persona ? a.persona.voice.join(", ") : ""), thought:(a.thought ? a.thought.text : ""), cause:(a.thought ? a.thought.cause : ""), log:(a.thoughtLog ? a.thoughtLog.length : 0), events:(a.recentEvents ? a.recentEvents.length : 0)}; }); return out; }};
+window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, verdict: storyVerdict, setModel: function(id, mid){ var a = agent(id); if(a) a.model = mid; }, select: function(id){ Store.dispatch("ui/select", {id:id}); refreshTray(true); }, pickProject: function(i){ pickProject(i || 0); }, sheet: function(id){ Store.dispatch("ui/sheet", {id:id || null}); }, closeSheet: function(){ Store.dispatch("ui/sheet", {id:null}); }, thoughts: function(){ var out = {}; G.agents.forEach(function(a){ out[a.id] = {axis:(a.axis || ""), voice:(a.persona ? a.persona.voice.join(", ") : ""), thought:(a.thought ? a.thought.text : ""), cause:(a.thought ? a.thought.cause : ""), log:(a.thoughtLog ? a.thoughtLog.length : 0), events:(a.recentEvents ? a.recentEvents.length : 0)}; }); return out; }};
 </script>
 </body>
 </html>
