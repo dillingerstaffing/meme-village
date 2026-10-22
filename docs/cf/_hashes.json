@@ -97,44 +97,50 @@
       "hash": "6caa504a"
     },
     {
+      "article": "highlight-vocabulary.md",
+      "ref_line": 3630,
+      "lines": 36,
+      "hash": "dec0120b"
+    },
+    {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 3776,
+      "ref_line": 3777,
       "lines": 20,
       "hash": "207fd11f"
     },
     {
       "article": "sheet-below-objective-card.md",
-      "ref_line": 3968,
+      "ref_line": 3969,
       "lines": 16,
       "hash": "6b2224dc"
     },
     {
       "article": "desires-travel-the-graph.md",
-      "ref_line": 4051,
+      "ref_line": 4052,
       "lines": 33,
       "hash": "fb5c880a"
     },
     {
       "article": "overlay-anchor-budget.md",
-      "ref_line": 4237,
+      "ref_line": 4238,
       "lines": 65,
       "hash": "74c15edb"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 4440,
+      "ref_line": 4441,
       "lines": 11,
       "hash": "a01f9ac4"
     },
     {
       "article": "pointercancel-never-a-tap.md",
-      "ref_line": 4453,
+      "ref_line": 4454,
       "lines": 4,
       "hash": "3471fc97"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 4532,
+      "ref_line": 4533,
       "lines": 4,
       "hash": "ce66959f"
     }
