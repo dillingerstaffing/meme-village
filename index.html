@@ -247,6 +247,28 @@ var G = null;
 var Store = (function(){
   var state = null, listeners = [], inTick = 0, pending = false, ver = 0;
   function findA(id){ if(!state) return null; for(var i = 0; i < state.agents.length; i++) if(state.agents[i].id === id) return state.agents[i]; return null; }
+  /* Thought validator (stage 2): a thought may only name what is in the
+     state snapshot. Split into sentences, drop each sentence's first
+     token (ordinary words are capitalized by position), and require
+     every remaining capitalized word to be a resident name or a station
+     name. Anything else is an invented proper noun: the thought is
+     dropped and the previous one stands. */
+  function thoughtAllowed(){
+    var s = {}, i, a, k, w, ag = state.agents || [];
+    for(i = 0; i < ag.length; i++){ a = ag[i]; s[a.name.split(" ")[0]] = 1; s[a.name] = 1; }
+    for(k in STATION3){ var ws = STATION3[k].name.split(" "); for(i = 0; i < ws.length; i++){ w = ws[i]; if(w) s[w] = 1; } }
+    s["Green"] = 1;
+    return s;
+  }
+  function validThought(text){
+    if(!text) return false;
+    var allowed = thoughtAllowed(), sents = String(text).split(/[.!?]\s+/), i, j;
+    for(i = 0; i < sents.length; i++){
+      var toks = sents[i].match(/\b[A-Z][a-z]{2,}\b/g) || [];
+      for(j = 1; j < toks.length; j++) if(!allowed[toks[j]]) return false;
+    }
+    return true;
+  }
   var ACTIONS = {
     "bubble/show": function(p){ var a = findA(p.id); if(a){ a.bubble = p.icon || null; a.bubbleUntil = p.icon ? state.t + (p.secs || 2) : 0; } },
     "want/set": function(p){ var a = findA(p.id); if(a && !a.want) a.want = {station:p.station, until: state.t + (p.secs || 26)}; },
@@ -254,7 +276,7 @@ var Store = (function(){
     "ui/toast": function(p){ state.ui.toast = {msg: String(p.msg || ""), until: Date.now() + (p.ms || 3600)}; },
     "ui/select": function(p){ state.selected = p.id || null; if(state.ui && state.ui.sheet) state.ui.sheet = state.selected; },
     "ui/sheet": function(p){ if(state.ui) state.ui.sheet = p && p.id ? p.id : null; },
-    "thought/set": function(p){ var a = findA(p.id); if(a){ var nt = String(p.text || ""); a.thought = {text:nt, at:state.t, wk:state.week, cause:p.cause || "ambient", why:p.why || "", cat:p.cat || "", source:"template"}; if(a.thoughtLog){ for(var di = a.thoughtLog.length - 1; di >= 0; di--) if(a.thoughtLog[di].text === nt) a.thoughtLog.splice(di, 1); a.thoughtLog.push(a.thought); if(a.thoughtLog.length > 8) a.thoughtLog.shift(); } } }
+    "thought/set": function(p){ var a = findA(p.id); if(a){ var nt = String(p.text || ""); if(!validThought(nt)) return; var cause = p.cause || "ambient"; var isNew = !a.thought || a.thought.text !== nt; a.thought = {text:nt, at:state.t, wk:state.week, cause:cause, why:p.why || "", cat:p.cat || "", source:"template"}; if(isNew && cause !== "start") a.thoughtFx = state.t + 2.5; if(a.thoughtLog){ for(var di = a.thoughtLog.length - 1; di >= 0; di--) if(a.thoughtLog[di].text === nt) a.thoughtLog.splice(di, 1); a.thoughtLog.push(a.thought); if(a.thoughtLog.length > 8) a.thoughtLog.shift(); } } }
   };
   function commit(){
     if(inTick > 0){ pending = true; return; }
@@ -1031,18 +1053,50 @@ function composeThought(a, cause){
   return {text: main + (second ? " " + second : ""), why: why, cat: cat};
 }
 function refreshThought(a, cause){
-  if(!a || !a.persona) return;
-  a.thoughtAt = G.t;
+  if(!a || !a.persona) return false;
   var c = composeThought(a, cause);
-  if(!c || !c.text) return;
-  if(a.thought && (a.thought.text === c.text || (a.thought.cat === c.cat && a.thought.text.split(". ")[0] === c.text.split(". ")[0]))) return;
+  if(!c || !c.text) return false;
+  if(a.thought && (a.thought.text === c.text || (a.thought.cat === c.cat && a.thought.text.split(". ")[0] === c.text.split(". ")[0]))) return false;
+  a.thoughtAt = G.t;
   Store.dispatch("thought/set", {id:a.id, text:c.text, cause:cause || "ambient", why:c.why, cat:c.cat});
+  return true;
 }
+/* ThoughtService (stage 2): one paced queue for every thought in the game.
+   Event requests carry priority (major events first); ambient fills only
+   when nothing eventful is waiting. At most one generation per 4
+   sim-seconds globally and 15 per resident, so thoughts announce
+   themselves one at a time and never double up. */
+var ThoughtService = {
+  prio: function(kind){
+    return (kind === "blamed" || kind === "rivalry" || kind === "wantMissed" || kind === "initiative" || kind === "inspired") ? 3 : 1;
+  },
+  request: function(a, kind, prio){
+    if(!a || !a.persona || !G.started || G.over) return;
+    var q = G.thoughtQ || (G.thoughtQ = []), i;
+    for(i = 0; i < q.length; i++) if(q[i].id === a.id){ var np = (prio || this.prio(kind)); if(np > q[i].p) q[i].p = np; return; }
+    q.push({id:a.id, kind:kind, p:(prio || this.prio(kind))});
+  },
+  tick: function(s){
+    if(s.t < (s.thoughtNext || 0)) return;
+    var q = s.thoughtQ;
+    if(!q || !q.length) return;
+    var order = q.slice().sort(function(x, y){ return y.p - x.p; }), i, a, qi, req;
+    for(i = 0; i < order.length; i++){
+      req = order[i];
+      a = agent(req.id);
+      if(!a){ qi = q.indexOf(req); if(qi >= 0) q.splice(qi, 1); continue; }
+      if(s.t - (a.thoughtAt || -99) < 15) continue;
+      qi = q.indexOf(req); if(qi >= 0) q.splice(qi, 1);
+      if(refreshThought(a, req.kind)) s.thoughtNext = s.t + 4;
+      return;
+    }
+  }
+};
 function noteEvent(a, kind, detail){
   if(!a || !a.recentEvents) return;
   a.recentEvents.push({kind:kind, detail:detail || "", at:G.t});
   if(a.recentEvents.length > 6) a.recentEvents.shift();
-  refreshThought(a, kind);
+  ThoughtService.request(a, kind);
 }
 /* ============ INITIATIVES ============
    Residents start things on their own, but never from a bare die
@@ -1494,13 +1548,10 @@ function stepSim(dt){
   });
   if(G.started && !G.over){
     var selT = G.selected ? agent(G.selected) : null;
-    if(selT && G.t - (selT.thoughtAt || -99) >= 6) refreshThought(selT, "ambient");
-    else {
-      for(var tq = 0; tq < G.agents.length; tq++){
-        var ca = G.agents[G.thoughtIx || 0]; G.thoughtIx = ((G.thoughtIx || 0) + 1) % G.agents.length;
-        if(G.t - (ca.thoughtAt || -99) >= 6){ refreshThought(ca, "ambient"); break; }
-      }
-    }
+    if(selT) ThoughtService.request(selT, "ambient", 2);
+    var ca = G.agents[G.thoughtIx || 0]; G.thoughtIx = ((G.thoughtIx || 0) + 1) % G.agents.length;
+    if(ca) ThoughtService.request(ca, "ambient", 1);
+    ThoughtService.tick(G);
   }
   statDrift(dt);
   objectiveTick();
@@ -1900,6 +1951,7 @@ function overlayModel(a, s){
     var stw = STATION3[a.want.station];
     if(stw){ var rem = a.want.until - s.t; bubble = {icon:stw.icon, kind:"want", opacity: rem < 8 ? (0.4 + 0.6 * Math.max(0, rem / 8)) : 1}; }
   }
+  else if(s.t < (a.thoughtFx || 0)) bubble = {icon:"💭", kind:"thought", opacity:1};
   if(bubble && !bubble.icon) bubble = null;
   var intent = null;
   var ii = intentIcon(a);
