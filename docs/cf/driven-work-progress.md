@@ -10,7 +10,10 @@ working enters the driven ledger only by setting driveObj through the
 paths that already do (a player order in setOrder3 and decide(), a
 copied model or a want that decide() resolves), and initiatives always
 run with driveObj false: fireInitiative clears it on the actor and on
-any resident it sweeps along.
+any resident it sweeps along. A resident in their Established arc counts one extra
+synergy partner in `wk()`'s multiplier; the gate itself does not
+move. Station tier progress is not `wk()`'s business at all: it
+accrues in `stepAgents` under its own ledger (`G.tierProg`).
 
 Why: if self-started or ambient work filled objectives, the player
 could win by watching and ordering people around would stop mattering.
