@@ -12,7 +12,10 @@ a household formed out of a housed newcomer is capacity neutral. A
 household claims a finished cottage site by setting site.claimedBy;
 freeing the household clears it. A solo newcomer's dwellingSite is
 only a home position, never a claim. Departures free every claim they
-held before the members are removed.
+held before the members are removed. Children of a household hold no
+claim of their own: they live in their parents' claimed dwelling,
+and when a household departs, its children leave with it, removed
+after the members so each claim is freed exactly once.
 
 Why: separate counters per system drift apart within a season, and
 the village either grows past its roofs or refuses people while

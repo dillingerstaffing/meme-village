@@ -407,6 +407,7 @@ function renderSheet(s){
   }
   var hhP = householdPartner(a);
   if(hhP) h += "<div class='sh-work'>🏠 Shares a house with " + hhP.name + "</div>";
+  if(a.parents && a.parentNames && a.parentNames.length) h += "<div class='sh-work'>🧒 Child of " + a.parentNames.join(" and ") + "</div>";
   h += "<div class='sh-work'>Age " + Math.round(a.age || 34) + " · " + arcOf(a).label + "</div>";
   h += "<div class='sh-work'>🪙 Cash on hand: " + Math.floor(a.cash || 0) + " tokens" + (a.bank != null ? " · Bank account: " + Math.floor(a.bank) + " tokens" : "") + "</div>";
   if(a.thought){
@@ -767,7 +768,7 @@ function newSlice(){
     rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0, offer:null, offerAccepted:false,
     rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0,
     sites:[], siteSeq:0, houseCapacity:10, banked:false, foundArm:false, foundPlot:null, buildPref:null,
-    bonds:{}, households:[], householdSeq:0, soloHoused:0, departed:0, arrival:null, speakCd:0, newSeq:0,
+    bonds:{}, households:[], householdSeq:0, soloHoused:0, departed:0, arrival:null, speakCd:0, newSeq:0, kidSeq:0, births:0,
     tiers:{clinic:1, fields:1, store:1, green:1, mill:1, school:1, well:1}, tierProg:{}, tierWorkers:{}, builtWealth:0, deaths:[], proclaim:null, proclaimArm:false, lastHarmWeek:null,
     stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
     objStation:"clinic", objComplete:false, objDone:0, scapegoats:0, delays:[],
@@ -939,6 +940,7 @@ function needsTick(a, dt){
   for(var j = 0; j < NEED_DEFS.length; j++) NEED_DEFS[j].tick(a, dt, ctx);
 }
 function decide(a){
+  if(a.child){ childDecide(a); return; }
   if(a.sick || a.medicTask) return;
   if(a.order){
     a.reason = "Your order"; a.driveObj = (a.order === G.objStation);
@@ -988,6 +990,7 @@ function decide(a){
 }
 function arrive(a){
   if(!a.slot) a.slot = {x:a.x, z:a.z};
+  if(a.child){ a.pendingWatch = null; a.visitId = null; a.state = "sit"; a.actT = 2.5 + Math.random()*2; return; }
   if(a.sickWalk){ a.sickWalk = false; a.sick = true; a.state = "sit"; a.stationId = "green"; if(G.pendingIncident){ var pi = G.pendingIncident; G.pendingIncident = null; openIncident(pi); } return; }
   if(a.pendingWatch){ var m = agent(a.pendingWatch); a.pendingWatch = null; if(m){ a.state = "watch"; a.watchOf = m.id; a.watchT = 3.4; setBubble(a, "👀", 1.8); noteEvent(a, "copied", m.id); return; } }
   if(a.medicTask === 1){ a.medicTask = 2; a.state = "kneel"; a.kneelT = 4; return; }
@@ -1013,6 +1016,7 @@ function stepAgents(dt){
   G.agents.forEach(function(a){
     a.phase += dt;
     needsTick(a, dt);
+    if(a.child) childObserve(a, dt);
     if(a.state !== "act") a._histStation = null;
     a.watchCd = Math.max(0, a.watchCd - dt);
     if(a.state === "idle"){ a.idleT += dt; a.decideT -= dt; if(a.decideT <= 0){ decide(a); a.decideT = 1 + Math.random(); } }
@@ -1234,7 +1238,7 @@ function householdOf(a){
   return null;
 }
 function householdPartner(a){ var h = householdOf(a); if(!h) return null; return agent(h.members[0] === a.id ? h.members[1] : h.members[0]); }
-// CF-REF: household-capacity-ledger.md [43]
+// CF-REF: household-capacity-ledger.md [45]
 function housingFree(){ return (G.houseCapacity || 0) - (G.households ? G.households.length : 0) - (G.soloHoused || 0); }
 function formHousehold(a, b){
   if(householdOf(a) || householdOf(b)) return null;
@@ -1272,9 +1276,11 @@ function removeAgent(m){
 function departHousehold(h){
   var names = h.members.map(function(id){ var m = agent(id); return m ? m.name.split(" ")[0] : id; });
   var members = h.members.map(function(id){ return agent(id); }).filter(Boolean);
+  var kids = G.agents.filter(function(x){ return x.child && x.parents && (x.parents.indexOf(h.members[0]) >= 0 || x.parents.indexOf(h.members[1]) >= 0); });
   freeHousehold(h);
   members.forEach(function(m){ removeAgent(m); });
-  G.departed = (G.departed || 0) + members.length;
+  kids.forEach(function(m){ removeAgent(m); });
+  G.departed = (G.departed || 0) + members.length + kids.length;
   showToast("🚶 " + names.join(" and ") + " have left the valley. The village drove them out.");
   SND.play("blame");
 }
@@ -1431,7 +1437,9 @@ function speakFor(){
   return true;
 }
 /* ================= AGING, DEATH, SUCCESSION, TIERS, LEVEL, PROCLAIM (Stage 5) =================
-   Life arcs are data: three arcs in the LIFE table, read off a.age,
+   Life arcs are data: the arcs in the LIFE table (Stage 7 added the
+   Young arc at its head, and Settled now starts at the maturation
+   age, so a child reads Young until they grow up), read off a.age,
    which advances one year per in-game year and is dealt from
    LIFE.ageDeal by shuffleCast (newcomers draw LIFE.newcomerAges).
    Settled is the plain arc; Established reaches the inspiration and
@@ -1463,7 +1471,8 @@ var LIFE = {
   ageDeal: [24, 27, 31, 34, 38, 41, 45, 49, 55, 63],
   newcomerAges: [22, 26, 30, 35, 40, 47, 52, 58],
   arcs: [
-    {id:"settled", label:"Settled", minAge:0, speedMult:1, energyCap:100, workMult:1, visBonus:0, inspCd:20, inspWindow:12, wantRange:10, wantChance:0.5},
+    {id:"young", label:"Young", minAge:0, speedMult:1.05, energyCap:90, workMult:1, visBonus:0, inspCd:20, inspWindow:12, wantRange:10, wantChance:0.5},
+    {id:"settled", label:"Settled", minAge:8, speedMult:1, energyCap:100, workMult:1, visBonus:0, inspCd:20, inspWindow:12, wantRange:10, wantChance:0.5},
     {id:"established", label:"Established", minAge:40, speedMult:1, energyCap:100, workMult:1, visBonus:0, inspCd:12, inspWindow:18, wantRange:10, wantChance:0.5},
     {id:"elder", label:"Elder", minAge:62, speedMult:0.78, energyCap:70, workMult:0.75, visBonus:18, inspCd:20, inspWindow:12, wantRange:16, wantChance:0.75}
   ],
@@ -1514,9 +1523,187 @@ function earnPay(a, key, amt){
 function bankSweep(){
   if(!G.banked) return;
   G.agents.forEach(function(a){
+    if(a.child) return;
     if(a.bank == null) a.bank = 0;
     if(a.cash > 0){ a.bank += a.cash; a.cash = 0; }
   });
+}
+/* ================= CHILDREN AND INHERITANCE (Stage 7) =================
+   A household may add a young one: a real agent, small on the map,
+   who does not work. The child follows a parent (their model edge
+   is a parent from birth), trails them from station to station,
+   and sits beside them while they work; decide() routes children
+   to childDecide and arrive() settles them into a sit, so a child
+   never enters the act branch, never calls wk(), never earns,
+   never accrues tier progress, and never holds an order or a want
+   (the guards live in setOrder3, giveWant, imitationScan,
+   initiativeScan, and scapegoatCandidate). While the child trails,
+   childObserve keeps two ledgers of what they actually watched:
+   seconds near each parent (a.watched) and seconds near each
+   station (a.nearStation). Two springs after the birth spring the
+   child matures, and inheritance is imitation across a generation:
+   their model becomes the parent they watched most, their
+   disposition becomes that parent's, and their affinity becomes
+   the station they were most often carried past, all copied from
+   the ledgers, never rolled. Only then do they join the economy,
+   on the newcomer's terms (ECON.startCash, an account only while
+   banked); until maturation the bank sweep passes them by, and a
+   dead or departed resident's balance still leaves with them, as
+   Stage 6 built it: inheritance in this stage is the graph
+   position, not the wallet. Births roll at the spring boundary in
+   endWeek, on the boundary event stream (arrivalRand), gated on
+   an established household, village contentment, the per-household
+   count, and POP_CAP, which counts children like everyone else.
+   A parent who dies leaves the household dissolved (the Stage 5
+   path frees it); the child's model retargets to the surviving
+   parent in dieAgent, and a household that departs takes its
+   children with it in departHousehold. Every number lives in the
+   KIDS table below. */
+var KIDS = {
+  startAge: 6, matureAge: 8, scale: 0.62,
+  birthChance: 0.5, minHouseholdSeasons: 4, contentmentMin: 50, maxPerHousehold: 2,
+  followDist: 2.3, watchRadius: 6, stationRadius: 9,
+  names: ["Nils", "Sana", "Ezra", "Lio", "Maren", "Tova", "Ilya", "Ruth", "Cas", "Elif", "Jude", "Noor", "Sil", "Amos", "Fern", "Otto"],
+  grownRoles: {clinic: "Clinic Hand", fields: "Field Hand", store: "Store Hand", mill: "Mill Hand", school: "School Hand", well: "Well Hand", green: "Greenkeeper", home: "Hearth Keeper"}
+};
+function livingParents(a){
+  return (a.parents || []).map(function(pid){ return agent(pid); }).filter(Boolean);
+}
+function spawnChild(h){
+  var p1 = agent(h.members[0]), p2 = agent(h.members[1]);
+  if(!p1 || !p2) return null;
+  var usedFirst = {}; G.agents.forEach(function(x){ usedFirst[x.name.split(" ")[0]] = 1; });
+  var first = null;
+  for(var ni = 0; ni < KIDS.names.length; ni++){ if(!usedFirst[KIDS.names[ni]]){ first = KIDS.names[ni]; break; } }
+  if(!first) first = "Young";
+  var surname = p1.name.split(" ").slice(1).join(" ");
+  var lead = visEff(p1) >= visEff(p2) ? p1 : p2;
+  var home = p1.home.slice();
+  var site = h.site ? siteById(h.site) : null;
+  if(site) home = [site.x + 2.5, site.z + 2.5];
+  var d = {id: "kid" + (++G.kidSeq), name: first + (surname ? " " + surname : ""), role: "Young One", aff: lead.aff, home: home, admires: null, vis: 12,
+    disp: lead.disp, skin: p1.skin, hair: p2.hair, hairC: p2.hairC, shirt: p1.shirt,
+    persona: {voice: ["small", "watchful", "asks why"], values: "staying close to the people raising them", fear: "the house going quiet", pride: "I can keep up, most days.", tic: "Again. Show me again.", stance: "Follows " + lead.name.split(" ")[0] + " everywhere.", secret: "a corner of the village that is only theirs"}};
+  var f = makeFigure(d);
+  var a = Object.assign({}, d, f, {
+    x: home[0] + 1, z: home[1] + 1, heading: Math.random() * 6.28, tx: 0, tz: 0,
+    state: "idle", stationId: null, slot: null, actT: 0, decideT: 0.5, loafT: 0, alerted: false,
+    energy: 80, morale: 72, phase: Math.random() * 10, walkPhase: 0,
+    order: null, carrying: null, bubble: null, bubbleUntil: 0, watchOf: null, watchT: 0, want: null, wantCd: 10, wantPend: null, driveObj: false, workHist: {},
+    idleT: 0, sick: false, seed: Math.random() * 100, model: lead.id, blamed: 0, modelCd: 0,
+    axis: AXES[G.kidSeq % AXES.length].id, age: KIDS.startAge, cash: 0, bank: null, thought: null, thoughtLog: [], recentEvents: [], thoughtAt: -99,
+    child: true, parents: [p1.id, p2.id], parentNames: [p1.name, p2.name], bornWeek: G.week, watched: {}, nearStation: {}, kidOff: ((G.kidSeq * 37) % 10) / 5 - 1,
+    speedNow: 0, fetch: null, fetchT: 0, watchCd: 0, mimicStation: null, buildSite: null, fetchSite: null,
+    pendingWatch: null, medicTask: 0, kneelT: 0, pendingSick: false, visitId: null
+  });
+  a.needs = {};
+  NEED_DEFS.forEach(function(nd){ a.needs[nd.id] = nd.start(G.agents.length); });
+  a.tx = a.x; a.tz = a.z;
+  a.root.scale.setScalar(KIDS.scale);
+  a.root.position.set(a.x, 0, a.z);
+  a.hit.userData.agentId = a.id;
+  var ovl = document.createElement("div"); ovl.className = "ovl"; ovl.id = "ovl-" + a.id;
+  var bub = document.createElement("div"); bub.className = "bubble"; bub.id = "bub-" + a.id;
+  var intEl = document.createElement("div"); intEl.className = "intent"; intEl.id = "int-" + a.id;
+  var label = document.createElement("div"); label.className = "label"; label.id = "lab-" + a.id;
+  ovl.appendChild(bub); ovl.appendChild(intEl); ovl.appendChild(label);
+  document.getElementById("labels").appendChild(ovl);
+  a.ovlEl = ovl; a.labelEl = label; a.bubbleEl = bub; a.intentEl = intEl; a._ovlSig = "";
+  var ring = new THREE.Mesh(new THREE.RingGeometry(0.72, 0.92, 28), new THREE.MeshBasicMaterial({color:0xf5c86a, transparent:true, opacity:0.95, side:THREE.DoubleSide}));
+  ring.rotation.x = -Math.PI/2; ring.position.y = 0.06; ring.visible = false; a.root.add(ring); a.ring = ring;
+  var aura = new THREE.Mesh(new THREE.CircleGeometry(2.7, 28), new THREE.MeshBasicMaterial({color:0xe8b34b, transparent:true, opacity:0.1, side:THREE.DoubleSide}));
+  aura.rotation.x = -Math.PI/2; aura.position.y = 0.04; aura.visible = false; a.root.add(aura); a.aura = aura;
+  G.agents.push(a);
+  G.births = (G.births || 0) + 1;
+  setBubble(a, "🌱", 2.5);
+  showToast("🌱 " + p1.name.split(" ")[0] + " and " + p2.name.split(" ")[0] + " have a young one: " + first + ".", {ids: [p1.id, p2.id, a.id]});
+  noteEvent(p1, "child", a.id); noteEvent(p2, "child", a.id);
+  refreshThought(a, "start");
+  return a;
+}
+function birthCheck(force){
+  if(!G.started || G.over) return null;
+  if(!G.households || !G.households.length) return null;
+  var born = null;
+  for(var i = 0; i < G.households.length; i++){
+    if(G.agents.length >= POP_CAP) break;
+    var h = G.households[i];
+    var p1 = agent(h.members[0]), p2 = agent(h.members[1]);
+    if(!p1 || !p2) continue;
+    var kids = 0;
+    G.agents.forEach(function(x){ if(x.child && x.parents && x.parents.indexOf(p1.id) >= 0 && x.parents.indexOf(p2.id) >= 0) kids++; });
+    if(kids >= KIDS.maxPerHousehold) continue;
+    if(!force){
+      if(G.week - (h.since || 0) < KIDS.minHouseholdSeasons) continue;
+      if(contentment() < KIDS.contentmentMin) continue;
+      if(arrivalRand() >= KIDS.birthChance) continue;
+    }
+    var c = spawnChild(h);
+    if(c && !born) born = c.id;
+  }
+  return born;
+}
+function childDecide(a){
+  a.driveObj = false;
+  if(a.sick || a.energy < 22){
+    a.reason = "Resting at home";
+    if(a.stationId !== "home" || a.state !== "sit") goStation(a, "home");
+    return;
+  }
+  var par = null;
+  var cand = a.model ? agent(a.model) : null;
+  if(cand && a.parents && a.parents.indexOf(cand.id) >= 0) par = cand;
+  if(!par){ var lp = livingParents(a); if(lp.length) par = lp[0]; }
+  if(par){
+    a.reason = "With " + par.name.split(" ")[0];
+    var dx = par.x - a.x, dz = par.z - a.z, d = Math.sqrt(dx * dx + dz * dz);
+    if(d > KIDS.followDist){
+      var px = par.x - dx / d * 1.5 + (dz / d) * (a.kidOff || 0), pz = par.z - dz / d * 1.5 - (dx / d) * (a.kidOff || 0);
+      goTo(a, px, pz, par.stationId || "home");
+    } else {
+      a.state = "sit"; a.stationId = par.stationId || "home"; a.actT = 2.5 + Math.random() * 2;
+    }
+    return;
+  }
+  a.reason = "On the green";
+  if(a.energy < 55) goStation(a, "home"); else goStation(a, "green");
+}
+function childObserve(a, dt){
+  if(!a.watched) a.watched = {};
+  if(!a.nearStation) a.nearStation = {};
+  (a.parents || []).forEach(function(pid){
+    var p = agent(pid); if(!p) return;
+    var dx = p.x - a.x, dz = p.z - a.z;
+    if(dx * dx + dz * dz < KIDS.watchRadius * KIDS.watchRadius) a.watched[pid] = (a.watched[pid] || 0) + dt;
+  });
+  var best = null, bd = KIDS.stationRadius;
+  Object.keys(STATION3).forEach(function(k){
+    if(k === "home") return;
+    var s = STATION3[k], dx = s.x - a.x, dz = s.z - a.z, dd = Math.sqrt(dx * dx + dz * dz);
+    if(dd < bd){ bd = dd; best = k; }
+  });
+  if(best) a.nearStation[best] = (a.nearStation[best] || 0) + dt;
+}
+function matureChild(a){
+  var wp = null, wv = -1;
+  if(a.watched) Object.keys(a.watched).forEach(function(k){ if(a.watched[k] > wv){ wv = a.watched[k]; wp = k; } });
+  var watchedParent = wp ? agent(wp) : null;
+  if(watchedParent){ a.model = watchedParent.id; a.disp = watchedParent.disp; }
+  else if(!a.model || !agent(a.model)){ var lp = livingParents(a); a.model = lp.length ? lp[0].id : null; }
+  var ns = null, nv = -1;
+  if(a.nearStation) Object.keys(a.nearStation).forEach(function(k){ if(a.nearStation[k] > nv){ nv = a.nearStation[k]; ns = k; } });
+  if(ns) a.aff = ns;
+  a.child = false;
+  a.role = KIDS.grownRoles[a.aff] || "Villager";
+  if(a.root) a.root.scale.setScalar(1);
+  a.cash = ECON.startCash; a.bank = G.banked ? 0 : null;
+  a.state = "idle"; a.decideT = 0.5;
+  setBubble(a, "🌱", 2.5);
+  showToast("🌱 " + a.name + " has grown up in the village" + (watchedParent ? ", still looking up to " + watchedParent.name.split(" ")[0] : "") + ".", {ids: [a.id]});
+  noteEvent(a, "grown", watchedParent ? watchedParent.id : "");
+}
+function matureCheck(){
+  G.agents.slice().forEach(function(a){ if(a.child && (a.age || 0) >= KIDS.matureAge) matureChild(a); });
 }
 var TIER_STATIONS = ["clinic", "fields", "store", "green", "mill", "school", "well"];
 var TIER_SPOTS = {
@@ -1633,7 +1820,7 @@ function telegraphFailing(){
   });
 }
 function winterDeaths(){
-  var failing = G.agents.filter(function(a){ return a.failing; });
+  var failing = G.agents.filter(function(a){ return a.failing && !a.child; });
   failing.forEach(function(a){ a.failing = false; });
   failing.sort(function(x, y){ return elderRisk(y) - elderRisk(x); });
   var deaths = 0;
@@ -1655,9 +1842,10 @@ function dieAgent(m){
   var followers = G.agents.filter(function(b){ return b !== m && b.model === m.id; });
   var pulls = {};
   followers.forEach(function(f){
+    if(f.child) return;
     var best = null, bs = -1;
     G.agents.forEach(function(c){
-      if(c === m || c === f) return;
+      if(c === m || c === f || c.child) return;
       var sc = ((f.watchHist && f.watchHist[c.id]) || 0) * 2 + visEff(c) / 25;
       if(sc > bs){ bs = sc; best = c; }
     });
@@ -1674,6 +1862,16 @@ function dieAgent(m){
   var h = householdOf(m);
   if(h) freeHousehold(h);
   removeAgent(m);
+  /* A dead parent's children keep the surviving parent as their
+     model: removeAgent just nulled the edge, so retarget it before
+     the child next decides. A child with no parent left keeps the
+     null and trails home and the green (childDecide). */
+  G.agents.forEach(function(b){
+    if(b.child && !b.model && b.parents && b.parents.indexOf(m.id) >= 0){
+      var lp2 = livingParents(b);
+      if(lp2.length) b.model = lp2[0].id;
+    }
+  });
   G.deaths.push({name: m.name, year: yearOf(), season: seasonName()});
   G.lastHarmWeek = G.week;
   G.agents.forEach(function(b){ if(b.successionPick) noteEvent(b, "succession", m.id); });
@@ -1729,7 +1927,7 @@ function scapegoatScore(a){
 }
 function scapegoatCandidate(){
   var best = null, bs = -1;
-  G.agents.forEach(function(a){ if(a.sick) return; var sc = scapegoatScore(a); if(sc > bs){ bs = sc; best = a; } });
+  G.agents.forEach(function(a){ if(a.sick || a.child) return; var sc = scapegoatScore(a); if(sc > bs){ bs = sc; best = a; } });
   return best;
 }
 /* ============ INNER VOICE (Tier 0 template thoughts) ============
@@ -1958,7 +2156,7 @@ function initiativeScan(){
   if(G.agents.some(function(a){ return !!a.initPend; })) return;
   var cands = [];
   G.agents.forEach(function(a){
-    if(a.sick || a.initWk === G.week || a.order) return;
+    if(a.sick || a.child || a.initWk === G.week || a.order) return;
     var fol = followersOf(a);
     if(a.disp === "Diligent" && a.model){
       var m = agent(a.model);
@@ -1993,7 +2191,7 @@ function initiativeScan(){
 }
 function imitationScan(){
   G.agents.forEach(function(a){
-    if(!a.model || a.sick || a.medicTask || a.order || a.watchCd > 0) return;
+    if(a.child || !a.model || a.sick || a.medicTask || a.order || a.watchCd > 0) return;
     if(!(a.state === "idle" || (a.state === "act" && a.stationId === "green") || a.state === "sit")) return;
     if(a.modelCd && G.t < a.modelCd) return;
     var m = agent(a.model);
@@ -2010,7 +2208,7 @@ function imitationScan(){
      by visibility); the completed watch makes the candidate their
      model through the same completion path as a first model. */
   G.agents.forEach(function(a){
-    if(a.model || !a.successionPick || a.sick || a.medicTask) return;
+    if(a.child || a.model || !a.successionPick || a.sick || a.medicTask) return;
     var freeToShadow = a.state === "idle" || (a.state === "act" && a.stationId === "green") || a.state === "sit"
       || (!a.fetch && !a.order && !a.carrying && !a.buildSite && (a.state === "act" || a.state === "walk"));
     if(!freeToShadow) return;
@@ -2022,7 +2220,7 @@ function imitationScan(){
     else { a.state = "watch"; a.watchOf = t.id; a.watchT = 3.4; setBubble(a, "👀", 1.8); noteEvent(a, "copied", t.id); }
   });
   G.agents.forEach(function(a){
-    if(a.vis >= 60 || a.watchCd > 0 || a.sick || a.medicTask) return;
+    if(a.child || a.vis >= 60 || a.watchCd > 0 || a.sick || a.medicTask) return;
     /* A newcomer still hunting for their first model watches hungrily
        during their arrival season: any uncommitted pause can turn into
        shadowing, not just idle moments, and they will cross the
@@ -2047,7 +2245,7 @@ function imitationScan(){
   });
 }
 /* ================= INCIDENTS & OBJECTIVES ================= */
-function orderAgent(id, station){ var a = agent(id); if(!a) return; a.order = station; a.fetch = null; a.carrying = null; if(a.state !== "walk"){ a.state = "idle"; a.decideT = 0; } }
+function orderAgent(id, station){ var a = agent(id); if(!a || a.child) return; a.order = station; a.fetch = null; a.carrying = null; if(a.state !== "walk"){ a.state = "idle"; a.decideT = 0; } }
 function blameAgent(id){ var a = agent(id); if(!a) return; a.blamed = (a.blamed || 0) + 1; G.blame = Math.min(100, (G.blame || 0) + 14); a.disp = "Withdrawn"; a.morale = Math.max(5, a.morale - 25); a.order = null; noteEvent(a, "blamed", ""); setBubble(a, "🔴", 2.5); goStation(a, "home"); G.stats.rivalry = Math.min(100, G.stats.rivalry + 5); }
 function sendMedic(patientId){ var j = agent("jonah"), p = agent(patientId); if(!j || !p) return; G.medicPatient = patientId; j.medicTask = 1; j.order = null; j.fetch = null; j.carrying = null; goTo(j, 1.1, 9.0, "green"); showToast("✚ Jonah is on his way"); }
 function recoverPatient(id, morale){ var p = agent(id); if(!p) return; p.sick = false; p.morale = morale; p.state = "idle"; p.decideT = 1; }
@@ -2672,6 +2870,11 @@ function endWeek(){
      the death roll, all before the arrival check below so a freed
      dwelling can be refilled at the same boundary. */
   if(seasonOfYear() === 1) G.agents.forEach(function(a){ a.age = (a.age || 34) + 1; });
+  /* Stage 7 lifecycle, on the same spring boundary: children who
+     have reached the maturation age grow up first, then established
+     households roll for a young one, so a newborn is never aged or
+     matured by the boundary that bore them. */
+  if(seasonOfYear() === 1){ matureCheck(); birthCheck(); }
   /* Stage 6: while the bank stands, the season boundary sweeps
      each resident's cash on hand into their account. */
   bankSweep();
@@ -2711,6 +2914,7 @@ function stepSim(dt){
   bondTick(dt);
   stepAgents(dt);
   G.agents.forEach(function(a){
+    if(a.child){ a.loafT = 0; return; }
     var working = a.medicTask || a.order || (a.state === "act" && a.stationId && a.stationId !== "green" && a.stationId !== "home") || (a.state === "walk" && a.stationId && a.stationId !== "green" && a.stationId !== "home");
     if(working || a.sick) a.loafT = 0; else a.loafT = (a.loafT || 0) + dt;
     if(a.loafT > 15 && !a.alerted && G.started && !G.over){ a.alerted = true; G.alerts.push({id:a.id, name:a.name.split(" ")[0], at:G.t}); }
@@ -2930,7 +3134,7 @@ function refreshTray(force){
 }
 function setOrder3(orderId){
   var a = G.selected ? agent(G.selected) : null;
-  if(!a || a.sick) return;
+  if(!a || a.sick || a.child) return;
   if(a.initPend){ a.initPend = null; showToast("↩ " + a.name.split(" ")[0] + " drops the plan and takes your order"); }
   if(orderId !== "auto" && a.order === orderId){ refreshTray(true); return; }
   G.firstOrder = true;
@@ -3206,6 +3410,7 @@ function hudTick(dt){
   }
 }
 function intentIcon(a){
+  if(a.child && a.state === "sit" && !a.sick) return "💤";
   if(a.sick || a.state === "sit") return "✚";
   if(a.medicTask || a.state === "kneel") return "✚";
   if(a.state === "watch") return "👀";
@@ -3270,13 +3475,13 @@ function pickWantStation(a){
   return "green";
 }
 function giveWant(a, station, fromSync){
-  if(!station || a.sick || a.want) return;
+  if(!station || a.sick || a.want || a.child) return;
   Store.dispatch("want/set", {id:a.id, station:station, secs:26});
   noteEvent(a, "want", station);
   setBubble(a, STATION3[station].icon, 1.2);
   if(visEff(a) >= 60){
     G.agents.forEach(function(b){
-      if(b === a || b.want || b.wantPend || b.sick) return;
+      if(b === a || b.want || b.wantPend || b.sick || b.child) return;
       var d = Math.sqrt((b.x-a.x)*(b.x-a.x) + (b.z-a.z)*(b.z-a.z));
       if(d < arcOf(a).wantRange && Math.random() < arcOf(a).wantChance) b.wantPend = {station:station, at:G.t + 0.7 + Math.random()*1.6};
     });
@@ -3755,7 +3960,7 @@ if(ffm){
   updateCamera(0); Store.commit(); refreshTray(true);
   renderer.render(scene, camera);
 }
-window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, verdict: storyVerdict, setModel: function(id, mid){ var a = agent(id); if(a) a.model = mid; }, select: function(id){ Store.dispatch("ui/select", {id:id}); refreshTray(true); }, pickProject: function(i){ pickProject(i || 0); }, acceptOffer: function(){ acceptOffer(); }, ignoreOffer: function(){ ignoreOffer(); }, drawOffer: function(){ drawOffer(); }, found: function(ix, kind){ return foundSite(ix, kind || "cottage"); }, sites: function(){ return (G.sites || []).map(function(s){ return {id: s.id, kind: s.kind, plot: s.plot, projId: s.projId, station: s.station, stage: s.stage, stageLabor: Math.round(s.stageLabor || 0), labor: Math.round(s.labor || 0), matsIn: {stores: s.matsIn.stores, planks: s.matsIn.planks}, workers: Object.keys(s.workers || {}).length, done: s.done}; }); }, capacity: function(){ return G.houseCapacity || 0; }, speak: function(){ return speakFor(); }, social: function(){ return {contentment: Math.round(contentment()), households: (G.households || []).map(function(h){ return {id: h.id, members: h.members.slice(), site: h.site, since: h.since}; }), arrival: G.arrival ? G.arrival.names.slice() : null, soloHoused: G.soloHoused || 0, housingFree: housingFree(), departed: G.departed || 0, candidate: (function(){ var c = scapegoatCandidate(); return c ? c.id : null; })()}; }, econ: function(){ return {banked: !!G.banked, pay: Object.assign({}, ECON.pay), startCash: ECON.startCash, agents:(function(){ var o = {}; G.agents.forEach(function(a){ o[a.id] = {cash: Math.floor(a.cash || 0), cashRaw: a.cash || 0, bank: (a.bank == null ? null : Math.floor(a.bank)), bankRaw: (a.bank == null ? null : a.bank)}; }); return o; })()}; }, life: function(){ return {deaths:(G.deaths || []).map(function(d){ return {name:d.name, year:d.year, season:d.season}; }), tiers:Object.assign({}, G.tiers), tierProg:(function(){ var o = {}; Object.keys(G.tierProg || {}).forEach(function(k){ o[k] = Math.round(G.tierProg[k]); }); return o; })(), spots:(function(){ var o = {}; TIER_STATIONS.forEach(function(st){ o[st] = STATION3[st].work.length; }); return o; })(), builtWealth:G.builtWealth || 0, level:villageLevel().name, levelCount:villageLevel().count, proclaim:G.proclaim ? {station:G.proclaim.station, site:G.proclaim.site, week:G.proclaim.week} : null, ages:(function(){ var o = {}; G.agents.forEach(function(a){ o[a.id] = a.age; }); return o; })(), arcs:(function(){ var o = {}; G.agents.forEach(function(a){ o[a.id] = arcOf(a).id; }); return o; })()}; }, wealth: function(){ return recomputeWealth(); }, proclaim: function(st){ return proclaimAt(st, null); }, proclaimSite: function(id){ var s = siteById(id); return s ? proclaimAt(s.station || null, s.id) : false; }, die: function(id){ var a = agent(id); if(!a) return false; dieAgent(a); return true; }, fail: function(id){ var a = agent(id); if(!a) return false; a.failing = true; return true; }, tier: function(st){ return tierOf(st); }, sheet: function(id){ Store.dispatch("ui/sheet", {id:id || null}); }, closeSheet: function(){ Store.dispatch("ui/sheet", {id:null}); }, thoughts: function(){ var out = {}; G.agents.forEach(function(a){ out[a.id] = {axis:(a.axis || ""), voice:(a.persona ? a.persona.voice.join(", ") : ""), thought:(a.thought ? a.thought.text : ""), cause:(a.thought ? a.thought.cause : ""), log:(a.thoughtLog ? a.thoughtLog.length : 0), events:(a.recentEvents ? a.recentEvents.length : 0)}; }); return out; }};
+window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, verdict: storyVerdict, setModel: function(id, mid){ var a = agent(id); if(a) a.model = mid; }, select: function(id){ Store.dispatch("ui/select", {id:id}); refreshTray(true); }, pickProject: function(i){ pickProject(i || 0); }, acceptOffer: function(){ acceptOffer(); }, ignoreOffer: function(){ ignoreOffer(); }, drawOffer: function(){ drawOffer(); }, found: function(ix, kind){ return foundSite(ix, kind || "cottage"); }, sites: function(){ return (G.sites || []).map(function(s){ return {id: s.id, kind: s.kind, plot: s.plot, projId: s.projId, station: s.station, stage: s.stage, stageLabor: Math.round(s.stageLabor || 0), labor: Math.round(s.labor || 0), matsIn: {stores: s.matsIn.stores, planks: s.matsIn.planks}, workers: Object.keys(s.workers || {}).length, done: s.done}; }); }, capacity: function(){ return G.houseCapacity || 0; }, speak: function(){ return speakFor(); }, social: function(){ return {contentment: Math.round(contentment()), households: (G.households || []).map(function(h){ return {id: h.id, members: h.members.slice(), site: h.site, since: h.since}; }), arrival: G.arrival ? G.arrival.names.slice() : null, soloHoused: G.soloHoused || 0, housingFree: housingFree(), departed: G.departed || 0, candidate: (function(){ var c = scapegoatCandidate(); return c ? c.id : null; })()}; }, econ: function(){ return {banked: !!G.banked, pay: Object.assign({}, ECON.pay), startCash: ECON.startCash, agents:(function(){ var o = {}; G.agents.forEach(function(a){ o[a.id] = {cash: Math.floor(a.cash || 0), cashRaw: a.cash || 0, bank: (a.bank == null ? null : Math.floor(a.bank)), bankRaw: (a.bank == null ? null : a.bank)}; }); return o; })()}; }, family: function(){ return {births: G.births || 0, cap: POP_CAP, children: G.agents.filter(function(a){ return !!a.parents; }).map(function(a){ var wp = null, wv = -1; if(a.watched) Object.keys(a.watched).forEach(function(k){ if(a.watched[k] > wv){ wv = a.watched[k]; wp = k; } }); var ns = null, nv = -1; if(a.nearStation) Object.keys(a.nearStation).forEach(function(k){ if(a.nearStation[k] > nv){ nv = a.nearStation[k]; ns = k; } }); return {id: a.id, name: a.name, parents: (a.parents || []).slice(), parentNames: (a.parentNames || []).slice(), age: a.age, child: !!a.child, matured: !a.child, model: a.model, disp: a.disp, aff: a.aff, watchedMost: wp, nearStationMost: ns, scale: a.root ? a.root.scale.x : 1}; })}; }, birth: function(){ return birthCheck(true); }, life: function(){ return {deaths:(G.deaths || []).map(function(d){ return {name:d.name, year:d.year, season:d.season}; }), tiers:Object.assign({}, G.tiers), tierProg:(function(){ var o = {}; Object.keys(G.tierProg || {}).forEach(function(k){ o[k] = Math.round(G.tierProg[k]); }); return o; })(), spots:(function(){ var o = {}; TIER_STATIONS.forEach(function(st){ o[st] = STATION3[st].work.length; }); return o; })(), builtWealth:G.builtWealth || 0, level:villageLevel().name, levelCount:villageLevel().count, proclaim:G.proclaim ? {station:G.proclaim.station, site:G.proclaim.site, week:G.proclaim.week} : null, ages:(function(){ var o = {}; G.agents.forEach(function(a){ o[a.id] = a.age; }); return o; })(), arcs:(function(){ var o = {}; G.agents.forEach(function(a){ o[a.id] = arcOf(a).id; }); return o; })()}; }, wealth: function(){ return recomputeWealth(); }, proclaim: function(st){ return proclaimAt(st, null); }, proclaimSite: function(id){ var s = siteById(id); return s ? proclaimAt(s.station || null, s.id) : false; }, die: function(id){ var a = agent(id); if(!a) return false; dieAgent(a); return true; }, fail: function(id){ var a = agent(id); if(!a) return false; a.failing = true; return true; }, tier: function(st){ return tierOf(st); }, sheet: function(id){ Store.dispatch("ui/sheet", {id:id || null}); }, closeSheet: function(){ Store.dispatch("ui/sheet", {id:null}); }, thoughts: function(){ var out = {}; G.agents.forEach(function(a){ out[a.id] = {axis:(a.axis || ""), voice:(a.persona ? a.persona.voice.join(", ") : ""), thought:(a.thought ? a.thought.text : ""), cause:(a.thought ? a.thought.cause : ""), log:(a.thoughtLog ? a.thoughtLog.length : 0), events:(a.recentEvents ? a.recentEvents.length : 0)}; }); return out; }};
 </script>
 </body>
 </html>

@@ -38,67 +38,67 @@
     },
     {
       "article": "driven-work-progress.md",
-      "ref_line": 817,
+      "ref_line": 818,
       "lines": 27,
       "hash": "f08cbff5"
     },
     {
       "article": "household-capacity-ledger.md",
-      "ref_line": 1237,
-      "lines": 43,
-      "hash": "ccf487fe"
+      "ref_line": 1241,
+      "lines": 45,
+      "hash": "d655166c"
     },
     {
       "article": "thoughts-local-inference-only.md",
-      "ref_line": 1860,
+      "ref_line": 2058,
       "lines": 31,
       "hash": "abf52637"
     },
     {
       "article": "driven-work-progress.md",
-      "ref_line": 2537,
+      "ref_line": 2735,
       "lines": 14,
       "hash": "c77a272b"
     },
     {
       "article": "axis-label-selected-surfaces.md",
-      "ref_line": 2887,
+      "ref_line": 3091,
       "lines": 2,
       "hash": "c00115e1"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 3006,
+      "ref_line": 3210,
       "lines": 20,
       "hash": "207fd11f"
     },
     {
       "article": "sheet-below-objective-card.md",
-      "ref_line": 3190,
+      "ref_line": 3394,
       "lines": 16,
       "hash": "6b2224dc"
     },
     {
       "article": "overlay-anchor-budget.md",
-      "ref_line": 3437,
+      "ref_line": 3642,
       "lines": 65,
       "hash": "74c15edb"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 3640,
+      "ref_line": 3845,
       "lines": 11,
       "hash": "a01f9ac4"
     },
     {
       "article": "pointercancel-never-a-tap.md",
-      "ref_line": 3653,
+      "ref_line": 3858,
       "lines": 4,
       "hash": "3471fc97"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 3720,
+      "ref_line": 3925,
       "lines": 4,
       "hash": "ce66959f"
     }
