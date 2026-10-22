@@ -2259,6 +2259,9 @@ function beginGame(){
   if(chosenDiff === "hard"){ G.stats.scarcity = 68; G.stats.trust = 48; G.agents.forEach(function(a){ a.energy -= 10; }); }
   if(chosenDiff === "dry"){ G.stats.scarcity = 62; G.stats.prod = 40; }
   setObjective();
+  /* the season opens framed on the objective site, so the first thing a player sees is the work itself */
+  var st0 = STATION3[G.objStation];
+  if(st0){ cam.target.x = Math.max(-62, Math.min(62, st0.x)); cam.target.z = Math.max(-48, Math.min(48, st0.z)); cam.follow = null; }
   document.getElementById("startOverlay").classList.remove("open");
   showToast("🔨 Week 1: Mara is on the roof. Bram is watching.");
   G.agents.forEach(function(a){ refreshThought(a, "start"); });
