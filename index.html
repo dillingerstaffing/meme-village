@@ -117,6 +117,23 @@ canvas{display:block}
 /* The Story So Far never blocks play: taps pass around the card, the sim runs on. */
 #endOverlay.story{pointer-events:none;background:rgba(3,5,8,.42)}
 #endOverlay.story .modal{pointer-events:auto}
+/* The Story panel is a framed screen, not a document in a scrolling card:
+   a fixed header (kicker left, close in the corner) that never scrolls,
+   with the verdict, the epilog, and a compact ledger scrolling under it. */
+#endCard{display:flex;flex-direction:column;padding:0;overflow:hidden}
+.story-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex:none;padding:10px 10px 10px 20px;border-bottom:1px solid var(--line)}
+.story-x{flex:none;width:44px;height:44px;border-radius:8px;border:1px solid var(--line);background:#0c1219;color:var(--ink);font-size:17px;line-height:1;cursor:pointer;padding:0}
+.story-x:hover{border-color:var(--gold);color:var(--gold)}
+.story-body{overflow-y:auto;min-height:0;padding:4px 24px 20px}
+.story-body h2{margin:10px 0 8px}
+.ledger{display:grid;grid-template-columns:1fr 1fr;column-gap:28px;margin-top:4px}
+.ledger .stat-row{border-bottom:1px solid var(--line)}
+@media (max-width:560px){
+  #endOverlay{align-items:flex-end;padding:14px 14px 0}
+  #endCard{max-height:92dvh;border-radius:12px 12px 0 0}
+  .story-body{padding:2px 16px 16px}
+  .ledger{grid-template-columns:1fr}
+}
 /* Title screen: a poster over the live village, not a form. The world stays
    visible behind a soft bottom gradient; the logotype sits high, the menu
    low. While body.pre is set (until beginGame), no HUD chrome renders. */
@@ -2784,9 +2801,12 @@ function storySoFar(auto){
   function row(label, val){ return "<div class='stat-row'><span>" + label + "</span><b>" + Math.round(val) + "</b></div>"; }
   var kick = auto ? "THE WINTER COUNT · " + seasonLabel() : "THE STORY SO FAR · " + seasonLabel();
   var sub = auto ? "The winter count. If the story ended with this winter: " : "If the story ended today: ";
-  var html = "<div class='kick2'>" + kick + "</div><h2>" + v.ending + "</h2>"
+  var html = "<div class='story-head'><div class='kick2'>" + kick + "</div>"
+    + "<button type='button' class='story-x' onclick='__closeStory()' aria-label='Close'>✕</button></div>"
+    + "<div class='story-body'><h2>" + v.ending + "</h2>"
     + "<p style='color:var(--ink2)'>" + sub + v.epi + "</p>"
     + "<p style='color:var(--ink2)'>Village #" + G.seed + " · watched: " + (G.seasonModels || []).join(", ") + "</p>"
+    + "<div class='ledger'>"
     + row("⚒ Productivity", s.prod) + row("♥ Trust", s.trust) + row("🌳 Cohesion", s.cohesion)
     + row("⚔ Rivalry", s.rivalry) + row("🌾 Scarcity", s.scarcity) + row("🕊 Autonomy", s.autonomy)
     + "<div class='stat-row'><span>🎯 Objectives met</span><b>" + G.objDone + "</b></div>"
@@ -2794,7 +2814,7 @@ function storySoFar(auto){
     + "<div class='stat-row'><span>👀 Imitations witnessed</span><b>" + G.copied + "</b></div>"
     + "<div class='stat-row'><span>🔴 Scapegoats named</span><b>" + G.scapegoats + "</b></div>"
     + "<div class='stat-row'><span>♥ Village morale (avg)</span><b>" + v.avgMorale + "</b></div>"
-    + "<button class='btn' onclick='__closeStory()' style='margin-top:12px'>Close</button>";
+    + "</div></div>";
   document.getElementById("endCard").innerHTML = html;
   var ov = document.getElementById("endOverlay");
   ov.classList.add("open"); ov.classList.add("story");
@@ -2803,7 +2823,7 @@ function storySoFar(auto){
     (function(seq){ setTimeout(function(){ if(seq === storyAutoSeq){ ov.classList.remove("open"); ov.classList.remove("story"); } }, 15000); })(storyAutoSeq);
   }
 }
-window.__closeStory = function(){ var ov = document.getElementById("endOverlay"); ov.classList.remove("open"); ov.classList.remove("story"); };
+window.__closeStory = function(){ storyAutoSeq++; var ov = document.getElementById("endOverlay"); ov.classList.remove("open"); ov.classList.remove("story"); };
 
 /* ================= THREE SETUP ================= */
 var clock;
