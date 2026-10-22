@@ -452,7 +452,7 @@ function renderSheet(s){
   }
   var log = a.thoughtLog || [];
   var whSig = 0; if(a.workHist) for(var wkk in a.workHist) whSig += a.workHist[wkk];
-  var key = a.id + "|" + (a.thought ? a.thought.at + ":" + a.thought.text : "none") + "|" + log.length + "|" + NEED_DEFS.map(function(d){ return Math.round(needVal(a, d.id)); }).join(":") + ":" + whSig + "|" + (householdOf(a) ? householdOf(a).id : "") + "|" + Math.round(a.age || 34) + arcOf(a).id + "|" + Math.floor(a.cash || 0) + ":" + (a.bank == null ? "x" : Math.floor(a.bank));
+  var key = a.id + "|" + (a.thought ? a.thought.at + ":" + a.thought.text : "none") + "|" + log.length + "|" + NEED_DEFS.map(function(d){ return Math.round(needVal(a, d.id)); }).join(":") + ":" + whSig + "|" + (householdOf(a) ? householdOf(a).id : "") + "|" + Math.round(a.age || 34) + arcOf(a).id + "|" + Math.floor(a.cash || 0) + ":" + (a.bank == null ? "x" : Math.floor(a.bank)) + "|" + (a.tier || "");
   if(key === sheetKey && el.style.display !== "none") return;
   sheetKey = key;
   var shirt = "#" + ("000000" + (a.shirt || 0).toString(16)).slice(-6);
@@ -474,6 +474,7 @@ function renderSheet(s){
   if(a.parents && a.parentNames && a.parentNames.length) h += "<div class='sh-work'>🧒 Child of " + a.parentNames.join(" and ") + "</div>";
   h += "<div class='sh-work'>Age " + Math.round(a.age || 34) + " · " + arcOf(a).label + "</div>";
   h += "<div class='sh-work'>🪙 Cash on hand: " + Math.floor(a.cash || 0) + " tokens" + (a.bank != null ? " · Bank account: " + Math.floor(a.bank) + " tokens" : "") + "</div>";
+  if(a.tier && TTI[a.tier]) h += "<div class='sh-work'>🛡 Coverage: " + TTI[a.tier].name + "</div>";
   if(a.thought){
     h += "<div class='sh-quote'>\u201C" + a.thought.text + "\u201D</div>";
     for(var i = log.length - 2; i >= 0; i--){
@@ -760,7 +761,7 @@ function makeAgents(){
       state:"idle", stationId:null, slot:null, actT:0, decideT:Math.random()*2, loafT:0, alerted:false,
       energy:80 - (i%4)*4, morale:72, phase:Math.random()*10, walkPhase:0,
       order:null, carrying:null, bubble:null, bubbleUntil:0, watchOf:null, watchT:0, want:null, wantCd:Math.random()*10, wantPend:null, driveObj:false, workHist:{},
-      idleT:0, sick:false, seed:Math.random()*100, model:d.admires, blamed:0, modelCd:0, axis:axisPool[i], age:34, cash:ECON.startCash, bank:null, thought:null, thoughtLog:[], recentEvents:[], thoughtAt:-99
+      idleT:0, sick:false, seed:Math.random()*100, model:d.admires, blamed:0, modelCd:0, axis:axisPool[i], age:34, cash:ECON.startCash, bank:null, tier:null, thought:null, thoughtLog:[], recentEvents:[], thoughtAt:-99
     });
     a.needs = {};
     NEED_DEFS.forEach(function(d){ a.needs[d.id] = d.start(i); });
@@ -837,7 +838,7 @@ function newSlice(){
     stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
     objStation:"clinic", objComplete:false, objDone:0, scapegoats:0, delays:[],
     weekWork:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0, build:0}, weekWorkP:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0},
-    ui:{toast:null, queue:[], sheet:null, muted:false}, mimic:{spread:0, converged:0, doneCopied:0, doneSelf:0, missedCopied:0}, policy:"hearth", difficulty:"standard", medicPatient:null, pendingIncident:null, curIncident:null, alerts:[], firstOrder:false, chronicle: [], endKind: null};
+    ui:{toast:null, queue:[], sheet:null, muted:false}, mimic:{spread:0, converged:0, doneCopied:0, doneSelf:0, missedCopied:0}, policy:"hearth", difficulty:"standard", medicPatient:null, pendingIncident:null, curIncident:null, alerts:[], firstOrder:false, chronicle: [], endKind: null, ttiPaid: 0, ttiSavesUsed: 0, medicQueue: [], medicSeq: 0};
   g.agents.forEach(function(a){
     a.speedNow = 0; a.slot = null; a.fetch = null; a.fetchT = 0; a.watchCd = 0; a.mimicStation = null;
     a.buildSite = null; a.fetchSite = null;
@@ -1138,6 +1139,7 @@ function stepAgents(dt){
         a.medicTask = 0; a.state = "idle"; a.decideT = 0.3;
         var pat = G.medicPatient ? agent(G.medicPatient) : null; G.medicPatient = null;
         if(pat && pat.sick){ pat.sick = false; pat.morale = 88; pat.state = "idle"; pat.decideT = 0.5; setBubble(pat, "♥", 2.5); }
+        tryDispatch();
       }
     }
     if(a.state === "sit"){
@@ -1334,6 +1336,7 @@ function removeAgent(m){
   Object.keys(G.pairs || {}).forEach(function(k){ if(k.split("|").indexOf(m.id) >= 0) delete G.pairs[k]; });
   Object.keys(G.bonds || {}).forEach(function(k){ if(k.split("|").indexOf(m.id) >= 0) delete G.bonds[k]; });
   if(G.medicPatient === m.id) G.medicPatient = null;
+  if(G.medicQueue) G.medicQueue = G.medicQueue.filter(function(e){ return e.id !== m.id; });
   if(m.solo){ m.solo = false; G.soloHoused = Math.max(0, (G.soloHoused || 0) - 1); }
   if(G.selected === m.id) Store.dispatch("ui/select", {id: null});
 }
@@ -1382,7 +1385,7 @@ function spawnNewcomer(def){
     energy: 76, morale: HH.newcomerMorale, phase: Math.random() * 10, walkPhase: 0,
     order: null, carrying: null, bubble: null, bubbleUntil: 0, watchOf: null, watchT: 0, want: null, wantCd: 6 + Math.random() * 8, wantPend: null, driveObj: false, workHist: {},
     idleT: 0, sick: false, seed: Math.random() * 100, model: null, blamed: 0, modelCd: 0,
-    axis: AXES[Math.floor(Math.random() * AXES.length)].id, age: LIFE.newcomerAges[Math.floor(Math.random() * LIFE.newcomerAges.length)], cash: ECON.startCash, bank: G.banked ? 0 : null, thought: null, thoughtLog: [], recentEvents: [], thoughtAt: -99,
+    axis: AXES[Math.floor(Math.random() * AXES.length)].id, age: LIFE.newcomerAges[Math.floor(Math.random() * LIFE.newcomerAges.length)], cash: ECON.startCash, bank: G.banked ? 0 : null, tier: null, thought: null, thoughtLog: [], recentEvents: [], thoughtAt: -99,
     newcomer: true, arrivedWeek: G.week, dwellingSite: dwSite, solo: true,
     speedNow: 0, fetch: null, fetchT: 0, watchCd: 0, mimicStation: null, buildSite: null, fetchSite: null,
     pendingWatch: null, medicTask: 0, kneelT: 0, pendingSick: false, visitId: null
@@ -1619,6 +1622,52 @@ function bankSweep(){
     if(a.cash > 0){ a.bank += a.cash; a.cash = 0; }
   });
 }
+/* ================= COVERAGE (Stage T: TTI membership) =================
+   Trauma cover, built from the village's own parts. A tier is a row
+   in the TTI table, not a system: the account is the Stage 6 bank
+   account, the trigger is the sick state, the responder is Jonah,
+   the guarantee is queue position plus a divisor on the winter
+   death roll, and the bill is a premium debited from the bank at
+   the season boundary. Premiums are the economy's first sink,
+   priced from measured earnings, not feel: a passive soak over
+   seeds 3, 5, 7, and 11 across 8 seasons (353 resident-seasons)
+   gave a median per-resident season earning E of 6.3 tokens.
+   Silver is max(5, round5(0.15 * E)); Executive is twice Silver;
+   Platinum is 3.5 times Silver, rounded; the spot fee is twice
+   Silver; the self-enrollment bank threshold is eight times
+   Silver. Premiums debit the bank only, never cash, never below
+   zero: an account that cannot pay lapses, it never debts.
+   Coverage never gates the medic: the manual send path is
+   unchanged for everyone, member or not; a tier moves queue
+   order and the death roll, nothing else. Children hold none. */
+var TTI = {
+  silver: {name: "Silver", glyph: "🥈", premium: 5, queue: 3, deathDivisor: 1, saves: 0},
+  executive: {name: "Executive", glyph: "🥇", premium: 10, queue: 2, deathDivisor: 1.6, saves: 0},
+  platinum: {name: "Platinum", glyph: "💎", premium: 18, queue: 1, deathDivisor: 1.6, saves: 1},
+  spotFee: 10,
+  selfEnrollBank: 40
+};
+function setTier(a, tierId){
+  if(!a || a.child) return false;
+  if(tierId !== null && !TTI[tierId]) return false;
+  a.tier = tierId;
+  return true;
+}
+// CF-REF: membership-never-gates-the-medic.md [14]
+function premiumSweep(){
+  if(!G.banked) return;
+  var lapsed = 0;
+  G.agents.forEach(function(a){
+    if(a.child) return;
+    if(a.tier && TTI[a.tier]){
+      var prem = TTI[a.tier].premium;
+      if(a.bank != null && a.bank >= prem){ a.bank -= prem; G.ttiPaid = (G.ttiPaid || 0) + prem; }
+      else { a.tier = null; lapsed++; }
+    }
+    else if(!a.tier && a.bank != null && a.bank >= TTI.selfEnrollBank) a.tier = "silver";
+  });
+  if(lapsed > 0) showToast("🛡 Coverage lapsed for " + lapsed + (lapsed === 1 ? " resident" : " residents") + " (unpaid)");
+}
 /* ================= CHILDREN AND INHERITANCE (Stage 7) =================
    A household may add a young one: a real agent, small on the map,
    who does not work. The child follows a parent (their model edge
@@ -1682,7 +1731,7 @@ function spawnChild(h){
     energy: 80, morale: 72, phase: Math.random() * 10, walkPhase: 0,
     order: null, carrying: null, bubble: null, bubbleUntil: 0, watchOf: null, watchT: 0, want: null, wantCd: 10, wantPend: null, driveObj: false, workHist: {},
     idleT: 0, sick: false, seed: Math.random() * 100, model: lead.id, blamed: 0, modelCd: 0,
-    axis: AXES[G.kidSeq % AXES.length].id, age: KIDS.startAge, cash: 0, bank: null, thought: null, thoughtLog: [], recentEvents: [], thoughtAt: -99,
+    axis: AXES[G.kidSeq % AXES.length].id, age: KIDS.startAge, cash: 0, bank: null, tier: null, thought: null, thoughtLog: [], recentEvents: [], thoughtAt: -99,
     child: true, parents: [p1.id, p2.id], parentNames: [p1.name, p2.name], bornWeek: G.week, watched: {}, nearStation: {}, kidOff: ((G.kidSeq * 37) % 10) / 5 - 1,
     speedNow: 0, fetch: null, fetchT: 0, watchCd: 0, mimicStation: null, buildSite: null, fetchSite: null,
     pendingWatch: null, medicTask: 0, kneelT: 0, pendingSick: false, visitId: null
@@ -1789,6 +1838,7 @@ function matureChild(a){
   a.role = KIDS.grownRoles[a.aff] || "Villager";
   if(a.root) a.root.scale.setScalar(1);
   a.cash = ECON.startCash; a.bank = G.banked ? 0 : null;
+  a.tier = null;
   a.state = "idle"; a.decideT = 0.5;
   setBubble(a, "🌱", 2.5);
   showToast("🌱 " + a.name + " has grown up in the village" + (watchedParent ? ", still looking up to " + watchedParent.name.split(" ")[0] : "") + ".", {ids: [a.id]});
@@ -1924,7 +1974,19 @@ function winterDeaths(){
     if(G.agents.length <= LIFE.minPopulation) break;
     var a = failing[i], arc = arcOf(a);
     var p = Math.min(0.92, LIFE.dieBase + (a.age - arc.minAge) * LIFE.diePerYear + Math.max(0, 50 - a.morale) * LIFE.dieMorale);
-    if(Math.random() < p){ dieAgent(a); deaths++; }
+    // CF-REF: membership-never-gates-the-medic.md [12]
+    var ttiRow = a.tier ? TTI[a.tier] : null;
+    if(ttiRow && ttiRow.deathDivisor > 1) p = p / ttiRow.deathDivisor;
+    if(Math.random() < p){
+      if(ttiRow && (G.ttiSavesUsed || 0) < (ttiRow.saves || 0)){
+        G.ttiSavesUsed = (G.ttiSavesUsed || 0) + 1;
+        showToast("💎 Platinum cover: " + a.name.split(" ")[0] + " was stabilised", {ids: [a.id]});
+        chronicle(a.name + " was stabilised by their Platinum cover.");
+        makeSick(a);
+        enqueueMedic(a, true);
+        tryDispatch();
+      } else { dieAgent(a); deaths++; }
+    }
   }
 }
 function dieAgent(m){
@@ -2364,7 +2426,71 @@ function imitationScan(){
 /* ================= INCIDENTS & OBJECTIVES ================= */
 function orderAgent(id, station){ var a = agent(id); if(!a || a.child) return; a.order = station; a.fetch = null; a.carrying = null; if(a.state !== "walk"){ a.state = "idle"; a.decideT = 0; } }
 function blameAgent(id){ var a = agent(id); if(!a) return; a.blamed = (a.blamed || 0) + 1; G.blame = Math.min(100, (G.blame || 0) + 14); a.disp = "Withdrawn"; a.morale = Math.max(5, a.morale - 25); a.order = null; noteEvent(a, "blamed", ""); setBubble(a, "🔴", 2.5); goStation(a, "home"); G.stats.rivalry = Math.min(100, G.stats.rivalry + 5); }
-function sendMedic(patientId){ var j = agent("jonah"), p = agent(patientId); if(!j || !p) return; G.medicPatient = patientId; j.medicTask = 1; j.order = null; j.fetch = null; j.carrying = null; goTo(j, 1.1, 9.0, "green"); showToast("✚ Jonah is on his way"); }
+/* The coverage queue. A member who falls sick is enrolled by the
+   watch in stepSim and Jonah works the queue by tier rank, then by
+   time waiting. Non-members are never enrolled by the watch: they
+   reach Jonah through the player's manual send, unchanged, or by
+   buying a Call Out, which buys the front of the queue once. The
+   queue is pruned whenever a patient recovers, is removed, or is
+   sent for manually (sendMedic dequeues its patient). */
+function medicFree(){
+  var j = agent("jonah");
+  return !!(j && !j.sick && !j.medicTask && !G.medicPatient);
+}
+function medicQueued(id){
+  if(!G.medicQueue) return false;
+  for(var i = 0; i < G.medicQueue.length; i++) if(G.medicQueue[i].id === id) return true;
+  return false;
+}
+function enqueueMedic(a, front){
+  if(!a || medicQueued(a.id)) return false;
+  if(!G.medicQueue) G.medicQueue = [];
+  var rank = front ? 0 : (a.tier && TTI[a.tier] ? TTI[a.tier].queue : 3);
+  var ent = {id: a.id, at: G.t, seq: (G.medicSeq = (G.medicSeq || 0) + 1), rank: rank, spot: !!front && !a.tier};
+  if(front) G.medicQueue.unshift(ent); else G.medicQueue.push(ent);
+  return true;
+}
+function tryDispatch(){
+  if(!G || !G.started || G.over || !G.medicQueue || !G.medicQueue.length) return false;
+  if(!medicFree()) return false;
+  var best = 0;
+  for(var i = 1; i < G.medicQueue.length; i++){
+    var e = G.medicQueue[i], b = G.medicQueue[best];
+    if(e.rank < b.rank || (e.rank === b.rank && e.seq < b.seq)) best = i;
+  }
+  var ent = G.medicQueue[best], p = agent(ent.id);
+  if(!p || (!p.sick && !p.sickWalk)){ G.medicQueue.splice(best, 1); return tryDispatch(); }
+  G.medicQueue.splice(best, 1);
+  sendMedic(p.id);
+  if(ent.spot) showToast("🚑 Call out: Jonah is on his way to " + p.name.split(" ")[0], {ids: [p.id, "jonah"]});
+  else if(p.tier && TTI[p.tier]) showToast("🚑 " + TTI[p.tier].name + " cover: Jonah is on his way to " + p.name.split(" ")[0], {ids: [p.id, "jonah"]});
+  return true;
+}
+function ttiQueueWatch(){
+  if(!G.medicQueue) G.medicQueue = [];
+  for(var i = G.medicQueue.length - 1; i >= 0; i--){
+    var q = agent(G.medicQueue[i].id);
+    if(!q || (!q.sick && !q.sickWalk)) G.medicQueue.splice(i, 1);
+  }
+  G.agents.forEach(function(a){
+    if(a.sick && a.tier && !a.child && G.medicPatient !== a.id) enqueueMedic(a, false);
+  });
+  tryDispatch();
+}
+function callOut(a){
+  if(!a || a.child || a.tier || !a.sick) return false;
+  var fee = TTI.spotFee, cash = a.cash || 0, bank = a.bank || 0;
+  if(cash + bank < fee){ showToast("🚑 " + a.name.split(" ")[0] + " cannot cover the call out fee"); return false; }
+  var fromCash = Math.min(cash, fee);
+  a.cash = cash - fromCash;
+  if(fee - fromCash > 0) a.bank = bank - (fee - fromCash);
+  G.ttiPaid = (G.ttiPaid || 0) + fee;
+  if(medicFree()){ sendMedic(a.id); showToast("🚑 Call out: Jonah is on his way to " + a.name.split(" ")[0], {ids: [a.id, "jonah"]}); }
+  else enqueueMedic(a, true);
+  SND.play("order");
+  return true;
+}
+function sendMedic(patientId){ var j = agent("jonah"), p = agent(patientId); if(!j || !p) return; if(G.medicQueue) G.medicQueue = G.medicQueue.filter(function(e){ return e.id !== patientId; }); G.medicPatient = patientId; j.medicTask = 1; j.order = null; j.fetch = null; j.carrying = null; goTo(j, 1.1, 9.0, "green"); showToast("✚ Jonah is on his way"); }
 function recoverPatient(id, morale){ var p = agent(id); if(!p) return; p.sick = false; p.morale = morale; p.state = "idle"; p.decideT = 1; }
 function restPatient(id){ var p = agent(id); if(!p) return; p.order = null; goStation(p, "home"); showToast("🏠 " + p.name.split(" ")[0] + " heads home to rest"); }
 function applyStatMods(mods){ if(!mods) return; Object.keys(mods).forEach(function(k){ if(G.stats[k] != null) G.stats[k] = Math.max(0, Math.min(100, G.stats[k] + mods[k])); }); }
@@ -2458,13 +2584,24 @@ function drawIncident(){
   for(var i = 0; i < pool.length; i++){ r -= ws[i]; if(r <= 0) return pool.splice(i, 1)[0]; }
   return pool.pop();
 }
+/* The one door into sickness, shared by the incident flow and by
+   coverage (a stabilised Platinum member enters here): a resident
+   far from the green walks there first and falls sick on arrival;
+   a resident already close falls sick where they stand. */
+function makeSick(p){
+  if(!p || p.sick || p.sickWalk) return false;
+  var d = Math.sqrt(p.x * p.x + (p.z - 8.6) * (p.z - 8.6));
+  if(d > 3){ p.sickWalk = true; p.order = null; p.fetch = null; p.carrying = null; goTo(p, 0, 8.6, "green"); setBubble(p, "✚", 3); return true; }
+  p.sick = true; p.state = "sit"; p.stationId = "green";
+  return true;
+}
 function triggerIncident(inc){
   if(inc.patient){
     var p = agent(inc.patient);
-    if(p && !p.sick){
+    if(p && !p.sick && !p.sickWalk){
       var d = Math.sqrt(p.x * p.x + (p.z - 8.6) * (p.z - 8.6));
-      if(d > 3){ G.pendingIncident = inc; p.sickWalk = true; p.order = null; p.fetch = null; p.carrying = null; goTo(p, 0, 8.6, "green"); setBubble(p, "✚", 3); return; }
-      p.sick = true; p.state = "sit"; p.stationId = "green";
+      if(d > 3){ G.pendingIncident = inc; makeSick(p); return; }
+      makeSick(p);
     }
   }
   openIncident(inc);
@@ -3000,10 +3137,15 @@ function endWeek(){
   /* Stage 6: while the bank stands, the season boundary sweeps
      each resident's cash on hand into their account. */
   bankSweep();
+  /* Coverage (Stage T): premiums are debited right after the bank
+     sweep, so cash that just landed in the account counts toward
+     this boundary's premium. */
+  premiumSweep();
   if(seasonOfYear() === 3) telegraphFailing();
   if(seasonOfYear() === 4) winterDeaths();
   if(seasonOfYear() === 1){
     /* a new year: re-deal the commission and incident decks, then count the winter */
+    G.ttiSavesUsed = 0;
     redealCommissions();
     G.incidents = INCIDENTS.slice(1);
     storySoFar(true);
@@ -3036,6 +3178,7 @@ function stepSim(dt){
   siteTick();
   bondTick(dt);
   stepAgents(dt);
+  ttiQueueWatch();
   G.agents.forEach(function(a){
     if(a.child){ a.loafT = 0; return; }
     var working = a.medicTask || a.order || (a.state === "act" && a.stationId && a.stationId !== "green" && a.stationId !== "home") || (a.state === "walk" && a.stationId && a.stationId !== "green" && a.stationId !== "home");
@@ -3270,9 +3413,12 @@ function restoreState(st){
   st.pendingIncident = (typeof st.pendingIncident === "number") ? (INCIDENTS[st.pendingIncident] || null) : null;
   st.curIncident = (typeof st.curIncident === "number") ? (INCIDENTS[st.curIncident] || null) : null;
   if(!Array.isArray(st.chronicle)) st.chronicle = [];
+  if(!Array.isArray(st.medicQueue)) st.medicQueue = [];
+  if(typeof st.ttiPaid !== "number") st.ttiPaid = 0;
+  if(typeof st.ttiSavesUsed !== "number") st.ttiSavesUsed = 0;
   if(!Array.isArray(st.deaths)) st.deaths = [];
   if(!Array.isArray(st.agents)) st.agents = [];
-  st.agents.forEach(function(a){ attachFigure(a); });
+  st.agents.forEach(function(a){ if(a.tier === undefined) a.tier = null; attachFigure(a); });
   G = st;
   Store.init(G);
   (G.sites || []).forEach(function(site){
@@ -3391,7 +3537,7 @@ function refreshTray(force){
      moment the verb comes back reads at a glance (display only, no sim change). */
   var spotCdN = Math.ceil(G.spotCd - G.t), spotOnCd = G.spotCd > G.t;
   var spotFresh = !spotOnCd && !!a && G.spotCd > 0 && G.t - G.spotCd < 4;
-  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + "|" + (G.foundArm ? "F" : "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "");
+  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.sick ? "S" : "") : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + "|" + (G.foundArm ? "F" : "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "");
   if(!force && key === trayKey) return;
   trayKey = key;
   var info = document.getElementById("selInfo");
@@ -3419,6 +3565,8 @@ function refreshTray(force){
   html += "<button class='cbtn" + (G.proclaimArm ? " on" : "") + "' data-o='proclaim'><span class='i'>📣</span><span class='l'>Proclaim</span></button>";
   html += "<button class='cbtn' data-o='thoughts'" + (!a ? " disabled" : "") + "><span class='i'>💭</span><span class='l'>Thoughts</span></button>";
   html += "<button class='cbtn" + (G.speakArm ? " on" : "") + "' data-o='speak'" + ((G.blame || 0) < HH.speakBlameMin || G.speakCd > G.t ? " disabled" : "") + "><span class='i'>🕊</span><span class='l'>Speak For</span></button>";
+  if(a && !a.child && G.banked && a.bank != null) html += "<button class='cbtn' data-o='cover'><span class='i'>🛡</span><span class='l'>Cover: " + (a.tier && TTI[a.tier] ? TTI[a.tier].name : "None") + "</span></button>";
+  if(a && !a.child && a.sick && !a.tier) html += "<button class='cbtn' data-o='callout'><span class='i'>🚑</span><span class='l'>Call Out · " + TTI.spotFee + "🪙</span></button>";
   html += "<button class='cbtn" + (G.ui && G.ui.muted ? " on" : "") + "' data-o='mute'><span class='i'>" + (G.ui && G.ui.muted ? "🔇" : "🔊") + "</span><span class='l'>Sound</span></button>";
   var openSite = firstSiteOpen();
   html += "<button class='cbtn" + (a && a.order === "build" ? " on" : "") + "' data-o='build'" + (!a || !openSite ? " disabled" : "") + "><span class='i'>🔨</span><span class='l'>Build</span></button>";
@@ -3444,6 +3592,8 @@ function refreshTray(force){
         } else { speakFor(); }
         refreshTray(true); return;
       }
+      if(o === "cover"){ if(a && setTier(a, [null, "silver", "executive", "platinum"][([null, "silver", "executive", "platinum"].indexOf(a.tier || null) + 1) % 4])) showToast("🛡 " + a.name.split(" ")[0] + ": " + (a.tier ? TTI[a.tier].name + " cover" : "no cover")); refreshTray(true); return; }
+      if(o === "callout"){ if(a) callOut(a); refreshTray(true); return; }
       if(o === "mute"){ Store.dispatch("ui/mute"); try { if(typeof localStorage !== "undefined") localStorage.setItem("mv_muted", (G.ui && G.ui.muted) ? "1" : "0"); } catch(e){} SND.play("toggle"); refreshTray(true); return; }
       if(o === "story"){ storySoFar(false); return; }
       if(o === "build"){ setOrder3("build"); return; }
@@ -3665,6 +3815,8 @@ function hudTick(dt){
   Object.keys(wc2).forEach(function(k2){ var e = wc2[k2]; if(!e.srcName) e.srcName = e.firstName; e.hot = false; for(var i2 = 0; i2 < e.wanters.length && !e.hot; i2++) for(var j2 = i2 + 1; j2 < e.wanters.length; j2++){ if(((G.pairs && G.pairs[pairKey(e.wanters[i2].id, e.wanters[j2].id)]) || 0) >= 40) e.hot = true; } });
   var wks = Object.keys(wc2).sort(function(x, y){ return wc2[y].n - wc2[x].n; }).slice(0, 3);
   var wtop = wks.length ? "💭 Village wants: " + wks.map(function(k){ return STATION3[k].icon + "×" + wc2[k].n + " (" + wc2[k].srcName + "'s)" + (wc2[k].hot ? " ⚔" : ""); }).join(" · ") : "💭 The village is content";
+  var covN = 0; G.agents.forEach(function(a){ if(a.tier) covN++; });
+  if(covN > 0) wtop += " · 🛡 " + covN + " covered";
   var wsEl = document.getElementById("wantStrip");
   if(wsEl.textContent !== wtop) wsEl.textContent = wtop;
   var eligHands = 0;
@@ -3957,7 +4109,7 @@ function overlayModel(a, s){
   var ii = intentIcon(a);
   if(ii && ii !== "\u{1F4AD}" && ii !== "\u2022" && (!bubble || bubble.icon !== ii)) intent = ii;
   var name = null;
-  if(s.selected === a.id || visEff(a) >= 60) name = (visEff(a) >= 60 ? "\u{1F525} " : "") + a.name.split(" ")[0] + (s.selected === a.id ? " \u00b7 " + a.role : "");
+  if(s.selected === a.id || visEff(a) >= 60) name = ((a.tier && TTI[a.tier]) ? TTI[a.tier].glyph + " " : "") + (visEff(a) >= 60 ? "\u{1F525} " : "") + a.name.split(" ")[0] + (s.selected === a.id ? " \u00b7 " + a.role : "");
   if(!bubble && !intent && !name) return null;
   return {x:sx, y:sy, bubble:bubble, intent:intent, name:name};
 }
@@ -4327,7 +4479,7 @@ if(ffm){
   updateCamera(0); Store.commit(); refreshTray(true);
   renderer.render(scene, camera);
 }
-window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, verdict: storyVerdict, setModel: function(id, mid){ var a = agent(id); if(a) a.model = mid; }, select: function(id){ Store.dispatch("ui/select", {id:id}); refreshTray(true); }, pickProject: function(i){ pickProject(i || 0); }, acceptOffer: function(){ acceptOffer(); }, ignoreOffer: function(){ ignoreOffer(); }, drawOffer: function(){ drawOffer(); }, found: function(ix, kind){ return foundSite(ix, kind || "cottage"); }, sites: function(){ return (G.sites || []).map(function(s){ return {id: s.id, kind: s.kind, plot: s.plot, projId: s.projId, station: s.station, stage: s.stage, stageLabor: Math.round(s.stageLabor || 0), labor: Math.round(s.labor || 0), matsIn: {stores: s.matsIn.stores, planks: s.matsIn.planks}, workers: Object.keys(s.workers || {}).length, done: s.done}; }); }, capacity: function(){ return G.houseCapacity || 0; }, speak: function(){ return speakFor(); }, social: function(){ return {contentment: Math.round(contentment()), households: (G.households || []).map(function(h){ return {id: h.id, members: h.members.slice(), site: h.site, since: h.since}; }), arrival: G.arrival ? G.arrival.names.slice() : null, soloHoused: G.soloHoused || 0, housingFree: housingFree(), departed: G.departed || 0, candidate: (function(){ var c = scapegoatCandidate(); return c ? c.id : null; })()}; }, econ: function(){ return {banked: !!G.banked, pay: Object.assign({}, ECON.pay), startCash: ECON.startCash, agents:(function(){ var o = {}; G.agents.forEach(function(a){ o[a.id] = {cash: Math.floor(a.cash || 0), cashRaw: a.cash || 0, bank: (a.bank == null ? null : Math.floor(a.bank)), bankRaw: (a.bank == null ? null : a.bank)}; }); return o; })()}; }, family: function(){ return {births: G.births || 0, cap: POP_CAP, children: G.agents.filter(function(a){ return !!a.parents; }).map(function(a){ var wp = null, wv = -1; if(a.watched) Object.keys(a.watched).forEach(function(k){ if(a.watched[k] > wv){ wv = a.watched[k]; wp = k; } }); var ns = null, nv = -1; if(a.nearStation) Object.keys(a.nearStation).forEach(function(k){ if(a.nearStation[k] > nv){ nv = a.nearStation[k]; ns = k; } }); return {id: a.id, name: a.name, parents: (a.parents || []).slice(), parentNames: (a.parentNames || []).slice(), age: a.age, child: !!a.child, matured: !a.child, model: a.model, disp: a.disp, aff: a.aff, watchedMost: wp, nearStationMost: ns, scale: a.root ? a.root.scale.x : 1}; })}; }, birth: function(){ return birthCheck(true); }, life: function(){ return {deaths:(G.deaths || []).map(function(d){ return {name:d.name, year:d.year, season:d.season}; }), tiers:Object.assign({}, G.tiers), tierProg:(function(){ var o = {}; Object.keys(G.tierProg || {}).forEach(function(k){ o[k] = Math.round(G.tierProg[k]); }); return o; })(), spots:(function(){ var o = {}; TIER_STATIONS.forEach(function(st){ o[st] = STATION3[st].work.length; }); return o; })(), builtWealth:G.builtWealth || 0, level:villageLevel().name, levelCount:villageLevel().count, proclaim:G.proclaim ? {station:G.proclaim.station, site:G.proclaim.site, week:G.proclaim.week} : null, ages:(function(){ var o = {}; G.agents.forEach(function(a){ o[a.id] = a.age; }); return o; })(), arcs:(function(){ var o = {}; G.agents.forEach(function(a){ o[a.id] = arcOf(a).id; }); return o; })()}; }, wealth: function(){ return recomputeWealth(); }, proclaim: function(st){ return proclaimAt(st, null); }, proclaimSite: function(id){ var s = siteById(id); return s ? proclaimAt(s.station || null, s.id) : false; }, die: function(id){ var a = agent(id); if(!a) return false; dieAgent(a); return true; }, fail: function(id){ var a = agent(id); if(!a) return false; a.failing = true; return true; }, tier: function(st){ return tierOf(st); }, sheet: function(id){ Store.dispatch("ui/sheet", {id:id || null}); }, closeSheet: function(){ Store.dispatch("ui/sheet", {id:null}); }, thoughts: function(){ var out = {}; G.agents.forEach(function(a){ out[a.id] = {axis:(a.axis || ""), voice:(a.persona ? a.persona.voice.join(", ") : ""), thought:(a.thought ? a.thought.text : ""), cause:(a.thought ? a.thought.cause : ""), log:(a.thoughtLog ? a.thoughtLog.length : 0), events:(a.recentEvents ? a.recentEvents.length : 0)}; }); return out; }, giveWant: function(id, st){ var a = agent(id); if(a) giveWant(a, st); }, mimic: function(){ return { wants: G.agents.filter(function(a){ return !!a.want; }).map(function(a){ return {id: a.id, station: a.want.station, from: a.want.from || null}; }), counters: Object.assign({}, G.mimic || {}), hottest: (function(){ var bk = null, bv = -1; Object.keys(G.pairs || {}).forEach(function(k){ if(G.pairs[k] > bv){ bv = G.pairs[k]; bk = k; } }); return bk ? {pair: bk, tension: Math.round(bv)} : null; })() }; }, chronicle: function(){ return (G.chronicle || []).map(function(e){ return {wk: e.wk, yr: e.yr, sn: e.sn, stamp: chronicleStamp(e), text: e.text}; }); }, save: function(){ return saveGame(); }, hasSave: function(){ return !!peekSave(); }, continueSave: function(){ return continueGame(); }, closeChronicle: function(){ endGame("closed"); return !!G.over; }, wipeSave: function(){ clearSave(); }};
+window.SLICE = {get: function(){ return G; }, step: stepSim, begin: beginGame, choose: chooseIncident, order: setOrder3, verdict: storyVerdict, setModel: function(id, mid){ var a = agent(id); if(a) a.model = mid; }, select: function(id){ Store.dispatch("ui/select", {id:id}); refreshTray(true); }, pickProject: function(i){ pickProject(i || 0); }, acceptOffer: function(){ acceptOffer(); }, ignoreOffer: function(){ ignoreOffer(); }, drawOffer: function(){ drawOffer(); }, found: function(ix, kind){ return foundSite(ix, kind || "cottage"); }, sites: function(){ return (G.sites || []).map(function(s){ return {id: s.id, kind: s.kind, plot: s.plot, projId: s.projId, station: s.station, stage: s.stage, stageLabor: Math.round(s.stageLabor || 0), labor: Math.round(s.labor || 0), matsIn: {stores: s.matsIn.stores, planks: s.matsIn.planks}, workers: Object.keys(s.workers || {}).length, done: s.done}; }); }, capacity: function(){ return G.houseCapacity || 0; }, speak: function(){ return speakFor(); }, social: function(){ return {contentment: Math.round(contentment()), households: (G.households || []).map(function(h){ return {id: h.id, members: h.members.slice(), site: h.site, since: h.since}; }), arrival: G.arrival ? G.arrival.names.slice() : null, soloHoused: G.soloHoused || 0, housingFree: housingFree(), departed: G.departed || 0, candidate: (function(){ var c = scapegoatCandidate(); return c ? c.id : null; })()}; }, econ: function(){ return {banked: !!G.banked, pay: Object.assign({}, ECON.pay), startCash: ECON.startCash, agents:(function(){ var o = {}; G.agents.forEach(function(a){ o[a.id] = {cash: Math.floor(a.cash || 0), cashRaw: a.cash || 0, bank: (a.bank == null ? null : Math.floor(a.bank)), bankRaw: (a.bank == null ? null : a.bank)}; }); return o; })()}; }, family: function(){ return {births: G.births || 0, cap: POP_CAP, children: G.agents.filter(function(a){ return !!a.parents; }).map(function(a){ var wp = null, wv = -1; if(a.watched) Object.keys(a.watched).forEach(function(k){ if(a.watched[k] > wv){ wv = a.watched[k]; wp = k; } }); var ns = null, nv = -1; if(a.nearStation) Object.keys(a.nearStation).forEach(function(k){ if(a.nearStation[k] > nv){ nv = a.nearStation[k]; ns = k; } }); return {id: a.id, name: a.name, parents: (a.parents || []).slice(), parentNames: (a.parentNames || []).slice(), age: a.age, child: !!a.child, matured: !a.child, model: a.model, disp: a.disp, aff: a.aff, watchedMost: wp, nearStationMost: ns, scale: a.root ? a.root.scale.x : 1}; })}; }, birth: function(){ return birthCheck(true); }, life: function(){ return {deaths:(G.deaths || []).map(function(d){ return {name:d.name, year:d.year, season:d.season}; }), tiers:Object.assign({}, G.tiers), tierProg:(function(){ var o = {}; Object.keys(G.tierProg || {}).forEach(function(k){ o[k] = Math.round(G.tierProg[k]); }); return o; })(), spots:(function(){ var o = {}; TIER_STATIONS.forEach(function(st){ o[st] = STATION3[st].work.length; }); return o; })(), builtWealth:G.builtWealth || 0, level:villageLevel().name, levelCount:villageLevel().count, proclaim:G.proclaim ? {station:G.proclaim.station, site:G.proclaim.site, week:G.proclaim.week} : null, ages:(function(){ var o = {}; G.agents.forEach(function(a){ o[a.id] = a.age; }); return o; })(), arcs:(function(){ var o = {}; G.agents.forEach(function(a){ o[a.id] = arcOf(a).id; }); return o; })()}; }, wealth: function(){ return recomputeWealth(); }, proclaim: function(st){ return proclaimAt(st, null); }, proclaimSite: function(id){ var s = siteById(id); return s ? proclaimAt(s.station || null, s.id) : false; }, die: function(id){ var a = agent(id); if(!a) return false; dieAgent(a); return true; }, fail: function(id){ var a = agent(id); if(!a) return false; a.failing = true; return true; }, tier: function(st){ return tierOf(st); }, sheet: function(id){ Store.dispatch("ui/sheet", {id:id || null}); }, closeSheet: function(){ Store.dispatch("ui/sheet", {id:null}); }, thoughts: function(){ var out = {}; G.agents.forEach(function(a){ out[a.id] = {axis:(a.axis || ""), voice:(a.persona ? a.persona.voice.join(", ") : ""), thought:(a.thought ? a.thought.text : ""), cause:(a.thought ? a.thought.cause : ""), log:(a.thoughtLog ? a.thoughtLog.length : 0), events:(a.recentEvents ? a.recentEvents.length : 0)}; }); return out; }, giveWant: function(id, st){ var a = agent(id); if(a) giveWant(a, st); }, mimic: function(){ return { wants: G.agents.filter(function(a){ return !!a.want; }).map(function(a){ return {id: a.id, station: a.want.station, from: a.want.from || null}; }), counters: Object.assign({}, G.mimic || {}), hottest: (function(){ var bk = null, bv = -1; Object.keys(G.pairs || {}).forEach(function(k){ if(G.pairs[k] > bv){ bv = G.pairs[k]; bk = k; } }); return bk ? {pair: bk, tension: Math.round(bv)} : null; })() }; }, tti: function(){ return {tiers: JSON.parse(JSON.stringify(TTI)), members: (function(){ var o = {}; G.agents.forEach(function(a){ if(a.tier) o[a.id] = a.tier; }); return o; })(), paid: G.ttiPaid || 0, queue: (G.medicQueue || []).map(function(e){ return e.id; }), savesUsed: G.ttiSavesUsed || 0}; }, setTier: function(id, t){ var a = agent(id); return a ? setTier(a, t) : false; }, callOut: function(id){ var a = agent(id); return a ? callOut(a) : false; }, sick: function(id){ var a = agent(id); return a ? makeSick(a) : false; }, chronicle: function(){ return (G.chronicle || []).map(function(e){ return {wk: e.wk, yr: e.yr, sn: e.sn, stamp: chronicleStamp(e), text: e.text}; }); }, save: function(){ return saveGame(); }, hasSave: function(){ return !!peekSave(); }, continueSave: function(){ return continueGame(); }, closeChronicle: function(){ endGame("closed"); return !!G.over; }, wipeSave: function(){ clearSave(); }};
 </script>
 </body>
 </html>

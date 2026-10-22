@@ -20,103 +20,115 @@
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 231,
+      "ref_line": 233,
       "lines": 1,
       "hash": "5d65af3e"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 362,
+      "ref_line": 364,
       "lines": 76,
       "hash": "2f70f16d"
     },
     {
       "article": "axis-label-selected-surfaces.md",
-      "ref_line": 458,
+      "ref_line": 460,
       "lines": 4,
       "hash": "5edddeb8"
     },
     {
       "article": "driven-work-progress.md",
-      "ref_line": 880,
+      "ref_line": 883,
       "lines": 27,
       "hash": "f08cbff5"
     },
     {
       "article": "household-capacity-ledger.md",
-      "ref_line": 1303,
+      "ref_line": 1307,
       "lines": 45,
-      "hash": "d655166c"
+      "hash": "432a4df0"
+    },
+    {
+      "article": "membership-never-gates-the-medic.md",
+      "ref_line": 1656,
+      "lines": 14,
+      "hash": "be7265ac"
+    },
+    {
+      "article": "membership-never-gates-the-medic.md",
+      "ref_line": 1977,
+      "lines": 12,
+      "hash": "05a2a2ba"
     },
     {
       "article": "thoughts-local-inference-only.md",
-      "ref_line": 2171,
+      "ref_line": 2235,
       "lines": 31,
       "hash": "abf52637"
     },
     {
       "article": "driven-work-progress.md",
-      "ref_line": 2854,
+      "ref_line": 2993,
       "lines": 14,
       "hash": "c77a272b"
     },
     {
       "article": "desires-travel-the-graph.md",
-      "ref_line": 3043,
+      "ref_line": 3188,
       "lines": 19,
       "hash": "7c7b569d"
     },
     {
       "article": "chronicle-and-saves.md",
-      "ref_line": 3177,
+      "ref_line": 3322,
       "lines": 129,
-      "hash": "26f0f0d3"
+      "hash": "01dc32bd"
     },
     {
       "article": "axis-label-selected-surfaces.md",
-      "ref_line": 3392,
+      "ref_line": 3545,
       "lines": 2,
       "hash": "6caa504a"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 3523,
+      "ref_line": 3680,
       "lines": 20,
       "hash": "207fd11f"
     },
     {
       "article": "sheet-below-objective-card.md",
-      "ref_line": 3713,
+      "ref_line": 3872,
       "lines": 16,
       "hash": "6b2224dc"
     },
     {
       "article": "desires-travel-the-graph.md",
-      "ref_line": 3796,
+      "ref_line": 3955,
       "lines": 33,
       "hash": "fb5c880a"
     },
     {
       "article": "overlay-anchor-budget.md",
-      "ref_line": 3982,
+      "ref_line": 4141,
       "lines": 65,
       "hash": "74c15edb"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 4185,
+      "ref_line": 4344,
       "lines": 11,
       "hash": "a01f9ac4"
     },
     {
       "article": "pointercancel-never-a-tap.md",
-      "ref_line": 4198,
+      "ref_line": 4357,
       "lines": 4,
       "hash": "3471fc97"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 4277,
+      "ref_line": 4436,
       "lines": 4,
       "hash": "ce66959f"
     }
