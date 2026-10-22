@@ -2458,6 +2458,10 @@ function storyVerdict(){
   else { ending = "The Village Chooses"; epi = "No pattern won. The village goes into winter as itself: uneven, unscripted, and still deciding what it is."; }
   return {ending: ending, epi: epi, avgMorale: avgMorale};
 }
+/* The auto-opened Winter Count is a beat, not a document: it must never sit on
+   the tray blocking orders. It dismisses itself after 15s; the tray Story
+   button reopens it on demand. A manual open cancels any pending auto-dismiss. */
+var storyAutoSeq = 0;
 function storySoFar(auto){
   var v = storyVerdict(), s = G.stats;
   G.storyLens = v.ending;
@@ -2478,6 +2482,10 @@ function storySoFar(auto){
   document.getElementById("endCard").innerHTML = html;
   var ov = document.getElementById("endOverlay");
   ov.classList.add("open"); ov.classList.add("story");
+  storyAutoSeq++;
+  if(auto){
+    (function(seq){ setTimeout(function(){ if(seq === storyAutoSeq){ ov.classList.remove("open"); ov.classList.remove("story"); } }, 15000); })(storyAutoSeq);
+  }
 }
 window.__closeStory = function(){ var ov = document.getElementById("endOverlay"); ov.classList.remove("open"); ov.classList.remove("story"); };
 
