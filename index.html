@@ -96,7 +96,7 @@ canvas{display:block}
 .ovl .bubble{position:relative;display:none;background:rgba(253,251,244,.96);border-radius:10px;padding:3px 8px;font-size:16px;box-shadow:0 3px 10px rgba(0,0,0,.35);white-space:nowrap}
 .ovl .intent{display:none;background:rgba(18,24,20,.62);border-radius:8px;padding:1px 6px;font-size:13px;line-height:1.5;color:#fff;white-space:nowrap}
 .ovl .bubble:after{content:"";position:absolute;left:50%;bottom:-5px;transform:translateX(-50%);border:5px solid transparent;border-top-color:rgba(253,251,244,.96);border-bottom:0}
-#incident{top:64px;left:50%;transform:translateX(-50%);width:520px;max-width:94vw;background:linear-gradient(180deg,#1d2735,#121922);border:1px solid var(--gold);border-radius:11px;padding:14px 16px;display:none;z-index:30;box-shadow:0 18px 50px rgba(0,0,0,.7)}
+#incident{top:64px;left:50%;transform:translateX(-50%);width:520px;max-width:94vw;max-height:calc(100dvh - 76px);overflow-y:auto;background:linear-gradient(180deg,#1d2735,#121922);border:1px solid var(--gold);border-radius:11px;padding:14px 16px;display:none;z-index:30;box-shadow:0 18px 50px rgba(0,0,0,.7)}
 #incident .k{font-size:10px;letter-spacing:.24em;color:var(--red);font-weight:800}
 #incident h3{margin:2px 0 3px;font-size:20px}
 #incident p{margin:0 0 11px;color:var(--ink2);font-size:13.5px}
@@ -117,7 +117,32 @@ canvas{display:block}
 /* The Story So Far never blocks play: taps pass around the card, the sim runs on. */
 #endOverlay.story{pointer-events:none;background:rgba(3,5,8,.42)}
 #endOverlay.story .modal{pointer-events:auto}
-.modal{background:linear-gradient(180deg,#18202b,#0f141b);border:1px solid var(--line);border-radius:12px;max-width:640px;width:100%;padding:24px;max-height:92vh;overflow:auto}
+/* Title screen: a poster over the live village, not a form. The world stays
+   visible behind a soft bottom gradient; the logotype sits high, the menu
+   low. While body.pre is set (until beginGame), no HUD chrome renders. */
+#startOverlay{align-items:stretch;justify-content:flex-start;background:linear-gradient(180deg,rgba(3,5,8,.10) 34%,rgba(3,5,8,.66) 92%);backdrop-filter:none;padding:0}
+body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #alerts, body.pre #sheet, body.pre #labels, body.pre #pressure{display:none}
+.titleMenu{display:flex;flex-direction:column;justify-content:space-between;width:100%;height:100%;max-height:100dvh;overflow-y:auto;padding:30px 24px 22px}
+.titleBlock{max-width:760px}
+.titleBlock .kick2{font-size:11px;text-shadow:0 1px 8px rgba(0,0,0,.6)}
+.logotype{margin:8px 0 10px;font-size:clamp(44px,10vw,88px);font-weight:800;letter-spacing:.015em;line-height:.96;color:var(--ink);text-shadow:0 2px 22px rgba(0,0,0,.6)}
+.logotype span{color:var(--gold)}
+.promise{margin:0;font-size:16.5px;color:var(--ink);text-shadow:0 1px 10px rgba(0,0,0,.65)}
+#startOverlay #seasonLine{color:var(--ink2);font-size:13px;margin-top:9px;text-shadow:0 1px 8px rgba(0,0,0,.6)}
+.menuBlock{width:100%;max-width:600px;margin:26px auto 0}
+.menuRow{display:flex;align-items:center;gap:16px;min-height:44px;border-top:1px solid rgba(242,236,217,.16);padding:3px 2px}
+.menuRow .seglabel{margin:0;width:72px;flex:none}
+#startOverlay .seg{display:flex;gap:6px 20px;margin:0;flex-wrap:wrap}
+#startOverlay .segbtn{flex:none;background:none;border:none;border-radius:0;padding:11px 2px;color:var(--ink2);font-size:14.5px;font-weight:700;text-shadow:0 1px 8px rgba(0,0,0,.55)}
+#startOverlay .segbtn:hover{color:var(--ink)}
+#startOverlay .segbtn.on{color:var(--gold);background:none;box-shadow:inset 0 -2px 0 var(--gold)}
+#beginBtn{width:100%;margin-top:16px;padding:15px 22px;font-size:17px}
+#startOverlay .titleBlock, #startOverlay .menuBlock{animation:titleIn .7s ease-out both}
+#startOverlay .menuBlock{animation-delay:.12s}
+@keyframes titleIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion: reduce){#startOverlay .titleBlock, #startOverlay .menuBlock{animation:none}}
+@media (max-height:480px){.titleMenu{padding:14px 20px 12px}.logotype{font-size:42px;margin:4px 0 6px}.promise{font-size:14.5px}}
+.modal{background:linear-gradient(180deg,#18202b,#0f141b);border:1px solid var(--line);border-radius:12px;max-width:640px;width:100%;padding:24px;max-height:calc(100dvh - 28px);overflow-y:auto}
 .modal h2{margin:4px 0 8px;font-size:30px;letter-spacing:.04em}
 .modal h2 span{color:var(--gold)}
 .kick2{font-size:10px;letter-spacing:.26em;color:var(--gold);font-weight:800}
@@ -174,7 +199,7 @@ canvas{display:block}
 @media (max-width:560px){#minimap{width:118px;height:88px;bottom:auto;top:202px}}
 </style>
 </head>
-<body>
+<body class="pre">
 <div id="scene"></div>
 <div id="vignette"></div>
 <canvas id="minimap" width="192" height="144"></canvas>
@@ -223,29 +248,32 @@ canvas{display:block}
 </div>
 
 <div class="overlay open" id="startOverlay">
-  <div class="modal">
-    <div class="kick2">MEME VILLAGE · THE VILLAGE MODEL · OPEN YEARS</div>
-    <h2>THE VILLAGE <span>MODEL</span></h2>
-    <p style="color:var(--ink2);margin:0">Ten people, one valley, year after year. They work, rest, watch each other, and copy what they see. Tend the conditions, but you do not control what they become. That part spreads on its own.</p>
-    <div class="watch">
-      <div>🔨 <b>Every season has an objective.</b> The gold ring marks where it happens.</div>
-      <div>👀 <b>Everyone looks up to someone, and copies them.</b> Set the models, and the village follows.</div>
-      <div>⚖ <b>Blame works fast and bills later.</b> Choose carefully when things go wrong.</div>
+  <div class="titleMenu">
+    <div class="titleBlock">
+      <div class="kick2">THE VILLAGE MODEL</div>
+      <h1 class="logotype">MEME <span>VILLAGE</span></h1>
+      <p class="promise">Ten people, one valley, year after year.</p>
+      <div id="seasonLine"></div>
     </div>
-    <div id="seasonLine" style="color:var(--ink2);font-size:13px;margin-top:10px"></div>
-    <div class="seglabel">SEASON</div>
-    <div class="seg" id="diffSeg">
-      <button class="segbtn on" data-d="standard" type="button">☀ Standard</button>
-      <button class="segbtn" data-d="hard" type="button">❄ Hard Winter</button>
-      <button class="segbtn" data-d="dry" type="button">☀ Dry Year</button>
+    <div class="menuBlock">
+      <div class="menuRow">
+        <span class="seglabel">SEASON</span>
+        <div class="seg" id="diffSeg">
+          <button class="segbtn on" data-d="standard" type="button">Standard</button>
+          <button class="segbtn" data-d="hard" type="button">Hard Winter</button>
+          <button class="segbtn" data-d="dry" type="button">Dry Year</button>
+        </div>
+      </div>
+      <div class="menuRow">
+        <span class="seglabel">POSTING</span>
+        <div class="seg" id="polSeg">
+          <button class="segbtn" data-p="open" type="button">Open Books</button>
+          <button class="segbtn on" data-p="hearth" type="button">Shared Hearth</button>
+          <button class="segbtn" data-p="order" type="button">Quiet Order</button>
+        </div>
+      </div>
+      <button class="btn" id="beginBtn" type="button">Begin the season</button>
     </div>
-    <div class="seglabel">THE POSTING ON THE GREEN</div>
-    <div class="seg" id="polSeg">
-      <button class="segbtn" data-p="open" type="button">📖 Open Books</button>
-      <button class="segbtn on" data-p="hearth" type="button">🔥 Shared Hearth</button>
-      <button class="segbtn" data-p="order" type="button">📏 Quiet Order</button>
-    </div>
-    <button class="btn" id="beginBtn" type="button">Begin the season</button>
   </div>
 </div>
 
@@ -3339,6 +3367,7 @@ function beginGame(){
   var st0 = STATION3[G.offer ? G.offer.station : null];
   if(st0){ cam.target.x = Math.max(-62, Math.min(62, st0.x)); cam.target.z = Math.max(-48, Math.min(48, st0.z)); cam.follow = null; }
   document.getElementById("startOverlay").classList.remove("open");
+  document.body.classList.remove("pre");
   showToast("🔨 Year 1, Spring: Mara is on the roof. Bram is watching.");
   G.agents.forEach(function(a){ refreshThought(a, "start"); });
 }
@@ -3358,6 +3387,9 @@ bindInput();
 refreshTray(true);
 renderer.setAnimationLoop(function(){
   var dtR = Math.min(0.05, clock.getDelta());
+  /* Title screen: a slow idle drift over the live village. Stops the moment
+     play begins (G.started), and yields while the pointer is down. */
+  if(!G.started && !ptrDown) cam.yaw += dtR * 0.03;
   var eff = 0;
   if(G.started && !G.over){
     eff = dtR * G.speed * (G.incidentOpen ? 0.3 : 1);
