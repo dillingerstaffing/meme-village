@@ -8,7 +8,7 @@ overlay, marker, bubble, name tag, hud, camera move, collision, anchor, hide
 | overlay-anchor-budget.md | Markers stay within 56px up and 110px sideways of their resident, or hide |
 
 ## Game Rules and Scoring
-objective, progress, project, parts, work credit, score, driven, order bonus, household, arrival, newcomer, cottage, capacity, speak for, blame, want, desire, model, spread, contagion, origin, coverage, tier, premium, medic, queue, call out
+objective, progress, project, parts, work credit, score, driven, order bonus, household, arrival, newcomer, cottage, capacity, speak for, blame, want, desire, model, spread, contagion, origin, coverage, tier, premium, medic, queue, call out, founding, growth, expansion, autonomous, plot
 
 | Article | Summary |
 |---------|---------|
@@ -16,6 +16,7 @@ objective, progress, project, parts, work credit, score, driven, order bonus, ho
 | household-capacity-ledger.md | Housing is one ledger: households plus solo newcomers never exceed G.houseCapacity |
 | desires-travel-the-graph.md | Wants carry an origin; spread follows model edges first, convergence adds tension, fulfillment and misses write back into the graph |
 | membership-never-gates-the-medic.md | The medic serves everyone through the manual path; tiers move only queue order and the death roll; premiums debit bank only, floor zero, lapse never debt |
+| autonomous-founding-gates.md | The village founds at most one building a season, at the boundary, only when every GROWTH gate holds, through foundSite |
 
 ## State and Architecture
 state, store, dispatch, transact, render, dom, panel, new field, new event, chronicle, save, snapshot, ending, persistence, continue

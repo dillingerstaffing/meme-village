@@ -45,90 +45,96 @@
     {
       "article": "household-capacity-ledger.md",
       "ref_line": 1307,
-      "lines": 45,
-      "hash": "432a4df0"
+      "lines": 46,
+      "hash": "2057eae4"
     },
     {
       "article": "membership-never-gates-the-medic.md",
-      "ref_line": 1656,
+      "ref_line": 1657,
       "lines": 14,
       "hash": "be7265ac"
     },
     {
       "article": "membership-never-gates-the-medic.md",
-      "ref_line": 1977,
+      "ref_line": 1978,
       "lines": 12,
       "hash": "05a2a2ba"
     },
     {
       "article": "thoughts-local-inference-only.md",
-      "ref_line": 2235,
+      "ref_line": 2236,
       "lines": 31,
       "hash": "abf52637"
     },
     {
+      "article": "autonomous-founding-gates.md",
+      "ref_line": 2863,
+      "lines": 28,
+      "hash": "0727e0b6"
+    },
+    {
       "article": "driven-work-progress.md",
-      "ref_line": 2993,
+      "ref_line": 3049,
       "lines": 14,
       "hash": "c77a272b"
     },
     {
       "article": "desires-travel-the-graph.md",
-      "ref_line": 3188,
+      "ref_line": 3247,
       "lines": 19,
       "hash": "7c7b569d"
     },
     {
       "article": "chronicle-and-saves.md",
-      "ref_line": 3322,
+      "ref_line": 3381,
       "lines": 129,
       "hash": "01dc32bd"
     },
     {
       "article": "axis-label-selected-surfaces.md",
-      "ref_line": 3545,
+      "ref_line": 3604,
       "lines": 2,
       "hash": "6caa504a"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 3680,
+      "ref_line": 3739,
       "lines": 20,
       "hash": "207fd11f"
     },
     {
       "article": "sheet-below-objective-card.md",
-      "ref_line": 3872,
+      "ref_line": 3931,
       "lines": 16,
       "hash": "6b2224dc"
     },
     {
       "article": "desires-travel-the-graph.md",
-      "ref_line": 3955,
+      "ref_line": 4014,
       "lines": 33,
       "hash": "fb5c880a"
     },
     {
       "article": "overlay-anchor-budget.md",
-      "ref_line": 4141,
+      "ref_line": 4200,
       "lines": 65,
       "hash": "74c15edb"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 4344,
+      "ref_line": 4403,
       "lines": 11,
       "hash": "a01f9ac4"
     },
     {
       "article": "pointercancel-never-a-tap.md",
-      "ref_line": 4357,
+      "ref_line": 4416,
       "lines": 4,
       "hash": "3471fc97"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 4436,
+      "ref_line": 4495,
       "lines": 4,
       "hash": "ce66959f"
     }
