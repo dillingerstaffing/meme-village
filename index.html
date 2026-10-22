@@ -91,6 +91,8 @@ canvas{display:block}
 .cbtn .i{font-size:21px;display:block}
 .cbtn .l{font-size:10.5px;font-weight:700;color:var(--ink2);display:block;margin-top:1px}
 .cbtn:disabled{opacity:.4;cursor:not-allowed}
+.cbtn.rdyflash{animation:rdyf 1.4s ease-in-out 2;border-color:var(--gold)}
+@keyframes rdyf{0%,100%{box-shadow:0 0 0 0 rgba(232,179,75,0)}50%{box-shadow:0 0 0 4px rgba(232,179,75,.6)}}
 #labels{pointer-events:none}
 .ovl{position:fixed;z-index:9;transform:translate(-50%,-100%);pointer-events:none;display:none;flex-direction:column;align-items:center;gap:2px}
 .ovl .label{display:none;font-size:12px;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.8);white-space:nowrap}
@@ -3374,7 +3376,12 @@ function refreshTray(force){
      inside the phone media query does the rest; desktop ignores it. */
   var trayEl0 = document.getElementById("tray");
   if(trayEl0) trayEl0.classList.toggle("selopen", !!a);
-  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station : "") : "") + "|" + (cam.follow || "") + "|" + (G.spotCd > G.t ? "cd" : "rdy") + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + "|" + (G.foundArm ? "F" : "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "");
+  /* Spotlight cooldown countdown: the key ticks once per game-second while cooling so the
+     tray rebuilds with the fresh number, and carries a 4s ready flash after expiry so the
+     moment the verb comes back reads at a glance (display only, no sim change). */
+  var spotCdN = Math.ceil(G.spotCd - G.t), spotOnCd = G.spotCd > G.t;
+  var spotFresh = !spotOnCd && !!a && G.spotCd > 0 && G.t - G.spotCd < 4;
+  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station : "") : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + "|" + (G.foundArm ? "F" : "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "");
   if(!force && key === trayKey) return;
   trayKey = key;
   var info = document.getElementById("selInfo");
@@ -3397,7 +3404,7 @@ function refreshTray(force){
     return "<button class='cbtn" + (on ? " on" : "") + (wnt ? " wantpulse" : "") + "' data-o='" + c.id + "'" + (!a ? " disabled" : "") + "><span class='i'>" + c.icon + "</span><span class='l'>" + c.label + "</span></button>";
   }).join("");
   html += "<button class='cbtn" + (cam.follow ? " on" : "") + "' data-o='follow'" + (!a ? " disabled" : "") + "><span class='i'>🎥</span><span class='l'>Follow</span></button>";
-  html += "<button class='cbtn" + (G.armed ? " on" : "") + "' data-o='spot'" + (!a || G.spotCd > G.t ? " disabled" : "") + "><span class='i'>✨</span><span class='l'>Spotlight</span></button>";
+  html += "<button class='cbtn" + (G.armed ? " on" : "") + (spotFresh ? " rdyflash" : "") + "' data-o='spot'" + (!a || spotOnCd ? " disabled" : "") + "><span class='i'>✨</span><span class='l'>Spotlight" + (spotOnCd ? " · " + spotCdN + "s" : "") + "</span></button>";
   html += "<button class='cbtn" + (G.modelArm ? " on" : "") + "' data-o='model'" + (!a ? " disabled" : "") + "><span class='i'>👁</span><span class='l'>Model</span></button>";
   html += "<button class='cbtn" + (G.proclaimArm ? " on" : "") + "' data-o='proclaim'><span class='i'>📣</span><span class='l'>Proclaim</span></button>";
   html += "<button class='cbtn' data-o='thoughts'" + (!a ? " disabled" : "") + "><span class='i'>💭</span><span class='l'>Thoughts</span></button>";
