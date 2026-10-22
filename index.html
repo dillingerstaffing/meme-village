@@ -97,7 +97,7 @@ canvas{display:block}
 .ovl .bubble{position:relative;display:none;background:rgba(253,251,244,.96);border-radius:10px;padding:3px 8px;font-size:16px;box-shadow:0 3px 10px rgba(0,0,0,.35);white-space:nowrap}
 .ovl .intent{display:none;background:rgba(18,24,20,.62);border-radius:8px;padding:1px 6px;font-size:13px;line-height:1.5;color:#fff;white-space:nowrap}
 .ovl .bubble:after{content:"";position:absolute;left:50%;bottom:-5px;transform:translateX(-50%);border:5px solid transparent;border-top-color:rgba(253,251,244,.96);border-bottom:0}
-#incident{top:64px;left:50%;transform:translateX(-50%);width:520px;max-width:94vw;max-height:calc(100dvh - 76px);overflow-y:auto;background:linear-gradient(180deg,#1d2735,#121922);border:1px solid var(--gold);border-radius:11px;padding:14px 16px;display:none;z-index:30;box-shadow:0 18px 50px rgba(0,0,0,.7)}
+#incident{top:64px;left:50%;transform:translateX(-50%);width:520px;max-width:94vw;max-height:calc(100vh - 76px);max-height:calc(100dvh - 76px);overflow-y:auto;background:linear-gradient(180deg,#1d2735,#121922);border:1px solid var(--gold);border-radius:11px;padding:14px 16px;display:none;z-index:30;box-shadow:0 18px 50px rgba(0,0,0,.7)}
 #incident .k{font-size:10px;letter-spacing:.24em;color:var(--red);font-weight:800}
 #incident h3{margin:2px 0 3px;font-size:20px}
 #incident p{margin:0 0 11px;color:var(--ink2);font-size:13.5px}
@@ -117,6 +117,9 @@ canvas{display:block}
 .overlay.open{display:flex}
 /* The Story So Far never blocks play: taps pass around the card, the sim runs on. */
 #endOverlay.story{pointer-events:none;background:rgba(3,5,8,.42)}
+/* A manual open is a modal: the backdrop takes taps and a tap on it closes.
+   The auto Winter Count keeps the click-through story class alone. */
+#endOverlay.story.manual{pointer-events:auto}
 #endOverlay.story .modal{pointer-events:auto}
 /* The Story panel is a framed screen, not a document in a scrolling card:
    a fixed header (kicker left, close in the corner) that never scrolls,
@@ -131,7 +134,7 @@ canvas{display:block}
 .ledger .stat-row{border-bottom:1px solid var(--line)}
 @media (max-width:560px){
   #endOverlay{align-items:flex-end;padding:14px 14px 0}
-  #endCard{max-height:92dvh;border-radius:12px 12px 0 0}
+  #endCard{max-height:92vh;max-height:92dvh;max-height:92%;border-radius:12px 12px 0 0}
   .story-body{padding:2px 16px 16px}
   .ledger{grid-template-columns:1fr}
 }
@@ -140,7 +143,7 @@ canvas{display:block}
    low. While body.pre is set (until beginGame), no HUD chrome renders. */
 #startOverlay{align-items:stretch;justify-content:flex-start;background:linear-gradient(180deg,rgba(3,5,8,.10) 34%,rgba(3,5,8,.66) 92%);backdrop-filter:none;padding:0}
 body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #alerts, body.pre #sheet, body.pre #labels, body.pre #pressure{display:none}
-.titleMenu{display:flex;flex-direction:column;justify-content:space-between;width:100%;height:100%;max-height:100dvh;overflow-y:auto;padding:30px 24px 22px}
+.titleMenu{display:flex;flex-direction:column;justify-content:space-between;width:100%;height:100%;max-height:100vh;max-height:100dvh;overflow-y:auto;padding:30px 24px 22px}
 .titleBlock{max-width:760px}
 .titleBlock .kick2{font-size:11px;text-shadow:0 1px 8px rgba(0,0,0,.6)}
 .logotype{margin:8px 0 10px;font-size:clamp(44px,10vw,88px);font-weight:800;letter-spacing:.015em;line-height:.96;color:var(--ink);text-shadow:0 2px 22px rgba(0,0,0,.6)}
@@ -160,7 +163,7 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
 @keyframes titleIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @media (prefers-reduced-motion: reduce){#startOverlay .titleBlock, #startOverlay .menuBlock{animation:none}}
 @media (max-height:480px){.titleMenu{padding:14px 20px 12px}.logotype{font-size:42px;margin:4px 0 6px}.promise{font-size:14.5px}}
-.modal{background:linear-gradient(180deg,#18202b,#0f141b);border:1px solid var(--line);border-radius:12px;max-width:640px;width:100%;padding:24px;max-height:calc(100dvh - 28px);overflow-y:auto}
+.modal{background:linear-gradient(180deg,#18202b,#0f141b);border:1px solid var(--line);border-radius:12px;max-width:640px;width:100%;padding:24px;max-height:calc(100vh - 28px);max-height:calc(100dvh - 28px);max-height:calc(100% - 28px);overflow-y:auto}
 .modal h2{margin:4px 0 8px;font-size:30px;letter-spacing:.04em}
 .modal h2 span{color:var(--gold)}
 .kick2{font-size:10px;letter-spacing:.26em;color:var(--gold);font-weight:800}
@@ -233,7 +236,7 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
      offsetHeight, which follows the max-height below. The height
      animates directly (not via transform) for the same reason: a
      transformed tray would report the sheet height while collapsed. */
-  #tray{flex-direction:column;flex-wrap:nowrap;align-items:stretch;gap:6px;padding:6px 8px;max-height:56dvh;overflow:hidden;transition:max-height .3s ease}
+  #tray{flex-direction:column;flex-wrap:nowrap;align-items:stretch;gap:6px;padding:6px 8px;max-height:56vh;max-height:56dvh;max-height:56%;overflow:hidden;transition:max-height .3s ease}
   #tray:not(.selopen){max-height:60px}
   #tray:not(.selopen) #selInfo, #tray:not(.selopen) #cmds{display:none}
   #selInfo{order:1;min-width:0;max-width:none;position:relative;padding-right:38px}
@@ -3056,13 +3059,14 @@ function storySoFar(auto){
     + "</div></div>";
   document.getElementById("endCard").innerHTML = html;
   var ov = document.getElementById("endOverlay");
-  ov.classList.add("open"); ov.classList.add("story");
+  ov.classList.add("open"); ov.classList.add("story"); ov.classList.toggle("manual", !auto);
   storyAutoSeq++;
   if(auto){
-    (function(seq){ setTimeout(function(){ if(seq === storyAutoSeq){ ov.classList.remove("open"); ov.classList.remove("story"); } }, 15000); })(storyAutoSeq);
+    (function(seq){ setTimeout(function(){ if(seq === storyAutoSeq){ ov.classList.remove("open"); ov.classList.remove("story"); ov.classList.remove("manual"); } }, 15000); })(storyAutoSeq);
   }
 }
-window.__closeStory = function(){ storyAutoSeq++; var ov = document.getElementById("endOverlay"); ov.classList.remove("open"); ov.classList.remove("story"); };
+window.__closeStory = function(){ storyAutoSeq++; var ov = document.getElementById("endOverlay"); ov.classList.remove("open"); ov.classList.remove("story"); ov.classList.remove("manual"); };
+document.getElementById("endOverlay").addEventListener("click", function(e){ if(e.target === this && this.classList.contains("manual")) window.__closeStory(); });
 
 /* ================= THREE SETUP ================= */
 var clock;
