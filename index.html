@@ -32,6 +32,7 @@ canvas{display:block}
 .sbtn.on{border-color:var(--gold);color:var(--gold)}
 #sliceTag{top:10px;left:50%;transform:translateX(-50%);background:rgba(90,20,16,.85);border:1px solid var(--red);color:#ffd9d4;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:800;letter-spacing:.18em}
 #toast{bottom:118px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--gold);border-radius:22px;padding:8px 18px;font-size:14px;font-weight:700;display:none;white-space:nowrap;max-width:94vw}
+.toast-chip{background:none;border:none;color:inherit;font:inherit;font-weight:inherit;cursor:pointer;padding:0;text-decoration:underline dotted;text-underline-offset:3px}
 #alerts{position:fixed;left:10px;bottom:118px;display:flex;flex-direction:column;gap:6px;z-index:29}
 #pressure{position:fixed;z-index:9;transform:translate(-50%,-100%);pointer-events:none;background:rgba(80,18,12,.88);color:#ffd9d0;border:1px solid #e86a4b;border-radius:8px;padding:2px 8px;font:700 12px 'Inter',sans-serif;display:none}
 .alert-chip{background:rgba(14,20,16,.9);border:1px solid var(--gold);color:var(--ink);border-radius:8px;padding:7px 11px;font:600 12px 'Inter',sans-serif;cursor:pointer;text-align:left;box-shadow:0 4px 14px rgba(0,0,0,.35)}
@@ -273,7 +274,7 @@ var Store = (function(){
     "bubble/show": function(p){ var a = findA(p.id); if(a){ a.bubble = p.icon || null; a.bubbleUntil = p.icon ? state.t + (p.secs || 2) : 0; } },
     "want/set": function(p){ var a = findA(p.id); if(a && !a.want) a.want = {station:p.station, until: state.t + (p.secs || 26)}; },
     "want/clear": function(p){ var a = findA(p.id); if(a) a.want = null; },
-    "ui/toast": function(p){ state.ui.toast = {msg: String(p.msg || ""), until: Date.now() + (p.ms || 3600)}; },
+    "ui/toast": function(p){ state.ui.toast = {msg: String(p.msg || ""), until: Date.now() + (p.ms || 3600), focus: p.focus || null}; },
     "ui/select": function(p){ state.selected = p.id || null; if(state.ui && state.ui.sheet) state.ui.sheet = state.selected; },
     "ui/sheet": function(p){ if(state.ui) state.ui.sheet = p && p.id ? p.id : null; },
     "thought/set": function(p){ var a = findA(p.id); if(a){ var nt = String(p.text || ""); if(!validThought(nt)) return; var cause = p.cause || "ambient"; var isNew = !a.thought || a.thought.text !== nt; a.thought = {text:nt, at:state.t, wk:state.week, cause:cause, why:p.why || "", cat:p.cat || "", source:"template"}; if(isNew && cause !== "start") a.thoughtFx = state.t + 2.5; if(a.thoughtLog){ for(var di = a.thoughtLog.length - 1; di >= 0; di--) if(a.thoughtLog[di].text === nt) a.thoughtLog.splice(di, 1); a.thoughtLog.push(a.thought); if(a.thoughtLog.length > 8) a.thoughtLog.shift(); } } }
@@ -918,7 +919,7 @@ function addTension(a, b, amt){
     G.feudWarn[k] = G.t + WEEK_LEN;
     var warnShared = (a.model && a.model === b.model) ? agent(a.model) : null;
     setBubble(a, "⚡", 2.0); setBubble(b, "⚡", 2.0);
-    showToast("⚡ " + a.name.split(" ")[0] + " and " + b.name.split(" ")[0] + " are copying " + (warnShared ? warnShared.name.split(" ")[0] + " and getting heated" : "the same work and getting heated") + ". Separate them or cool them on the green.");
+    showToast("⚡ " + a.name.split(" ")[0] + " and " + b.name.split(" ")[0] + " are copying " + (warnShared ? warnShared.name.split(" ")[0] + " and getting heated" : "the same work and getting heated") + ". Separate them or cool them on the green.", {ids:[a.id, b.id]});
     noteEvent(a, "rivalry", b.id); noteEvent(b, "rivalry", a.id);
   }
   if(G.pairs[k] >= 70 && (!G.feudCd[k] || G.t > G.feudCd[k])){
@@ -928,7 +929,7 @@ function addTension(a, b, amt){
     applyStatMods({rivalry:6, cohesion:-3});
     G.blame = Math.min(100, (G.blame || 0) + 5);
     var shared = (a.model && a.model === b.model) ? agent(a.model) : null;
-    showToast("⚔ " + a.name.split(" ")[0] + " and " + b.name.split(" ")[0] + (shared ? " both follow " + shared.name.split(" ")[0] + ", and imitation has turned to rivalry" : " have fallen out over the same work"));
+    showToast("⚔ " + a.name.split(" ")[0] + " and " + b.name.split(" ")[0] + (shared ? " both follow " + shared.name.split(" ")[0] + ", and imitation has turned to rivalry" : " have fallen out over the same work"), {ids:[a.id, b.id]});
     noteEvent(a, "rivalry", b.id); noteEvent(b, "rivalry", a.id);
   }
 }
@@ -1500,7 +1501,7 @@ function statDrift(dt){
     blameAgent(cand.id);
     applyStatMods({cohesion:7, rivalry:-16, trust:-5});
     G.delays.push({at: G.t + WEEK_LEN, mods:{trust:-5}, msg:"🕯 The village remembers who it turned on"});
-    showToast("🌩 The village turned on " + cand.name.split(" ")[0] + ". The quiet feels bought.");
+    showToast("🌩 The village turned on " + cand.name.split(" ")[0] + ". The quiet feels bought.", {ids:[cand.id]});
   }
   G.agents.forEach(function(a){
     if(a.state === "act" && a.stationId && a.stationId !== "green" && a.stationId !== "home"){ workers++; if(!a.order) crowd[a.stationId] = (crowd[a.stationId] || 0) + 1; }
@@ -1757,7 +1758,7 @@ function setOrder3(orderId){
   noteEvent(a, "ordered", orderId);
   refreshTray(true);
 }
-function showToast(msg){ Store.dispatch("ui/toast", {msg:msg}); }
+function showToast(msg, focus){ Store.dispatch("ui/toast", {msg:msg, focus: focus || null}); }
 var hudAcc = 0;
 var mmCtx = null;
 try { var mmEl0 = document.getElementById("minimap"); if(mmEl0 && mmEl0.getContext){ mmCtx = mmEl0.getContext("2d"); mmEl0.addEventListener("click", function(e){ var r = e.target.getBoundingClientRect(); cam.target.x = ((e.clientX - r.left) / r.width) * 120 - 60; cam.target.z = ((e.clientY - r.top) / r.height) * 90 - 45; cam.follow = null; }); } } catch(e) { mmCtx = null; }
@@ -1778,7 +1779,17 @@ function hudTick(dt){
   hudAcc += dt;
   var t = document.getElementById("toast");
   var tst = G.ui ? G.ui.toast : null;
-  if(tst && Date.now() < tst.until){ if(t.textContent !== tst.msg) t.textContent = tst.msg; if(t.style.display !== "block") t.style.display = "block"; }
+  if(tst && Date.now() < tst.until){
+    var tchip = !!(tst.focus && (tst.focus.ids || tst.focus.x !== undefined));
+    var tkey = (tchip ? "c:" : "p:") + tst.msg;
+    if(t.dataset.tkey !== tkey){
+      t.innerHTML = "";
+      if(tchip){ var tb = document.createElement("button"); tb.className = "toast-chip"; tb.textContent = tst.msg + "  ·  ⌖ view"; tb.setAttribute("onclick", "__toastFocus()"); t.appendChild(tb); }
+      else t.textContent = tst.msg;
+      t.dataset.tkey = tkey;
+    }
+    if(t.style.display !== "block") t.style.display = "block";
+  }
   else if(t.style.display !== "none") t.style.display = "none";
   if(hudAcc < 0.15) return;
   hudAcc = 0;
@@ -1959,6 +1970,7 @@ function fxTick(dt){
   } else if(selLine) selLine.visible = false;
 }
 window.__pickAlert = function(id){ var a = agent(id); G.selected = id; cam.follow = null; if(a){ cam.target.x = a.x; cam.target.z = a.z; } refreshTray(true); };
+window.__toastFocus = function(){ var tst = G.ui && G.ui.toast, f = tst && tst.focus; if(!f) return; var x = 0, z = 0, n = 0; if(f.ids) f.ids.forEach(function(id){ var a = agent(id); if(a){ x += a.x; z += a.z; n++; } }); else if(f.x !== undefined){ x = f.x; z = f.z; n = 1; } if(n){ cam.target.x = Math.max(-62, Math.min(62, x / n)); cam.target.z = Math.max(-48, Math.min(48, z / n)); cam.follow = null; } };
 window.__pickProject = function(i){ pickProject(i); };
 var projV = null;
 function leftHudRect(){
