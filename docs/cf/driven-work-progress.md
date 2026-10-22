@@ -2,7 +2,10 @@
 
 Objective metrics read weekWorkP, never weekWork. wk() adds to
 weekWorkP only when a.driveObj is true, together with the synergy and
-midweek-push multipliers and the project part credit. A new way of
+midweek-push multipliers and the project part credit. Construction
+labor enters wk() under the build key and returns before the driven
+branch: it fills the site labor ledger in G.sites, never weekWorkP,
+and build work is never credited as driven work. A new way of
 working enters the driven ledger only by setting driveObj through the
 paths that already do (a player order in setOrder3 and decide(), a
 copied model or a want that decide() resolves), and initiatives always
