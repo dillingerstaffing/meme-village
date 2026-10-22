@@ -1666,9 +1666,11 @@ function telegraphFailing(){
     if(a.failing || arcOf(a).id !== "elder") return;
     if(Math.random() < elderRisk(a)){
       a.failing = true;
-      setBubble(a, "🤒", 4);
+      /* The 🤒 marker itself is rendered persistently by overlayModel
+         while a.failing holds, so no timed bubble is needed here. */
       noteEvent(a, "failing", "");
       showToast("🤒 " + a.name.split(" ")[0] + " is failing. The village walks slower around them now.", {ids: [a.id]});
+      SND.play("warn");
     }
   });
 }
@@ -1713,11 +1715,14 @@ function dieAgent(m){
   }
   var h = householdOf(m);
   if(h) freeHousehold(h);
+  /* Capture the death site before the graph is cut: the death notice
+     carries a camera focus like the other high-stakes toasts. */
+  var dx = m.x, dz = m.z;
   removeAgent(m);
   G.deaths.push({name: m.name, year: yearOf(), season: seasonName()});
   G.lastHarmWeek = G.week;
   G.agents.forEach(function(b){ if(b.successionPick) noteEvent(b, "succession", m.id); });
-  showToast("🕯 " + m.name + " has died. The village carries on, and remembers.");
+  showToast("🕯 " + m.name + " has died. The village carries on, and remembers.", {x:dx, z:dz});
   SND.play("blame");
 }
 function proclaimAt(stationId, siteId){
@@ -3451,6 +3456,11 @@ function overlayModel(a, s){
     if(stw){ var rem = a.want.until - s.t; bubble = {icon:stw.icon, kind:"want", opacity: rem < 8 ? (0.4 + 0.6 * Math.max(0, rem / 8)) : 1}; }
   }
   else if(s.t < (a.thoughtFx || 0)) bubble = {icon:"💭", kind:"thought", opacity:1};
+  /* A failing elder carries the 🤒 as a persistent resting state for the
+     whole autumn warning window: transient event, want, and thought
+     bubbles still win while fresh, but the marker always returns until
+     winter resolves it. Position is the resident's own anchor. */
+  else if(a.failing) bubble = {icon:"🤒", kind:"event", opacity:1};
   if(bubble && !bubble.icon) bubble = null;
   var intent = null;
   var ii = intentIcon(a);
