@@ -1823,7 +1823,19 @@ function hudTick(dt){
   if(alEl.innerHTML !== ahtml) alEl.innerHTML = ahtml;
   refreshTray(false);
   var trayEl = document.getElementById("tray");
-  if(trayEl){ var tb = (trayEl.offsetHeight + 12) + "px"; if(alEl.style.bottom !== tb) alEl.style.bottom = tb; }
+  if(trayEl){
+    var tb = (trayEl.offsetHeight + 12) + "px"; if(alEl.style.bottom !== tb) alEl.style.bottom = tb;
+    /* Phone stats panel: pin its bottom above the real tray top (plus the idle
+       alerts when present) instead of a fixed px constant, so the last meter
+       rows never slide behind the tray as the tray wraps to more rows. */
+    var stEl = document.getElementById("stats");
+    if(stEl){
+      if(window.innerWidth <= 560){
+        var ab = alEl.offsetHeight, sb = (trayEl.offsetHeight + 12 + ab + (ab > 0 ? 8 : 0)) + "px";
+        if(stEl.style.bottom !== sb) stEl.style.bottom = sb;
+      } else if(stEl.style.bottom){ stEl.style.bottom = ""; }
+    }
+  }
 }
 function intentIcon(a){
   if(a.sick || a.state === "sit") return "✚";
