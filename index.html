@@ -830,7 +830,7 @@ function newSlice(){
     rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0, offer:null, offerAccepted:false,
     rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0,
     sites:[], siteSeq:0, houseCapacity:10, banked:false, foundArm:false, foundPlot:null, buildPref:null,
-    bonds:{}, households:[], householdSeq:0, soloHoused:0, departed:0, arrival:null, speakCd:0, newSeq:0, kidSeq:0, births:0,
+    bonds:{}, households:[], householdSeq:0, soloHoused:0, departed:0, arrival:null, speakCd:0, speakArm:false, newSeq:0, kidSeq:0, births:0,
     tiers:{clinic:1, fields:1, store:1, green:1, mill:1, school:1, well:1}, tierProg:{}, tierWorkers:{}, builtWealth:0, deaths:[], proclaim:null, proclaimArm:false, lastHarmWeek:null,
     stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
     objStation:"clinic", objComplete:false, objDone:0, scapegoats:0, delays:[],
@@ -1470,23 +1470,35 @@ function arrivalChoice(welcome){
   refreshTray(true);
   Store.commit();
 }
-function speakFor(){
-  if(!G.started || G.over) return false;
-  if((G.blame || 0) < HH.speakBlameMin){ showToast("🕊 Blame is not heavy enough to need a voice yet"); return false; }
-  if(G.speakCd && G.t < G.speakCd){ showToast("🕊 The village has heard a defense too recently"); return false; }
+/* Who would speak for whom, and the gamble's factors, read from live state so
+   the tray can preview the defense before the player commits to it.
+   Returns {voucher, vf, target, strength}, or {fail} with fail "target" or
+   "voucher" for the no-commit cases. Deterministic: no RNG consumed. */
+function speakPlan(){
+  if(!G.started || G.over) return {fail: "off"};
   var cand = scapegoatCandidate();
   var sel = G.selected ? agent(G.selected) : null;
   var target = (sel && sel !== cand && (sel.blamed || 0) > 0 && scapegoatScore(sel) >= HH.speakMarkMin) ? sel : cand;
-  if(!target || scapegoatScore(target) < HH.speakMarkMin){ showToast("🕊 No one is marked enough to speak for"); return false; }
+  if(!target || scapegoatScore(target) < HH.speakMarkMin) return {fail: "target"};
   var voucher = null, vf = -1, vv = -1;
   G.agents.forEach(function(v){
     if(v === target || v.sick) return;
     var f = followersOf(v);
     if(f >= HH.speakFollowersMin && (f > vf || (f === vf && v.vis > vv))){ voucher = v; vf = f; vv = v.vis; }
   });
-  if(!voucher){ showToast("🕊 No one has the standing to speak for " + target.name.split(" ")[0]); return false; }
+  if(!voucher) return {fail: "voucher", target: target};
+  return {voucher: voucher, vf: vf, target: target, strength: vf * 20 + voucher.vis * 0.25 + G.stats.trust * 0.25};
+}
+function speakFor(){
+  if(!G.started || G.over) return false;
+  if((G.blame || 0) < HH.speakBlameMin){ showToast("🕊 Blame is not heavy enough to need a voice yet"); return false; }
+  if(G.speakCd && G.t < G.speakCd){ showToast("🕊 The village has heard a defense too recently"); return false; }
+  var plan = speakPlan();
+  if(!plan || plan.fail === "target"){ showToast("🕊 No one is marked enough to speak for"); return false; }
+  if(plan.fail === "voucher"){ showToast("🕊 No one has the standing to speak for " + plan.target.name.split(" ")[0]); return false; }
+  var voucher = plan.voucher, vf = plan.vf, target = plan.target;
   G.speakCd = G.t + HH.speakCd;
-  var strength = vf * 20 + voucher.vis * 0.25 + G.stats.trust * 0.25;
+  var strength = plan.strength;
   if(strength >= HH.speakStrength){
     var before = Math.round(G.blame);
     G.blame = Math.round(G.blame * HH.speakBlameKeep);
@@ -3362,7 +3374,7 @@ function refreshTray(force){
      inside the phone media query does the rest; desktop ignores it. */
   var trayEl0 = document.getElementById("tray");
   if(trayEl0) trayEl0.classList.toggle("selopen", !!a);
-  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station : "") : "") + "|" + (cam.follow || "") + "|" + (G.spotCd > G.t ? "cd" : "rdy") + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + "|" + (G.foundArm ? "F" : "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "");
+  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station : "") : "") + "|" + (cam.follow || "") + "|" + (G.spotCd > G.t ? "cd" : "rdy") + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + "|" + (G.foundArm ? "F" : "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "");
   if(!force && key === trayKey) return;
   trayKey = key;
   var info = document.getElementById("selInfo");
@@ -3389,7 +3401,7 @@ function refreshTray(force){
   html += "<button class='cbtn" + (G.modelArm ? " on" : "") + "' data-o='model'" + (!a ? " disabled" : "") + "><span class='i'>👁</span><span class='l'>Model</span></button>";
   html += "<button class='cbtn" + (G.proclaimArm ? " on" : "") + "' data-o='proclaim'><span class='i'>📣</span><span class='l'>Proclaim</span></button>";
   html += "<button class='cbtn' data-o='thoughts'" + (!a ? " disabled" : "") + "><span class='i'>💭</span><span class='l'>Thoughts</span></button>";
-  html += "<button class='cbtn' data-o='speak'" + ((G.blame || 0) < HH.speakBlameMin || G.speakCd > G.t ? " disabled" : "") + "><span class='i'>🕊</span><span class='l'>Speak For</span></button>";
+  html += "<button class='cbtn" + (G.speakArm ? " on" : "") + "' data-o='speak'" + ((G.blame || 0) < HH.speakBlameMin || G.speakCd > G.t ? " disabled" : "") + "><span class='i'>🕊</span><span class='l'>Speak For</span></button>";
   html += "<button class='cbtn" + (G.ui && G.ui.muted ? " on" : "") + "' data-o='mute'><span class='i'>" + (G.ui && G.ui.muted ? "🔇" : "🔊") + "</span><span class='l'>Sound</span></button>";
   var openSite = firstSiteOpen();
   html += "<button class='cbtn" + (a && a.order === "build" ? " on" : "") + "' data-o='build'" + (!a || !openSite ? " disabled" : "") + "><span class='i'>🔨</span><span class='l'>Build</span></button>";
@@ -3401,15 +3413,24 @@ function refreshTray(force){
     b.addEventListener("click", function(){
       var o = b.getAttribute("data-o");
       if(o === "follow"){ cam.follow = cam.follow ? null : G.selected; refreshTray(true); return; }
-      if(o === "spot"){ G.armed = true; G.modelArm = false; G.proclaimArm = false; showToast("✨ Tap a resident to spotlight them"); refreshTray(true); return; }
-      if(o === "model"){ G.modelArm = true; G.armed = false; G.proclaimArm = false; showToast("👁 Tap who " + (a ? a.name.split(" ")[0] : "they") + " should look up to"); refreshTray(true); return; }
-      if(o === "proclaim"){ G.proclaimArm = !G.proclaimArm; G.armed = false; G.modelArm = false; G.foundArm = false; if(G.proclaimArm) showToast("📣 Tap a building, or a building site, to proclaim the village's focus for the season"); refreshTray(true); return; }
+      if(o === "spot"){ G.armed = true; G.modelArm = false; G.proclaimArm = false; G.speakArm = false; showToast("✨ Tap a resident to spotlight them"); refreshTray(true); return; }
+      if(o === "model"){ G.modelArm = true; G.armed = false; G.proclaimArm = false; G.speakArm = false; showToast("👁 Tap who " + (a ? a.name.split(" ")[0] : "they") + " should look up to"); refreshTray(true); return; }
+      if(o === "proclaim"){ G.proclaimArm = !G.proclaimArm; G.armed = false; G.modelArm = false; G.foundArm = false; G.speakArm = false; if(G.proclaimArm) showToast("📣 Tap a building, or a building site, to proclaim the village's focus for the season"); refreshTray(true); return; }
       if(o === "thoughts"){ if(G.selected) Store.dispatch("ui/sheet", {id:G.selected}); return; }
-      if(o === "speak"){ speakFor(); refreshTray(true); return; }
+      if(o === "speak"){
+        if(G.speakArm){ G.speakArm = false; speakFor(); refreshTray(true); return; }
+        var splan = speakPlan();
+        if(splan && !splan.fail){
+          G.speakArm = true;
+          var svn = splan.voucher.name.split(" ")[0], stn = splan.target.name.split(" ")[0];
+          showToast("🕊 " + svn + " would speak for " + stn + " (" + splan.vf + " followers, trust " + Math.round(G.stats.trust) + ", needs " + HH.speakStrength + "). If the village is not ready, " + svn + " loses standing. Tap the button again to commit.", {ids: [splan.voucher.id, splan.target.id]});
+        } else { speakFor(); }
+        refreshTray(true); return;
+      }
       if(o === "mute"){ Store.dispatch("ui/mute"); try { if(typeof localStorage !== "undefined") localStorage.setItem("mv_muted", (G.ui && G.ui.muted) ? "1" : "0"); } catch(e){} SND.play("toggle"); refreshTray(true); return; }
       if(o === "story"){ storySoFar(false); return; }
       if(o === "build"){ setOrder3("build"); return; }
-      if(o === "found"){ G.foundArm = !G.foundArm; G.foundPlot = null; G.proclaimArm = false; if(G.foundArm) showToast("🏗 Tap a surveyed plot (gold ring) to found a building"); refreshTray(true); return; }
+      if(o === "found"){ G.foundArm = !G.foundArm; G.foundPlot = null; G.proclaimArm = false; G.speakArm = false; if(G.foundArm) showToast("🏗 Tap a surveyed plot (gold ring) to found a building"); refreshTray(true); return; }
       setOrder3(o);
     });
   });
