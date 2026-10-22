@@ -2051,7 +2051,7 @@ function proclaimAt(stationId, siteId){
   var nm = "the village";
   if(siteId){ var sk = siteById(siteId); var kd = sk ? BUILD_KINDS[sk.kind] : null; nm = kd ? kd.title : "the building site"; }
   else if(stationId && STATION3[stationId]) nm = "the " + STATION3[stationId].name;
-  showToast("📣 Proclaimed: " + nm + " holds the village's focus this season" + (early ? " (shifting it early cost cohesion)" : ""));
+  showToast("📣 Proclaimed: " + nm + " holds the village's focus this season" + (early ? " (shifting it early cost " + LIFE.proclaimRecost + " cohesion)" : ""));
   SND.play("order");
   refreshTray(true);
   return true;
@@ -3639,7 +3639,7 @@ function refreshTray(force){
       if(o === "follow"){ cam.follow = cam.follow ? null : G.selected; refreshTray(true); return; }
       if(o === "spot"){ G.armed = true; G.modelArm = false; G.proclaimArm = false; G.speakArm = false; showToast("✨ Tap a resident to spotlight them"); refreshTray(true); return; }
       if(o === "model"){ G.modelArm = true; G.armed = false; G.proclaimArm = false; G.speakArm = false; showToast("👁 Tap who " + (a ? a.name.split(" ")[0] : "they") + " should look up to"); refreshTray(true); return; }
-      if(o === "proclaim"){ G.proclaimArm = !G.proclaimArm; G.armed = false; G.modelArm = false; G.foundArm = false; G.speakArm = false; if(G.proclaimArm) showToast("📣 Tap a building, or a building site, to proclaim the village's focus for the season"); refreshTray(true); return; }
+      if(o === "proclaim"){ G.proclaimArm = !G.proclaimArm; G.armed = false; G.modelArm = false; G.foundArm = false; G.speakArm = false; if(G.proclaimArm){ var pcEarly = !!(G.proclaim && G.proclaim.week === G.week); showToast("📣 Tap a building, or a building site, to proclaim the village's focus for the season" + (pcEarly ? ". Shifting the focus early costs " + LIFE.proclaimRecost + " cohesion" : "")); } refreshTray(true); return; }
       if(o === "thoughts"){ if(G.selected) Store.dispatch("ui/sheet", {id:G.selected}); return; }
       if(o === "speak"){
         if(G.speakArm){ G.speakArm = false; speakFor(); refreshTray(true); return; }
