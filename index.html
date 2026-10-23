@@ -3940,6 +3940,19 @@ var SND = {
 window.__snd = SND;
 document.addEventListener("pointerdown", function(){ SND.resume(); });
 function showToast(msg, focus){ Store.dispatch("ui/toast", {msg:msg, focus: focus || null}); }
+/* An armed verb plus a minimap tap is Norman's mode error: the jump
+   consumes the tap at canvas level in endPointer, the verb stays armed,
+   and the mode goes quiet, so the next resident tap applies it by
+   surprise. tapAt's canvas-miss paths announce their cancel; the overlay
+   path never reaches tapAt, so announce that the mode persists instead.
+   Display only: the verb stays armed and the gold border keeps meaning
+   the one armed verb. */
+function announceArmedStill(){
+  if(G.armed) showToast("✨ Spotlight still armed, tap a resident to use it");
+  else if(G.modelArm){ var ma = G.selected ? agent(G.selected) : null; showToast("👁 Model still armed, tap who " + (ma ? ma.name.split(" ")[0] : "they") + " should look up to"); }
+  else if(G.proclaimArm) showToast("📣 Proclaim still armed, tap a building or building site");
+  else if(G.foundArm) showToast("🏗 Found still armed, tap a surveyed plot");
+}
 var hudAcc = 0;
 var mmCtx = null;
 try { var mmEl0 = document.getElementById("minimap"); if(mmEl0 && mmEl0.getContext){ mmCtx = mmEl0.getContext("2d"); } } catch(e) { mmCtx = null; }
@@ -4774,7 +4787,7 @@ function bindInput(){
     pointers.delete(e.pointerId);
     if(pointers.size === 0){
       if(!wasDrag && d0){
-        if(!minimapJump(d0.x, d0.y)) tapAt(e.clientX, e.clientY, false);
+        if(minimapJump(d0.x, d0.y)) announceArmedStill(); else tapAt(e.clientX, e.clientY, false);
       }
       downAt = null; dragged = false;
     }
