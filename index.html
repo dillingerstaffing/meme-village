@@ -1625,12 +1625,14 @@ function earnPay(a, key, amt){
   a.cash = (a.cash || 0) + amt * r;
 }
 function bankSweep(){
-  if(!G.banked) return;
+  if(!G.banked) return 0;
+  var swept = 0;
   G.agents.forEach(function(a){
     if(a.child) return;
     if(a.bank == null) a.bank = 0;
-    if(a.cash > 0){ a.bank += a.cash; a.cash = 0; }
+    if(a.cash > 0){ a.bank += a.cash; swept += a.cash; a.cash = 0; }
   });
+  return swept;
 }
 /* ================= COVERAGE (Stage T: TTI membership) =================
    Trauma cover, built from the village's own parts. A tier is a row
@@ -1663,20 +1665,21 @@ function setTier(a, tierId){
   a.tier = tierId;
   return true;
 }
-// CF-REF: membership-never-gates-the-medic.md [14]
+// CF-REF: membership-never-gates-the-medic.md [15]
 function premiumSweep(){
-  if(!G.banked) return;
-  var lapsed = 0;
+  if(!G.banked) return {paid:0, members:0, enrolled:[]};
+  var lapsed = 0, paid = 0, members = 0, enrolled = [];
   G.agents.forEach(function(a){
     if(a.child) return;
     if(a.tier && TTI[a.tier]){
       var prem = TTI[a.tier].premium;
-      if(a.bank != null && a.bank >= prem){ a.bank -= prem; G.ttiPaid = (G.ttiPaid || 0) + prem; }
+      if(a.bank != null && a.bank >= prem){ a.bank -= prem; G.ttiPaid = (G.ttiPaid || 0) + prem; paid += prem; members++; }
       else { a.tier = null; lapsed++; }
     }
-    else if(!a.tier && a.bank != null && a.bank >= TTI.selfEnrollBank) a.tier = "silver";
+    else if(!a.tier && a.bank != null && a.bank >= TTI.selfEnrollBank){ a.tier = "silver"; enrolled.push(a.name.split(" ")[0]); }
   });
   if(lapsed > 0) showToast("🛡 Coverage lapsed for " + lapsed + (lapsed === 1 ? " resident" : " residents") + " (unpaid)");
+  return {paid:paid, members:members, enrolled:enrolled};
 }
 /* ================= CHILDREN AND INHERITANCE (Stage 7) =================
    A household may add a young one: a real agent, small on the map,
@@ -3215,11 +3218,23 @@ function endWeek(){
   if(seasonOfYear() === 1){ matureCheck(); birthCheck(); }
   /* Stage 6: while the bank stands, the season boundary sweeps
      each resident's cash on hand into their account. */
-  bankSweep();
+  var settleSwept = bankSweep();
   /* Coverage (Stage T): premiums are debited right after the bank
      sweep, so cash that just landed in the account counts toward
      this boundary's premium. */
-  premiumSweep();
+  var settlePrem = premiumSweep();
+  /* Every money movement gets a receipt at its settlement point:
+     the season-boundary sweeps otherwise move real tokens with no
+     visible confirmation (the sheet shows a balance only while a
+     resident is selected, and the lapse toast covers only unpaid
+     cover). One digest, only when something actually settled. */
+  if(G.banked && (settleSwept > 0 || settlePrem.members > 0 || settlePrem.enrolled.length > 0)){
+    var settleBits = [];
+    if(settleSwept > 0) settleBits.push(Math.round(settleSwept) + "🪙 banked");
+    if(settlePrem.members > 0) settleBits.push("cover took " + Math.round(settlePrem.paid) + "🪙 from " + settlePrem.members + (settlePrem.members === 1 ? " member" : " members"));
+    if(settlePrem.enrolled.length > 0) settleBits.push(settlePrem.enrolled.join(", ") + " joined Silver cover");
+    showToast("🏦 The bank settled the season: " + settleBits.join(", ") + ".");
+  }
   if(!G.coachBank){
     if(G.banked){ G.coachBank = true; }
     else { var richA = null; for(var ci = 0; ci < G.agents.length; ci++){ var ca = G.agents[ci]; if(!ca.child && (ca.cash || 0) >= 20){ richA = ca; break; } }
