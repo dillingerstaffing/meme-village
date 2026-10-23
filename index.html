@@ -843,7 +843,7 @@ function newSlice(){
     rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0,
     sites:[], siteSeq:0, lastFoundSeason:0, houseCapacity:10, banked:false, foundArm:false, foundPlot:null, buildPref:null,
     bonds:{}, households:[], householdSeq:0, soloHoused:0, departed:0, arrival:null, speakCd:0, speakArm:false, coverArm:false, coachBank:false, coachSick:false, newSeq:0, kidSeq:0, births:0,
-    tiers:{clinic:1, fields:1, store:1, green:1, mill:1, school:1, well:1}, tierProg:{}, tierWorkers:{}, builtWealth:0, deaths:[], proclaim:null, proclaimArm:false, lastHarmWeek:null,
+    tiers:{clinic:1, fields:1, store:1, green:1, mill:1, school:1, well:1}, tierProg:{}, tierWorkers:{}, builtWealth:0, deaths:[], proclaim:null, proclaimArm:false, lastHarmWeek:null, lastIncidentWeek:null, incidentRollWeek:null,
     stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
     objStation:"clinic", objComplete:false, objDone:0, scapegoats:0, delays:[],
     weekWork:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0, build:0}, weekWorkP:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0},
@@ -2600,6 +2600,25 @@ function incidentStoryWeight(inc){
   }
   return w;
 }
+/* Incident pacing: the storyteller's seasonal roll, after Valve's AI
+   Director (Left 4 Dead): stress tracked, peaks followed by a forced
+   relax. Each season rolls for an incident slot. The chance rises the
+   longer the village has gone quiet (build-up pressure, so no drought
+   lasts), and collapses the season after a death or expulsion
+   (adaptation relief, the relax state). Some seasons are quiet by
+   design, so trouble arrives in waves with recovery space between.
+   Mimetic cause: the harm term reads the imitation graph's own
+   discharges (lastHarmWeek is set by death and expulsion, the blame
+   system's terminal states); the draw weights already carry pair
+   tension and blame pressure from the live graph. */
+var INCIDENT_PACE = {base: 0.8, quietStep: 0.1, harmSeason: 0.15};
+function incidentSeasonRoll(){
+  if(G.week <= 1) return true; /* season 1 always deals the medic introduction */
+  if(G.lastHarmWeek != null && G.lastHarmWeek === G.week - 1) return Math.random() < INCIDENT_PACE.harmSeason;
+  var quiet = G.week - (G.lastIncidentWeek || 1);
+  var p = INCIDENT_PACE.base + INCIDENT_PACE.quietStep * Math.max(0, quiet - 1);
+  return Math.random() < Math.min(1, p);
+}
 function drawIncident(){
   if(G.week === 1) return INCIDENTS[0];
   var pool = G.incidents;
@@ -2622,6 +2641,7 @@ function makeSick(p){
   return true;
 }
 function triggerIncident(inc){
+  G.lastIncidentWeek = G.week;
   if(inc.patient){
     var p = agent(inc.patient);
     if(p && !p.sick && !p.sickWalk){
@@ -3275,7 +3295,12 @@ function stepSim(dt){
   G.t += dt; G.weekTime += dt;
   for(var di = G.delays.length - 1; di >= 0; di--){ if(G.t >= G.delays[di].at){ var dl = G.delays[di]; G.delays.splice(di, 1); applyStatMods(dl.mods); if(dl.msg) showToast(dl.msg); if(dl.fn) dl.fn(); } }
   var inc = G.weekIncident;
-  if(!G.incidentDone && !G.incidentOpen && !G.pendingIncident && !inc){ G.weekIncident = drawIncident(); inc = G.weekIncident; }
+  /* The seasonal incident roll: one roll per season, some seasons quiet.
+     The roll-week guard keeps the decision stable for the whole season. */
+  if(!G.incidentDone && !G.incidentOpen && !G.pendingIncident && !inc && G.incidentRollWeek !== G.week){
+    G.incidentRollWeek = G.week;
+    if(incidentSeasonRoll()){ G.weekIncident = drawIncident(); inc = G.weekIncident; }
+  }
   if(inc && !G.incidentDone && !G.incidentOpen && !G.pendingIncident && G.weekTime >= inc.at) triggerIncident(inc);
   if(G.stats.rivalry < 45) G.calmT += dt;
   /* The crew's rhythm (was the midseason timer push): once per season, when at
