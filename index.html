@@ -3542,11 +3542,37 @@ function storySoFar(auto, final){
   else chHtml += "<div class='centry'><span>No entries yet.</span></div>";
   chHtml += "</div>";
   var closeBtn = (!auto && !final && !G.over) ? "<button type='button' class='btn story-close-btn' onclick='__closeChronicle()'>Close the Chronicle</button>" : "";
+  /* The Remembered block: on a true ending the final panel names the
+     dead and the eldest living, from real state (G.deaths is pushed in
+     chronological order by dieAgent; ages live on the agents). An
+     ending that counts everyone but names nobody reads as a ledger,
+     not a story: Dwarf Fortress ends are epitaphs, and RimWorld's
+     game-over is a story beat ("This story is over"), not a stat
+     table. Display only: no new state, no dispatch, no sim change. */
+  var remHtml = "";
+  if(final){
+    var deaths = G.deaths || [];
+    var remLines = [];
+    if(deaths.length){
+      var d0 = deaths[0];
+      remLines.push("<div class='centry'><span class='cstamp'>FIRST TO FALL</span><span>\uD83D\uDD6F " + d0.name + " · Year " + d0.year + " · " + d0.season + "</span></div>");
+      if(final === "collapse" && deaths.length > 1){
+        var dl = deaths[deaths.length - 1];
+        remLines.push("<div class='centry'><span class='cstamp'>LAST TO FALL</span><span>\uD83D\uDD6F " + dl.name + " · Year " + dl.year + " · " + dl.season + "</span></div>");
+      }
+    }
+    if(final === "closed" && G.agents.length){
+      var eldest = G.agents.reduce(function(m, a){ return (a.age || 0) > (m.age || 0) ? a : m; }, G.agents[0]);
+      remLines.push("<div class='centry'><span class='cstamp'>ELDEST STANDING</span><span>\uD83C\uDF33 " + eldest.name + " · age " + (eldest.age || 0) + "</span></div>");
+    }
+    if(remLines.length) remHtml = "<div class='chronicle'><h3>REMEMBERED</h3>" + remLines.join("") + "</div>";
+  }
   var html = "<div class='story-head'><div class='kick2'>" + kick + "</div>"
-    + "<button type='button' class='story-x' onclick='__closeStory()' aria-label='Close'>✕</button></div>"
+    + "<button type='button' class='story-x' onclick='__closeStory()' aria-label='Close'>\u2715</button></div>"
     + "<div class='story-body'><h2>" + v.ending + "</h2>"
     + "<p style='color:var(--ink2)'>" + sub + v.epi + "</p>"
     + "<p style='color:var(--ink2)'>Village #" + G.seed + " · watched: " + (G.seasonModels || []).join(", ") + "</p>"
+    + remHtml
     + "<div class='ledger'>"
     + row("⚒ Productivity", s.prod) + row("♥ Trust", s.trust) + row("🌳 Cohesion", s.cohesion)
     + row("⚔ Rivalry", s.rivalry) + row("🌾 Scarcity", s.scarcity) + row("🕊 Autonomy", s.autonomy)

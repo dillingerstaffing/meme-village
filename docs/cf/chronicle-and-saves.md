@@ -22,7 +22,11 @@ true endings, and the localStorage snapshot.
   weakening the floor. After an ending the sim stays gated by G.over,
   the final panel is the section 19 verdict over the final state
   with the full chronicle, and a manual Story open re-renders that
-  final summary rather than the lens.
+  final summary rather than the lens. The final panel also carries a
+  Remembered epitaph block naming the first to fall (and, on a
+  collapse, the last), plus the eldest living resident on a closed
+  chronicle; the lines are display only, drawn from G.deaths and the
+  agents' ages, and never invent names.
 - The snapshot is one localStorage key (mv_save) holding
   {v: 1, state}. State serializes minus transient render objects
   (stripped by key in SAVE_STRIP) and minus deck references:
