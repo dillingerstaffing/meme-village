@@ -4606,6 +4606,10 @@ function tapAt(cx, cy, smart){
   if(G.modelArm){
     G.modelArm = false;
     if(p.agent && G.selected && p.agent !== G.selected){ var me3 = agent(G.selected), nw3 = agent(p.agent); me3.model = nw3.id; me3.modelCd = 0; setBubble(me3, "👁", 2); spawnPulse(nw3, me3); SND.play("order"); showToast("👁 " + me3.name.split(" ")[0] + " now looks up to " + nw3.name.split(" ")[0]); }
+    /* A missed model tap used to disarm with no word at all: the armed
+       verb simply stopped being armed, and the next tap selected instead
+       of assigning a model. Say the mode ended. Display only. */
+    else showToast("👁 No model picked");
     refreshTray(true); return;
   }
   if(G.proclaimArm){
@@ -4617,11 +4621,17 @@ function tapAt(cx, cy, smart){
       else if(ps2) showToast("🏗 That building already stands finished");
       else showToast("📣 Nothing stands there yet to proclaim");
     }
+    /* Tapping empty ground with Proclaim armed used to disarm silently.
+       Say the mode ended. Display only. */
+    else showToast("📣 Proclaim cancelled");
     refreshTray(true); return;
   }
   if(G.armed){
     if(p.agent){ var t = agent(p.agent); t.vis = Math.min(100, t.vis + 26); t.spotUntil = G.t + 20; setBubble(t, "✨", 2.5); G.spotCd = G.t + 45; G.armed = false; SND.play("order"); showToast("✨ " + t.name.split(" ")[0] + " is watched now"); refreshTray(true); }
-    else G.armed = false;
+    /* A missed spotlight tap used to disarm with no word and no tray
+       refresh: the gold armed border simply stopped meaning anything.
+       Announce the cancel and refresh now. Display only. */
+    else { G.armed = false; showToast("✨ Spotlight cancelled"); refreshTray(true); }
     return;
   }
   if(p.agent){
