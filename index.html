@@ -2078,7 +2078,7 @@ function proclaimAt(stationId, siteId){
   G.proclaim = {station: stationId || null, site: siteId || null, week: G.week};
   var nm = "the village";
   if(siteId){ var sk = siteById(siteId); var kd = sk ? BUILD_KINDS[sk.kind] : null; nm = kd ? kd.title : "the building site"; }
-  else if(stationId && STATION3[stationId]) nm = "the " + STATION3[stationId].name;
+  else if(stationId && STATION3[stationId]) nm = artName(stationId);
   showToast("📣 Proclaimed: " + nm + " holds the village's focus this season" + (early ? " (shifting it early cost " + LIFE.proclaimRecost + " cohesion)" : ""));
   SND.play("order");
   refreshTray(true);
@@ -3348,7 +3348,7 @@ function stepSim(dt){
   G.agents.forEach(function(a){
     if(a.wantPend && G.t >= a.wantPend.at && !a.sick){ var wp = a.wantPend; a.wantPend = null; giveWant(a, wp.station, wp.sync, wp.from); }
     if(a.want){
-      if(G.t > a.want.until){ var wmiss = a.want.station; var wFromM = a.want.from; a.morale = Math.max(0, a.morale - 3); a.want = null; a.wantCd = 8; if(wFromM && wFromM !== a.id){ var srcM = agent(wFromM); if(srcM){ if(!G.mimic) G.mimic = {spread:0, converged:0, doneCopied:0, doneSelf:0, missedCopied:0}; addTension(a, srcM, MIM.resentTension); G.mimic.missedCopied++; } } noteEvent(a, "wantMissed", wmiss); }
+      if(G.t > a.want.until){ var wmiss = a.want.station; var wFromM = a.want.from; a.morale = Math.max(0, a.morale - 3); setBubble(a, "💔", 1.6); a.want = null; a.wantCd = 8; if(wFromM && wFromM !== a.id){ var srcM = agent(wFromM); if(srcM){ if(!G.mimic) G.mimic = {spread:0, converged:0, doneCopied:0, doneSelf:0, missedCopied:0}; addTension(a, srcM, MIM.resentTension); G.mimic.missedCopied++; } } noteEvent(a, "wantMissed", wmiss); }
       else if(a.state === "act" && a.stationId === a.want.station){
         var wFrom = a.want.from;
         a.morale = Math.min(100, a.morale + 9); setBubble(a, "♥", 1.6);
@@ -4213,7 +4213,7 @@ function giveWant(a, station, fromSync, fromId){
   });
   if(adopters.length >= 2){
     var who = adopters.length === 2 ? adopters.join(" and ") : (adopters.slice(0, 2).join(", ") + " and " + (adopters.length - 2) + " more");
-    showToast("💭 " + a.name.split(" ")[0] + "'s want for the " + STATION3[station].name + " spread to " + who);
+    showToast("💭 " + a.name.split(" ")[0] + "'s want for " + artName(station) + " spread to " + who);
   }
   /* Household synchronization: a want one member takes up is offered
      to their partner as a pending want, marked so it cannot bounce
