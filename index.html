@@ -1313,7 +1313,7 @@ function householdOf(a){
   return null;
 }
 function householdPartner(a){ var h = householdOf(a); if(!h) return null; return agent(h.members[0] === a.id ? h.members[1] : h.members[0]); }
-// CF-REF: household-capacity-ledger.md [46]
+// CF-REF: household-capacity-ledger.md [47]
 function housingFree(){ return (G.houseCapacity || 0) - (G.households ? G.households.length : 0) - (G.soloHoused || 0); }
 function housingKind(kindId){ var kd = BUILD_KINDS[kindId]; return !!(kd && kd.effect && kd.effect.householdCapacity); }
 function formHousehold(a, b){
@@ -1349,6 +1349,7 @@ function removeAgent(m){
   if(G.medicQueue) G.medicQueue = G.medicQueue.filter(function(e){ return e.id !== m.id; });
   if(m.solo){ m.solo = false; G.soloHoused = Math.max(0, (G.soloHoused || 0) - 1); }
   if(G.selected === m.id) Store.dispatch("ui/select", {id: null});
+  if(cam.follow === m.id) cam.follow = null;
 }
 function departHousehold(h){
   var names = h.members.map(function(id){ var m = agent(id); return m ? m.name.split(" ")[0] : id; });
