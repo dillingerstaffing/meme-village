@@ -19,7 +19,7 @@ objective, progress, project, parts, work credit, score, driven, order bonus, ho
 | autonomous-founding-gates.md | The village founds at most one building a season, at the boundary, only when every GROWTH gate holds, through foundSite |
 
 ## State and Architecture
-state, store, dispatch, transact, render, dom, panel, new field, new event, chronicle, save, snapshot, ending, persistence, continue
+state, store, dispatch, transact, render, dom, panel, new field, new event, chronicle, save, snapshot, ending, persistence, continue, grave
 
 | Article | Summary |
 |---------|---------|

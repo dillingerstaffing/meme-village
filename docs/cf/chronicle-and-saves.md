@@ -37,7 +37,8 @@ true endings, and the localStorage snapshot.
   snapshot; an ending clears it too.
 - Saves happen at each season boundary (end of endWeek) and on
   pagehide or visibilitychange hidden, only while G.started and not
-  G.over. Figures, overlays, site meshes, and tier silhouettes are
-  rebuilt on restore through the ordinary construction paths
-  (makeFigure, buildSiteMesh, applyTierMesh); nothing render-side
-  is ever serialized.
+  G.over. Figures, overlays, site meshes, tier silhouettes, and grave
+  markers are rebuilt on restore through the ordinary construction
+  paths (makeFigure, buildSiteMesh, applyTierMesh, rebuildGraves from
+  the G.deaths entries that carry x/z); nothing render-side is ever
+  serialized.

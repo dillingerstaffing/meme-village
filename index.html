@@ -2063,6 +2063,34 @@ function winterDeaths(){
     }
   }
 }
+/* Graves: the village remembers its dead in the world, not only in the
+   chronicle. A small stone stays where each resident fell (the RimWorld /
+   Sims grammar: the dead remain visible in the place they died). Markers are
+   display only: no hit mesh, so taps pass through them; no sim effect.
+   G.deaths entries carry x/z from this build on; older saves have none and
+   get no marker. */
+var graveMeshes = [];
+var GRAVE_MAT = null;
+function placeGrave(x, z){
+  if(typeof x !== "number" || typeof z !== "number" || typeof scene === "undefined" || !scene) return;
+  if(!GRAVE_MAT) GRAVE_MAT = mat(0x8f8d88);
+  var g = new THREE.Group();
+  box(0.62, 0.16, 0.5, GRAVE_MAT, 0, 0.08, 0, g);
+  var h = Math.abs(Math.sin(x * 12.9898 + z * 78.233) * 43758.5453) % 1;
+  var slab = box(0.5, 0.8, 0.2, GRAVE_MAT, 0, 0.55, -0.06, g);
+  slab.rotation.y = (h - 0.5) * 0.6;
+  slab.rotation.x = -0.06;
+  g.position.set(x, 0, z);
+  scene.add(g);
+  graveMeshes.push(g);
+}
+function rebuildGraves(){
+  for(var i = 0; i < graveMeshes.length; i++) scene.remove(graveMeshes[i]);
+  graveMeshes = [];
+  (G.deaths || []).forEach(function(d){
+    if(typeof d.x === "number" && typeof d.z === "number") placeGrave(d.x, d.z);
+  });
+}
 function dieAgent(m){
   if(!m) return;
   var first = m.name.split(" ")[0];
@@ -2108,7 +2136,8 @@ function dieAgent(m){
       if(lp2.length) b.model = lp2[0].id;
     }
   });
-  G.deaths.push({name: m.name, year: yearOf(), season: seasonName()});
+  G.deaths.push({name: m.name, year: yearOf(), season: seasonName(), x: Math.round(dx * 10) / 10, z: Math.round(dz * 10) / 10});
+  placeGrave(dx, dz);
   chronicle(m.name + " died at " + (m.age || 0) + ".");
   G.lastHarmWeek = G.week;
   G.agents.forEach(function(b){ if(b.successionPick) noteEvent(b, "succession", m.id); });
@@ -3556,7 +3585,7 @@ function checkEnd(){
 }
 window.__closeChronicle = function(){ endGame("closed"); };
 
-/* CF-REF: chronicle-and-saves.md [132] */
+/* CF-REF: chronicle-and-saves.md [137] */
 /* Stage 8: persistence. One localStorage snapshot lets a village
    survive a reload. The save is the Store state as JSON with the
    transient render objects stripped by key (figures, overlay
@@ -3667,6 +3696,10 @@ function restoreState(st){
     buildSiteMesh(site);
     if(site.plot >= 0 && plotMeshes[site.plot]) plotMeshes[site.plot].visible = false;
   });
+  /* Graves persist in the save (G.deaths entries carry x/z); rebuild the
+     markers for a continued village. Entries from older saves have no x/z
+     and are skipped. */
+  rebuildGraves();
   TIER_STATIONS.forEach(function(s3){
     var t = tierOf(s3);
     for(var lv = 2; lv <= t; lv++){ var sp = TIER_SPOTS[s3] && TIER_SPOTS[s3][lv - 2]; if(sp && STATION3[s3]) STATION3[s3].work.push(sp); }
