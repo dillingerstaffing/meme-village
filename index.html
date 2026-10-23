@@ -1426,6 +1426,17 @@ function arrivalRand(){
   G.arrRng = ((G.arrRng || ((G.seed || 1) * 7919 + 13)) * 1103515245 + 12345) % 2147483648;
   return G.arrRng / 2147483648;
 }
+/* The arrival announcement names each traveler with their trade and the
+   station they gravitate to, so the welcome decision reads on who is
+   coming, not just their names. Dwarf Fortress migrant waves work the
+   same way: the professions are the placement read. Dispositions stay
+   hidden; features speak for themselves. */
+function arrivalWho(arr){
+  return arr.defs.map(function(d){
+    var st = STATION3[d.aff];
+    return d.name + " (" + d.role + (st ? " · " + st.name : "") + ")";
+  }).join(" and ");
+}
 function arrivalCheck(){
   if(!G.started || G.over) return;
   if(G.arrival){
@@ -1464,7 +1475,7 @@ function arrivalCheck(){
   for(var si = shuffled.length - 1; si > 0; si--){ var sj = Math.floor(arrivalRand() * (si + 1)); var st = shuffled[si]; shuffled[si] = shuffled[sj]; shuffled[sj] = st; }
   var defs = shuffled.slice(0, party);
   G.arrival = {defs: defs, names: defs.map(function(n){ return n.name.split(" ")[0]; }), weekSet: G.week};
-  showToast("🚶 " + defs.map(function(n){ return n.name; }).join(" and ") + " at the valley edge. Welcome them in, or turn them away?");
+  showToast("🚶 " + arrivalWho(G.arrival) + " at the valley edge. Welcome them in, or turn them away?");
   SND.play("warn");
 }
 function arrivalChoice(welcome){
@@ -3945,7 +3956,7 @@ function hudTick(dt){
   if(apEl){
     var arr2 = G.arrival;
     var apHtml = "";
-    if(arr2) apHtml = "<span class='arr-note'>🚶 " + arr2.names.join(" and ") + " at the valley edge</span>"
+    if(arr2) apHtml = "<span class='arr-note'>🚶 " + arrivalWho(arr2) + " at the valley edge</span>"
       + "<button class='alert-chip' onclick='__arrivalChoice(1)'>🤝 <b>Welcome</b></button>"
       + "<button class='alert-chip' onclick='__arrivalChoice(0)'>🚪 <b>Turn away</b></button>";
     if(apEl.innerHTML !== apHtml) apEl.innerHTML = apHtml;
