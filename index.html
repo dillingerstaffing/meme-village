@@ -378,7 +378,7 @@ function curObjective(){ var deck = (G.objectives && G.objectives.length) ? G.ob
 var scene, camera, renderer, sunLight;
 var cam = {target:new THREE.Vector3(0,0,4), yaw:0, pitch:0.94, dist:38, follow:null};
 var G = null;
-// CF-REF: store-single-source.md [80]
+// CF-REF: store-single-source.md [83]
 /* ================= STORE =================
    Single source of truth for all game state.
    Rules:
@@ -437,6 +437,10 @@ var Store = (function(){
        own pair-tension ledger (converging desire, household spread) as edges
        between heated residents. View state only, never a sim input. */
     "ui/lens": function(p){ if(state.ui) state.ui.lens = (p && typeof p.on === "boolean") ? p.on : !state.ui.lens; },
+    /* Minimap event pings (the SC2 alert grammar): sim-emitted alert
+       markers drawn by drawMinimap at the event site. Capped, transient,
+       display only; the toast queue never delays them. */
+    "ui/ping": function(p){ var q = state.pings || (state.pings = []); q.push({x:+p.x || 0, z:+p.z || 0, t:state.t, kind:String(p.kind || "feud")}); if(q.length > 12) q.splice(0, q.length - 12); },
     "thought/set": function(p){ var a = findA(p.id); if(a){ var nt = String(p.text || ""); if(!validThought(nt)) return; var cause = p.cause || "ambient"; var isNew = !a.thought || a.thought.text !== nt; a.thought = {text:nt, at:state.t, wk:state.week, cause:cause, why:p.why || "", cat:p.cat || "", source:"template"}; if(isNew && cause !== "start") a.thoughtFx = state.t + 2.5; if(a.thoughtLog){ for(var di = a.thoughtLog.length - 1; di >= 0; di--) if(a.thoughtLog[di].text === nt) a.thoughtLog.splice(di, 1); a.thoughtLog.push(a.thought); if(a.thoughtLog.length > 8) a.thoughtLog.shift(); } } }
   };
   function commit(){
@@ -859,7 +863,7 @@ function newSlice(){
     stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
     objStation:"clinic", objComplete:false, objDone:0, scapegoats:0, delays:[],
     weekWork:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0, build:0}, weekWorkP:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0},
-    ui:{toast:null, queue:[], sheet:null, muted:false}, mimic:{spread:0, converged:0, doneCopied:0, doneSelf:0, missedCopied:0}, policy:"hearth", difficulty:"standard", medicPatient:null, pendingIncident:null, curIncident:null, alerts:[], firstOrder:false, chronicle: [], endKind: null, ttiPaid: 0, ttiSavesUsed: 0, medicQueue: [], medicSeq: 0};
+    ui:{toast:null, queue:[], sheet:null, muted:false}, mimic:{spread:0, converged:0, doneCopied:0, doneSelf:0, missedCopied:0}, policy:"hearth", difficulty:"standard", medicPatient:null, pendingIncident:null, curIncident:null, alerts:[], firstOrder:false, chronicle: [], endKind: null, ttiPaid: 0, ttiSavesUsed: 0, medicQueue: [], medicSeq: 0, pings:[]};
   g.agents.forEach(function(a){
     a.speedNow = 0; a.slot = null; a.fetch = null; a.fetchT = 0; a.watchCd = 0; a.mimicStation = null;
     a.buildSite = null; a.fetchSite = null;
@@ -2076,6 +2080,7 @@ function dieAgent(m){
   G.lastHarmWeek = G.week;
   G.agents.forEach(function(b){ if(b.successionPick) noteEvent(b, "succession", m.id); });
   showToast("🕯 " + m.name + " has died. The village carries on, and remembers.", {x:dx, z:dz});
+  Store.dispatch("ui/ping", {x:dx, z:dz, kind:"death"});
   SND.play("blame");
   checkEnd();
 }
@@ -2113,6 +2118,7 @@ function addTension(a, b, amt){
     var warnShared = (a.model && a.model === b.model) ? agent(a.model) : null;
     setBubble(a, "⚡", 2.0); setBubble(b, "⚡", 2.0);
     showToast("⚡ " + a.name.split(" ")[0] + " and " + b.name.split(" ")[0] + " are copying " + (warnShared ? warnShared.name.split(" ")[0] + " and getting heated" : "the same work and getting heated") + ". Separate them or cool them on the green.", {ids:[a.id, b.id]});
+    Store.dispatch("ui/ping", {x:(a.x + b.x) / 2, z:(a.z + b.z) / 2, kind:"warn"});
     SND.play("warn");
     noteEvent(a, "rivalry", b.id); noteEvent(b, "rivalry", a.id);
   }
@@ -2124,6 +2130,7 @@ function addTension(a, b, amt){
     G.blame = Math.min(100, (G.blame || 0) + 5);
     var shared = (a.model && a.model === b.model) ? agent(a.model) : null;
     showToast("⚔ " + a.name.split(" ")[0] + " and " + b.name.split(" ")[0] + (shared ? " both follow " + shared.name.split(" ")[0] + ", and imitation has turned to rivalry" : " have fallen out over the same work"), {ids:[a.id, b.id]});
+    Store.dispatch("ui/ping", {x:(a.x + b.x) / 2, z:(a.z + b.z) / 2, kind:"feud"});
     SND.play("feud");
     noteEvent(a, "rivalry", b.id); noteEvent(b, "rivalry", a.id);
     chronicle(a.name + " and " + b.name + " fell into a feud.");
@@ -3224,6 +3231,7 @@ function statDrift(dt){
     applyStatMods({cohesion:7, rivalry:-16, trust:-5});
     G.delays.push({at: G.t + WEEK_LEN, mods:{trust:-5}, msg:"🕯 The village remembers who it turned on"});
     showToast("🌩 The village turned on " + cand.name.split(" ")[0] + ". The quiet feels bought.", {ids:[cand.id]});
+    Store.dispatch("ui/ping", {x:cand.x, z:cand.z, kind:"blame"});
     SND.play("blame");
   }
   G.agents.forEach(function(a){
@@ -3947,6 +3955,24 @@ function drawMinimap(){
     c.fillStyle = "rgba(255,255,255,0.9)"; c.font = "8px monospace";
     c.fillText("TENSION LENS", 4, 10);
   }
+  /* Minimap event pings: high-stakes alerts (feud warn/erupt, blame turn,
+     death) ping the strategic channel at the event site, the SC2 grammar
+     of a flash where the trouble is. Expanding ring plus a center dot, so
+     shape and color both carry the read, never color alone. 4 sim-seconds,
+     then gone; display only, drawn from state, never committed. */
+  var PINGC = {warn:"#e8b34b", feud:"#e86a3c", blame:"#b48ce8", death:"#9aa0a6"};
+  var pgs = G.pings || [], pgi, pgg, pga, pcol;
+  for(pgi = 0; pgi < pgs.length; pgi++){
+    pgg = pgs[pgi]; pga = G.t - pgg.t;
+    if(pga < 0 || pga > 4) continue;
+    pcol = PINGC[pgg.kind] || PINGC.feud;
+    c.globalAlpha = 0.95 * (1 - pga / 4);
+    c.strokeStyle = pcol; c.lineWidth = 2;
+    c.beginPath(); c.arc(X(pgg.x), Y(pgg.z), 4 + pga * 1.6, 0, 6.29); c.stroke();
+    c.fillStyle = pcol;
+    c.beginPath(); c.arc(X(pgg.x), Y(pgg.z), 2, 0, 6.29); c.fill();
+  }
+  c.globalAlpha = 1;
   c.strokeStyle = "rgba(255,255,255,0.55)"; c.lineWidth = 1;
   var hw = cam.dist * 0.72, hh = cam.dist * 0.54;
   c.save(); c.translate(X(cam.target.x), Y(cam.target.z)); c.rotate(-cam.yaw); c.strokeRect(-hw / 120 * W, -hh / 90 * H, hw / 60 * W, hh / 45 * H); c.restore();
