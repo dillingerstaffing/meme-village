@@ -4013,6 +4013,15 @@ function hudTick(dt){
   var trayEl = document.getElementById("tray");
   if(trayEl){
     var tb = (trayEl.offsetHeight + 12) + "px"; if(alEl.style.bottom !== tb) alEl.style.bottom = tb;
+    /* Desktop minimap: pin its bottom above the tray's real height instead of
+       the old 150px constant (the selection-UX tray grew past it, so the
+       minimap sat on the INFLUENCE buttons). On phones the media query owns
+       the minimap's top-anchored position, so the inline value is cleared. */
+    var mmEl = document.getElementById("minimap");
+    if(mmEl){
+      if(window.innerWidth <= 560){ if(mmEl.style.bottom) mmEl.style.bottom = ""; }
+      else if(mmEl.style.bottom !== tb) mmEl.style.bottom = tb;
+    }
     /* Phone stats panel: pin its bottom above the real tray top (plus the idle
        alerts when present) instead of a fixed px constant, so the last meter
        rows never slide behind the tray as the tray wraps to more rows. */
