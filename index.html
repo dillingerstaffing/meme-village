@@ -4397,7 +4397,30 @@ function renderOverlay(s){
     var pst = STATION3[pressSt];
     if(!projV) projV = new THREE.Vector3();
     projV.set(pst.x, 4.2, pst.z).project(camera);
-    if(projV.z <= 1){ pEl.style.display = "block"; pEl.style.left = ((projV.x * 0.5 + 0.5) * window.innerWidth) + "px"; pEl.style.top = ((-projV.y * 0.5 + 0.5) * window.innerHeight) + "px"; var ptxt = "\u2694\u00d7" + pressN + " all want the " + pst.name; if(pEl.textContent !== ptxt) pEl.textContent = ptxt; }
+    if(projV.z <= 1){
+      var ptxt = "\u2694\u00d7" + pressN + " all want the " + pst.name; if(pEl.textContent !== ptxt) pEl.textContent = ptxt;
+      pEl.style.display = "block";
+      // Centered on the station via translate(-50%,-100%): keep the whole bubble
+      // on screen and clear of the minimap, staying near its station (the 110px
+      // sideways budget from the anchor discipline; past it the bubble hides for
+      // the frame rather than rendering clipped under the minimap).
+      var pcx = (projV.x * 0.5 + 0.5) * window.innerWidth;
+      var pcy = (-projV.y * 0.5 + 0.5) * window.innerHeight;
+      var pbw = pEl.offsetWidth || 170, pbh = pEl.offsetHeight || 26;
+      pcx = Math.max(pbw/2 + 4, Math.min(window.innerWidth - pbw/2 - 4, pcx));
+      if(pcy - pbh < 4) pcy = pbh + 4;
+      var pmm = document.getElementById("minimap"), pShow = true;
+      if(pmm){
+        var pmr = pmm.getBoundingClientRect();
+        if(pcx + pbw/2 > pmr.left && pcx - pbw/2 < pmr.right && pcy > pmr.top && pcy - pbh < pmr.bottom){
+          var pnl = pmr.left - 6 - pbw/2;
+          if(Math.abs(pnl - pcx) <= 110 && pnl - pbw/2 >= 4) pcx = pnl;
+          else pShow = false;
+        }
+      }
+      if(pShow){ pEl.style.left = pcx + "px"; pEl.style.top = pcy + "px"; }
+      else pEl.style.display = "none";
+    }
     else pEl.style.display = "none";
   } else pEl.style.display = "none";
 }
