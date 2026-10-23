@@ -858,7 +858,7 @@ function newSlice(){
     rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0, offer:null, offerAccepted:false,
     rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0,
     sites:[], siteSeq:0, lastFoundSeason:0, houseCapacity:10, banked:false, foundArm:false, foundPlot:null, buildPref:null,
-    bonds:{}, households:[], householdSeq:0, soloHoused:0, departed:0, arrival:null, speakCd:0, speakArm:false, coverArm:false, coachBank:false, coachSick:false, newSeq:0, kidSeq:0, births:0,
+    bonds:{}, households:[], householdSeq:0, soloHoused:0, departed:0, arrival:null, speakCd:0, speakArm:false, coverArm:false, coachBank:false, coachSick:false, levelSeen:null, newSeq:0, kidSeq:0, births:0,
     tiers:{clinic:1, fields:1, store:1, green:1, mill:1, school:1, well:1}, tierProg:{}, tierWorkers:{}, builtWealth:0, deaths:[], proclaim:null, proclaimArm:false, lastHarmWeek:null, lastIncidentWeek:null, incidentRollWeek:null,
     stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
     objStation:"clinic", objComplete:false, objDone:0, scapegoats:0, delays:[],
@@ -1933,6 +1933,7 @@ function tierUp(st){
   showToast((sn ? sn.icon + " " : "") + "The " + (sn ? sn.name : st) + " has grown to tier " + G.tiers[st]);
   SND.play("objwin");
   chronicle((sn && sn.name.indexOf("The ") === 0 ? sn.name : "The " + (sn ? sn.name : st)) + " reached tier " + G.tiers[st] + ".");
+  checkLevelUp();
 }
 function applyTierMesh(st){
   var t = tierOf(st), b = STATION_BUILD[st];
@@ -1987,6 +1988,26 @@ function villageLevel(){
   var lv = LIFE.levels[0];
   LIFE.levels.forEach(function(L){ if(n >= L.min) lv = L; });
   return {name: lv.name, count: n};
+}
+/* Village level promotion celebration: the level is read off tiered
+   stations plus finished sites, and until now a promotion (Hamlet to
+   Village, Village to Large Village, Town, City) passed with zero
+   feedback: the season chip just renamed itself. The promotion is the
+   biggest positive progression beat in the game, so it gets the win
+   grammar: a toast, the objwin arpeggio, and a chronicle line.
+   finishSite, tierUp, and the project-site path in siteTick are the
+   only events that can move the count, so the check hooks those three;
+   the levelSeen guard keeps each promotion to exactly one celebration.
+   Display only: the level math and every ledger are untouched. */
+function checkLevelUp(){
+  if(!G.started || G.over) return;
+  var lv = villageLevel();
+  if(G.levelSeen == null){ G.levelSeen = lv.name; return; }
+  if(lv.name === G.levelSeen) return;
+  G.levelSeen = lv.name;
+  showToast("🎉 The village has grown into a " + lv.name + "!");
+  SND.play("objwin");
+  chronicle("The village grew into a " + lv.name + ".");
 }
 function elderRisk(a){
   var arc = arcOf(a);
@@ -2999,6 +3020,7 @@ function finishSite(site){
   showToast(kind.icon + " " + kind.title + " finished. " + (kind.blurb || ""));
   SND.play("objwin");
   chronicle(kind.title + " finished.");
+  checkLevelUp();
   if(!firstSiteOpen()) G.agents.forEach(function(a){ if(a.order === "build") a.order = null; if(a.buildSite === site.id) a.buildSite = null; });
 }
 /* Completion effects are data on the kind, applied generically: a new
@@ -3014,7 +3036,7 @@ function siteTick(){
     var s = G.sites[i]; if(s.done) continue;
     var kind = BUILD_KINDS[s.kind];
     if(kind.project){
-      if(G.projDone.indexOf(s.projId) >= 0){ s.done = true; }
+      if(G.projDone.indexOf(s.projId) >= 0){ s.done = true; checkLevelUp(); }
       updateSiteMesh(s);
     } else {
       var nd = kind.stages[s.stage];
