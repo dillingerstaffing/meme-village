@@ -14,3 +14,12 @@ different resident and reads as that resident's state. The tempting fix
 for crowding, stacking markers as high as needed, is exactly what made
 bubbles float and attach to the wrong people in playtests. Hiding for
 one frame is cheaper than lying about who a marker belongs to.
+
+One deliberate exemption: the selected resident's card may sidestep past
+DX_MAX when the west-edge nudge clears the left HUD column (the card
+lands at hud.right + 6 + its half-width, however far that is from the
+anchor). Hiding the selected card for the frame would flicker the
+selection readout while the resident walks behind the column, and
+identity stays unambiguous: the resident carries the visible selection
+ring and the card names them. Non-selected overlays have no exemption;
+past the budget they hide for the frame.

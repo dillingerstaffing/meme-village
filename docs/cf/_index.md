@@ -5,7 +5,7 @@ overlay, marker, bubble, name tag, hud, camera move, collision, anchor, hide
 
 | Article | Summary |
 |---------|---------|
-| overlay-anchor-budget.md | Markers stay within 56px up and 110px sideways of their resident, or hide |
+| overlay-anchor-budget.md | Markers stay within 56px up and 110px sideways of their resident, or hide; the selected resident's card may sidestep past the sideways cap when the west-edge nudge clears the HUD column |
 
 ## Game Rules and Scoring
 objective, progress, project, parts, work credit, score, driven, order bonus, household, arrival, newcomer, cottage, capacity, speak for, blame, want, desire, model, spread, contagion, origin, coverage, tier, premium, medic, queue, call out, founding, growth, expansion, autonomous, plot

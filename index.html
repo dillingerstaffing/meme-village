@@ -2799,6 +2799,12 @@ function projectTick(){
   chronicle((def ? def.title : pr.id) + " was completed.");
   showToast("🏗 Project complete: " + (def ? def.title : pr.id) + ". " + (def ? def.perkText : ""));
   SND.play("objwin");
+  /* Project celebration juice: five staggered gold pings at the built site,
+     the objective completion grammar scaled up for the bigger achievement.
+     Display only; the perk, the chronicle, and every ledger are untouched. */
+  var pSite = null;
+  (G.sites || []).forEach(function(s){ if(s.projId === pr.id) pSite = s; });
+  if(pSite) for(var pi2 = 0; pi2 < 5; pi2++) spawnOrderPing(pSite.x + (pi2 - 2) * 1.7, pSite.z, pi2 * 0.22);
 }
 /* ============ CONSTRUCTION ============
    Building is a general system, not a list of one-off buildings.
