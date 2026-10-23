@@ -3339,7 +3339,15 @@ function endWeek(){
     else { var richA = null; for(var ci = 0; ci < G.agents.length; ci++){ var ca = G.agents[ci]; if(!ca.child && (ca.cash || 0) >= 20){ richA = ca; break; } }
       if(richA){ G.coachBank = true; showToast("💰 " + richA.name.split(" ")[0] + " is carrying " + Math.floor(richA.cash) + "🪙 in cash. A bank would let residents save what they earn, and buy cover."); } }
   }
-  if(seasonOfYear() === 3) telegraphFailing();
+  if(seasonOfYear() === 3){
+    telegraphFailing();
+    /* Frostpunk's calendar principle: the winter scarcity bill (+8 to the
+       scarcity drift target, game-spec section 2) must be forecast while the
+       player can still act, not only announced on arrival. Fires once per
+       autumn at the boundary, only when stores are low enough that winter
+       will actually bite. Display only, zero sim change. */
+    if(!G.over && (G.stores || 0) < 40) showToast("\u2744 Winter comes next season: scarcity will climb. Fill the storehouse while you can.");
+  }
   if(seasonOfYear() === 4) winterDeaths();
   if(seasonOfYear() === 1){
     /* a new year: re-deal the commission and incident decks, then count the winter */
