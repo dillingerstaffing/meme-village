@@ -3251,10 +3251,26 @@ function stepSim(dt){
   if(!G.incidentDone && !G.incidentOpen && !G.pendingIncident && !inc){ G.weekIncident = drawIncident(); inc = G.weekIncident; }
   if(inc && !G.incidentDone && !G.incidentOpen && !G.pendingIncident && G.weekTime >= inc.at) triggerIncident(inc);
   if(G.stats.rivalry < 45) G.calmT += dt;
-  if(G.started && !G.over && G.offerAccepted && !G.objComplete && G.pushWeek !== G.week && G.weekTime >= 30){
-    G.pushWeek = G.week; G.pushUntil = G.t + 12;
-    var pst = STATION3[G.objStation];
-    showToast("⏰ Midweek push: driven hands at the " + (pst ? pst.name : "objective") + " count double for 12 seconds");
+  /* The crew's rhythm (was the midseason timer push): once per season, when at
+     least three driven hands work the objective station together and the
+     convergence runs through the imitation graph (a model edge among them),
+     their rhythm catches and driven work at the station counts double for
+     12 seconds. The player earns it by stacking a model and their followers
+     on the commission, instead of waiting for a clock. Mimetic cause:
+     converging desires made physical, computed from a.model edges. */
+  if(G.started && !G.over && G.offerAccepted && !G.objComplete && G.pushWeek !== G.week && G.objStation){
+    var rhHands = [];
+    for(var rhi = 0; rhi < G.agents.length; rhi++){ var rha = G.agents[rhi]; if(rha.driveObj && rha.stationId === G.objStation && rha.state === "act") rhHands.push(rha); }
+    var rhBest = null, rhBestN = 0;
+    for(var rhj = 0; rhj < rhHands.length; rhj++){ var rhA = rhHands[rhj], rhN = 0;
+      for(var rhk = 0; rhk < rhHands.length; rhk++){ if(rhk === rhj) continue; var rhB = rhHands[rhk];
+        if(rhB.model === rhA.id || (rhA.model && rhB.model === rhA.model)) rhN++; }
+      if(rhN > rhBestN){ rhBestN = rhN; rhBest = rhA; } }
+    if(rhHands.length >= 3 && rhBestN >= 1 && rhBest){
+      G.pushWeek = G.week; G.pushUntil = G.t + 12;
+      var rst = STATION3[G.objStation];
+      showToast("🎵 " + rhBest.name.split(" ")[0] + "'s crew finds its rhythm at the " + (rst ? rst.name : "objective") + ": driven work counts double for 12 seconds");
+    }
   }
   var gNow = 0; G.agents.forEach(function(a){ if(a.stationId === "green" && (a.state === "act" || a.state === "sit" || a.state === "watch")) gNow++; });
   if(gNow > (G.peakGreen || 0)) G.peakGreen = gNow;

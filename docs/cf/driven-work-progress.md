@@ -2,7 +2,7 @@
 
 Objective metrics read weekWorkP, never weekWork. wk() adds to
 weekWorkP only when a.driveObj is true, together with the synergy and
-midweek-push multipliers and the project part credit. Construction
+crew-rhythm multipliers and the project part credit. Construction
 labor enters wk() under the build key and returns before the driven
 branch: it fills the site labor ledger in G.sites, never weekWorkP,
 and build work is never credited as driven work. A new way of
