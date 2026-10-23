@@ -31,7 +31,7 @@ canvas{display:block}
 .sbtn{background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:7px 12px;font-weight:800;cursor:pointer;font-size:13px}
 .sbtn.on{border-color:var(--gold);color:var(--gold)}
 #sliceTag{top:10px;left:50%;transform:translateX(-50%);background:rgba(90,20,16,.85);border:1px solid var(--red);color:#ffd9d4;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:800;letter-spacing:.18em}
-#toast{bottom:118px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--gold);border-radius:22px;padding:8px 18px;font-size:14px;font-weight:700;display:none;max-width:94vw;text-align:center;line-height:1.45;overflow-wrap:anywhere}
+#toast{bottom:118px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--gold);border-radius:22px;padding:8px 18px;font-size:14px;font-weight:700;display:none;max-width:94vw;text-align:center;line-height:1.45;overflow-wrap:anywhere;z-index:12}
 .toast-chip{background:none;border:none;color:inherit;font:inherit;font-weight:inherit;cursor:pointer;padding:0;text-decoration:underline dotted;text-underline-offset:3px}
 /* CF-REF: tray-passes-taps.md [2] */
 #alerts{position:fixed;left:10px;bottom:118px;display:flex;flex-direction:column;gap:6px;z-index:29;pointer-events:none}
@@ -220,7 +220,7 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
   #sliceTag{top:136px;font-size:9px;padding:4px 8px;letter-spacing:.12em}
   #stats{top:auto;bottom:250px;width:150px;padding:6px 8px}
   .srow .sl{width:54px;font-size:9.5px}
-  #toast{bottom:auto;top:300px;font-size:12.5px;padding:7px 13px}
+  #toast{bottom:auto;top:300px;font-size:12.5px;padding:7px 13px;z-index:10}
   #stats{bottom:262px;width:140px}
   .srow .sb{width:36px}
   #alerts{bottom:206px}
@@ -2514,7 +2514,7 @@ function callOut(a){
   SND.play("order");
   return true;
 }
-function sendMedic(patientId){ var j = agent("jonah"), p = agent(patientId); if(!j || !p) return; if(G.medicQueue) G.medicQueue = G.medicQueue.filter(function(e){ return e.id !== patientId; }); G.medicPatient = patientId; j.medicTask = 1; j.order = null; j.fetch = null; j.carrying = null; goTo(j, 1.1, 9.0, "green"); showToast("✚ Jonah is on his way"); }
+function sendMedic(patientId){ var j = agent("jonah"), p = agent(patientId); if(!j || !p) return; if(G.medicQueue) G.medicQueue = G.medicQueue.filter(function(e){ return e.id !== patientId; }); G.medicPatient = patientId; j.medicTask = 1; j.order = null; j.fetch = null; j.carrying = null; goTo(j, 1.1, 9.0, "green"); showToast("✚ Jonah is on his way", {ids:[p.id, "jonah"]}); }
 function recoverPatient(id, morale){ var p = agent(id); if(!p) return; p.sick = false; p.morale = morale; p.state = "idle"; p.decideT = 1; }
 function restPatient(id){ var p = agent(id); if(!p) return; p.order = null; goStation(p, "home"); showToast("🏠 " + p.name.split(" ")[0] + " heads home to rest"); }
 function applyStatMods(mods){ if(!mods) return; Object.keys(mods).forEach(function(k){ if(G.stats[k] != null) G.stats[k] = Math.max(0, Math.min(100, G.stats[k] + mods[k])); }); }
@@ -2614,7 +2614,7 @@ function drawIncident(){
    a resident already close falls sick where they stand. */
 function makeSick(p){
   if(!p || p.sick || p.sickWalk) return false;
-  if(!G.coachSick && !p.child){ G.coachSick = true; showToast(G.banked ? "🚑 " + p.name.split(" ")[0] + " is sick. Jonah is the only medic: cover sends him to members first, and Call Out buys a visit for anyone else." : "🚑 " + p.name.split(" ")[0] + " is sick. Jonah is the only medic, and he takes people in turn."); }
+  if(!G.coachSick && !p.child){ G.coachSick = true; showToast(G.banked ? "🚑 " + p.name.split(" ")[0] + " is sick. Jonah is the only medic: cover sends him to members first, and Call Out buys a visit for anyone else." : "🚑 " + p.name.split(" ")[0] + " is sick. Jonah is the only medic, and he takes people in turn.", {ids:[p.id]}); }
   var d = Math.sqrt(p.x * p.x + (p.z - 8.6) * (p.z - 8.6));
   if(d > 3){ p.sickWalk = true; p.order = null; p.fetch = null; p.carrying = null; goTo(p, 0, 8.6, "green"); setBubble(p, "✚", 3); return true; }
   p.sick = true; p.state = "sit"; p.stationId = "green";
