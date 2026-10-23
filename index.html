@@ -3737,7 +3737,15 @@ function refreshTray(force){
 }
 function setOrder3(orderId){
   var a = G.selected ? agent(G.selected) : null;
-  if(!a || a.sick || a.child) return;
+  /* Explain-on-tap: an order tap that cannot act still answers. A sick
+     resident sits out under the medic's care and a child never takes work
+     orders, but their tray buttons stay enabled (the Speak For gated-tap
+     precedent), so the tap teaches instead of vanishing silently. */
+  if(!a || a.sick || a.child){
+    if(a && a.sick) showToast("🚑 " + a.name.split(" ")[0] + " is sick and cannot take orders right now");
+    else if(a && a.child) showToast("🧒 " + a.name.split(" ")[0] + " is still a child and cannot take work orders");
+    return;
+  }
   if(a.initPend){ a.initPend = null; showToast("↩ " + a.name.split(" ")[0] + " drops the plan and takes your order"); }
   if(orderId !== "auto" && a.order === orderId){ refreshTray(true); return; }
   G.firstOrder = true;
