@@ -194,6 +194,7 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
 .srow .sb{flex:1;height:6px;background:#05080b;border:1px solid #263449;border-radius:2px;overflow:hidden}
 .srow .sb i{display:block;height:100%;width:50%}
 .srow b{width:22px;text-align:right;font-family:ui-monospace,Menlo,monospace;font-size:10.5px}
+#statsStrip{display:none}
 .seg{display:flex;gap:6px;margin:6px 0 12px}
 .segbtn{flex:1;background:#0c1219;border:1px solid var(--line);color:var(--ink2);border-radius:8px;padding:9px 6px;cursor:pointer;font-weight:700;font-size:13px}
 .segbtn.on{border-color:var(--gold);color:var(--gold);background:rgba(232,179,75,.1)}
@@ -223,6 +224,11 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
   #toast{bottom:auto;top:300px;font-size:12.5px;padding:7px 13px;z-index:10}
   #stats{bottom:262px;width:140px}
   .srow .sb{width:36px}
+  /* CF-REF: phone-stats-compact-during-picks.md [4] */
+  #stats.compact .sh,#stats.compact .srow{display:none}
+  #stats.compact #statsStrip{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;font-size:11px;padding:2px 0}
+  #stats.compact #statsStrip span{white-space:nowrap;color:var(--ink2)}
+  #stats.compact #statsStrip b{font-family:ui-monospace,Menlo,monospace;font-weight:700;color:var(--ink);margin-left:3px}
   #alerts{bottom:206px}
   #wantStrip{font-size:10.5px}
   #alerts{bottom:158px}
@@ -292,6 +298,7 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
   <div class="srow"><span class="sl">🌾 Scarcity</span><span class="sb"><i id="bar-scar" style="background:#e08a4b"></i></span><b id="val-scar">52</b></div>
   <div class="srow"><span class="sl">🕊 Autonomy</span><span class="sb"><i id="bar-aut" style="background:#6fb3e8"></i></span><b id="val-aut">60</b></div>
   <div class="srow" id="blameRow" style="display:none"><span class="sl" id="blameLbl">🌩 Blame</span><span class="sb"><i id="blameBar" style="background:#e85a3c"></i></span><b id="blameVal">0</b></div>
+  <div id="statsStrip"><span>⚒<b id="sv-prod">0</b></span><span>♥<b id="sv-trust">0</b></span><span>🌳<b id="sv-coh">0</b></span><span>⚔<b id="sv-riv">0</b></span><span>🌾<b id="sv-scar">0</b></span><span>🕊<b id="sv-aut">0</b></span><span id="svBlameWrap" style="display:none">🌩<b id="sv-blame">0</b></span></div>
 </div>
 <div class="hud" id="topRight">
   <span class="chip" id="weekChip"><span class="wcA">YEAR 1 · SPRING</span><span class="wcS"> · </span><span class="wcB">Hamlet · ☀ 0%</span></span>
@@ -4058,11 +4065,12 @@ function hudTick(dt){
   document.getElementById("storesN").textContent = G.stores;
   document.getElementById("copiedN").textContent = G.copied;
   var bRow = document.getElementById("blameRow");
-  if(bRow){ var bc2 = scapegoatCandidate(); var bShow = (G.blame || 0) >= 25 && !!bc2; bRow.style.display = bShow ? "flex" : "none"; if(bShow){ document.getElementById("blameLbl").textContent = "🌩 " + bc2.name.split(" ")[0]; document.getElementById("blameBar").style.width = Math.round(G.blame) + "%"; document.getElementById("blameVal").textContent = Math.round(G.blame); } }
+  if(bRow){ var bc2 = scapegoatCandidate(); var bShow = (G.blame || 0) >= 25 && !!bc2; bRow.style.display = bShow ? "flex" : "none"; if(bShow){ document.getElementById("blameLbl").textContent = "🌩 " + bc2.name.split(" ")[0]; document.getElementById("blameBar").style.width = Math.round(G.blame) + "%"; document.getElementById("blameVal").textContent = Math.round(G.blame); document.getElementById("sv-blame").textContent = Math.round(G.blame); } var svBW = document.getElementById("svBlameWrap"); if(svBW) svBW.style.display = bShow ? "inline" : "none"; }
   var s = G.stats;
   [["prod","prod"],["trust","trust"],["coh","cohesion"],["riv","rivalry"],["scar","scarcity"],["aut","autonomy"]].forEach(function(pr){
     document.getElementById("bar-" + pr[0]).style.width = s[pr[1]] + "%";
     document.getElementById("val-" + pr[0]).textContent = Math.round(s[pr[1]]);
+    var svEl = document.getElementById("sv-" + pr[0]); if(svEl) svEl.textContent = Math.round(s[pr[1]]);
   });
   G.alerts = G.alerts.filter(function(x){ return G.t - x.at < 9; });
   var alEl = document.getElementById("alerts");
@@ -4090,6 +4098,9 @@ function hudTick(dt){
         var ab = alEl.offsetHeight, sb = (trayEl.offsetHeight + 12 + ab + (ab > 0 ? 8 : 0)) + "px";
         if(stEl.style.bottom !== sb) stEl.style.bottom = sb;
         if(stEl.style.top) stEl.style.top = "";
+        /* CF-REF: phone-stats-compact-during-picks.md [2] */
+        var pickOpen = ["offerPick","projPick","foundPick","arrPick"].some(function(pid){ var pe = document.getElementById(pid); return pe && pe.style.display !== "none"; });
+        if(stEl.classList.contains("compact") !== pickOpen) stEl.classList.toggle("compact", pickOpen);
       } else {
         /* Desktop: anchor the stats panel below the objective card's real
            bottom instead of the fixed 146px CSS constant. The offer card grows
@@ -4101,6 +4112,7 @@ function hudTick(dt){
         var stTop = Math.max(146, Math.ceil(cardBottom) + 8) + "px";
         if(stEl.style.top !== stTop) stEl.style.top = stTop;
         if(stEl.style.bottom) stEl.style.bottom = "";
+        if(stEl.classList.contains("compact")) stEl.classList.remove("compact");
       }
     }
   }

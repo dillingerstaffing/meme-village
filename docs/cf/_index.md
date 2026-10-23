@@ -37,11 +37,12 @@ tap, drag, scroll, touch, pointer, gesture, tray, alerts, minimap, button, click
 | pointercancel-never-a-tap.md | pointercancel only resets pointer state; only pointerup can become a tap |
 
 ## Character Sheet and Phone Layout
-sheet, character panel, objective card, project pick, mobile, phone, layout, overlap
+sheet, character panel, objective card, project pick, mobile, phone, layout, overlap, stats, stats panel, meter strip, pick row, compact
 
 | Article | Summary |
 |---------|---------|
 | sheet-below-objective-card.md | On small screens hudTick pins the open sheet below the objective card |
+| phone-stats-compact-during-picks.md | On phones an open decision pick row compacts the stats panel to a meter strip |
 
 ## Thoughts and Temperament
 thought, monologue, axis, label, persona, generation, inference, llm, template
