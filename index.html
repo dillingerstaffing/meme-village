@@ -795,7 +795,7 @@ function makeAgents(){
     var label = document.createElement("div"); label.className = "label"; label.id = "lab-" + a.id;
     ovl.appendChild(bub); ovl.appendChild(intEl); ovl.appendChild(label);
     document.getElementById("labels").appendChild(ovl);
-    a.ovlEl = ovl; a.labelEl = label; a.bubbleEl = bub; a.intentEl = intEl; a._ovlSig = "";
+    a.ovlEl = ovl; a.labelEl = label; a.bubbleEl = bub; a.intentEl = intEl; a._ovlSig = ""; a._ovlBox = null;
     return a;
   });
 }
@@ -1423,7 +1423,7 @@ function spawnNewcomer(def){
   var label = document.createElement("div"); label.className = "label"; label.id = "lab-" + a.id;
   ovl.appendChild(bub); ovl.appendChild(intEl); ovl.appendChild(label);
   document.getElementById("labels").appendChild(ovl);
-  a.ovlEl = ovl; a.labelEl = label; a.bubbleEl = bub; a.intentEl = intEl; a._ovlSig = "";
+  a.ovlEl = ovl; a.labelEl = label; a.bubbleEl = bub; a.intentEl = intEl; a._ovlSig = ""; a._ovlBox = null;
   var ring = new THREE.Mesh(new THREE.RingGeometry(0.72, 0.92, 28), new THREE.MeshBasicMaterial({color:0xf5c86a, transparent:true, opacity:0.95, side:THREE.DoubleSide}));
   ring.rotation.x = -Math.PI/2; ring.position.y = 0.06; ring.visible = false; a.root.add(ring); a.ring = ring;
   var aura = new THREE.Mesh(new THREE.CircleGeometry(2.7, 28), new THREE.MeshBasicMaterial({color:0xe8b34b, transparent:true, opacity:0.1, side:THREE.DoubleSide}));
@@ -1785,7 +1785,7 @@ function spawnChild(h){
   var label = document.createElement("div"); label.className = "label"; label.id = "lab-" + a.id;
   ovl.appendChild(bub); ovl.appendChild(intEl); ovl.appendChild(label);
   document.getElementById("labels").appendChild(ovl);
-  a.ovlEl = ovl; a.labelEl = label; a.bubbleEl = bub; a.intentEl = intEl; a._ovlSig = "";
+  a.ovlEl = ovl; a.labelEl = label; a.bubbleEl = bub; a.intentEl = intEl; a._ovlSig = ""; a._ovlBox = null;
   var ring = new THREE.Mesh(new THREE.RingGeometry(0.72, 0.92, 28), new THREE.MeshBasicMaterial({color:0xf5c86a, transparent:true, opacity:0.95, side:THREE.DoubleSide}));
   ring.rotation.x = -Math.PI/2; ring.position.y = 0.06; ring.visible = false; a.root.add(ring); a.ring = ring;
   var aura = new THREE.Mesh(new THREE.CircleGeometry(2.7, 28), new THREE.MeshBasicMaterial({color:0xe8b34b, transparent:true, opacity:0.1, side:THREE.DoubleSide}));
@@ -3557,7 +3557,7 @@ function attachFigure(a){
   var label = document.createElement("div"); label.className = "label"; label.id = "lab-" + a.id;
   ovl.appendChild(bub); ovl.appendChild(intEl); ovl.appendChild(label);
   document.getElementById("labels").appendChild(ovl);
-  a.ovlEl = ovl; a.labelEl = label; a.bubbleEl = bub; a.intentEl = intEl; a._ovlSig = "";
+  a.ovlEl = ovl; a.labelEl = label; a.bubbleEl = bub; a.intentEl = intEl; a._ovlSig = ""; a._ovlBox = null;
   var ring = new THREE.Mesh(new THREE.RingGeometry(0.72, 0.92, 28), new THREE.MeshBasicMaterial({color:0xf5c86a, transparent:true, opacity:0.95, side:THREE.DoubleSide}));
   ring.rotation.x = -Math.PI/2; ring.position.y = 0.06; ring.visible = false; a.root.add(ring); a.ring = ring;
   var aura = new THREE.Mesh(new THREE.CircleGeometry(2.7, 28), new THREE.MeshBasicMaterial({color:0xe8b34b, transparent:true, opacity:0.1, side:THREE.DoubleSide}));
@@ -4394,7 +4394,7 @@ function renderOverlay(s){
     var m = overlayModel(a, s);
     var el = a.ovlEl;
     if(!el) return;
-    if(!m){ if(el.style.display !== "none") el.style.display = "none"; a._ovlSig = ""; a._ovlModel = null; return; }
+    if(!m){ if(el.style.display !== "none") el.style.display = "none"; a._ovlSig = ""; a._ovlModel = null; a._ovlBox = null; return; }
     a._ovlModel = m;
     var sig = (m.bubble ? m.bubble.kind + ":" + m.bubble.icon : "-") + "|" + (m.intent || "-") + "|" + (m.name || "-");
     if(sig !== a._ovlSig){
@@ -4410,7 +4410,7 @@ function renderOverlay(s){
     if(m.bubble) a.bubbleEl.style.opacity = m.bubble.kind === "want" ? m.bubble.opacity.toFixed(2) : "1";
     placed.push(a);
   });
-  // CF-REF: overlay-anchor-budget.md [65]
+  // CF-REF: overlay-anchor-budget.md [66]
   // Anchor discipline: an overlay belongs to its resident, and position
   // is identity. A marker may shift only within a small budget (LIFT_MAX
   // up, DX_MAX sideways; the screen clamps and a short HUD nudge count
@@ -4448,7 +4448,7 @@ function renderOverlay(s){
     if(!camMoving && hud && y > hud.top - 40 && y - hh < hud.bottom + 12 && x - hw < hud.right + 6){
       var hx = hud.right + 6 + hw;
       if(hx - m.x <= DX_MAX || s.selected === a.id) x = hx;
-      else { el.style.display = "none"; a._ovlSig = ""; return; }
+      else { el.style.display = "none"; a._ovlSig = ""; a._ovlBox = null; return; }
     }
     var hit = camMoving ? null : ovlHit(x, y, hw, hh);
     if(hit){
@@ -4471,9 +4471,10 @@ function renderOverlay(s){
         if(hit) y = -1;
       }
     }
-    if(y < 0){ el.style.display = "none"; a._ovlSig = ""; return; }
+    if(y < 0){ el.style.display = "none"; a._ovlSig = ""; a._ovlBox = null; return; }
     if(y - hh < 4) y = hh + 4;
     el.style.left = x + "px"; el.style.top = y + "px";
+    a._ovlBox = {x:x, y:y, hw:hw, hh:hh};
     boxes.push({x:x, y:y, hw:hw, hh:hh});
   });
   var press = {}, pressSt = null, pressN = 3;
@@ -4521,6 +4522,19 @@ function pickAt(cx, cy){
   Object.keys(STATION3).forEach(function(id){ if(STATION3[id].hitMesh) sHits.push(STATION3[id].hitMesh); });
   var fa = raycaster.intersectObjects(aHits, false);
   if(fa.length) return {agent: fa[0].object.userData.agentId};
+  /* The resident's own placed overlay box (cached by renderOverlay) is a
+     tap target too: the name/bubble stack is the most prominent affordance
+     on screen and it sits at the head anchor, 50-70px above the torso
+     fallback below, so taps on it were falling through silently. The box is
+     a JS cache of the placed position, never a DOM read. */
+  var bo = null, boD = 1e9;
+  G.agents.forEach(function(a){
+    var b = a._ovlBox; if(!b) return;
+    if(cx < b.x - b.hw - 6 || cx > b.x + b.hw + 6 || cy < b.y - b.hh - 6 || cy > b.y + 6) return;
+    var d = Math.hypot(cx - b.x, cy - (b.y - b.hh / 2));
+    if(d < boD){ boD = d; bo = a.id; }
+  });
+  if(bo) return {agent: bo};
   var best = null, bestD = 40;
   G.agents.forEach(function(a){
     var v = new THREE.Vector3(a.x, 1.1, a.z).project(camera);
