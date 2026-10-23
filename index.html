@@ -33,6 +33,7 @@ canvas{display:block}
 #sliceTag{top:10px;left:50%;transform:translateX(-50%);background:rgba(90,20,16,.85);border:1px solid var(--red);color:#ffd9d4;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:800;letter-spacing:.18em}
 #toast{bottom:118px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--gold);border-radius:22px;padding:8px 18px;font-size:14px;font-weight:700;display:none;max-width:94vw;text-align:center;line-height:1.45;overflow-wrap:anywhere;z-index:12}
 .toast-chip{background:none;border:none;color:inherit;font:inherit;font-weight:inherit;cursor:pointer;padding:0;text-decoration:underline dotted;text-underline-offset:3px}
+.toast-skip{background:none;border:1px solid var(--line);color:inherit;font:inherit;font-weight:700;cursor:pointer;border-radius:10px;padding:1px 9px;margin-left:10px;vertical-align:1px}
 /* CF-REF: tray-passes-taps.md [2] */
 #alerts{position:fixed;left:10px;bottom:118px;display:flex;flex-direction:column;gap:6px;z-index:29;pointer-events:none}
 #alerts .alert-chip{pointer-events:auto}
@@ -378,7 +379,7 @@ function curObjective(){ var deck = (G.objectives && G.objectives.length) ? G.ob
 var scene, camera, renderer, sunLight;
 var cam = {target:new THREE.Vector3(0,0,4), yaw:0, pitch:0.94, dist:38, follow:null};
 var G = null;
-// CF-REF: store-single-source.md [83]
+// CF-REF: store-single-source.md [89]
 /* ================= STORE =================
    Single source of truth for all game state.
    Rules:
@@ -430,6 +431,12 @@ var Store = (function(){
        another). The animation loop promotes the head of the queue through
        this action the moment the current toast expires. */
     "ui/toastNext": function(p){ var q = state.ui.queue, cur = state.ui.toast; if(q && q.length && !(cur && Date.now() < cur.until)){ var nx = q.shift(); nx.until = Date.now() + nx.ms; state.ui.toast = nx; } },
+    /* Skip the showing toast: expire it now so the renderer hides it and the
+       promotion loop advances the queue on the next frame. Transient UI is
+       player paced: a queued boundary can stack a dozen toasts and the player
+       can move past the ones they have read. Nothing is lost; the queue keeps
+       its order. */
+    "ui/toastSkip": function(p){ var cur = state.ui && state.ui.toast; if(cur && Date.now() < cur.until) cur.until = 0; },
     "ui/select": function(p){ state.selected = p.id || null; if(state.ui && state.ui.sheet) state.ui.sheet = state.selected; },
     "ui/sheet": function(p){ if(state.ui) state.ui.sheet = p && p.id ? p.id : null; },
     "ui/mute": function(p){ if(state.ui) state.ui.muted = (p && typeof p.on === "boolean") ? p.on : !state.ui.muted; },
@@ -4070,7 +4077,10 @@ function hudTick(dt){
     if(t.dataset.tkey !== tkey){
       t.innerHTML = "";
       if(tchip){ var tb = document.createElement("button"); tb.className = "toast-chip"; tb.textContent = tst.msg + "  ·  ⌖ view"; tb.setAttribute("onclick", "__toastFocus()"); t.appendChild(tb); }
-      else t.textContent = tst.msg;
+      else t.appendChild(document.createTextNode(tst.msg));
+      /* Skip: transient UI is player paced. Only this button captures; the
+         pill itself keeps passing taps through to the canvas. */
+      var tsk = document.createElement("button"); tsk.className = "toast-skip"; tsk.textContent = "▸"; tsk.setAttribute("title", "Next message"); tsk.setAttribute("aria-label", "Next message"); tsk.setAttribute("onclick", "__toastSkip()"); t.appendChild(tsk);
       t.dataset.tkey = tkey;
     }
     if(t.style.display !== "block") t.style.display = "block";
@@ -4445,6 +4455,7 @@ function fxTick(dt){
 }
 window.__pickAlert = function(id){ var a = agent(id); G.selected = id; cam.follow = null; if(a){ cam.target.x = a.x; cam.target.z = a.z; } refreshTray(true); };
 window.__toastFocus = function(){ var tst = G.ui && G.ui.toast, f = tst && tst.focus; if(!f) return; var x = 0, z = 0, n = 0; if(f.ids) f.ids.forEach(function(id){ var a = agent(id); if(a){ x += a.x; z += a.z; n++; } }); else if(f.x !== undefined){ x = f.x; z = f.z; n = 1; } if(n){ cam.target.x = Math.max(-62, Math.min(62, x / n)); cam.target.z = Math.max(-48, Math.min(48, z / n)); cam.follow = null; } };
+window.__toastSkip = function(){ Store.dispatch("ui/toastSkip"); SND.play("tap"); };
 window.__pickProject = function(i){ pickProject(i); };
 window.__acceptOffer = function(){ acceptOffer(); };
 window.__ignoreOffer = function(){ ignoreOffer(); };
