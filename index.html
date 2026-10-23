@@ -370,7 +370,7 @@ function curObjective(){ var deck = (G.objectives && G.objectives.length) ? G.ob
 var scene, camera, renderer, sunLight;
 var cam = {target:new THREE.Vector3(0,0,4), yaw:0, pitch:0.94, dist:38, follow:null};
 var G = null;
-// CF-REF: store-single-source.md [76]
+// CF-REF: store-single-source.md [80]
 /* ================= STORE =================
    Single source of truth for all game state.
    Rules:
@@ -425,6 +425,10 @@ var Store = (function(){
     "ui/select": function(p){ state.selected = p.id || null; if(state.ui && state.ui.sheet) state.ui.sheet = state.selected; },
     "ui/sheet": function(p){ if(state.ui) state.ui.sheet = p && p.id ? p.id : null; },
     "ui/mute": function(p){ if(state.ui) state.ui.muted = (p && typeof p.on === "boolean") ? p.on : !state.ui.muted; },
+    /* Tension lens: a minimap data-map that renders the imitation graph's
+       own pair-tension ledger (converging desire, household spread) as edges
+       between heated residents. View state only, never a sim input. */
+    "ui/lens": function(p){ if(state.ui) state.ui.lens = (p && typeof p.on === "boolean") ? p.on : !state.ui.lens; },
     "thought/set": function(p){ var a = findA(p.id); if(a){ var nt = String(p.text || ""); if(!validThought(nt)) return; var cause = p.cause || "ambient"; var isNew = !a.thought || a.thought.text !== nt; a.thought = {text:nt, at:state.t, wk:state.week, cause:cause, why:p.why || "", cat:p.cat || "", source:"template"}; if(isNew && cause !== "start") a.thoughtFx = state.t + 2.5; if(a.thoughtLog){ for(var di = a.thoughtLog.length - 1; di >= 0; di--) if(a.thoughtLog[di].text === nt) a.thoughtLog.splice(di, 1); a.thoughtLog.push(a.thought); if(a.thoughtLog.length > 8) a.thoughtLog.shift(); } } }
   };
   function commit(){
@@ -3696,7 +3700,7 @@ function refreshTray(force){
      moment the verb comes back reads at a glance (display only, no sim change). */
   var spotCdN = Math.ceil(G.spotCd - G.t), spotOnCd = G.spotCd > G.t;
   var spotFresh = !spotOnCd && !!a && G.spotCd > 0 && G.t - G.spotCd < 4;
-  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.sick ? "S" : "") : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + "|" + (G.foundArm ? "F" : "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "") + "|" + (G.modelArm ? "MA" : "") + (G.coverArm ? "CA" : "") + (G.banked ? "BK" : "") + (a && a.bank != null ? "AC" : "") + (a && a.child ? "K" : "") + (a && a.spotUntil ? Math.ceil(Math.max(0, a.spotUntil - G.t)) : "") + (G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : "");
+  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.sick ? "S" : "") : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + (G.ui && G.ui.lens ? "L" : "l") + "|" + (G.foundArm ? "F" : "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "") + "|" + (G.modelArm ? "MA" : "") + (G.coverArm ? "CA" : "") + (G.banked ? "BK" : "") + (a && a.bank != null ? "AC" : "") + (a && a.child ? "K" : "") + (a && a.spotUntil ? Math.ceil(Math.max(0, a.spotUntil - G.t)) : "") + (G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : "");
   if(!force && key === trayKey) return;
   trayKey = key;
   var info = document.getElementById("selInfo");
@@ -3715,7 +3719,7 @@ function refreshTray(force){
   }
   var selX = document.getElementById("selX");
   if(selX) selX.addEventListener("click", function(){ Store.dispatch("ui/select", {id: null}); refreshTray(true); });
-  /* CF-REF: highlight-vocabulary.md [36] */
+  /* CF-REF: highlight-vocabulary.md [37] */
   var speakCdN = G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : 0;
   var html = "<div class='cgrp'><span class='glab'>Send to</span>" + CMDS.map(function(c){
     var on = a && ((c.id === "auto" && !a.order) || a.order === c.id);
@@ -3750,7 +3754,8 @@ function refreshTray(force){
   html += "<button class='cbtn" + (G.proclaimArm ? " armed" : "") + "' data-o='proclaim'><span class='i'>📣</span><span class='l'>Proclaim</span></button>";
   html += "<button class='cbtn" + (G.foundArm ? " armed" : "") + "' data-o='found'><span class='i'>🏗</span><span class='l'>Found</span></button>";
   html += "<button class='cbtn' data-o='story'><span class='i'>📖</span><span class='l'>Story</span></button>";
-  html += "<button class='cbtn' data-o='mute'><span class='i'>" + (G.ui && G.ui.muted ? "🔇" : "🔊") + "</span><span class='l'>Sound</span></button></div>";
+  html += "<button class='cbtn' data-o='mute'><span class='i'>" + (G.ui && G.ui.muted ? "🔇" : "🔊") + "</span><span class='l'>Sound</span></button>";
+  html += "<button class='cbtn' data-o='lens'><span class='i'>" + (G.ui && G.ui.lens ? "⚔" : "🗺") + "</span><span class='l'>Lens</span></button></div>";
   var cmds = document.getElementById("cmds");
   cmds.innerHTML = html;
   cmds.querySelectorAll(".cbtn").forEach(function(b){
@@ -3780,6 +3785,9 @@ function refreshTray(force){
       if(o === "covertier"){ if(a){ var tid2 = b.getAttribute("data-t") || null; G.coverArm = false; if((a.tier || null) !== tid2 && setTier(a, tid2)) showToast("🛡 " + a.name.split(" ")[0] + ": " + (tid2 ? TTI[tid2].name + " cover, " + TTI[tid2].premium + "🪙 a season" : "no cover")); } refreshTray(true); return; }
       if(o === "callout"){ if(a) callOut(a); refreshTray(true); return; }
       if(o === "mute"){ Store.dispatch("ui/mute"); try { if(typeof localStorage !== "undefined") localStorage.setItem("mv_muted", (G.ui && G.ui.muted) ? "1" : "0"); } catch(e){} SND.play("toggle"); refreshTray(true); return; }
+      /* Tension lens toggle: a view switch in the Village cluster, the mute
+         button's precedent (icon swap only, never a lit verb treatment). */
+      if(o === "lens"){ Store.dispatch("ui/lens"); var lensOn = !!(G.ui && G.ui.lens); showToast(lensOn ? "⚔ Tension lens: lines join residents heating toward a feud. Separate them or cool them on the green." : "🗺 Tension lens off"); refreshTray(true); return; }
       if(o === "story"){ storySoFar(false); return; }
       if(o === "build"){ if(a && !firstSiteOpen()){ showToast("🔨 No building site is open right now. Found a building first, or let the current one finish."); return; } setOrder3("build"); return; }
       if(o === "found"){ G.foundArm = !G.foundArm; G.foundPlot = null; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; if(G.foundArm) showToast("🏗 Tap a surveyed plot (gold ring) to found a building"); refreshTray(true); return; }
@@ -3900,6 +3908,31 @@ function drawMinimap(){
   c.fillStyle = "rgba(122,179,217,0.85)"; c.fillRect(0, Y(36), W, H - Y(36));
   Object.keys(STATION3).forEach(function(k){ var st = STATION3[k]; if(k === "home") return; c.fillStyle = (k === G.objStation && !G.objComplete) ? "#e8b34b" : "rgba(240,235,220,0.8)"; c.fillRect(X(st.x) - 3, Y(st.z) - 3, 6, 6); });
   G.agents.forEach(function(a){ c.fillStyle = a.sick ? "#e85a3c" : (a.id === G.selected ? "#ffd75e" : "rgba(255,255,255,0.92)"); c.beginPath(); c.arc(X(a.x), Y(a.z), a.id === G.selected ? 3 : 2, 0, 6.29); c.fill(); });
+  /* Tension lens (SimCity data-map read): pairs with tension at or past 40,
+     the same threshold the want strip marks hot, get a drawn edge between
+     the two residents' dots, and each heated resident gets a gold ring.
+     Shape plus line, never color alone. Reads G.pairs, the graph's own
+     ledger of converging desire; display only, no sim change. */
+  if(G.ui && G.ui.lens){
+    var idA = {}; G.agents.forEach(function(a2){ idA[a2.id] = a2; });
+    var hotIds = {};
+    Object.keys(G.pairs || {}).forEach(function(k){
+      var v = G.pairs[k]; if(v < 40) return;
+      var ids = k.split("|"), a1 = idA[ids[0]], a2 = idA[ids[1]];
+      if(!a1 || !a2) return;
+      hotIds[ids[0]] = 1; hotIds[ids[1]] = 1;
+      c.strokeStyle = v >= 60 ? "rgba(232,106,60,0.9)" : "rgba(232,179,75,0.9)";
+      c.lineWidth = v >= 60 ? 2 : 1.5;
+      c.beginPath(); c.moveTo(X(a1.x), Y(a1.z)); c.lineTo(X(a2.x), Y(a2.z)); c.stroke();
+    });
+    c.strokeStyle = "#ffd75e"; c.lineWidth = 1.5;
+    Object.keys(hotIds).forEach(function(id){
+      var ha = idA[id]; if(!ha) return;
+      c.beginPath(); c.arc(X(ha.x), Y(ha.z), 5, 0, 6.29); c.stroke();
+    });
+    c.fillStyle = "rgba(255,255,255,0.9)"; c.font = "8px monospace";
+    c.fillText("TENSION LENS", 4, 10);
+  }
   c.strokeStyle = "rgba(255,255,255,0.55)"; c.lineWidth = 1;
   var hw = cam.dist * 0.72, hh = cam.dist * 0.54;
   c.save(); c.translate(X(cam.target.x), Y(cam.target.z)); c.rotate(-cam.yaw); c.strokeRect(-hw / 120 * W, -hh / 90 * H, hw / 60 * W, hh / 45 * H); c.restore();
