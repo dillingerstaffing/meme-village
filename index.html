@@ -4255,6 +4255,14 @@ function overlayModel(a, s){
      and anchor rules as the failing marker above; transient bubbles
      still win while fresh. */
   else if(a.sick || a.sickWalk) bubble = {icon:"🩺", kind:"event", opacity:1};
+  /* A watched (Spotlight-shielded) resident carries the ✨ as a persistent
+     resting state for the whole 20s shield: the sim acts on the shield
+     (copying tension skips the model while it holds), and after the 2.5s
+     activation bubble fades the shield was invisible on the map, even
+     though the player pays a 45s cooldown to time it around feud
+     forecasts. Same priority and anchor rules as the failing/sick markers
+     above; transient bubbles still win while fresh. */
+  else if(s.t < (a.spotUntil || 0)) bubble = {icon:"✨", kind:"event", opacity:1};
   if(bubble && !bubble.icon) bubble = null;
   var intent = null;
   var ii = intentIcon(a);
