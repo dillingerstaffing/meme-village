@@ -440,7 +440,12 @@ var Store = (function(){
     /* Minimap event pings (the SC2 alert grammar): sim-emitted alert
        markers drawn by drawMinimap at the event site. Capped, transient,
        display only; the toast queue never delays them. */
-    "ui/ping": function(p){ var q = state.pings || (state.pings = []); q.push({x:+p.x || 0, z:+p.z || 0, t:state.t, kind:String(p.kind || "feud")}); if(q.length > 12) q.splice(0, q.length - 12); },
+    "ui/ping": function(p){ var q = state.pings || (state.pings = []); q.push({x:+p.x || 0, z:+p.z || 0, t:state.t, kind:String(p.kind || "feud")}); if(q.length > 12) q.splice(0, q.length - 12);
+      /* First-need minimap introduction (2026-10-23): the first high-stakes
+         ping teaches the alert channel itself, exactly once per save. The
+         ping is the affordance, so the toast only names the verb; it queues
+         behind the alert's own toast through the normal door. Display only. */
+      if(!state.coachPing){ state.coachPing = true; showToast("🗺 Trouble flashes on the minimap in the corner. Tap a ping to jump the camera there."); } },
     "thought/set": function(p){ var a = findA(p.id); if(a){ var nt = String(p.text || ""); if(!validThought(nt)) return; var cause = p.cause || "ambient"; var isNew = !a.thought || a.thought.text !== nt; a.thought = {text:nt, at:state.t, wk:state.week, cause:cause, why:p.why || "", cat:p.cat || "", source:"template"}; if(isNew && cause !== "start") a.thoughtFx = state.t + 2.5; if(a.thoughtLog){ for(var di = a.thoughtLog.length - 1; di >= 0; di--) if(a.thoughtLog[di].text === nt) a.thoughtLog.splice(di, 1); a.thoughtLog.push(a.thought); if(a.thoughtLog.length > 8) a.thoughtLog.shift(); } } }
   };
   function commit(){
@@ -858,7 +863,7 @@ function newSlice(){
     rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0, offer:null, offerAccepted:false,
     rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0,
     sites:[], siteSeq:0, lastFoundSeason:0, houseCapacity:10, banked:false, foundArm:false, foundPlot:null, buildPref:null,
-    bonds:{}, households:[], householdSeq:0, soloHoused:0, departed:0, arrival:null, speakCd:0, speakArm:false, coverArm:false, coachBank:false, coachSick:false, levelSeen:null, newSeq:0, kidSeq:0, births:0,
+    bonds:{}, households:[], householdSeq:0, soloHoused:0, departed:0, arrival:null, speakCd:0, speakArm:false, coverArm:false, coachBank:false, coachSick:false, coachPing:false, levelSeen:null, newSeq:0, kidSeq:0, births:0,
     tiers:{clinic:1, fields:1, store:1, green:1, mill:1, school:1, well:1}, tierProg:{}, tierWorkers:{}, builtWealth:0, deaths:[], proclaim:null, proclaimArm:false, lastHarmWeek:null, lastIncidentWeek:null, incidentRollWeek:null,
     stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
     objStation:"clinic", objComplete:false, objDone:0, scapegoats:0, delays:[],
@@ -3620,6 +3625,7 @@ function restoreState(st){
   st.coverArm = false;
   if(typeof st.coachBank !== "boolean") st.coachBank = false;
   if(typeof st.coachSick !== "boolean") st.coachSick = false;
+  if(typeof st.coachPing !== "boolean") st.coachPing = false;
   if(typeof st.ttiPaid !== "number") st.ttiPaid = 0;
   if(typeof st.ttiSavesUsed !== "number") st.ttiSavesUsed = 0;
   if(!Array.isArray(st.deaths)) st.deaths = [];
