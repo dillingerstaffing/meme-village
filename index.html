@@ -3900,7 +3900,7 @@ function showToast(msg, focus){ Store.dispatch("ui/toast", {msg:msg, focus: focu
 var hudAcc = 0;
 var mmCtx = null;
 try { var mmEl0 = document.getElementById("minimap"); if(mmEl0 && mmEl0.getContext){ mmCtx = mmEl0.getContext("2d"); } } catch(e) { mmCtx = null; }
-// CF-REF: minimap-canvas-tap.md [20]
+// CF-REF: minimap-canvas-tap.md [39]
 /* Minimap tap-to-jump, restored after the scroll fix. The minimap canvas is
    pointer-events:none so camera drags pass through to the game canvas, which
    means its old on-element click listener could never fire. The jump is
@@ -3916,8 +3916,27 @@ function minimapRect(){
 function minimapJump(x, y){
   var r = minimapRect();
   if(!r || x < r.left || x > r.right || y < r.top || y > r.bottom) return false;
-  cam.target.x = Math.max(-62, Math.min(62, ((x - r.left) / r.width) * 120 - 60));
-  cam.target.z = Math.max(-48, Math.min(48, ((y - r.top) / r.height) * 90 - 45));
+  var wx = ((x - r.left) / r.width) * 120 - 60, wz = ((y - r.top) / r.height) * 90 - 45;
+  /* Snap to a live event ping: the ping ring is the alert's own affordance,
+     so a tap on it jumps to the ping's exact site instead of the approximate
+     tapped point. The toast's view chip dies with the toast; the ring is the
+     touch-native answer to the jump-to-latest-alert gesture, and it stays
+     tappable for the ping's whole drawn life (4 sim-seconds, indefinite while
+     paused). Nearest live ping within 14 CSS px wins; taps elsewhere keep the
+     old approximate jump. Detection still lives at canvas level per the
+     article above; this only refines the mapping. */
+  var pgs = G.pings || [], best = null, bd = 14 * 14, pi, pgd, pga, ppx, ppy, pdd;
+  for(pi = 0; pi < pgs.length; pi++){
+    pgd = pgs[pi]; pga = G.t - pgd.t;
+    if(pga < 0 || pga > 4) continue;
+    ppx = r.left + ((pgd.x + 60) / 120) * r.width;
+    ppy = r.top + ((pgd.z + 45) / 90) * r.height;
+    pdd = (ppx - x) * (ppx - x) + (ppy - y) * (ppy - y);
+    if(pdd < bd){ bd = pdd; best = pgd; }
+  }
+  if(best){ wx = best.x; wz = best.z; }
+  cam.target.x = Math.max(-62, Math.min(62, wx));
+  cam.target.z = Math.max(-48, Math.min(48, wz));
   cam.follow = null;
   return true;
 }

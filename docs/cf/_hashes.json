@@ -111,48 +111,48 @@
     {
       "article": "minimap-canvas-tap.md",
       "ref_line": 3903,
-      "lines": 20,
-      "hash": "207fd11f"
+      "lines": 39,
+      "hash": "d5a4f014"
     },
     {
       "article": "phone-stats-compact-during-picks.md",
-      "ref_line": 4140,
+      "ref_line": 4159,
       "lines": 2,
       "hash": "95f3d871"
     },
     {
       "article": "sheet-below-objective-card.md",
-      "ref_line": 4158,
+      "ref_line": 4177,
       "lines": 16,
       "hash": "6b2224dc"
     },
     {
       "article": "desires-travel-the-graph.md",
-      "ref_line": 4241,
+      "ref_line": 4260,
       "lines": 33,
       "hash": "89ae1cb6"
     },
     {
       "article": "overlay-anchor-budget.md",
-      "ref_line": 4445,
+      "ref_line": 4464,
       "lines": 66,
       "hash": "9a9122e9"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 4685,
+      "ref_line": 4704,
       "lines": 11,
       "hash": "a01f9ac4"
     },
     {
       "article": "pointercancel-never-a-tap.md",
-      "ref_line": 4698,
+      "ref_line": 4717,
       "lines": 4,
       "hash": "3471fc97"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 4777,
+      "ref_line": 4796,
       "lines": 4,
       "hash": "ce66959f"
     }
