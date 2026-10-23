@@ -4321,7 +4321,20 @@ function spawnPulse(m, a){
 function fxTick(dt){
   var showCoach = G.started && !G.over && !G.firstOrder;
   if(coachStation){ coachStation.rotation.y += dt * 1.8; coachAgent.rotation.y += dt * 1.8;
+    /* The destination cone teaches before the offer is accepted too: until
+       accept, G.objStation is still null, so fall back to the pending
+       offer's station (for project offers, the first available project's
+       station, mirroring acceptOffer). Both ends of the loop stay visible
+       through the whole teach window. */
     var st = STATION3[G.objStation];
+    if(!st && G.offer && !G.offerAccepted){
+      var ost = G.offer.station;
+      if(G.offer.project){
+        var availP = PROJECTS.filter(function(p){ return G.projDone.indexOf(p.id) < 0; });
+        if(availP.length) ost = availP[0].station;
+      }
+      st = STATION3[ost];
+    }
     /* Teach by doing: the destination cone shows before any selection, so a
        first-session player who never taps still sees both ends of the loop
        (loafer cone, station cone) with no text. */
