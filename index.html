@@ -303,6 +303,7 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
 <div class="hud" id="topRight">
   <span class="chip" id="weekChip"><span class="wcA">YEAR 1 · SPRING</span><span class="wcS"> · </span><span class="wcB">Hamlet · ☀ 0%</span></span>
   <span class="chip">📦 Stores <b id="storesN">0</b> &nbsp; 👀 Copied <b id="copiedN">0</b></span>
+  <span class="chip" id="coinChip">🪙 <b id="coinsN">0</b></span>
   <div id="speeds">
     <button class="sbtn" id="sp0" type="button">❚❚</button>
     <button class="sbtn on" id="sp1" type="button">1x</button>
@@ -4064,6 +4065,12 @@ function hudTick(dt){
   if(wcEl.getAttribute("data-wc") !== wcHtml){ wcEl.setAttribute("data-wc", wcHtml); wcEl.innerHTML = wcHtml; }
   document.getElementById("storesN").textContent = G.stores;
   document.getElementById("copiedN").textContent = G.copied;
+  /* The village's money, read the Stardew wallet way: every token a
+     resident earned sits in a.cash until the bank sweep moves it into
+     a.bank, so the visible total is cash on hand plus bank accounts.
+     Derived each frame inside the authorized renderer, no new state. */
+  var coinsT = 0; G.agents.forEach(function(a){ coinsT += (a.cash || 0) + (a.bank || 0); });
+  document.getElementById("coinsN").textContent = Math.floor(coinsT);
   var bRow = document.getElementById("blameRow");
   if(bRow){ var bc2 = scapegoatCandidate(); var bShow = (G.blame || 0) >= 25 && !!bc2; bRow.style.display = bShow ? "flex" : "none"; if(bShow){ document.getElementById("blameLbl").textContent = "🌩 " + bc2.name.split(" ")[0]; document.getElementById("blameBar").style.width = Math.round(G.blame) + "%"; document.getElementById("blameVal").textContent = Math.round(G.blame); document.getElementById("sv-blame").textContent = Math.round(G.blame); } var svBW = document.getElementById("svBlameWrap"); if(svBW) svBW.style.display = bShow ? "inline" : "none"; }
   var s = G.stats;
