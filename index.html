@@ -51,6 +51,11 @@ canvas{display:block}
 #claimPick .alert-chip.sel{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
 #claimPick .alert-chip.go{border-color:var(--gold);background:rgba(90,64,16,.55);font-weight:800}
 #claimPick .pick-lab{align-self:center;font:700 11px 'Inter',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2);padding:0 4px}
+#roadPick .alert-chip{min-height:44px;padding:10px 12px;font-size:13px;display:flex;align-items:center;gap:6px}
+@media (max-width:560px){#roadPick .alert-chip{flex:1 1 100%}}
+#roadPick .alert-chip.sel{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+#roadPick .alert-chip.go{border-color:var(--gold);background:rgba(90,64,16,.55);font-weight:800}
+#roadPick .pick-lab{align-self:center;font:700 11px 'Inter',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2);padding:0 4px}
 #arrPick .alert-chip{min-height:44px;padding:10px 12px;font-size:13px;display:flex;align-items:center;gap:6px}
 #arrPick .arr-note{display:flex;align-items:center;font-size:13px;padding:4px 2px}
 @media (max-width:560px){#arrPick .alert-chip{flex:1 1 100%}}
@@ -295,6 +300,7 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
   <div id="offerPick" style="display:none;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
   <div id="foundPick" style="display:none;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
   <div id="claimPick" style="display:none;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
+  <div id="roadPick" style="display:none;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
   <div id="arrPick" style="display:none;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
   <div id="siteLine"></div>
 </div>
@@ -881,6 +887,7 @@ function newSlice(){
     rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, blameWarn:false, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0,
     sites:[], siteSeq:0, lastFoundSeason:0, houseCapacity:10, banked:false, foundArm:false, foundPlot:null, buildPref:null,
     claimArm:false, claimBearing:null, claimRing:null, claim:null, claimPlots:[], claimSeq:0,
+    roadArm:false, roadFrom:null, roadTo:null, roadBuild:null, roads:[], roadSeq:0,
     growRings:0, growPlots:[],
     bonds:{}, households:[], householdSeq:0, soloHoused:0, departed:0, arrival:null, speakCd:0, speakArm:false, coverArm:false, chronCloseArm:false, coachBank:false, coachSick:false, coachPing:false, levelSeen:null, newSeq:0, kidSeq:0, births:0,
     tiers:{clinic:1, fields:1, store:1, green:1, mill:1, school:1, well:1}, tierProg:{}, tierWorkers:{}, builtWealth:0, deaths:[], proclaim:null, proclaimArm:false, lastHarmWeek:null, lastIncidentWeek:null, incidentRollWeek:null,
@@ -1060,6 +1067,9 @@ function decide(a){
   /* Claim party members stay committed to the claim: the walk-out and the
      material carries are player-directed work, not an autonomous pick. */
   if(a.claimParty){ var cl0 = G.claim; if(cl0 && !cl0.staked){ goClaim(a, cl0); return; } a.claimParty = null; }
+  /* Road crew members stay committed to the road: the walk-out and the
+     plank carries are player-directed work, not an autonomous pick. */
+  if(a.roadCrew){ var rd0 = roadById(a.roadCrew); if(rd0 && !rd0.built){ goRoad(a, rd0); return; } a.roadCrew = null; }
   if(a.order){
     a.reason = "Your order"; a.driveObj = (a.order === G.objStation);
     if(a.resting){
@@ -1129,6 +1139,9 @@ function arrive(a){
     return;
   }
   if(a.fetch === "claimcrate-back"){ a.carrying = null; a.fetch = null; var cl2 = G.claim; a.claimFetch = null; if(cl2 && !cl2.staked){ cl2.matsIn.stores++; checkClaimStaked(cl2); } a.state = "act"; a.actT = 3 + Math.random()*2; return; }
+  /* Road carries land on the road midpoint, never on a build site. */
+  if(a.fetch === "roadplank-out"){ a.carrying = "plank"; a.fetch = "roadplank-back"; goTo(a, a.slot.x, a.slot.z, "road"); return; }
+  if(a.fetch === "roadplank-back"){ a.carrying = null; a.fetch = null; var rd1 = roadById(a.roadFetch); a.roadFetch = null; if(rd1 && !rd1.built){ rd1.matsIn.planks++; checkRoadBuilt(rd1); } a.state = "act"; a.actT = 3 + Math.random()*2; return; }
   if(a.fetch === "plank-out"){ a.carrying = "plank"; a.fetch = "plank-back"; goTo(a, a.slot.x, a.slot.z, "clinic"); return; }
   if(a.fetch === "plank-back"){ a.carrying = null; a.fetch = null; a.fetchT = 0; G.roof = Math.min(100, G.roof + 2.5); a.state = "act"; a.actT = 6; return; }
   if(a.fetch === "crate-out"){ a.carrying = "crate"; a.fetch = "crate-back"; goTo(a, a.slot.x, a.slot.z, "store"); return; }
@@ -1152,6 +1165,7 @@ function stepAgents(dt){
     if(a.state === "walk"){
       var dx = a.tx - a.x, dz = a.tz - a.z, d = Math.sqrt(dx*dx + dz*dz);
       var sp = (a.id === "bram" ? 3.6 : 3.1) * arcOf(a).speedMult * (a.carrying ? 0.82 : 1) * (a.energy < 25 ? 0.8 : 1);
+      sp *= roadBoostFor(a.x, a.z, dx, dz);
       a.speedNow = sp;
       var targetHeading = Math.atan2(dx, dz);
       var dh = targetHeading - a.heading; while(dh > Math.PI) dh -= 6.283; while(dh < -Math.PI) dh += 6.283;
@@ -1298,6 +1312,18 @@ function stepAgents(dt){
             else if(Math.random() < dt * 0.25) setBubble(a, "📦", 1.2);
           }
           else checkClaimStaked(cl3);
+        }
+      } else if(st === "road"){
+        /* Road carries: crew members fetch planks from the lumber pile to
+           the road midpoint until the CONNECT_ROAD cost is met. No wk()
+           calls here, so road labor never leaks into the driven-work
+           ledgers (the same rule as claim carries). */
+        a.energy = Math.max(0, a.energy - 0.8*dt);
+        var rd3 = roadById(a.roadCrew);
+        if(!rd3 || rd3.built){ a.roadCrew = null; a.state = "idle"; a.decideT = 0.2; }
+        else if(!a.fetch){
+          if(roadNeed(rd3) > 0){ a.fetch = "roadplank-out"; a.roadFetch = rd3.id; goTo(a, -15.5, -8.6, "road"); }
+          else checkRoadBuilt(rd3);
         }
       }
       if(a.energy < 18 && st !== "home"){ setBubble(a, "💤", 1.6); if(a.order) a.resting = true; goStation(a, "home"); }
@@ -3008,6 +3034,18 @@ var CLAIM_COST = {
 /* The ring keys, named as literals so the spec drift gate's dead-row check
    sees every row consumed. */
 var CLAIM_RINGS = ["ring0", "ring1", "ring2"];
+/* CONNECT_ROAD: road pricing and the walk boost (v4 sim step 3, spec
+   section 23). Scalar config, not keyed rows, so it stays a prose
+   definition of record like LIFE/ECON/KIDS (spec section 25), outside the
+   drift gate's keyed-table checks. basePlanks plus one plank per
+   planksPerDist world units of station-to-station distance prices the
+   carry (Factorio logistics pricing); walkMult is the on-road walk speed
+   multiplier, the same for carrying and unloaded walkers; corridorHalf is
+   the half-width of the road corridor in world units; alignDeg is the
+   heading-alignment window (walkers crossing the road gain nothing);
+   maxRoads caps the built segments so the map stays readable. All values
+   provisional, surfaced for review. */
+var CONNECT_ROAD = {basePlanks:2, planksPerDist:12, walkMult:1.3, corridorHalf:2.5, alignDeg:40, maxRoads:6};
 /* Claim geometry (not table data): eight compass bearings from the village
    center (0,4), three distance rings. Centers clamp to the ground rect. */
 var CLAIM_BEARINGS = [
@@ -3270,6 +3308,181 @@ function checkClaimStaked(c){
   chronicle("Claim staked " + CLAIM_BEARINGS[((c.bearingIx % 8) + 8) % 8].name + ", " + CLAIM_RING_NAME[Math.max(0, Math.min(2, c.ringIx))] + ": three new surveyed plots.");
   G.claim = null;
   Store.commit();
+}
+// CF-REF: road-building.md [174]
+/* CONNECT roads (v4 sim step 3, spec section 23): built segments between
+   stations that shorten walk times. The player arms the Road tray verb
+   (Town tier, the same gate as CLAIM), taps two different stations, and
+   the commit chip previews the priced cost before anything commits. Cost
+   is priced by distance (Factorio logistics pricing): CONNECT_ROAD
+   basePlanks plus one plank per planksPerDist world units of
+   station-to-station distance. A road crew recruited from the imitation
+   graph carries the planks to the road midpoint; when the cost is met the
+   road is built and walkers on the segment move at walkMult. Roads are
+   god's-eye direct verbs in the BUILD family: they place and pay, they
+   never order or influence a resident. */
+function roadUnlocked(){ return villageLevel().count >= 9; }
+function roadCost(stA, stB){
+  var sa = STATION3[stA], sb = STATION3[stB];
+  var d = Math.hypot(sa.x - sb.x, sa.z - sb.z);
+  return {planks: CONNECT_ROAD.basePlanks + Math.round(d / CONNECT_ROAD.planksPerDist), dist: Math.round(d)};
+}
+function roadById(id){
+  if(!id) return null;
+  if(G.roadBuild && G.roadBuild.id === id) return G.roadBuild;
+  for(var i = 0; i < (G.roads || []).length; i++) if(G.roads[i].id === id) return G.roads[i];
+  return null;
+}
+function roadMid(r){ return {x: (r.x1 + r.x2) / 2, z: (r.z1 + r.z2) / 2}; }
+function roadNeed(r){ return Math.max(0, r.cost.planks - r.matsIn.planks); }
+function recruitRoadCrew(r){
+  var h = foundingHousehold(); if(!h) return [];
+  var party = [];
+  h.members.forEach(function(id){
+    var a = agent(id);
+    if(a && !a.child && !a.sick && !a.departed && !a.roadCrew && !a.claimParty) party.push(a);
+  });
+  /* Mimetic cause: the founding household's imitation edges do the
+     recruiting (followersOf counts, spec section 4), the same pattern as
+     claim parties: a road by a well-modeled household builds with
+     company, a road by an isolated household builds alone. */
+  var admirers = [];
+  G.agents.forEach(function(b){
+    if(b.child || b.sick || b.departed || b.roadCrew || b.claimParty || party.indexOf(b) >= 0) return;
+    for(var i = 0; i < h.members.length; i++) if(b.model === h.members[i]){ admirers.push(b); break; }
+  });
+  admirers.slice(0, 2).forEach(function(b){ party.push(b); });
+  party.forEach(function(a){ a.roadCrew = r.id; a.roadFetch = null; });
+  r.party = party.map(function(a){ return a.id; });
+  return party;
+}
+function goRoad(a, r){
+  var w = [[-3.2, 0], [3.2, 0], [0, -3.2], [0, 3.2]];
+  var spot = w[Math.floor(Math.random() * w.length)];
+  var mid = roadMid(r);
+  a.slot = {x: mid.x + spot[0], z: mid.z + spot[1]};
+  a.reason = "Laying the road";
+  goTo(a, a.slot.x, a.slot.z, "road");
+}
+function layRoad(stA, stB){
+  if(!G.started || G.over) return null;
+  if(!roadUnlocked()){ showToast("🛣 Roads unlock when the village grows into a Town."); return null; }
+  if(!STATION3[stA] || !STATION3[stB] || stA === stB || stA === "home" || stB === "home") return null;
+  /* No double-building: a pair already joined by a road refuses the lay,
+     the way Civ refuses a city on settled ground. */
+  for(var i = 0; i < (G.roads || []).length; i++){
+    var r0 = G.roads[i];
+    if((r0.stA === stA && r0.stB === stB) || (r0.stA === stB && r0.stB === stA)){
+      showToast("🛣 " + STATION3[stA].name + " and " + STATION3[stB].name + " are already joined by a road.");
+      return null;
+    }
+  }
+  if((G.roads || []).length >= CONNECT_ROAD.maxRoads){
+    showToast("🛣 The village keeps at most " + CONNECT_ROAD.maxRoads + " roads; every one must earn its keep.");
+    return null;
+  }
+  if(G.roadBuild && !G.roadBuild.built){ showToast("🛣 The road crew is still laying the last road."); return null; }
+  var c = roadCost(stA, stB);
+  var r = {id: "road" + (++G.roadSeq), stA: stA, stB: stB,
+    x1: STATION3[stA].x, z1: STATION3[stA].z, x2: STATION3[stB].x, z2: STATION3[stB].z,
+    cost: c, matsIn: {planks: 0}, party: [], built: false, group: null};
+  G.roadBuild = r;
+  G.roads.push(r);
+  var party = recruitRoadCrew(r);
+  if(!party.length){
+    G.roadBuild = null;
+    G.roads = G.roads.filter(function(x){ return x.id !== r.id; });
+    showToast("🛣 No household stands ready to lay a road.");
+    return null;
+  }
+  buildRoadMesh(r);
+  var mid = roadMid(r);
+  showToast("🛣 The crew is laying a road from " + STATION3[stA].name + " to " + STATION3[stB].name + ": 🪵" + c.planks + " planks.", {x: mid.x, z: mid.z});
+  chronicle("Road crew laying " + STATION3[stA].name + " to " + STATION3[stB].name + " (🪵" + c.planks + ").");
+  Store.commit();
+  return r;
+}
+function checkRoadBuilt(r){
+  if(!r || r.built) return;
+  if(r.matsIn.planks < r.cost.planks) return;
+  r.built = true;
+  buildRoadMesh(r);
+  G.agents.forEach(function(a){
+    if(a.roadCrew === r.id){ a.roadCrew = null; a.roadFetch = null; if(a.stationId === "road" && !a.fetch){ a.state = "idle"; a.decideT = 0.2; } }
+  });
+  var mid = roadMid(r);
+  showToast("🛣 The road is built: walkers move faster between " + STATION3[r.stA].name + " and " + STATION3[r.stB].name + ".", {x: mid.x, z: mid.z});
+  SND.play("objwin");
+  chronicle("Road finished: " + STATION3[r.stA].name + " to " + STATION3[r.stB].name + ".");
+  if(G.roadBuild === r) G.roadBuild = null;
+  Store.commit();
+}
+function buildRoadMesh(r){
+  /* The road is a built segment on the map: a packed-earth strip in a
+     group rotated onto the station-to-station bearing, with a Settlers
+     flag at each end. Under construction the strip reads as a surveyed
+     line at low opacity; built, it reads solid. */
+  if(r.group){ scene.remove(r.group); r.group = null; }
+  var g = new THREE.Group();
+  var dx = r.x2 - r.x1, dz = r.z2 - r.z1, len = Math.hypot(dx, dz) || 1;
+  g.position.set((r.x1 + r.x2) / 2, 0, (r.z1 + r.z2) / 2);
+  g.rotation.y = Math.atan2(dx, dz);
+  scene.add(g);
+  var op = r.built ? 0.95 : 0.32;
+  var edge = new THREE.Mesh(new THREE.PlaneGeometry(4.0, len),
+    new THREE.MeshBasicMaterial({color: 0x8a6a42, transparent: true, opacity: op * 0.85, side: THREE.DoubleSide}));
+  edge.rotation.x = -Math.PI / 2; edge.position.y = 0.025; g.add(edge);
+  var strip = new THREE.Mesh(new THREE.PlaneGeometry(3.2, len),
+    new THREE.MeshLambertMaterial({color: 0xb08d57, transparent: true, opacity: op}));
+  strip.rotation.x = -Math.PI / 2; strip.position.y = 0.035; strip.receiveShadow = true; g.add(strip);
+  /* flags at both ends (local -Z end is station B, +Z end is station A) */
+  [-len / 2, len / 2].forEach(function(lz){
+    box(0.18, 2.6, 0.18, 0x6a4a2a, 0, 1.3, lz, g);
+    box(1.4, 0.7, 0.06, 0xe8b34b, 0.7, 2.25, lz, g);
+  });
+  r.group = g;
+}
+function roadBoostFor(x, z, dx, dz){
+  /* The transport ladder, physical not tooltip: a walker whose position
+     sits inside a built road's corridor and whose walk direction runs
+     along the road (either way) moves at CONNECT_ROAD.walkMult. Walkers
+     crossing the road gain nothing. */
+  var dl = Math.hypot(dx, dz);
+  if(dl < 0.001) return 1;
+  var ux = dx / dl, uz = dz / dl;
+  var alignCos = Math.cos(CONNECT_ROAD.alignDeg * Math.PI / 180);
+  var ch = CONNECT_ROAD.corridorHalf;
+  for(var i = 0; i < (G.roads || []).length; i++){
+    var r = G.roads[i];
+    if(!r.built) continue;
+    var ex = r.x2 - r.x1, ez = r.z2 - r.z1;
+    var el2 = ex * ex + ez * ez;
+    if(el2 < 0.001) continue;
+    var t = ((x - r.x1) * ex + (z - r.z1) * ez) / el2;
+    t = Math.max(0, Math.min(1, t));
+    var cx = r.x1 + ex * t, cz = r.z1 + ez * t;
+    if(Math.hypot(x - cx, z - cz) > ch) continue;
+    var el = Math.sqrt(el2);
+    if(Math.abs(ux * ex / el + uz * ez / el) >= alignCos) return CONNECT_ROAD.walkMult;
+  }
+  return 1;
+}
+function roadSeasonCheck(){
+  var r = G.roadBuild;
+  if(!r || r.built) return;
+  var living = G.agents.filter(function(a){ return a.roadCrew === r.id; });
+  if(living.length) return;
+  var party = recruitRoadCrew(r);
+  if(!party.length){
+    if(r.group) scene.remove(r.group);
+    G.roads = G.roads.filter(function(x){ return x.id !== r.id; });
+    G.roadBuild = null;
+    showToast("🛣 The road crew scattered; the half-laid road is abandoned.");
+    chronicle("A half-laid road was abandoned when its crew scattered.");
+    return;
+  }
+  party.forEach(function(a){ goRoad(a, r); });
+  showToast("🛣 A new crew walks out to finish the road.");
 }
 /* The season boundary keeps a claim from stalling forever: if the whole
    party died or departed mid-claim, re-recruit from the current household
@@ -3742,6 +3955,7 @@ function endWeek(){
   /* GROW (v4 sim step 3): the just-finished season's contentment can earn
      one plot-ring of new surveyed ground at Town tier. */
   growSeasonCheck();
+  roadSeasonCheck();
   var o = curObjective();
   if(G.offerAccepted && o){
     if(G.objComplete) showToast("✓ " + seasonName() + " done: " + o.title + " · " + G.objDone + " all time");
@@ -4162,6 +4376,17 @@ function restoreState(st){
     G.growRings = mr;
   }
   G.growPlots.forEach(function(p){ PLOTS.push({x:p.x, z:p.z, ring:p.ring}); buildPlotMesh(PLOTS.length - 1); });
+  /* Roads persist in the save (G.roads); rebuild their meshes for a
+     continued village. An in-flight road keeps its carried planks (the
+     crew's roadCrew flags survive on the agents), rebuilds its surveyed
+     line, and re-points G.roadBuild at the restored road record. */
+  if(!Array.isArray(G.roads)) G.roads = [];
+  G.roads.forEach(function(r){ r.group = null; buildRoadMesh(r); });
+  if(G.roadBuild && !G.roadBuild.built){
+    var rb = null;
+    G.roads.forEach(function(r){ if(r.id === G.roadBuild.id) rb = r; });
+    G.roadBuild = rb;
+  } else G.roadBuild = null;
   /* Graves persist in the save (G.deaths entries carry x/z); rebuild the
      markers for a continued village. Entries from older saves have no x/z
      and are skipped. */
@@ -4280,7 +4505,7 @@ function refreshTray(force){
      moment the verb comes back reads at a glance (display only, no sim change). */
   var spotCdN = Math.ceil(G.spotCd - G.t), spotOnCd = G.spotCd > G.t;
   var spotFresh = !spotOnCd && !!a && G.spotCd > 0 && G.t - G.spotCd < 4;
-  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.sick ? "S" : "") : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + (G.ui && G.ui.lens ? "L" : "l") + "|" + (G.foundArm ? "F" : "") + (G.claimArm ? "C" : "") + (G.claimBearing == null ? "" : "b" + G.claimBearing) + (G.claimRing == null ? "" : "r" + G.claimRing) + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "") + "|" + (G.modelArm ? "MA" : "") + (G.coverArm ? "CA" : "") + (G.banked ? "BK" : "") + (a && a.bank != null ? "AC" : "") + (a && a.child ? "K" : "") + (a && a.spotUntil ? Math.ceil(Math.max(0, a.spotUntil - G.t)) : "") + (G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : "");
+  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.sick ? "S" : "") : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + (G.ui && G.ui.lens ? "L" : "l") + "|" + (G.foundArm ? "F" : "") + (G.claimArm ? "C" : "") + (G.claimBearing == null ? "" : "b" + G.claimBearing) + (G.claimRing == null ? "" : "r" + G.claimRing) + (G.roadArm ? "R" : "") + (G.roadFrom || "") + (G.roadTo || "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "") + "|" + (G.modelArm ? "MA" : "") + (G.coverArm ? "CA" : "") + (G.banked ? "BK" : "") + (a && a.bank != null ? "AC" : "") + (a && a.child ? "K" : "") + (a && a.spotUntil ? Math.ceil(Math.max(0, a.spotUntil - G.t)) : "") + (G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : "");
   if(!force && key === trayKey) return;
   trayKey = key;
   var info = document.getElementById("selInfo");
@@ -4334,6 +4559,7 @@ function refreshTray(force){
   html += "<button class='cbtn" + (G.proclaimArm ? " armed" : "") + "' data-o='proclaim'><span class='i'>📣</span><span class='l'>Proclaim</span></button>";
   html += "<button class='cbtn" + (G.foundArm ? " armed" : "") + "' data-o='found'><span class='i'>🏗</span><span class='l'>Found</span></button>";
   html += "<button class='cbtn" + (G.claimArm ? " armed" : "") + "' data-o='claim'><span class='i'>🚩</span><span class='l'>Claim</span></button>";
+  html += "<button class='cbtn" + (G.roadArm ? " armed" : "") + "' data-o='road'><span class='i'>🛣</span><span class='l'>Road</span></button>";
   html += "<button class='cbtn' data-o='story'><span class='i'>📖</span><span class='l'>Story</span></button>";
   html += "<button class='cbtn' data-o='mute'><span class='i'>" + (G.ui && G.ui.muted ? "🔇" : "🔊") + "</span><span class='l'>Sound</span></button>";
   html += "<button class='cbtn' data-o='lens'><span class='i'>" + (G.ui && G.ui.lens ? "⚔" : "🗺") + "</span><span class='l'>Lens</span></button></div>";
@@ -4379,6 +4605,13 @@ function refreshTray(force){
         G.claimArm = !G.claimArm; G.claimBearing = null; G.claimRing = null;
         G.armed = false; G.modelArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false;
         if(G.claimArm) showToast("🚩 Pick a bearing and a ring: the founding party stakes the claim and carries the materials");
+        refreshTray(true); return;
+      }
+      if(o === "road"){
+        if(!roadUnlocked()){ showToast("🛣 Roads unlock when the village grows into a Town."); refreshTray(true); return; }
+        G.roadArm = !G.roadArm; G.roadFrom = null; G.roadTo = null;
+        G.armed = false; G.modelArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.claimArm = false;
+        if(G.roadArm) showToast("🛣 Tap one station, then another: the crew lays a road between them");
         refreshTray(true); return;
       }
       setOrder3(o);
@@ -4478,6 +4711,7 @@ function announceArmedStill(){
   else if(G.proclaimArm) showToast("📣 Proclaim still armed, tap a building or building site");
   else if(G.foundArm) showToast("🏗 Found still armed, tap a surveyed plot");
   else if(G.claimArm) showToast("🚩 Claim still armed, pick a bearing and a ring");
+  else if(G.roadArm) showToast("🛣 Road still armed, tap two stations");
 }
 var hudAcc = 0;
 var mmCtx = null;
@@ -4530,6 +4764,16 @@ function drawMinimap(){
   c.fillStyle = "rgba(119,167,94,0.55)"; c.fillRect(0, 0, W, H);
   c.fillStyle = "rgba(122,179,217,0.85)"; c.fillRect(0, Y(36), W, H - Y(36));
   Object.keys(STATION3).forEach(function(k){ var st = STATION3[k]; if(k === "home") return; c.fillStyle = (k === G.objStation && !G.objComplete) ? "#e8b34b" : "rgba(240,235,220,0.8)"; c.fillRect(X(st.x) - 3, Y(st.z) - 3, 6, 6); });
+  /* Built roads read on the strategic channel too: solid packed-earth
+     lines for finished roads, dotted for surveyed lines under
+     construction. Shape plus dash, never color alone. */
+  (G.roads || []).forEach(function(r){
+    c.strokeStyle = r.built ? "rgba(200,160,100,0.95)" : "rgba(200,160,100,0.5)";
+    c.lineWidth = r.built ? 2.5 : 1.5;
+    if(!r.built) c.setLineDash([3, 3]);
+    c.beginPath(); c.moveTo(X(r.x1), Y(r.z1)); c.lineTo(X(r.x2), Y(r.z2)); c.stroke();
+    c.setLineDash([]);
+  });
   G.agents.forEach(function(a){ c.fillStyle = a.sick ? "#e85a3c" : (a.id === G.selected ? "#ffd75e" : "rgba(255,255,255,0.92)"); c.beginPath(); c.arc(X(a.x), Y(a.z), a.id === G.selected ? 3 : 2, 0, 6.29); c.fill(); });
   /* Tension lens (SimCity data-map read): pairs with tension at or past 40,
      the same threshold the want strip marks hot, get a drawn edge between
@@ -4678,6 +4922,35 @@ function hudTick(dt){
     }
     if(cpEl.innerHTML !== cpHtml) cpEl.innerHTML = cpHtml;
     cpEl.style.display = showClaim ? "flex" : "none";
+  }
+  /* Road pick row (v4): station chips, tap two, then a priced Lay confirm
+     once both ends are picked. The cost is previewed on every To chip and
+     repeated on the confirm, the same grammar as the Claim pick row. */
+  var rpEl = document.getElementById("roadPick");
+  if(rpEl){
+    var showRoad = !!G.roadArm && !(G.roadBuild && !G.roadBuild.built);
+    var rpHtml = "";
+    if(showRoad){
+      var fromSel = G.roadFrom, toSel = G.roadTo;
+      rpHtml = "<span class='pick-lab'>From</span>" + TIER_STATIONS.map(function(k){
+        var st = STATION3[k];
+        return "<button class='alert-chip" + (k === fromSel ? " sel" : "") + "' onclick='__roadPick(\"" + k + "\")'>" + st.icon + " " + st.name + "</button>";
+      }).join("");
+      if(fromSel){
+        rpHtml += "<span class='pick-lab'>To</span>" + TIER_STATIONS.map(function(k){
+          if(k === fromSel) return "";
+          var st = STATION3[k], rc = roadCost(fromSel, k);
+          return "<button class='alert-chip" + (k === toSel ? " sel" : "") + "' onclick='__roadPick2(\"" + k + "\")'>" + st.icon + " " + st.name + " · 🪵" + rc.planks + "</button>";
+        }).join("");
+      }
+      if(fromSel && toSel){
+        var tc = roadCost(fromSel, toSel);
+        rpHtml += "<button class='alert-chip go' onclick='__roadLay()'>🛣 Lay the road · 🪵" + tc.planks + " planks</button>";
+      }
+      rpHtml += "<button class='alert-chip' onclick='__roadCancel()'>✕ Not yet</button>";
+    }
+    if(rpEl.innerHTML !== rpHtml) rpEl.innerHTML = rpHtml;
+    rpEl.style.display = showRoad ? "flex" : "none";
   }
   var apEl = document.getElementById("arrPick");
   if(apEl){
@@ -4999,6 +5272,10 @@ window.__claimPickB = function(ix){ G.claimBearing = ix; refreshTray(true); };
 window.__claimPickR = function(ix){ G.claimRing = ix; refreshTray(true); };
 window.__claimStake = function(){ var b = G.claimBearing, r = G.claimRing; G.claimArm = false; G.claimBearing = null; G.claimRing = null; if(b != null && r != null) stakeClaim(b, r); refreshTray(true); };
 window.__claimCancel = function(){ G.claimArm = false; G.claimBearing = null; G.claimRing = null; refreshTray(true); };
+window.__roadPick = function(k){ G.roadFrom = k; G.roadTo = null; refreshTray(true); };
+window.__roadPick2 = function(k){ if(k !== G.roadFrom) G.roadTo = k; refreshTray(true); };
+window.__roadLay = function(){ var a = G.roadFrom, b = G.roadTo; G.roadArm = false; G.roadFrom = null; G.roadTo = null; if(a && b) layRoad(a, b); refreshTray(true); };
+window.__roadCancel = function(){ G.roadArm = false; G.roadFrom = null; G.roadTo = null; refreshTray(true); };
 window.__foundCancel = function(){ G.foundPlot = null; refreshTray(true); };
 window.__arrivalChoice = function(w){ arrivalChoice(w === 1 || w === true); };
 var projV = null;
