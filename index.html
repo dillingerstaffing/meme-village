@@ -493,6 +493,41 @@ var Store = (function(){
 var frameDt = 0;
 function renderHud(){ hudTick(frameDt); }
 var sheetKey = "";
+/* The character sheet's convergence records (v4 view step 4, game-spec.md
+   section 4). A pure selector over state, read only by renderSheet: every
+   active drift pair involving the resident (from the ignition ledger
+   G.driftLog, kept only while G.drifts still holds the live record; cleared
+   drifts belong to the chronicle), plus the residents currently wanting the
+   same station (the live convergence channel). Facts and numbers only.
+   CF-REF: rivalry-drift.md [28] */
+function convergenceRecords(a){
+  var out = {drifts: [], conv: []}, i, e, oid, k, other, mn, st, names, b;
+  var logs = (G.driftLog || []), drifts = (G.drifts || {}), pairs = (G.pairs || {});
+  for(i = 0; i < logs.length; i++){
+    e = logs[i];
+    if(e.a !== a.id && e.b !== a.id) continue;
+    oid = (e.a === a.id) ? e.b : e.a;
+    k = pairKey(a.id, oid);
+    if(!drifts[k]) continue;
+    other = agent(oid);
+    mn = e.model ? agent(e.model) : null;
+    st = (e.over && STATION3[e.over]) ? STATION3[e.over].name : null;
+    out.drifts.push({name: other ? other.name : ((e.a === a.id) ? e.bn : e.an),
+      station: st, yr: e.yr, sn: e.sn,
+      modelName: mn ? mn.name : null,
+      tension: Math.round(pairs[k] || 0)});
+  }
+  if(a.want && a.want.station && STATION3[a.want.station]){
+    st = STATION3[a.want.station].name;
+    names = [];
+    for(i = 0; i < G.agents.length; i++){
+      b = G.agents[i];
+      if(b !== a && b.want && b.want.station === a.want.station) names.push(b.name);
+    }
+    if(names.length) out.conv.push({station: st, names: names});
+  }
+  return out;
+}
 function renderSheet(s){
   var el = document.getElementById("sheet");
   if(!el) return;
@@ -504,7 +539,9 @@ function renderSheet(s){
   }
   var log = a.thoughtLog || [];
   var whSig = 0; if(a.workHist) for(var wkk in a.workHist) whSig += a.workHist[wkk];
-  var key = a.id + "|" + (a.thought ? a.thought.at + ":" + a.thought.text : "none") + "|" + log.length + "|" + NEED_DEFS.map(function(d){ return Math.round(needVal(a, d.id)); }).join(":") + ":" + whSig + "|" + (householdOf(a) ? householdOf(a).id : "") + "|" + Math.round(a.age || 34) + arcOf(a).id + "|" + Math.floor(a.cash || 0) + ":" + (a.bank == null ? "x" : Math.floor(a.bank)) + "|" + (a.tier || "") + "|" + (prestigeFlipUnlocked() ? (prestigeFlipped(a) ? "E" : "A") : "L") + followersOf(a);
+  var cvk = convergenceRecords(a);
+  var convSig = cvk.drifts.map(function(r){ return r.name + ":" + r.tension + ":" + r.yr + ":" + r.sn; }).join(",") + "|" + cvk.conv.map(function(r){ return r.station + ":" + r.names.join(","); }).join(",");
+  var key = a.id + "|" + (a.thought ? a.thought.at + ":" + a.thought.text : "none") + "|" + log.length + "|" + NEED_DEFS.map(function(d){ return Math.round(needVal(a, d.id)); }).join(":") + ":" + whSig + "|" + (householdOf(a) ? householdOf(a).id : "") + "|" + Math.round(a.age || 34) + arcOf(a).id + "|" + Math.floor(a.cash || 0) + ":" + (a.bank == null ? "x" : Math.floor(a.bank)) + "|" + (a.tier || "") + "|" + (prestigeFlipUnlocked() ? (prestigeFlipped(a) ? "E" : "A") : "L") + followersOf(a) + "|" + convSig;
   if(key === sheetKey && el.style.display !== "none") return;
   sheetKey = key;
   var shirt = "#" + ("000000" + (a.shirt || 0).toString(16)).slice(-6);
@@ -529,6 +566,17 @@ function renderSheet(s){
   if(a.tier && TTI[a.tier]) h += "<div class='sh-work'>🛡 Coverage: " + TTI[a.tier].name + "</div>";
   /* CF-REF: model-prestige-flip.md [1] */
   h += "<div class='sh-work'>👀 " + prestigeStanding(a) + "</div>";
+  /* CF-REF: rivalry-drift.md [9] */
+  (function(){
+    var cv = convergenceRecords(a), ci;
+    for(ci = 0; ci < cv.drifts.length; ci++){
+      var r = cv.drifts[ci];
+      h += "<div class='sh-work'>⚡ Feud with " + r.name + (r.station ? " over the " + r.station : "") + " · Year " + r.yr + " · " + r.sn + (r.modelName ? " · shared model " + r.modelName : "") + " · tension " + r.tension + "</div>";
+    }
+    for(ci = 0; ci < cv.conv.length; ci++){
+      h += "<div class='sh-work'>⚡ Converging on the " + cv.conv[ci].station + " with " + cv.conv[ci].names.join(", ") + "</div>";
+    }
+  })();
   if(a.thought){
     h += "<div class='sh-quote'>\u201C" + a.thought.text + "\u201D</div>";
     for(var i = log.length - 2; i >= 0; i--){

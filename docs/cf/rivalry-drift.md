@@ -37,7 +37,15 @@ keys, the same discipline as the tension ledger.
 
 Visibility. The tension lens draws an active drift pair as a dashed
 edge, even below the 40 heat threshold, with a "--- feud drift"
-legend line: shape, never color alone. The feud warning and eruption
+legend line: shape, never color alone. The character sheet carries the
+per-resident leg of the auditable record (v4 view step 4): the selected
+resident's sheet lists every active drift pair with the partner's name,
+the station they converged on, the shared model, the ignition season
+stamps, and the live tension number, plus the current convergences
+(residents wanting the same station right now). Cleared drifts leave
+the sheet; their ledger entries stay in the chronicle. The sheet
+section omits itself when there are no records, and it never explains
+or moralizes: facts and numbers only. The feud warning and eruption
 grammar is unchanged. The drift is never a verb or a button;
 scapegoating stays emergent and nonconscious.
 
