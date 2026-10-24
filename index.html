@@ -320,8 +320,9 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
   <div class="srow"><span class="sl">🌱 Contentment</span><span class="sb"><i id="bar-cont" style="background:#7ec850"></i></span><b id="val-cont">0</b></div>
   <div class="srow" id="tierRow"><span class="sl" id="tierLbl" style="width:auto">Next tier</span></div>
   <div class="srow" id="homeRow"><span class="sl" id="homeLbl" style="width:auto">Homes</span></div>
+  <div class="srow" id="popRow"><span class="sl" id="popLbl" style="width:auto">Villagers</span></div>
   <div class="srow" id="blameRow" style="display:none"><span class="sl" id="blameLbl">🌩 Blame</span><span class="sb"><i id="blameBar" style="background:#e85a3c"></i></span><b id="blameVal">0</b></div>
-  <div id="statsStrip"><span>⚒<b id="sv-prod">0</b></span><span>♥<b id="sv-trust">0</b></span><span>🌳<b id="sv-coh">0</b></span><span>⚔<b id="sv-riv">0</b></span><span>🌾<b id="sv-scar">0</b></span><span>🕊<b id="sv-aut">0</b></span><span>🌱<b id="sv-cont">0</b></span><span>🏠<b id="sv-home">0</b></span><span id="svBlameWrap" style="display:none">🌩<b id="sv-blame">0</b></span></div>
+  <div id="statsStrip"><span>⚒<b id="sv-prod">0</b></span><span>♥<b id="sv-trust">0</b></span><span>🌳<b id="sv-coh">0</b></span><span>⚔<b id="sv-riv">0</b></span><span>🌾<b id="sv-scar">0</b></span><span>🕊<b id="sv-aut">0</b></span><span>🌱<b id="sv-cont">0</b></span><span>🏠<b id="sv-home">0</b></span><span>👥<b id="sv-pop">0</b></span><span id="svBlameWrap" style="display:none">🌩<b id="sv-blame">0</b></span></div>
 </div>
 <div class="hud" id="topRight">
   <span class="chip" id="weekChip"><span class="wcA">YEAR 1 · SPRING</span><span class="wcS"> · </span><span class="wcB">Hamlet · ☀ 0%</span></span>
@@ -5629,6 +5630,23 @@ function hudTick(dt){
   if(homeLbl) homeLbl.textContent = "🏠 " + homeFree + " free of " + homeCap + " homes";
   var homeSv = document.getElementById("sv-home");
   if(homeSv) homeSv.textContent = homeFree + "/" + homeCap;
+  /* Population read: the one count the cap turns on, rendered where
+     the other village reads live. Arrivals admit at most POP_CAP minus
+     the current count, and births break at the cap, yet no surface
+     named the count, so a welcome that admitted one instead of two,
+     or a spring with no birth, read as a silent refusal. The row
+     names the count against the cap, and the phone strip carries the
+     same count as current/cap so the read survives the compact rule
+     while a pick is open, including the arrival pick itself. Display
+     only: the row renders G.agents.length against POP_CAP, the same
+     cap the arrival and birth gates already read, and changes no
+     graph edge, want, or tension. Guarded element writes keep the
+     node harness working with its stubbed document. */
+  var popN = G.agents.length;
+  var popLbl = document.getElementById("popLbl");
+  if(popLbl) popLbl.textContent = "👥 " + popN + " of " + POP_CAP + " villagers";
+  var popSv = document.getElementById("sv-pop");
+  if(popSv) popSv.textContent = popN + "/" + POP_CAP;
   G.alerts = G.alerts.filter(function(x){ return G.t - x.at < 9; });
   var alEl = document.getElementById("alerts");
   var ahtml = G.alerts.slice(-2).map(function(x){ return "<button class='alert-chip' onclick='__pickAlert(\"" + x.id + "\")'>⚠ <b>" + x.name + "</b> is idle · tap to direct</button>"; }).join("");
