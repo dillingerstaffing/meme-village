@@ -253,56 +253,62 @@
       "hash": "d5a4f014"
     },
     {
+      "article": "claim-minimap.md",
+      "ref_line": 4976,
+      "lines": 12,
+      "hash": "bb41812d"
+    },
+    {
       "article": "rivalry-drift.md",
-      "ref_line": 4994,
+      "ref_line": 5015,
       "lines": 8,
       "hash": "2a88a8fe"
     },
     {
       "article": "desire-lens.md",
-      "ref_line": 5012,
+      "ref_line": 5033,
       "lines": 31,
       "hash": "a56463cc"
     },
     {
       "article": "phone-stats-compact-during-picks.md",
-      "ref_line": 5276,
+      "ref_line": 5297,
       "lines": 2,
       "hash": "174184c0"
     },
     {
       "article": "sheet-below-objective-card.md",
-      "ref_line": 5294,
+      "ref_line": 5315,
       "lines": 16,
       "hash": "6b2224dc"
     },
     {
       "article": "desires-travel-the-graph.md",
-      "ref_line": 5377,
+      "ref_line": 5398,
       "lines": 33,
       "hash": "89ae1cb6"
     },
     {
       "article": "overlay-anchor-budget.md",
-      "ref_line": 5611,
+      "ref_line": 5632,
       "lines": 66,
       "hash": "9a9122e9"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 5861,
+      "ref_line": 5882,
       "lines": 11,
       "hash": "27da632f"
     },
     {
       "article": "pointercancel-never-a-tap.md",
-      "ref_line": 5874,
+      "ref_line": 5895,
       "lines": 4,
       "hash": "3471fc97"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 5953,
+      "ref_line": 5974,
       "lines": 4,
       "hash": "ce66959f"
     }

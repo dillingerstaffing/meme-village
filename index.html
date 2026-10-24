@@ -4965,6 +4965,27 @@ function drawMinimap(){
     c.beginPath(); c.moveTo(X(r.x1), Y(r.z1)); c.lineTo(X(r.x2), Y(r.z2)); c.stroke();
     c.setLineDash([]);
   });
+  /* Minimap claim layer (v4 view step 4): surveyed plots read on the
+     strategic channel, not only as gold rings in 3D. Original plots
+     draw as gold outline squares; plots CLAIM or GROW appended (a
+     cluster or ring key) draw filled, so new ground reads solid and
+     old ground reads as an outline, shape plus fill, never color
+     alone. An in-flight claim draws a dashed gold ring at its center,
+     the road grammar for work not yet built. Display only: this
+     block reads PLOTS and G.claim and writes the canvas, never state. */
+  // CF-REF: claim-minimap.md [12]
+  PLOTS.forEach(function(p){
+    var px = X(p.x), py = Y(p.z);
+    c.strokeStyle = "rgba(245,200,106,0.9)"; c.lineWidth = 1;
+    if(p.cluster || p.ring != null){ c.fillStyle = "rgba(245,200,106,0.9)"; c.fillRect(px - 2, py - 2, 4, 4); }
+    else c.strokeRect(px - 2, py - 2, 4, 4);
+  });
+  if(G.claim && !G.claim.staked){
+    c.strokeStyle = "rgba(245,200,106,0.95)"; c.lineWidth = 1.5;
+    c.setLineDash([3, 2]);
+    c.beginPath(); c.arc(X(G.claim.x), Y(G.claim.z), 6, 0, 6.29); c.stroke();
+    c.setLineDash([]);
+  }
   G.agents.forEach(function(a){ c.fillStyle = a.sick ? "#e85a3c" : (a.id === G.selected ? "#ffd75e" : "rgba(255,255,255,0.92)"); c.beginPath(); c.arc(X(a.x), Y(a.z), a.id === G.selected ? 3 : 2, 0, 6.29); c.fill(); });
   /* Tension lens (SimCity data-map read): pairs with tension at or past 40,
      the same threshold the want strip marks hot, get a drawn edge between
