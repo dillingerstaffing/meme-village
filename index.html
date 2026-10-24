@@ -6148,7 +6148,7 @@ function tapAt(cx, cy, smart){
   }
   if(p.station){
     if(G.selected){ setOrder3(p.station); }
-    else if(G.started && !G.over && !G.firstOrder){ showToast("👆 Tap a resident first, then tap the " + stationW(p.station).name.toLowerCase()); }
+    else if(G.started && !G.over){ showToast("👆 Tap a resident first, then tap the " + stationW(p.station).name.toLowerCase()); }
     else showToast(stationW(p.station).icon + " " + stationW(p.station).name);
     return;
   }
