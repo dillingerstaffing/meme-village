@@ -2991,7 +2991,17 @@ function chooseIncident(i){
   SND.play("decide");
   if(opt){
     if(opt.blame){ G.scapegoats++; G.delays.push({at: G.t + 2 * WEEK_LEN, mods:{trust:-7, cohesion:-6, rivalry:6}, msg:"🕯 The village remembers the blame"}); }
+    /* Confirmatory feedback for the choice itself: the option previews its
+       effects before the tap, but most options then close the card with
+       only the decide sound, so a muted player gets no answer at all and
+       any player can doubt which button registered. Count the live toast
+       plus the queue before the effect runs; if the effect already spoke
+       (Jonah on his way, a resident heading home), say nothing more, so
+       no choice ever double-confirms. Otherwise name the choice taken. */
+    var toastBefore = (G.ui && G.ui.toast && Date.now() < G.ui.toast.until ? 1 : 0) + (G.ui && G.ui.queue ? G.ui.queue.length : 0);
     if(opt.fx) opt.fx();
+    var toastAfter = (G.ui && G.ui.toast && Date.now() < G.ui.toast.until ? 1 : 0) + (G.ui && G.ui.queue ? G.ui.queue.length : 0);
+    if(toastAfter === toastBefore) showToast(opt.icon + " " + opt.label + " chosen");
   }
   refreshTray();
 }
