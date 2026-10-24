@@ -3069,12 +3069,19 @@ function projectHint(){
 }
 /* Project pick chips preview the commitment before the player commits, the
    same decision-UX rule as the found-kind chips: total driven-work parts,
-   the chain and peak sub-parts, and any stores cost. Read from the project
-   def rows, so the numbers can never lie. Display only. */
+   the per-part stations where that driven work must happen (station icon
+   plus need, read through PART_STATION, the same mapping projectHint
+   shows after the pick), the chain and peak sub-parts, and any stores
+   cost. Read from the project def rows, so the numbers can never lie.
+   Display only. */
 function projectPickPreview(pd){
   var bits = [], total = 0;
   Object.keys(pd.parts || {}).forEach(function(k){ total += pd.parts[k]; });
   if(total) bits.push("🔨" + total + " parts");
+  Object.keys(pd.parts || {}).forEach(function(k){
+    var st = STATION3[PART_STATION[k] || "green"];
+    if(st) bits.push(st.icon + pd.parts[k]);
+  });
   if(pd.chainKey) bits.push("⛓chain of 2");
   if(pd.peak) bits.push("👥" + pd.peak + " together");
   if(pd.cost) bits.push("📦" + pd.cost);
