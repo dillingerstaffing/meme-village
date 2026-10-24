@@ -5545,7 +5545,16 @@ function hudTick(dt){
      into two lines after the season (single line on desktop). Diff-guarded
      on a dataset flag: innerHTML never round-trips byte-identical. */
   var wcEl = document.getElementById("weekChip");
-  var wcHtml = "<span class=\"wcA\">" + seasonLabel() + "</span><span class=\"wcS\"> · </span><span class=\"wcB\">" + villageLevel().name + " · ☀ " + Math.round(G.weekTime / WEEK_LEN * 100) + "%</span>";
+  /* Village-level progress read: the chip names the level and the count
+     toward the next one (Hamlet 0/2, Town 11/14), so the Town gate behind
+     Claim, roads, and the Town kinds reads ahead instead of only at the
+     promotion toast. At City, the last level, the chip names the count
+     with no next rung. Display only, derived each frame in the HUD
+     renderer from villageLevel() and LIFE.levels, no new state. */
+  var wcLv = villageLevel(), wcNext = null;
+  LIFE.levels.forEach(function(L){ if(!wcNext && L.min > wcLv.count) wcNext = L; });
+  var wcLvTxt = wcLv.name + " " + wcLv.count + (wcNext ? "/" + wcNext.min : "");
+  var wcHtml = "<span class=\"wcA\">" + seasonLabel() + "</span><span class=\"wcS\"> · </span><span class=\"wcB\">" + wcLvTxt + " · ☀ " + Math.round(G.weekTime / WEEK_LEN * 100) + "%</span>";
   if(wcEl.getAttribute("data-wc") !== wcHtml){ wcEl.setAttribute("data-wc", wcHtml); wcEl.innerHTML = wcHtml; }
   document.getElementById("storesN").textContent = G.stores;
   document.getElementById("copiedN").textContent = G.copied;
