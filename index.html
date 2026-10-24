@@ -881,6 +881,7 @@ function newSlice(){
     rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, blameWarn:false, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0,
     sites:[], siteSeq:0, lastFoundSeason:0, houseCapacity:10, banked:false, foundArm:false, foundPlot:null, buildPref:null,
     claimArm:false, claimBearing:null, claimRing:null, claim:null, claimPlots:[], claimSeq:0,
+    growRings:0, growPlots:[],
     bonds:{}, households:[], householdSeq:0, soloHoused:0, departed:0, arrival:null, speakCd:0, speakArm:false, coverArm:false, chronCloseArm:false, coachBank:false, coachSick:false, coachPing:false, levelSeen:null, newSeq:0, kidSeq:0, births:0,
     tiers:{clinic:1, fields:1, store:1, green:1, mill:1, school:1, well:1}, tierProg:{}, tierWorkers:{}, builtWealth:0, deaths:[], proclaim:null, proclaimArm:false, lastHarmWeek:null, lastIncidentWeek:null, incidentRollWeek:null,
     stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
@@ -2971,7 +2972,14 @@ var BUILD_KINDS = {
    one building of its own through the same founding path the player
    uses. Every gate lives in this table; kindOrder is the preference
    order, and any kind past the first also needs double the wealth. */
-var GROWTH = {contentmentMin: 75, wealthMin: 20, kindOrder: ["cottage", "townhouse"]};
+var GROWTH = {contentmentMin: 75, wealthMin: 20, kindOrder: ["cottage", "townhouse"],
+  /* GROW (v4 sim step 3, spec section 23): the earned boundary-extension
+     tunables. contentment threshold for a growing season, plots per ring,
+     rings per village, the step beyond the farthest plot in a slot's
+     bearing, and the plot / station clearances for new slots. Values
+     provisional, surfaced for review. */
+  growMin: 78, growRingPlots: 3, growMaxRings: 4, growRingStep: 16,
+  growPlotClear: 10, growStationClear: 10};
 /* DEPLETION: the soil clock (v4 sim step 3, spec sections 23/24). One row per
    field kind. workSeasonsToDepletion counts worked seasons from full to
    exhausted; restSeasons counts fallow seasons from exhausted to full;
@@ -3282,6 +3290,88 @@ function claimSeasonCheck(){
   }
   party.forEach(function(a){ goClaim(a, c); });
   showToast("🚩 A new party walks out to finish the claim.");
+}
+// CF-REF: village-growth-gates.md [81]
+/* GROW (v4 sim step 3, spec section 23): the earned organic extension of
+   the buildable boundary. At the season boundary, if the village stands at
+   Town tier and contentment() held at or above GROWTH.growMin for the
+   just-finished season, one plot-ring extends the boundary: GROWTH.growRingPlots
+   surveyed plots appended to PLOTS by data extension, each one step beyond the
+   farthest existing plot in its own bearing on a ring-rotated bearing set,
+   validated clear of plots and stations with the river band excluded. Growth is earned, never
+   labor: no wk() calls, no costs, no party, no tray verb. A fully blocked edge
+   stalls with a named toast and a chronicle line instead of a partial write. */
+function growUnlocked(){ return villageLevel().count >= 9; }
+/* The village edge in one bearing: the farthest existing plot projected
+   onto it. Growth hugs the real edge instead of a circle the map cannot
+   hold. */
+function growBearingEdge(b){
+  var e = 0;
+  for(var i = 0; i < PLOTS.length; i++){ var p = PLOTS[i]; var d = p.x * b.dx + p.z * b.dz; if(d > e) e = d; }
+  return e;
+}
+function growSlotClear(x, z){
+  var i, p, dx, dz, c2 = GROWTH.growPlotClear * GROWTH.growPlotClear, s2 = GROWTH.growStationClear * GROWTH.growStationClear;
+  for(i = 0; i < PLOTS.length; i++){ p = PLOTS[i]; dx = x - p.x; dz = z - p.z; if(dx * dx + dz * dz < c2) return false; }
+  var keys = Object.keys(STATION3);
+  for(i = 0; i < keys.length; i++){ p = STATION3[keys[i]]; if(!p || p.x == null) continue; dx = x - p.x; dz = z - p.z; if(dx * dx + dz * dz < s2) return false; }
+  return true;
+}
+/* One ring's slots: the bearings rotate 135 degrees per ring so growth does
+   not stack on one side of the village. Each slot tries its bearing, then
+   the four neighboring bearings; a slot with no clear bearing is dropped, and
+   a ring ships with whatever slots validate. Siblings keep their distance
+   too, so a fallback never lands on another slot of the same ring.
+   Deterministic, no RNG. */
+function growRingSlots(ringIx){
+  var slots = [], s, f, bi, b, R, cx, cz, ok, i, dx, dz;
+  var sib2 = GROWTH.growPlotClear * GROWTH.growPlotClear;
+  for(s = 0; s < GROWTH.growRingPlots; s++){
+    for(f = 0; f < 5; f++){
+      bi = (((ringIx * 3 + s * 3 + (f === 0 ? 0 : (f === 1 ? 1 : (f === 2 ? -1 : (f === 3 ? 2 : -2))))) % 8) + 8) % 8;
+      b = CLAIM_BEARINGS[bi];
+      /* Each slot sits one step beyond the farthest existing plot in its
+         own bearing, so the ring extends the boundary where there is room
+         instead of stacking on one side or landing off the map. */
+      R = growBearingEdge(b) + GROWTH.growRingStep;
+      cx = Math.max(-52, Math.min(52, b.dx * R));
+      cz = Math.max(-37, Math.min(28, b.dz * R));
+      if(!growSlotClear(cx, cz)) continue;
+      ok = true;
+      for(i = 0; i < slots.length; i++){ dx = cx - slots[i].x; dz = cz - slots[i].z; if(dx * dx + dz * dz < sib2){ ok = false; break; } }
+      if(ok){ slots.push({x: Math.round(cx * 10) / 10, z: Math.round(cz * 10) / 10, bearing: bi}); break; }
+    }
+  }
+  return slots;
+}
+function growSeasonCheck(){
+  if(!G.started || G.over) return;
+  if(!growUnlocked()) return;
+  if((G.growRings || 0) >= GROWTH.growMaxRings) return;
+  var c = contentment();
+  if(c < GROWTH.growMin) return;
+  var ringIx = G.growRings || 0;
+  var slots = growRingSlots(ringIx);
+  var cr = Math.round(c);
+  if(!slots.length){
+    showToast("🌱 Contentment held at " + cr + "%, but the village edge is hemmed in: no clear ground for new plots.");
+    chronicle("The village strained to grow at contentment " + cr + "%, but no clear ground remained at its edge.");
+    Store.commit();
+    return;
+  }
+  slots.forEach(function(p){
+    PLOTS.push({x: p.x, z: p.z, ring: ringIx});
+    G.growPlots.push({x: p.x, z: p.z, ring: ringIx});
+    buildPlotMesh(PLOTS.length - 1);
+  });
+  G.growRings = ringIx + 1;
+  var cx0 = 0, cz0 = 0;
+  slots.forEach(function(p){ cx0 += p.x; cz0 += p.z; });
+  showToast("🌱 Contentment held at " + cr + "%: the village grew. " + slots.length + " new surveyed plot" + (slots.length === 1 ? "" : "s") + ".",
+    {x: Math.round(cx0 / slots.length), z: Math.round(cz0 / slots.length)});
+  SND.play("objwin");
+  chronicle("The village grew at contentment " + cr + "%: " + slots.length + " new surveyed plots (growth ring " + (ringIx + 1) + ").");
+  Store.commit();
 }
 // CF-REF: autonomous-founding-gates.md [28]
 function foundingCheck(){
@@ -3649,6 +3739,9 @@ function endWeek(){
   soilTick();
   /* A claim whose party all died or departed re-recruits or is abandoned. */
   claimSeasonCheck();
+  /* GROW (v4 sim step 3): the just-finished season's contentment can earn
+     one plot-ring of new surveyed ground at Town tier. */
+  growSeasonCheck();
   var o = curObjective();
   if(G.offerAccepted && o){
     if(G.objComplete) showToast("✓ " + seasonName() + " done: " + o.title + " · " + G.objDone + " all time");
@@ -4060,6 +4153,15 @@ function restoreState(st){
   if(!Array.isArray(G.claimPlots)) G.claimPlots = [];
   G.claimPlots.forEach(function(p){ PLOTS.push({x:p.x, z:p.z, cluster:p.cluster}); buildPlotMesh(PLOTS.length - 1); });
   if(G.claim && !G.claim.staked) buildClaimMesh(G.claim);
+  /* Growth rings persist in the save (G.growPlots); re-extend the PLOTS
+     list and rebuild their rings for a continued village. */
+  if(!Array.isArray(G.growPlots)) G.growPlots = [];
+  if(typeof G.growRings !== "number"){
+    var mr = 0;
+    G.growPlots.forEach(function(p){ if(((p.ring | 0) + 1) > mr) mr = (p.ring | 0) + 1; });
+    G.growRings = mr;
+  }
+  G.growPlots.forEach(function(p){ PLOTS.push({x:p.x, z:p.z, ring:p.ring}); buildPlotMesh(PLOTS.length - 1); });
   /* Graves persist in the save (G.deaths entries carry x/z); rebuild the
      markers for a continued village. Entries from older saves have no x/z
      and are skipped. */

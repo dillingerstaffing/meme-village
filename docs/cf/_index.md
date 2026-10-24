@@ -17,6 +17,7 @@ objective, progress, project, parts, work credit, score, driven, order bonus, ho
 | desires-travel-the-graph.md | Wants carry an origin; spread follows model edges first, convergence adds tension, fulfillment and misses write back into the graph |
 | membership-never-gates-the-medic.md | The medic serves everyone through the manual path; tiers move only queue order and the death roll; premiums debit bank only, floor zero, lapse never debt |
 | autonomous-founding-gates.md | The village founds at most one building a season, at the boundary, only when every GROWTH gate holds, through foundSite |
+| village-growth-gates.md | Growth extends the boundary one plot-ring per qualifying season at Town tier, earned never labored, the price named on the receipt |
 
 ## State and Architecture
 state, store, dispatch, transact, render, dom, panel, new field, new event, chronicle, save, snapshot, ending, persistence, continue, grave
