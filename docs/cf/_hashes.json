@@ -68,145 +68,151 @@
     },
     {
       "article": "spec-tables-drift-gate.md",
-      "ref_line": 1328,
+      "ref_line": 1333,
       "lines": 10,
       "hash": "e10b880f"
     },
     {
       "article": "household-capacity-ledger.md",
-      "ref_line": 1350,
+      "ref_line": 1355,
       "lines": 47,
       "hash": "b389b903"
     },
     {
       "article": "membership-never-gates-the-medic.md",
-      "ref_line": 1714,
+      "ref_line": 1719,
       "lines": 15,
       "hash": "6b9842f8"
     },
     {
       "article": "membership-never-gates-the-medic.md",
-      "ref_line": 2057,
+      "ref_line": 2062,
       "lines": 12,
       "hash": "05a2a2ba"
     },
     {
       "article": "thoughts-local-inference-only.md",
-      "ref_line": 2347,
+      "ref_line": 2352,
       "lines": 31,
       "hash": "abf52637"
     },
     {
       "article": "spec-tables-drift-gate.md",
-      "ref_line": 2609,
+      "ref_line": 2614,
       "lines": 50,
       "hash": "8cbc7946"
     },
     {
       "article": "spec-tables-drift-gate.md",
-      "ref_line": 2787,
+      "ref_line": 2792,
       "lines": 6,
       "hash": "c12ad933"
     },
     {
       "article": "spec-tables-drift-gate.md",
-      "ref_line": 2902,
+      "ref_line": 2907,
       "lines": 4,
       "hash": "edc3c69c"
     },
     {
       "article": "spec-tables-drift-gate.md",
-      "ref_line": 2907,
+      "ref_line": 2912,
       "lines": 21,
       "hash": "2ac77b93"
     },
     {
+      "article": "spec-tables-drift-gate.md",
+      "ref_line": 2948,
+      "lines": 3,
+      "hash": "db280d3b"
+    },
+    {
       "article": "autonomous-founding-gates.md",
-      "ref_line": 3018,
+      "ref_line": 3035,
       "lines": 28,
       "hash": "0727e0b6"
     },
     {
       "article": "driven-work-progress.md",
-      "ref_line": 3205,
+      "ref_line": 3222,
       "lines": 14,
       "hash": "39fb637f"
     },
     {
       "article": "spec-tables-drift-gate.md",
-      "ref_line": 3206,
+      "ref_line": 3223,
       "lines": 14,
       "hash": "c77a272b"
     },
     {
       "article": "desires-travel-the-graph.md",
-      "ref_line": 3465,
+      "ref_line": 3516,
       "lines": 19,
       "hash": "23d42fdb"
     },
     {
       "article": "chronicle-and-saves.md",
-      "ref_line": 3635,
+      "ref_line": 3686,
       "lines": 138,
       "hash": "482bc589"
     },
     {
       "article": "axis-label-selected-surfaces.md",
-      "ref_line": 3870,
+      "ref_line": 3921,
       "lines": 2,
       "hash": "6caa504a"
     },
     {
       "article": "highlight-vocabulary.md",
-      "ref_line": 3883,
+      "ref_line": 3934,
       "lines": 37,
       "hash": "f65400be"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 4055,
+      "ref_line": 4106,
       "lines": 39,
       "hash": "d5a4f014"
     },
     {
       "article": "phone-stats-compact-during-picks.md",
-      "ref_line": 4314,
+      "ref_line": 4365,
       "lines": 2,
       "hash": "95f3d871"
     },
     {
       "article": "sheet-below-objective-card.md",
-      "ref_line": 4332,
+      "ref_line": 4383,
       "lines": 16,
       "hash": "6b2224dc"
     },
     {
       "article": "desires-travel-the-graph.md",
-      "ref_line": 4415,
+      "ref_line": 4466,
       "lines": 33,
       "hash": "89ae1cb6"
     },
     {
       "article": "overlay-anchor-budget.md",
-      "ref_line": 4641,
+      "ref_line": 4692,
       "lines": 66,
       "hash": "9a9122e9"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 4891,
+      "ref_line": 4942,
       "lines": 11,
       "hash": "27da632f"
     },
     {
       "article": "pointercancel-never-a-tap.md",
-      "ref_line": 4904,
+      "ref_line": 4955,
       "lines": 4,
       "hash": "3471fc97"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 4983,
+      "ref_line": 5034,
       "lines": 4,
       "hash": "ce66959f"
     }

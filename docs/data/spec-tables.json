@@ -42,7 +42,10 @@
         "tintStages",
         "rotationReset"
       ],
-      "status": "queued"
+      "keys": [
+        "fields"
+      ],
+      "status": "live"
     },
     "INCIDENTS": {
       "keys": [

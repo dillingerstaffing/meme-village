@@ -870,7 +870,7 @@ function animateAgent(a, dt){
 /* ================= SLICE SIM ================= */
 function newSlice(){
   var g = {t:0, weekTime:0, week:1, speed:1, started:false, over:false, agents:makeAgents(), selected:null,
-    roof:30, stores:0, flour:0, copied:0, fieldGrowth:0, growthApplied:-1, incidentOpen:false, incidentDone:false,
+    roof:30, stores:0, flour:0, copied:0, fieldGrowth:0, growthApplied:-1, soil:1, soilStage:0, incidentOpen:false, incidentDone:false,
     rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, blameWarn:false, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0, offer:null, offerAccepted:false,
     rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, blameWarn:false, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0,
     sites:[], siteSeq:0, lastFoundSeason:0, houseCapacity:10, banked:false, foundArm:false, foundPlot:null, buildPref:null,
@@ -878,7 +878,7 @@ function newSlice(){
     tiers:{clinic:1, fields:1, store:1, green:1, mill:1, school:1, well:1}, tierProg:{}, tierWorkers:{}, builtWealth:0, deaths:[], proclaim:null, proclaimArm:false, lastHarmWeek:null, lastIncidentWeek:null, incidentRollWeek:null,
     stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
     objStation:"clinic", objComplete:false, objDone:0, scapegoats:0, delays:[],
-    weekWork:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0, build:0}, weekWorkP:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0},
+    weekWork:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0, build:0}, weekWorkP:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0}, fieldWorkers:{},
     ui:{toast:null, queue:[], sheet:null, muted:false}, mimic:{spread:0, converged:0, doneCopied:0, doneSelf:0, missedCopied:0}, policy:"hearth", difficulty:"standard", medicPatient:null, pendingIncident:null, curIncident:null, alerts:[], firstOrder:false, chronicle: [], endKind: null, ttiPaid: 0, ttiSavesUsed: 0, medicQueue: [], medicSeq: 0, pings:[]};
   g.agents.forEach(function(a){
     a.speedNow = 0; a.slot = null; a.fetch = null; a.fetchT = 0; a.watchCd = 0; a.mimicStation = null;
@@ -1219,7 +1219,12 @@ function stepAgents(dt){
         a.energy = Math.max(0, a.energy - 0.8*dt);
         G.fieldGrowth = Math.min(1, G.fieldGrowth + dt * 0.006);
         a.harvestT = (a.harvestT || 0) + pdt;
-        if(a.harvestT > 12){ a.harvestT = 0; G.stores++; wk(a, "stores", 1); wk(a, "harvest", 1); setBubble(a, "🌿", 1.6); }
+        /* DEPLETE: the soil throttles the harvest. Full soil yields at the
+           base rate; exhausted soil halves it (the 12s threshold stretches
+           toward 24s). Gentle and legible: the 🌿 bubbles visibly slow as
+           the soil wears. The worker is recorded for the mimetic clock. */
+        var soilYield = 0.5 + 0.5 * (G.soil == null ? 1 : G.soil);
+        if(a.harvestT > 12 / soilYield){ a.harvestT = 0; G.stores++; wk(a, "stores", 1); wk(a, "harvest", 1); (G.fieldWorkers = G.fieldWorkers || {})[a.id] = 1; setBubble(a, "🌿", 1.6); }
       } else if(st === "store"){
         if(!a.fetch && a.actT <= 0){ a.fetch = "crate-out"; goTo(a, 16.5, -8.8, "store"); }
       } else if(st === "mill"){
@@ -2932,6 +2937,18 @@ var BUILD_KINDS = {
    uses. Every gate lives in this table; kindOrder is the preference
    order, and any kind past the first also needs double the wealth. */
 var GROWTH = {contentmentMin: 75, wealthMin: 20, kindOrder: ["cottage", "townhouse"]};
+/* DEPLETION: the soil clock (v4 sim step 3, spec sections 23/24). One row per
+   field kind. workSeasonsToDepletion counts worked seasons from full to
+   exhausted; restSeasons counts fallow seasons from exhausted to full;
+   tintStages is the number of visible soil tints the view renders from
+   G.soilStage; rotationReset names the alternate crop that resets the clock
+   (null in v1: fallow rest is the answer, new-field claims arrive with
+   CLAIM). Row values are provisional, surfaced for review (spec appendix
+   open design space). */
+/* CF-REF: spec-tables-drift-gate.md [3] */
+var DEPLETION = {
+  fields:{workSeasonsToDepletion:4, restSeasons:2, tintStages:3, rotationReset:null}
+};
 PROJECTS.forEach(function(p){
   BUILD_KINDS[p.id] = {id:p.id, title:p.title, icon:p.icon, plot:false, project:true, projId:p.id, station:p.station,
     mesh:"annex", x:PROJ_SITE_POS[p.id][0], z:PROJ_SITE_POS[p.id][1], wall:0xd9c9a8, roof:0x7c4a30,
@@ -3339,7 +3356,41 @@ function statDrift(dt){
   s.autonomy += (autT - s.autonomy) * dt * 0.08;
   Object.keys(s).forEach(function(k){ s[k] = clamp100(s[k]); });
 }
+/* DEPLETE (v4 sim step 3, spec section 23): the soil clock. At the season
+   boundary, worked fields discharge the soil battery and fallow fields
+   recharge it. The discharge is a mimetic clock: more distinct field hands
+   (convergence through model edges piling residents onto one crop) drains
+   it faster, so monoculture by fashion depletes fastest. The pressure
+   curve (workers/3, clamped 0.5 to 2.0) is provisional, surfaced for
+   review. G.soilStage (0 to tintStages-1) is the view's tint index; stage
+   changes are toasted and chronicled so the clock reads before the tint
+   lands (view is v4 step 4). */
+function soilTick(){
+  var dep = DEPLETION["fields"];
+  var workers = Object.keys(G.fieldWorkers || {}).length;
+  var worked = (G.weekWork.harvest || 0) > 0;
+  var oldStage = G.soilStage || 0;
+  if(G.soil == null) G.soil = 1;
+  if(worked){
+    var pressure = Math.min(2, Math.max(0.5, workers / 3));
+    G.soil = Math.max(0, G.soil - (1 / dep.workSeasonsToDepletion) * pressure);
+  } else {
+    G.soil = Math.min(1, G.soil + (1 / dep.restSeasons));
+  }
+  G.soilStage = Math.min(dep.tintStages - 1, Math.floor((1 - G.soil) * dep.tintStages));
+  var stageName = ["rich", "tired", "exhausted"][G.soilStage] || "worn";
+  if(G.soilStage > oldStage){
+    showToast("🌱 The fields look " + stageName + ". Rest them a season, or yields will keep falling.");
+    chronicle("The fields grew " + stageName + " from heavy cropping.");
+  } else if(G.soilStage < oldStage){
+    showToast("🌱 The fields are recovering.");
+    chronicle("The fields are recovering after a rest.");
+  }
+  G.fieldWorkers = {};
+}
 function endWeek(){
+  /* The soil clock reads the just-finished season before the ledgers reset. */
+  soilTick();
   var o = curObjective();
   if(G.offerAccepted && o){
     if(G.objComplete) showToast("✓ " + seasonName() + " done: " + o.title + " · " + G.objDone + " all time");
