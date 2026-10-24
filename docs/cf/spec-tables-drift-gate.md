@@ -28,8 +28,9 @@ foundableKinds) cannot have dead rows by construction; for them the gate
 asserts the iteration path exists and still checks everything their rows
 point at. Queued tables report QUEUED and their code checks engage when
 their rows ship (v4 step 3). DEPLETION shipped its fields row in v4 sim
-step 3 and is checked live; ADJACENCY, CLAIM_COST, and MODEL_PRESTIGE
-remain queued.
+step 3 and is checked live; CLAIM_COST shipped its ring rows (ring0/ring1/
+ring2, named as literals in CLAIM_RINGS) in v4 sim step 3 and is checked
+live; ADJACENCY and MODEL_PRESTIGE remain queued.
 
 Adding a row means: update the marker in game-spec.md section 25,
 re-run the extractor, keep the gate green. A row the gate does not know is

@@ -46,6 +46,11 @@ canvas{display:block}
 #projPick .pp-cost{color:var(--ink2);font-weight:400;font-size:11.5px}
 #foundPick .alert-chip{min-height:44px;padding:10px 12px;font-size:13px;display:flex;align-items:center;gap:6px}
 @media (max-width:560px){#foundPick .alert-chip{flex:1 1 100%}}
+#claimPick .alert-chip{min-height:44px;padding:10px 12px;font-size:13px;display:flex;align-items:center;gap:6px}
+@media (max-width:560px){#claimPick .alert-chip{flex:1 1 100%}}
+#claimPick .alert-chip.sel{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+#claimPick .alert-chip.go{border-color:var(--gold);background:rgba(90,64,16,.55);font-weight:800}
+#claimPick .pick-lab{align-self:center;font:700 11px 'Inter',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2);padding:0 4px}
 #arrPick .alert-chip{min-height:44px;padding:10px 12px;font-size:13px;display:flex;align-items:center;gap:6px}
 #arrPick .arr-note{display:flex;align-items:center;font-size:13px;padding:4px 2px}
 @media (max-width:560px){#arrPick .alert-chip{flex:1 1 100%}}
@@ -289,6 +294,7 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
   <div id="projPick" style="display:none;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
   <div id="offerPick" style="display:none;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
   <div id="foundPick" style="display:none;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
+  <div id="claimPick" style="display:none;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
   <div id="arrPick" style="display:none;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
   <div id="siteLine"></div>
 </div>
@@ -874,6 +880,7 @@ function newSlice(){
     rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, blameWarn:false, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0, offer:null, offerAccepted:false,
     rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, blameWarn:false, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0,
     sites:[], siteSeq:0, lastFoundSeason:0, houseCapacity:10, banked:false, foundArm:false, foundPlot:null, buildPref:null,
+    claimArm:false, claimBearing:null, claimRing:null, claim:null, claimPlots:[], claimSeq:0,
     bonds:{}, households:[], householdSeq:0, soloHoused:0, departed:0, arrival:null, speakCd:0, speakArm:false, coverArm:false, chronCloseArm:false, coachBank:false, coachSick:false, coachPing:false, levelSeen:null, newSeq:0, kidSeq:0, births:0,
     tiers:{clinic:1, fields:1, store:1, green:1, mill:1, school:1, well:1}, tierProg:{}, tierWorkers:{}, builtWealth:0, deaths:[], proclaim:null, proclaimArm:false, lastHarmWeek:null, lastIncidentWeek:null, incidentRollWeek:null,
     stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
@@ -1049,6 +1056,9 @@ function needsTick(a, dt){
 function decide(a){
   if(a.child){ childDecide(a); return; }
   if(a.sick || a.medicTask) return;
+  /* Claim party members stay committed to the claim: the walk-out and the
+     material carries are player-directed work, not an autonomous pick. */
+  if(a.claimParty){ var cl0 = G.claim; if(cl0 && !cl0.staked){ goClaim(a, cl0); return; } a.claimParty = null; }
   if(a.order){
     a.reason = "Your order"; a.driveObj = (a.order === G.objStation);
     if(a.resting){
@@ -1109,6 +1119,15 @@ function arrive(a){
     return;
   }
   if(a.fetch === "sitecrate-back"){ a.carrying = null; a.fetch = null; var sp2 = a.fetchSite ? siteById(a.fetchSite) : null; a.fetchSite = null; if(sp2){ sp2.matsIn.stores++; updateSiteMesh(sp2); } a.state = "act"; a.actT = 3 + Math.random()*2; return; }
+  /* Claim carries land on the stake banner, never on a build site. */
+  if(a.fetch === "claimplank-out"){ a.carrying = "plank"; a.fetch = "claimplank-back"; goTo(a, a.slot.x, a.slot.z, "claim"); return; }
+  if(a.fetch === "claimplank-back"){ a.carrying = null; a.fetch = null; var cl1 = G.claim; a.claimFetch = null; if(cl1 && !cl1.staked){ cl1.matsIn.planks++; checkClaimStaked(cl1); } a.state = "act"; a.actT = 3 + Math.random()*2; return; }
+  if(a.fetch === "claimcrate-out"){
+    if(G.stores > 0){ G.stores--; if(storedCrates[Math.min(G.stores, 12)]) storedCrates[Math.min(G.stores, 12)].visible = false; a.carrying = "crate"; a.fetch = "claimcrate-back"; goTo(a, a.slot.x, a.slot.z, "claim"); }
+    else { a.fetch = null; a.claimFetch = null; a.state = "act"; a.actT = 1; }
+    return;
+  }
+  if(a.fetch === "claimcrate-back"){ a.carrying = null; a.fetch = null; var cl2 = G.claim; a.claimFetch = null; if(cl2 && !cl2.staked){ cl2.matsIn.stores++; checkClaimStaked(cl2); } a.state = "act"; a.actT = 3 + Math.random()*2; return; }
   if(a.fetch === "plank-out"){ a.carrying = "plank"; a.fetch = "plank-back"; goTo(a, a.slot.x, a.slot.z, "clinic"); return; }
   if(a.fetch === "plank-back"){ a.carrying = null; a.fetch = null; a.fetchT = 0; G.roof = Math.min(100, G.roof + 2.5); a.state = "act"; a.actT = 6; return; }
   if(a.fetch === "crate-out"){ a.carrying = "crate"; a.fetch = "crate-back"; goTo(a, a.slot.x, a.slot.z, "store"); return; }
@@ -1262,6 +1281,22 @@ function stepAgents(dt){
             wk(a, "build", pdt);
             if(Math.random() < dt * 0.12) setBubble(a, "🔨", 0.9);
           }
+        }
+      } else if(st === "claim"){
+        /* Claim carries: party members fetch stores and planks to the stake
+           banner until the CLAIM_COST row is met. No wk() calls here, so
+           claim labor never leaks into the driven-work ledgers. */
+        a.energy = Math.max(0, a.energy - 0.8*dt);
+        var cl3 = G.claim;
+        if(!cl3 || cl3.staked){ a.claimParty = null; a.state = "idle"; a.decideT = 0.2; }
+        else if(!a.fetch){
+          var need3 = claimNeed(cl3);
+          if(need3.planks > 0){ a.fetch = "claimplank-out"; a.claimFetch = cl3.id; goTo(a, -15.5, -8.6, "claim"); }
+          else if(need3.stores > 0){
+            if(G.stores > 0){ a.fetch = "claimcrate-out"; a.claimFetch = cl3.id; goTo(a, 16.5, -8.8, "claim"); }
+            else if(Math.random() < dt * 0.25) setBubble(a, "📦", 1.2);
+          }
+          else checkClaimStaked(cl3);
         }
       }
       if(a.energy < 18 && st !== "home"){ setBubble(a, "💤", 1.6); if(a.order) a.resting = true; goStation(a, "home"); }
@@ -2949,6 +2984,32 @@ var GROWTH = {contentmentMin: 75, wealthMin: 20, kindOrder: ["cottage", "townhou
 var DEPLETION = {
   fields:{workSeasonsToDepletion:4, restSeasons:2, tintStages:3, rotationReset:null}
 };
+/* CLAIM_COST: claim pricing by distance ring (v4 sim step 3, spec sections
+   23/24). One row per ring: allowedBearings counts the claimable compass
+   bearings, storesCost/planksCost are the base carried material units, and
+   carryTimeMult scales both, so the farther the ring the longer the
+   material carry (Factorio logistics pricing). The numbers the player sees
+   are the scaled totals. Row values are provisional, surfaced for review
+   (spec appendix open design space). */
+/* CF-REF: spec-tables-drift-gate.md [56] */
+var CLAIM_COST = {
+  ring0:{ring:0, allowedBearings:8, storesCost:4, planksCost:2, carryTimeMult:1.0},
+  ring1:{ring:1, allowedBearings:8, storesCost:6, planksCost:3, carryTimeMult:1.25},
+  ring2:{ring:2, allowedBearings:8, storesCost:8, planksCost:4, carryTimeMult:1.5}
+};
+/* The ring keys, named as literals so the spec drift gate's dead-row check
+   sees every row consumed. */
+var CLAIM_RINGS = ["ring0", "ring1", "ring2"];
+/* Claim geometry (not table data): eight compass bearings from the village
+   center (0,4), three distance rings. Centers clamp to the ground rect. */
+var CLAIM_BEARINGS = [
+  {name:"north", dx:0, dz:-1}, {name:"north-east", dx:0.7071, dz:-0.7071},
+  {name:"east", dx:1, dz:0}, {name:"south-east", dx:0.7071, dz:0.7071},
+  {name:"south", dx:0, dz:1}, {name:"south-west", dx:-0.7071, dz:0.7071},
+  {name:"west", dx:-1, dz:0}, {name:"north-west", dx:-0.7071, dz:-0.7071}
+];
+var CLAIM_RING_RADIUS = [46, 52, 58];
+var CLAIM_RING_NAME = ["the near ring", "the far ring", "the far-off ring"];
 PROJECTS.forEach(function(p){
   BUILD_KINDS[p.id] = {id:p.id, title:p.title, icon:p.icon, plot:false, project:true, projId:p.id, station:p.station,
     mesh:"annex", x:PROJ_SITE_POS[p.id][0], z:PROJ_SITE_POS[p.id][1], wall:0xd9c9a8, roof:0x7c4a30,
@@ -3031,6 +3092,196 @@ function foundSite(plotIx, kindId){
   chronicle(kind.title + " founded.");
   Store.commit();
   return site;
+}
+/* CLAIM (v4 sim step 3, spec sections 23/24): the player-directed founding
+   of new surveyed plot clusters at Town tier and above. The player picks a
+   bearing and a distance ring; a household-led founding party walks out,
+   stakes a banner, and carries stores and planks from the CLAIM_COST table
+   until the claim is staked. A staked claim appends a plot cluster to the
+   PLOTS data list by data extension, and the new plots accept Founding
+   exactly like the original six. BUILD vs LIVE separation holds: Claim
+   places and pays, it never orders or influences a resident, and claim
+   carries never touch the driven-work ledgers (no wk() calls anywhere on
+   this path). */
+function claimUnlocked(){ return villageLevel().count >= 9; }
+function claimCostKey(ringIx){ return CLAIM_RINGS[Math.max(0, Math.min(2, ringIx == null ? 0 : ringIx))]; }
+function claimTotals(ringIx){ var r = CLAIM_COST[claimCostKey(ringIx)]; return {stores: Math.round(r.storesCost * r.carryTimeMult), planks: Math.round(r.planksCost * r.carryTimeMult)}; }
+/* The river band compresses the three southward bearings onto its north
+   bank, where the formula stacks them on the mill and the surveyed plots;
+   their slots are hand-placed on verified clear ground instead. */
+var CLAIM_SOUTH_SLOTS = {
+  3: [[24,16],[38,16],[52,18]],
+  4: [[-12,20],[0,20],[12,20]],
+  5: [[-48,24],[-36,24],[-24,24]]
+};
+function claimCenter(bearingIx, ringIx){
+  var bi = ((bearingIx % 8) + 8) % 8, ri = Math.max(0, Math.min(2, ringIx == null ? 0 : ringIx));
+  if(CLAIM_SOUTH_SLOTS[bi]){ var ss = CLAIM_SOUTH_SLOTS[bi][ri]; return {x: ss[0], z: ss[1]}; }
+  var b = CLAIM_BEARINGS[bi];
+  var pts = [];
+  for(var k = 0; k < 3; k++){
+    var r = CLAIM_RING_RADIUS[k], off = (k - 1) * 10;
+    /* The river band (z above 28) is not claimable ground; centers clamp
+       to the buildable rect. */
+    pts.push({
+      x: Math.max(-52, Math.min(52, b.dx * r - b.dz * off)),
+      z: Math.max(-37, Math.min(28, 4 + b.dz * r + b.dx * off))
+    });
+  }
+  var avoid = [];
+  Object.keys(STATION3).forEach(function(k){ if(k !== "home") avoid.push(STATION3[k]); });
+  /* Relaxation: the clamp can still stack a bearing's rings on each other
+     or on a station, so push apart until every sibling pair is 14+ apart
+     and every center is 10+ from a station. Push blocked by a wall
+     transfers to the partner point. Deterministic, no RNG. */
+  function slidePt(p, dx, dz){
+    var nx = Math.max(-52, Math.min(52, p.x + dx)), nz = Math.max(-37, Math.min(28, p.z + dz));
+    var left = {x: dx - (nx - p.x), z: dz - (nz - p.z)};
+    p.x = nx; p.z = nz;
+    return left;
+  }
+  for(var it = 0; it < 60; it++){
+    for(var i = 0; i < 3; i++){
+      for(var j = i + 1; j < 3; j++){
+        var dx = pts[j].x - pts[i].x, dz = pts[j].z - pts[i].z, d = Math.sqrt(dx*dx + dz*dz), ux, uz;
+        if(d < 0.001){ ux = -b.dz; uz = b.dx; d = 0.001; } else { ux = dx / d; uz = dz / d; }
+        if(d < 14){
+          var push = (14 - d) / 2, left = slidePt(pts[i], -ux * push, -uz * push);
+          slidePt(pts[j], ux * push - left.x, uz * push - left.z);
+        }
+      }
+      for(var s = 0; s < avoid.length; s++){
+        var ax = pts[i].x - avoid[s].x, az = pts[i].z - avoid[s].z, ad = Math.sqrt(ax*ax + az*az), vx, vz;
+        if(ad < 0.001){ vx = -b.dz; vz = b.dx; ad = 0.001; } else { vx = ax / ad; vz = az / ad; }
+        if(ad < 10) slidePt(pts[i], vx * (10 - ad), vz * (10 - ad));
+      }
+    }
+  }
+  return pts[ri];
+}
+function claimClusterPlots(cx, cz){ return [{x:cx - 6, z:cz}, {x:cx + 6, z:cz}, {x:cx, z:cz + 6}]; }
+function foundingHousehold(){
+  var best = null;
+  (G.households || []).forEach(function(h){ if(!best || (h.since || 0) < (best.since || 0)) best = h; });
+  return best;
+}
+function householdSurname(h){
+  var m0 = h ? agent(h.members[0]) : null;
+  return m0 ? m0.name.split(" ").slice(-1)[0] : "village";
+}
+function recruitClaimParty(c){
+  var h = foundingHousehold(); if(!h) return [];
+  var party = [];
+  h.members.forEach(function(id){ var a = agent(id); if(a && !a.child && !a.sick && !a.departed) party.push(a); });
+  /* Mimetic cause: the founding household's imitation edges do the
+     recruiting. Admirers of the household's members (followersOf counts,
+     spec section 4) join the claim party, so a claim by a well-modeled
+     household travels with company and a claim by an isolated one travels
+     alone. */
+  var admirers = [];
+  G.agents.forEach(function(b){
+    if(b.child || b.sick || b.departed || party.indexOf(b) >= 0) return;
+    for(var i = 0; i < h.members.length; i++) if(b.model === h.members[i]){ admirers.push(b); break; }
+  });
+  admirers.slice(0, 3).forEach(function(b){ party.push(b); });
+  party.forEach(function(a){ a.claimParty = true; });
+  c.party = party.map(function(a){ return a.id; });
+  c.household = h.id;
+  return party;
+}
+function goClaim(a, c){
+  var w = [[-3.4, 0], [3.4, 0], [0, -3.4], [0, 3.4], [-2.4, -2.4], [2.4, 2.4]];
+  var spot = w[Math.floor(Math.random() * w.length)];
+  a.slot = {x: c.x + spot[0], z: c.z + spot[1]};
+  a.reason = "Staking the claim";
+  goTo(a, a.slot.x, a.slot.z, "claim");
+}
+function claimNeed(c){
+  var t = c.cost, incS = 0, incP = 0;
+  G.agents.forEach(function(o){
+    if(o.claimFetch === c.id){
+      if(o.fetch === "claimcrate-out" || o.fetch === "claimcrate-back") incS++;
+      if(o.fetch === "claimplank-out" || o.fetch === "claimplank-back") incP++;
+    }
+  });
+  return {stores: Math.max(0, t.stores - c.matsIn.stores - incS), planks: Math.max(0, t.planks - c.matsIn.planks - incP)};
+}
+function buildClaimMesh(c){
+  var g = new THREE.Group(); g.position.set(c.x, 0, c.z); scene.add(g);
+  box(0.22, 3.2, 0.22, 0x8a6a42, 0, 1.6, 0, g);
+  box(2.2, 1.1, 0.08, 0xf5c86a, 1.15, 2.6, 0, g);
+  var ring = new THREE.Mesh(new THREE.RingGeometry(3.1, 3.5, 28), new THREE.MeshBasicMaterial({color: 0xf5c86a, transparent: true, opacity: 0.85, side: THREE.DoubleSide}));
+  ring.rotation.x = -Math.PI / 2; ring.position.y = 0.06; g.add(ring);
+  c.group = g;
+}
+function stakeClaim(bearingIx, ringIx){
+  if(!G.started || G.over) return null;
+  if(!claimUnlocked()){ showToast("🚩 Claims unlock when the village grows into a Town."); return null; }
+  if(G.claim && !G.claim.staked){ showToast("🚩 The claim party is still out staking the last claim."); return null; }
+  var h = foundingHousehold();
+  if(!h){ showToast("🚩 No household stands ready to lead a claim."); return null; }
+  var hn = householdSurname(h), ctr = claimCenter(bearingIx, ringIx);
+  /* No double-claiming: ground already claimed or surveyed within 10 units
+     refuses the stake, the way Civ refuses a city on settled ground. */
+  for(var pi = 0; pi < PLOTS.length; pi++){
+    var pp = PLOTS[pi];
+    if(Math.hypot(pp.x - ctr.x, pp.z - ctr.z) < 10){ showToast("🚩 That ground is already claimed or surveyed."); return null; }
+  }
+  var cl = {id: "claim" + (++G.claimSeq), bearingIx: bearingIx, ringIx: ringIx, x: ctr.x, z: ctr.z,
+    cost: claimTotals(ringIx), matsIn: {stores: 0, planks: 0}, party: [], household: null, staked: false};
+  G.claim = cl;
+  var party = recruitClaimParty(cl);
+  party.forEach(function(a){ goClaim(a, cl); });
+  buildClaimMesh(cl);
+  showToast("🚩 The " + hn + " household walks out to stake a claim " + CLAIM_BEARINGS[((bearingIx % 8) + 8) % 8].name + ", " + CLAIM_RING_NAME[Math.max(0, Math.min(2, ringIx))] + ": " + party.length + " strong.", {x: ctr.x, z: ctr.z});
+  SND.play("order");
+  chronicle("The " + hn + " household walked out to stake a claim " + CLAIM_BEARINGS[((bearingIx % 8) + 8) % 8].name + ".");
+  Store.commit();
+  return cl;
+}
+function checkClaimStaked(c){
+  if(!c || c.staked) return;
+  if(c.matsIn.stores < c.cost.stores || c.matsIn.planks < c.cost.planks) return;
+  c.staked = true;
+  /* The claim becomes surveyed plots by data extension: rows appended to
+     the same PLOTS list the six fixed plots live in, so they accept
+     Founding exactly like the originals (plotSite, foundSite, plot taps).
+     The positions persist in G.claimPlots so Continue rebuilds them. */
+  var plots = claimClusterPlots(c.x, c.z);
+  plots.forEach(function(p){
+    PLOTS.push({x: p.x, z: p.z, cluster: c.id});
+    G.claimPlots.push({x: p.x, z: p.z, cluster: c.id});
+    buildPlotMesh(PLOTS.length - 1);
+  });
+  if(c.group){ scene.remove(c.group); c.group = null; }
+  G.agents.forEach(function(a){
+    if(a.claimParty){ a.claimParty = null; if(a.stationId === "claim" && !a.fetch){ a.state = "idle"; a.decideT = 0.2; } }
+  });
+  showToast("🚩 Claim staked: three surveyed plots join the village.", {x: c.x, z: c.z});
+  SND.play("objwin");
+  chronicle("Claim staked " + CLAIM_BEARINGS[((c.bearingIx % 8) + 8) % 8].name + ", " + CLAIM_RING_NAME[Math.max(0, Math.min(2, c.ringIx))] + ": three new surveyed plots.");
+  G.claim = null;
+  Store.commit();
+}
+/* The season boundary keeps a claim from stalling forever: if the whole
+   party died or departed mid-claim, re-recruit from the current household
+   graph; if nobody can walk out, abandon the claim instead of leaving a
+   permanent banner and a dead record. */
+function claimSeasonCheck(){
+  var c = G.claim;
+  if(!c || c.staked) return;
+  var living = G.agents.filter(function(a){ return a.claimParty; });
+  if(living.length) return;
+  var party = recruitClaimParty(c);
+  if(!party.length){
+    if(c.group) scene.remove(c.group);
+    G.claim = null;
+    showToast("🚩 The claim party scattered; the claim is abandoned.");
+    chronicle("A claim was abandoned when its party scattered.");
+    return;
+  }
+  party.forEach(function(a){ goClaim(a, c); });
+  showToast("🚩 A new party walks out to finish the claim.");
 }
 // CF-REF: autonomous-founding-gates.md [28]
 function foundingCheck(){
@@ -3205,18 +3456,23 @@ function updateSiteMesh(site){
   var mats = Math.min(3, site.matsIn ? site.matsIn.stores + site.matsIn.planks : 0);
   if(site.matMeshes) site.matMeshes.forEach(function(m, i){ m.visible = !site.done && i < mats; });
 }
+/* Plot rings are built per index (not only at init) so claimed clusters can
+   extend the PLOTS list at runtime and get their rings and tap targets. */
+var plotRingMat = null;
+function buildPlotMesh(ix){
+  var p = PLOTS[ix]; if(!p) return;
+  if(!plotRingMat) plotRingMat = new THREE.MeshBasicMaterial({color: 0xf5c86a, transparent: true, opacity: 0.85, side: THREE.DoubleSide});
+  var g = new THREE.Group(); g.position.set(p.x, 0, p.z); scene.add(g);
+  var ring = new THREE.Mesh(new THREE.RingGeometry(3.1, 3.5, 28), plotRingMat);
+  ring.rotation.x = -Math.PI / 2; ring.position.y = 0.06; g.add(ring);
+  [[-3.2, -2.7], [3.2, -2.7], [-3.2, 2.7], [3.2, 2.7]].forEach(function(c){ box(0.16, 0.8, 0.16, 0x8a6a42, c[0], 0.4, c[1], g); });
+  plotMeshes[ix] = g;
+  var hit = new THREE.Mesh(new THREE.CircleGeometry(3.6, 12), new THREE.MeshBasicMaterial({visible: false}));
+  hit.rotation.x = -Math.PI / 2; hit.position.set(p.x, 0.1, p.z); hit.userData.plotIx = ix; scene.add(hit);
+  plotHitMeshes[ix] = hit;
+}
 function buildPlots(){
-  var ringMat = new THREE.MeshBasicMaterial({color: 0xf5c86a, transparent: true, opacity: 0.85, side: THREE.DoubleSide});
-  PLOTS.forEach(function(p, ix){
-    var g = new THREE.Group(); g.position.set(p.x, 0, p.z); scene.add(g);
-    var ring = new THREE.Mesh(new THREE.RingGeometry(3.1, 3.5, 28), ringMat);
-    ring.rotation.x = -Math.PI / 2; ring.position.y = 0.06; g.add(ring);
-    [[-3.2, -2.7], [3.2, -2.7], [-3.2, 2.7], [3.2, 2.7]].forEach(function(c){ box(0.16, 0.8, 0.16, 0x8a6a42, c[0], 0.4, c[1], g); });
-    plotMeshes.push(g);
-    var hit = new THREE.Mesh(new THREE.CircleGeometry(3.6, 12), new THREE.MeshBasicMaterial({visible: false}));
-    hit.rotation.x = -Math.PI / 2; hit.position.set(p.x, 0.1, p.z); hit.userData.plotIx = ix; scene.add(hit);
-    plotHitMeshes.push(hit);
-  });
+  PLOTS.forEach(function(p, ix){ buildPlotMesh(ix); });
 }
 
 // CF-REF: driven-work-progress.md [14]
@@ -3340,7 +3596,7 @@ function statDrift(dt){
     SND.play("blame");
   }
   G.agents.forEach(function(a){
-    if(a.state === "act" && a.stationId && a.stationId !== "green" && a.stationId !== "home" && a.stationId !== "build"){ workers++; if(!a.order) crowd[a.stationId] = (crowd[a.stationId] || 0) + 1; }
+    if(a.state === "act" && a.stationId && a.stationId !== "green" && a.stationId !== "home" && a.stationId !== "build" && a.stationId !== "claim"){ workers++; if(!a.order) crowd[a.stationId] = (crowd[a.stationId] || 0) + 1; }
     if(a.order) ordered++;
   });
   s.prod += (workers * 11 - s.prod) * dt * 0.03;
@@ -3391,6 +3647,8 @@ function soilTick(){
 function endWeek(){
   /* The soil clock reads the just-finished season before the ledgers reset. */
   soilTick();
+  /* A claim whose party all died or departed re-recruits or is abandoned. */
+  claimSeasonCheck();
   var o = curObjective();
   if(G.offerAccepted && o){
     if(G.objComplete) showToast("✓ " + seasonName() + " done: " + o.title + " · " + G.objDone + " all time");
@@ -3795,6 +4053,13 @@ function restoreState(st){
     buildSiteMesh(site);
     if(site.plot >= 0 && plotMeshes[site.plot]) plotMeshes[site.plot].visible = false;
   });
+  /* Claimed plots persist in the save (G.claimPlots); re-extend the PLOTS
+     list and rebuild their rings for a continued village. An in-flight
+     claim keeps its party (a.claimParty survives on the agents) and gets
+     its stake banner rebuilt. */
+  if(!Array.isArray(G.claimPlots)) G.claimPlots = [];
+  G.claimPlots.forEach(function(p){ PLOTS.push({x:p.x, z:p.z, cluster:p.cluster}); buildPlotMesh(PLOTS.length - 1); });
+  if(G.claim && !G.claim.staked) buildClaimMesh(G.claim);
   /* Graves persist in the save (G.deaths entries carry x/z); rebuild the
      markers for a continued village. Entries from older saves have no x/z
      and are skipped. */
@@ -3887,6 +4152,7 @@ function activityText(a){
     if(a.stationId === "mill") return a.carrying === "crate" ? "Carrying grain" : "🌾 Milling grain";
     if(a.stationId === "school") return "📚 At the school";
     if(a.stationId === "build") return a.carrying ? "🪵 Hauling materials" : "🔨 Raising a building";
+    if(a.stationId === "claim") return a.carrying ? "🚩 Hauling claim materials" : "🚩 Staking the claim";
     return "Working";
   }
   return "Idle";
@@ -3912,7 +4178,7 @@ function refreshTray(force){
      moment the verb comes back reads at a glance (display only, no sim change). */
   var spotCdN = Math.ceil(G.spotCd - G.t), spotOnCd = G.spotCd > G.t;
   var spotFresh = !spotOnCd && !!a && G.spotCd > 0 && G.t - G.spotCd < 4;
-  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.sick ? "S" : "") : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + (G.ui && G.ui.lens ? "L" : "l") + "|" + (G.foundArm ? "F" : "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "") + "|" + (G.modelArm ? "MA" : "") + (G.coverArm ? "CA" : "") + (G.banked ? "BK" : "") + (a && a.bank != null ? "AC" : "") + (a && a.child ? "K" : "") + (a && a.spotUntil ? Math.ceil(Math.max(0, a.spotUntil - G.t)) : "") + (G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : "");
+  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.sick ? "S" : "") : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + (G.ui && G.ui.lens ? "L" : "l") + "|" + (G.foundArm ? "F" : "") + (G.claimArm ? "C" : "") + (G.claimBearing == null ? "" : "b" + G.claimBearing) + (G.claimRing == null ? "" : "r" + G.claimRing) + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "") + "|" + (G.modelArm ? "MA" : "") + (G.coverArm ? "CA" : "") + (G.banked ? "BK" : "") + (a && a.bank != null ? "AC" : "") + (a && a.child ? "K" : "") + (a && a.spotUntil ? Math.ceil(Math.max(0, a.spotUntil - G.t)) : "") + (G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : "");
   if(!force && key === trayKey) return;
   trayKey = key;
   var info = document.getElementById("selInfo");
@@ -3965,6 +4231,7 @@ function refreshTray(force){
   html += "<button class='cbtn" + (cam.follow ? " cam" : "") + "' data-o='follow'" + (!a ? " disabled" : "") + "><span class='i'>🎥</span><span class='l'>Follow</span></button>";
   html += "<button class='cbtn" + (G.proclaimArm ? " armed" : "") + "' data-o='proclaim'><span class='i'>📣</span><span class='l'>Proclaim</span></button>";
   html += "<button class='cbtn" + (G.foundArm ? " armed" : "") + "' data-o='found'><span class='i'>🏗</span><span class='l'>Found</span></button>";
+  html += "<button class='cbtn" + (G.claimArm ? " armed" : "") + "' data-o='claim'><span class='i'>🚩</span><span class='l'>Claim</span></button>";
   html += "<button class='cbtn' data-o='story'><span class='i'>📖</span><span class='l'>Story</span></button>";
   html += "<button class='cbtn' data-o='mute'><span class='i'>" + (G.ui && G.ui.muted ? "🔇" : "🔊") + "</span><span class='l'>Sound</span></button>";
   html += "<button class='cbtn' data-o='lens'><span class='i'>" + (G.ui && G.ui.lens ? "⚔" : "🗺") + "</span><span class='l'>Lens</span></button></div>";
@@ -4003,6 +4270,15 @@ function refreshTray(force){
       if(o === "story"){ storySoFar(false); return; }
       if(o === "build"){ if(a && !firstSiteOpen()){ showToast("🔨 No building site is open right now. Found a building first, or let the current one finish."); return; } setOrder3("build"); return; }
       if(o === "found"){ G.foundArm = !G.foundArm; G.foundPlot = null; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; if(G.foundArm) showToast("🏗 Tap a surveyed plot (gold ring) to found a building"); refreshTray(true); return; }
+      /* Claim (v4): a Town-tier BUILD verb. Arms the bearing-plus-ring pick
+         row below; the gold armed vocabulary matches the other verbs. */
+      if(o === "claim"){
+        if(!claimUnlocked()){ showToast("🚩 Claims unlock when the village grows into a Town."); refreshTray(true); return; }
+        G.claimArm = !G.claimArm; G.claimBearing = null; G.claimRing = null;
+        G.armed = false; G.modelArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false;
+        if(G.claimArm) showToast("🚩 Pick a bearing and a ring: the founding party stakes the claim and carries the materials");
+        refreshTray(true); return;
+      }
       setOrder3(o);
     });
   });
@@ -4099,6 +4375,7 @@ function announceArmedStill(){
   else if(G.modelArm){ var ma = G.selected ? agent(G.selected) : null; showToast("👁 Model still armed, tap who " + (ma ? ma.name.split(" ")[0] : "they") + " should look up to"); }
   else if(G.proclaimArm) showToast("📣 Proclaim still armed, tap a building or building site");
   else if(G.foundArm) showToast("🏗 Found still armed, tap a surveyed plot");
+  else if(G.claimArm) showToast("🚩 Claim still armed, pick a bearing and a ring");
 }
 var hudAcc = 0;
 var mmCtx = null;
@@ -4276,6 +4553,30 @@ function hudTick(dt){
     if(fpEl.innerHTML !== fpHtml) fpEl.innerHTML = fpHtml;
     fpEl.style.display = showFound ? "flex" : "none";
   }
+  /* Claim pick row (v4): bearing chips then ring chips with the carried
+     cost previewed, then a priced Stake confirm once both are picked. */
+  var cpEl = document.getElementById("claimPick");
+  if(cpEl){
+    var showClaim = !!G.claimArm && !(G.claim && !G.claim.staked);
+    var cpHtml = "";
+    if(showClaim){
+      var bearSel = (G.claimBearing == null) ? -1 : G.claimBearing;
+      var ringSel = (G.claimRing == null) ? -1 : G.claimRing;
+      cpHtml = "<span class='pick-lab'>Bearing</span>" + CLAIM_BEARINGS.map(function(b, ix){
+        return "<button class='alert-chip" + (ix === bearSel ? " sel" : "") + "' onclick='__claimPickB(" + ix + ")'>" + b.name + "</button>";
+      }).join("") + "<span class='pick-lab'>Ring</span>" + CLAIM_RINGS.map(function(k, ix){
+        var t = claimTotals(ix);
+        return "<button class='alert-chip" + (ix === ringSel ? " sel" : "") + "' onclick='__claimPickR(" + ix + ")'>" + CLAIM_RING_NAME[ix] + " · 📦" + t.stores + " 🪵" + t.planks + "</button>";
+      }).join("");
+      if(bearSel >= 0 && ringSel >= 0){
+        var tc = claimTotals(ringSel);
+        cpHtml += "<button class='alert-chip go' onclick='__claimStake()'>🚩 Stake the claim · 📦" + tc.stores + " 🪵" + tc.planks + "</button>";
+      }
+      cpHtml += "<button class='alert-chip' onclick='__claimCancel()'>✕ Not yet</button>";
+    }
+    if(cpEl.innerHTML !== cpHtml) cpEl.innerHTML = cpHtml;
+    cpEl.style.display = showClaim ? "flex" : "none";
+  }
   var apEl = document.getElementById("arrPick");
   if(apEl){
     var arr2 = G.arrival;
@@ -4363,7 +4664,7 @@ function hudTick(dt){
         if(stEl.style.bottom !== sb) stEl.style.bottom = sb;
         if(stEl.style.top) stEl.style.top = "";
         /* CF-REF: phone-stats-compact-during-picks.md [2] */
-        var pickOpen = ["offerPick","projPick","foundPick","arrPick"].some(function(pid){ var pe = document.getElementById(pid); return pe && pe.style.display !== "none"; });
+        var pickOpen = ["offerPick","projPick","foundPick","claimPick","arrPick"].some(function(pid){ var pe = document.getElementById(pid); return pe && pe.style.display !== "none"; });
         if(stEl.classList.contains("compact") !== pickOpen) stEl.classList.toggle("compact", pickOpen);
       } else {
         /* Desktop: anchor the stats panel below the objective card's real
@@ -4403,7 +4704,7 @@ function intentIcon(a){
   if(a.sick || a.state === "sit") return "✚";
   if(a.medicTask || a.state === "kneel") return "✚";
   if(a.state === "watch") return "👀";
-  if(a.state === "walk" || a.state === "act"){ if(a.stationId === "build") return "🔨"; var st = STATION3[a.stationId]; return st ? st.icon : "•"; }
+  if(a.state === "walk" || a.state === "act"){ if(a.stationId === "build") return "🔨"; if(a.stationId === "claim") return "🚩"; var st = STATION3[a.stationId]; return st ? st.icon : "•"; }
   return "💭";
 }
 function shuffleArr(arr){ for(var i = arr.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)); var t = arr[i]; arr[i] = arr[j]; arr[j] = t; } return arr; }
@@ -4457,7 +4758,7 @@ function pickWantStation(a){
   if(a.disp === "Selfish") c.push(["green", 2.4], ["home", 1.6]);
   if(a.disp === "Withdrawn") c.push(["home", 3]);
   var md = a.model ? agent(a.model) : null;
-  if(md){ if(md.stationId && md.stationId !== "home" && md.stationId !== "build") c.push([md.stationId, 2.6]); if(md.want) c.push([md.want.station, (hasPerk("schoolbell") && followersOf(md) >= 2) ? 3.2 : 2.2]); }
+  if(md){ if(md.stationId && md.stationId !== "home" && md.stationId !== "build" && md.stationId !== "claim") c.push([md.stationId, 2.6]); if(md.want) c.push([md.want.station, (hasPerk("schoolbell") && followersOf(md) >= 2) ? 3.2 : 2.2]); }
   var tot = 0; c.forEach(function(x){ tot += x[1]; });
   var r = Math.random() * tot;
   for(var i = 0; i < c.length; i++){ r -= c[i][1]; if(r <= 0) return c[i][0]; }
@@ -4592,6 +4893,10 @@ window.__pickProject = function(i){ pickProject(i); };
 window.__acceptOffer = function(){ acceptOffer(); };
 window.__ignoreOffer = function(){ ignoreOffer(); };
 window.__foundPick = function(ix){ var pk = foundableKinds(); if(G.foundPlot !== null && G.foundPlot !== undefined && pk[ix]) foundSite(G.foundPlot, pk[ix]); G.foundPlot = null; refreshTray(true); };
+window.__claimPickB = function(ix){ G.claimBearing = ix; refreshTray(true); };
+window.__claimPickR = function(ix){ G.claimRing = ix; refreshTray(true); };
+window.__claimStake = function(){ var b = G.claimBearing, r = G.claimRing; G.claimArm = false; G.claimBearing = null; G.claimRing = null; if(b != null && r != null) stakeClaim(b, r); refreshTray(true); };
+window.__claimCancel = function(){ G.claimArm = false; G.claimBearing = null; G.claimRing = null; refreshTray(true); };
 window.__foundCancel = function(){ G.foundPlot = null; refreshTray(true); };
 window.__arrivalChoice = function(w){ arrivalChoice(w === 1 || w === true); };
 var projV = null;

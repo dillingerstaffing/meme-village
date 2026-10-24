@@ -32,7 +32,12 @@
         "planksCost",
         "carryTimeMult"
       ],
-      "status": "queued"
+      "keys": [
+        "ring0",
+        "ring1",
+        "ring2"
+      ],
+      "status": "live"
     },
     "DEPLETION": {
       "columns": [

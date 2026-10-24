@@ -1,7 +1,7 @@
 # The Phone Stats Panel Compacts While a Decision Pick Is Open
 
 On screens 560px and under, when any objective-card decision pick row is
-visible (offer, project, found, arrival), hudTick adds the `compact` class
+visible (offer, project, found, claim, arrival), hudTick adds the `compact` class
 to #stats. Compact hides the seven meter rows and the header and shows
 #statsStrip instead: one wrapping strip with every meter's icon and value
 (blame included only while the blame row itself is showing). When the pick

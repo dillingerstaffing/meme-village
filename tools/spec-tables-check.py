@@ -15,9 +15,10 @@ Fails the build when:
      must name a RES3 resident).
 
 Keyless tables (PLOTS, OBJECTIVES, NEWCOMERS) check their row counts.
-Queued tables (ADJACENCY, CLAIM_COST, MODEL_PRESTIGE) report
+Queued tables (ADJACENCY, MODEL_PRESTIGE) report
 QUEUED; their code checks engage when their rows ship (v4 step 3).
-DEPLETION shipped its first row in v4 sim step 3 and is checked live.
+DEPLETION shipped its first row in v4 sim step 3 and is checked live;
+CLAIM_COST shipped its ring rows in v4 sim step 3 and is checked live.
 
 Usage: python3 tools/spec-tables-check.py
   Exit 0 with one OK line, or exit 1 listing every finding.
@@ -107,6 +108,7 @@ def main():
         "INCIDENTS": ("key", []),
         "PROJECTS": ("key", []),
         "DEPLETION": ("key", []),
+        "CLAIM_COST": ("key", []),
         "RES3": ("iteration", [r"RES3\.map\s*\("]),
         "BUILD_KINDS": ("iteration", [r"Object\.keys\(BUILD_KINDS\)"]),
     }
