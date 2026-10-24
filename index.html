@@ -454,10 +454,11 @@ var Store = (function(){
     "ui/select": function(p){ state.selected = p.id || null; if(state.ui && state.ui.sheet) state.ui.sheet = state.selected; },
     "ui/sheet": function(p){ if(state.ui) state.ui.sheet = p && p.id ? p.id : null; },
     "ui/mute": function(p){ if(state.ui) state.ui.muted = (p && typeof p.on === "boolean") ? p.on : !state.ui.muted; },
-    /* Tension lens: a minimap data-map that renders the imitation graph's
-       own pair-tension ledger (converging desire, household spread) as edges
-       between heated residents. View state only, never a sim input. */
-    "ui/lens": function(p){ if(state.ui) state.ui.lens = (p && typeof p.on === "boolean") ? p.on : !state.ui.lens; },
+    /* Lens modes: a minimap data-map that renders one imitation-graph layer
+       at a time (the Civ VI lens grammar: only one lens active at a time,
+       each with its own visual code). Cycles off to tension to desire to
+       off on the tray button. View state only, never a sim input. */
+    "ui/lens": function(p){ if(!state.ui) return; if(p && (p.mode === "tension" || p.mode === "desire" || p.mode === "off")) state.ui.lens = p.mode === "off" ? null : p.mode; else if(p && typeof p.on === "boolean") state.ui.lens = p.on ? "tension" : null; else state.ui.lens = state.ui.lens === "tension" ? "desire" : (state.ui.lens === "desire" ? null : "tension"); },
     /* Minimap event pings (the SC2 alert grammar): sim-emitted alert
        markers drawn by drawMinimap at the event site. Capped, transient,
        display only; the toast queue never delays them. */
@@ -4461,6 +4462,9 @@ function restoreState(st){
   st.pendingIncident = (typeof st.pendingIncident === "number") ? (INCIDENTS[st.pendingIncident] || null) : null;
   st.curIncident = (typeof st.curIncident === "number") ? (INCIDENTS[st.curIncident] || null) : null;
   if(!Array.isArray(st.chronicle)) st.chronicle = [];
+  /* Lens modes (2026-10-24): legacy boolean lens state restores to the
+     tension mode; anything else non-string clears. */
+  if(st.ui && typeof st.ui.lens !== "undefined" && typeof st.ui.lens !== "string"){ st.ui.lens = st.ui.lens ? "tension" : null; }
   if(!Array.isArray(st.medicQueue)) st.medicQueue = [];
   if(!st.prestigeFlip || typeof st.prestigeFlip !== "object") st.prestigeFlip = {};
   st.coverArm = false;
@@ -4625,7 +4629,7 @@ function refreshTray(force){
      moment the verb comes back reads at a glance (display only, no sim change). */
   var spotCdN = Math.ceil(G.spotCd - G.t), spotOnCd = G.spotCd > G.t;
   var spotFresh = !spotOnCd && !!a && G.spotCd > 0 && G.t - G.spotCd < 4;
-  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.sick ? "S" : "") : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + (G.ui && G.ui.lens ? "L" : "l") + "|" + (G.foundArm ? "F" : "") + (G.claimArm ? "C" : "") + (G.claimBearing == null ? "" : "b" + G.claimBearing) + (G.claimRing == null ? "" : "r" + G.claimRing) + (G.roadArm ? "R" : "") + (G.roadFrom || "") + (G.roadTo || "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "") + "|" + (G.modelArm ? "MA" : "") + (G.coverArm ? "CA" : "") + (G.banked ? "BK" : "") + (a && a.bank != null ? "AC" : "") + (a && a.child ? "K" : "") + (a && a.spotUntil ? Math.ceil(Math.max(0, a.spotUntil - G.t)) : "") + (G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : "");
+  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.sick ? "S" : "") : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + (G.ui && G.ui.lens ? "L" + G.ui.lens : "l") + "|" + (G.foundArm ? "F" : "") + (G.claimArm ? "C" : "") + (G.claimBearing == null ? "" : "b" + G.claimBearing) + (G.claimRing == null ? "" : "r" + G.claimRing) + (G.roadArm ? "R" : "") + (G.roadFrom || "") + (G.roadTo || "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "") + "|" + (G.modelArm ? "MA" : "") + (G.coverArm ? "CA" : "") + (G.banked ? "BK" : "") + (a && a.bank != null ? "AC" : "") + (a && a.child ? "K" : "") + (a && a.spotUntil ? Math.ceil(Math.max(0, a.spotUntil - G.t)) : "") + (G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : "");
   if(!force && key === trayKey) return;
   trayKey = key;
   var info = document.getElementById("selInfo");
@@ -4682,7 +4686,7 @@ function refreshTray(force){
   html += "<button class='cbtn" + (G.roadArm ? " armed" : "") + "' data-o='road'><span class='i'>🛣</span><span class='l'>Road</span></button>";
   html += "<button class='cbtn' data-o='story'><span class='i'>📖</span><span class='l'>Story</span></button>";
   html += "<button class='cbtn' data-o='mute'><span class='i'>" + (G.ui && G.ui.muted ? "🔇" : "🔊") + "</span><span class='l'>Sound</span></button>";
-  html += "<button class='cbtn' data-o='lens'><span class='i'>" + (G.ui && G.ui.lens ? "⚔" : "🗺") + "</span><span class='l'>Lens</span></button></div>";
+  html += "<button class='cbtn' data-o='lens'><span class='i'>" + ((G.ui && G.ui.lens === "desire") ? "👁" : (G.ui && G.ui.lens ? "⚔" : "🗺")) + "</span><span class='l'>Lens</span></button></div>";
   var cmds = document.getElementById("cmds");
   cmds.innerHTML = html;
   cmds.querySelectorAll(".cbtn").forEach(function(b){
@@ -4714,7 +4718,7 @@ function refreshTray(force){
       if(o === "mute"){ Store.dispatch("ui/mute"); try { if(typeof localStorage !== "undefined") localStorage.setItem("mv_muted", (G.ui && G.ui.muted) ? "1" : "0"); } catch(e){} SND.play("toggle"); refreshTray(true); return; }
       /* Tension lens toggle: a view switch in the Village cluster, the mute
          button's precedent (icon swap only, never a lit verb treatment). */
-      if(o === "lens"){ Store.dispatch("ui/lens"); var lensOn = !!(G.ui && G.ui.lens); showToast(lensOn ? "⚔ Tension lens: lines join residents heating toward a feud. Separate them or cool them on the green." : "🗺 Tension lens off"); refreshTray(true); return; }
+      if(o === "lens"){ Store.dispatch("ui/lens"); var lm = (G.ui && G.ui.lens) || null; showToast(lm === "tension" ? "⚔ Tension lens: lines join residents heating toward a feud. Separate them or cool them on the green." : (lm === "desire" ? "👁 Desire lens: lines flow model to follower, thicker means more followers. Watch what the village is copying." : "🗺 Lenses off")); refreshTray(true); return; }
       if(o === "story"){ storySoFar(false); return; }
       if(o === "build"){ if(a && !firstSiteOpen()){ showToast("🔨 No building site is open right now. Found a building first, or let the current one finish."); return; } setOrder3("build"); return; }
       if(o === "found"){ G.foundArm = !G.foundArm; G.foundPlot = null; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; if(G.foundArm) showToast("🏗 Tap a surveyed plot (gold ring) to found a building"); refreshTray(true); return; }
@@ -4900,7 +4904,7 @@ function drawMinimap(){
      the two residents' dots, and each heated resident gets a gold ring.
      Shape plus line, never color alone. Reads G.pairs, the graph's own
      ledger of converging desire; display only, no sim change. */
-  if(G.ui && G.ui.lens){
+  if(G.ui && G.ui.lens === "tension"){
     var idA = {}; G.agents.forEach(function(a2){ idA[a2.id] = a2; });
     var hotIds = {};
     Object.keys(G.pairs || {}).forEach(function(k){
@@ -4932,6 +4936,37 @@ function drawMinimap(){
     c.fillStyle = "rgba(255,255,255,0.9)"; c.font = "8px monospace";
     c.fillText("TENSION LENS", 4, 10);
     c.fillText("--- feud drift", 4, 20);
+  }
+  /* DESIRE lens (v4 view step 4, spec section 15): model-to-follower edges
+     from the live imitation graph, edge thickness by follower count (copy
+     number), the model's dot enlarged, the fashion's object named by the
+     dominant want station among the followers, and envied models ringed in
+     the tension red. Shape plus line, never color alone. Display only,
+     no sim change. CF-REF: desire-lens.md [31] */
+  if(G.ui && G.ui.lens === "desire"){
+    G.agents.forEach(function(m){
+      var fol = []; G.agents.forEach(function(b){ if(b.model === m.id) fol.push(b); });
+      if(!fol.length) return;
+      var fn = fol.length;
+      c.strokeStyle = "rgba(240,235,220,0.78)";
+      c.lineWidth = Math.min(3.5, 0.75 + fn * 0.35);
+      fol.forEach(function(b){
+        c.beginPath(); c.moveTo(X(m.x), Y(m.z)); c.lineTo(X(b.x), Y(b.z)); c.stroke();
+      });
+      /* Object label: the dominant want station among the followers is the
+         fashion's object (the model triple's object, from the want's origin
+         data); its icon sits at the model's dot. No label when no follower
+         carries a want. */
+      var oc = {}, os = null, ov = 0, fi;
+      for(fi = 0; fi < fol.length; fi++){ var ws = fol[fi].want && fol[fi].want.station; if(ws){ oc[ws] = (oc[ws] || 0) + 1; if(oc[ws] > ov){ ov = oc[ws]; os = ws; } } }
+      c.fillStyle = "rgba(255,255,255,0.92)";
+      c.beginPath(); c.arc(X(m.x), Y(m.z), 3.4, 0, 6.29); c.fill();
+      if(os && STATION3[os]){ c.font = "9px monospace"; c.fillText(STATION3[os].icon, X(m.x) - 4, Y(m.z) - 7); }
+      if(prestigeFlipped(m)){ c.strokeStyle = "rgba(232,106,60,0.95)"; c.lineWidth = 2; c.beginPath(); c.arc(X(m.x), Y(m.z), 6, 0, 6.29); c.stroke(); }
+    });
+    c.fillStyle = "rgba(255,255,255,0.9)"; c.font = "8px monospace";
+    c.fillText("DESIRE LENS", 4, 10);
+    c.fillText("model->follower, thick = copied", 4, 20);
   }
   /* Minimap event pings: high-stakes alerts (feud warn/erupt, blame turn,
      death) ping the strategic channel at the event site, the SC2 grammar
