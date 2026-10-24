@@ -36,7 +36,22 @@ Announcements. prestigeScan runs on a 1-second tick in stepSim and
 recomputes G.prestigeFlip from live a.vis and the tier gate; nothing
 else writes the flags. Crossing upward fires a camera-focus toast
 naming the model plus a chronicle line; crossing back down fires a
-plain toast plus a chronicle line. The flip is never silent.
+plain toast plus a chronicle line. The flip is never silent, and it
+is never a surprise either: a forecast fires before it. At Village
+tier and above, a model with at least one follower whose a.vis is
+within 10 of the threshold (75 to 84) gets one latched warning per
+approach, on the blame/departure forecast grammar: a bubble, a
+camera-focus toast naming the threshold and the consequence, a
+minimap ping, and the warn sound, with no chronicle line (the
+crossing itself chronicles). The latch lives in G.prestigeWarn, set
+in newSlice and guarded in restoreState like G.prestigeFlip; it
+clears when a.vis drops below the band or the model flips, so it
+re-arms on the next approach and never goes stale. Below Village
+tier, or with no followers, it stays silent: a flip with no
+followers changes no copy event. The counter-move the toast names
+is the Model verb: re-pointing followers elsewhere shrinks the
+flip's blast radius, since a flipped copy lays its heat only on
+followers who still copy.
 
 Persistence. G.prestigeFlip rides the wholesale G serialization;
 restoreState guards it for older saves. Derived state is never trusted
