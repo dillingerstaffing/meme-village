@@ -217,86 +217,92 @@
       "hash": "aa574fd2"
     },
     {
+      "article": "soil-tints.md",
+      "ref_line": 4087,
+      "lines": 13,
+      "hash": "6ad1e918"
+    },
+    {
       "article": "desires-travel-the-graph.md",
-      "ref_line": 4249,
+      "ref_line": 4267,
       "lines": 19,
       "hash": "23d42fdb"
     },
     {
       "article": "chronicle-and-saves.md",
-      "ref_line": 4419,
+      "ref_line": 4438,
       "lines": 138,
       "hash": "72f226ec"
     },
     {
       "article": "axis-label-selected-surfaces.md",
-      "ref_line": 4686,
+      "ref_line": 4705,
       "lines": 2,
       "hash": "6caa504a"
     },
     {
       "article": "highlight-vocabulary.md",
-      "ref_line": 4699,
+      "ref_line": 4718,
       "lines": 37,
       "hash": "95a461d9"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 4891,
+      "ref_line": 4910,
       "lines": 39,
       "hash": "d5a4f014"
     },
     {
       "article": "rivalry-drift.md",
-      "ref_line": 4975,
+      "ref_line": 4994,
       "lines": 8,
       "hash": "2a88a8fe"
     },
     {
       "article": "desire-lens.md",
-      "ref_line": 4993,
+      "ref_line": 5012,
       "lines": 31,
       "hash": "a56463cc"
     },
     {
       "article": "phone-stats-compact-during-picks.md",
-      "ref_line": 5257,
+      "ref_line": 5276,
       "lines": 2,
       "hash": "174184c0"
     },
     {
       "article": "sheet-below-objective-card.md",
-      "ref_line": 5275,
+      "ref_line": 5294,
       "lines": 16,
       "hash": "6b2224dc"
     },
     {
       "article": "desires-travel-the-graph.md",
-      "ref_line": 5358,
+      "ref_line": 5377,
       "lines": 33,
       "hash": "89ae1cb6"
     },
     {
       "article": "overlay-anchor-budget.md",
-      "ref_line": 5592,
+      "ref_line": 5611,
       "lines": 66,
       "hash": "9a9122e9"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 5842,
+      "ref_line": 5861,
       "lines": 11,
       "hash": "27da632f"
     },
     {
       "article": "pointercancel-never-a-tap.md",
-      "ref_line": 5855,
+      "ref_line": 5874,
       "lines": 4,
       "hash": "3471fc97"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 5934,
+      "ref_line": 5953,
       "lines": 4,
       "hash": "ce66959f"
     }

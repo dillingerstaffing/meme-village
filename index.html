@@ -627,7 +627,7 @@ var STATION3 = {
   well:{name:"Well", icon:"💧", x:10, z:40, work:[[8.4,38.6],[11.6,38.6]], hit:[10,40,6,6]},
   home:{name:"Home", icon:"🏠", x:0, z:0, work:[], hit:[0,0,0,0]}
 };
-var roofPlanks = [], roofHole = null, storedCrates = [], cropMesh = null, cropData = [], flourSacks = [];
+var roofPlanks = [], roofHole = null, storedCrates = [], cropMesh = null, cropData = [], flourSacks = [], soilMeshes = [];
 var plotMeshes = [], plotHitMeshes = [];
 var fireLight = null, fireCore = null, millBlades = null, objRing = null;
 var pulses = [], coachStation = null, coachAgent = null, pipGroup = null, pipMats = [];
@@ -685,8 +685,8 @@ function buildWorld(){
     var m = sph(h[2], 0x6d9153, h[0], -h[2]*0.45, h[1], scene); m.scale.y = 0.55;
   });
   /* fields soil + crops */
-  box(13, 0.24, 13, 0x7a5c38, -34, 0.12, 16, scene);
-  box(11, 0.4, 13, 0x84643c, -23.5, 0.2, 16, scene);
+  soilMeshes.push(box(13, 0.24, 13, 0x7a5c38, -34, 0.12, 16, scene));
+  soilMeshes.push(box(11, 0.4, 13, 0x84643c, -23.5, 0.2, 16, scene));
   var cropGeo = new THREE.ConeGeometry(0.32, 0.9, 6);
   cropMesh = new THREE.InstancedMesh(cropGeo, mat(0x86b95e, 0.8), 60);
   cropMesh.castShadow = true;
@@ -4080,6 +4080,24 @@ function statDrift(dt){
   s.autonomy += (autT - s.autonomy) * dt * 0.08;
   Object.keys(s).forEach(function(k){ s[k] = clamp100(s[k]); });
 }
+/* DEPLETION TINTS (v4 view step 4, spec sections 23/24): the soil
+   stage renders on the map itself, Minecraft farmland grammar: soil
+   boxes recolor per stage, crop cones recolor and stunt per stage
+   (shape plus color, never color alone). Display only, no sim
+   change. CF-REF: soil-tints.md [13] */
+function applySoilTint(){
+  var st = G.soilStage || 0;
+  if(G.soilTintApplied === st) return;
+  G.soilTintApplied = st;
+  var soils = [0x7a5c38, 0x84643c];
+  var crops = 0x86b95e, scale = 1;
+  if(st === 1){ soils = [0x8f7a52, 0x9a8258]; crops = 0xa8b85e; scale = 0.8; }
+  if(st >= 2){ soils = [0x9a8a72, 0xa3967e]; crops = 0xc9b458; scale = 0.55; }
+  soilMeshes.forEach(function(m, i){ if(m && m.material) m.material.color.setHex(soils[i]); });
+  if(cropMesh && cropMesh.material) cropMesh.material.color.setHex(crops);
+  G.soilCropScale = scale;
+  G.growthApplied = -1;
+}
 /* DEPLETE (v4 sim step 3, spec section 23): the soil clock. At the season
    boundary, worked fields discharge the soil battery and fallow fields
    recharge it. The discharge is a mimetic clock: more distinct field hands
@@ -4281,12 +4299,13 @@ function stepSim(dt){
   if(roofHole){ var hs = Math.max(0.05, 1 - G.roof/115); roofHole.scale.set(hs, 1, hs); roofHole.visible = G.roof < 99; }
   flourSacks.forEach(function(sk, i){ sk.visible = i < Math.min(6, Math.floor(G.flour / 2)); });
   /* crops */
+  applySoilTint();
   if(Math.abs(G.fieldGrowth - G.growthApplied) > 0.03){
     G.growthApplied = G.fieldGrowth;
     var dummy = new THREE.Object3D();
     cropData.forEach(function(c, i){
       dummy.position.set(c.x, 0.3 + G.fieldGrowth*0.5, c.z);
-      dummy.scale.setScalar(c.s * (0.6 + G.fieldGrowth*0.9)); dummy.updateMatrix();
+      dummy.scale.setScalar(c.s * (0.6 + G.fieldGrowth*0.9) * (G.soilCropScale || 1)); dummy.updateMatrix();
       cropMesh.setMatrixAt(i, dummy.matrix);
     });
     cropMesh.instanceMatrix.needsUpdate = true;
