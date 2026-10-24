@@ -318,6 +318,7 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
   <div class="srow"><span class="sl">🌾 Scarcity</span><span class="sb"><i id="bar-scar" style="background:#e08a4b"></i></span><b id="val-scar">52</b></div>
   <div class="srow"><span class="sl">🕊 Autonomy</span><span class="sb"><i id="bar-aut" style="background:#6fb3e8"></i></span><b id="val-aut">60</b></div>
   <div class="srow"><span class="sl">🌱 Contentment</span><span class="sb"><i id="bar-cont" style="background:#7ec850"></i></span><b id="val-cont">0</b></div>
+  <div class="srow" id="tierRow"><span class="sl" id="tierLbl" style="width:auto">Next tier</span></div>
   <div class="srow" id="blameRow" style="display:none"><span class="sl" id="blameLbl">🌩 Blame</span><span class="sb"><i id="blameBar" style="background:#e85a3c"></i></span><b id="blameVal">0</b></div>
   <div id="statsStrip"><span>⚒<b id="sv-prod">0</b></span><span>♥<b id="sv-trust">0</b></span><span>🌳<b id="sv-coh">0</b></span><span>⚔<b id="sv-riv">0</b></span><span>🌾<b id="sv-scar">0</b></span><span>🕊<b id="sv-aut">0</b></span><span>🌱<b id="sv-cont">0</b></span><span id="svBlameWrap" style="display:none">🌩<b id="sv-blame">0</b></span></div>
 </div>
@@ -5580,6 +5581,29 @@ function hudTick(dt){
   var contBar = document.getElementById("bar-cont"); if(contBar) contBar.style.width = contV + "%";
   var contVal = document.getElementById("val-cont"); if(contVal) contVal.textContent = contV;
   var contSv = document.getElementById("sv-cont"); if(contSv) contSv.textContent = contV;
+  /* Station-tier progress read: the one station closest to its next
+     tier names itself, its current and target tiers, and its running
+     count toward that tier, so the tier ladder reads ahead instead of
+     only at the tier-up toast. The count is the tierProg ledger itself
+     (cumulative: 100 to tier 2, 260 to tier 3, never reset), the
+     closest station wins, and the first station in TIER_STATIONS
+     order breaks a tie, so the row is deterministic at a fresh start.
+     At tier 3 everywhere no next rung is invented. Display only:
+     the row renders the ledger the work system already feeds, and
+     changes no graph edge, want, or tension. Guarded element write
+     keeps the node harness working with its stubbed document. */
+  var tierLbl = document.getElementById("tierLbl");
+  if(tierLbl){
+    var tierBest = null;
+    TIER_STATIONS.forEach(function(st){
+      var t = tierOf(st); if(t >= 3) return;
+      var need = LIFE.tierNeed[t];
+      var prog = Math.min(Math.floor(G.tierProg[st] || 0), need);
+      var rem = need - prog;
+      if(!tierBest || rem < tierBest.rem) tierBest = {st:st, t:t, prog:prog, need:need, rem:rem};
+    });
+    tierLbl.textContent = tierBest ? (STATION3[tierBest.st].icon + " " + (tierBest.st === "green" ? "Green" : STATION3[tierBest.st].name) + " T" + tierBest.t + "->" + (tierBest.t + 1) + " · " + tierBest.prog + "/" + tierBest.need) : "All stations at tier 3";
+  }
   G.alerts = G.alerts.filter(function(x){ return G.t - x.at < 9; });
   var alEl = document.getElementById("alerts");
   var ahtml = G.alerts.slice(-2).map(function(x){ return "<button class='alert-chip' onclick='__pickAlert(\"" + x.id + "\")'>⚠ <b>" + x.name + "</b> is idle · tap to direct</button>"; }).join("");
