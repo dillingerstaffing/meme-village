@@ -3462,7 +3462,52 @@ function checkClaimStaked(c){
   G.claim = null;
   Store.commit();
 }
-// CF-REF: road-building.md [174]
+// CF-REF: recall-in-flight.md [44]
+/* RECALL (v4 step 5, spec section 23): an in-flight claim can be called
+   off, and what was carried comes home. The Age of Empires rule: only
+   the unused parts of a build are refunded, and a claim has built
+   nothing until it stakes, so every carried store is still unused: the
+   refund is the stores already delivered to the banner plus any crate
+   in a party member's hands, and planks are carry labor, not stock, so
+   nothing is owed for them. The recall withdraws the party the
+   imitation graph recruited (spec section 23: founding household edges
+   recruit the party); it adds no graph edge, writes no wk() ledger, and
+   grants no ground, since no plot exists until staking. The banner mesh
+   is removed, the party is released to idle, and the claim slot frees,
+   so a new claim can be staked at once. */
+function claimRefundStores(c){
+  var n = c ? (c.matsIn.stores || 0) : 0;
+  G.agents.forEach(function(a){ if(a.claimFetch === c.id && a.fetch === "claimcrate-back") n++; });
+  return n;
+}
+function returnStores(n){
+  for(var i = 0; i < n; i++){
+    G.stores++;
+    if(storedCrates[Math.min(G.stores, 12) - 1]) storedCrates[Math.min(G.stores, 12) - 1].visible = true;
+  }
+}
+function cancelClaim(){
+  var c = G.claim; if(!c || c.staked) return false;
+  var back = claimRefundStores(c);
+  G.agents.forEach(function(a){
+    if(a.claimFetch === c.id){
+      if(a.fetch === "claimcrate-back") returnStores(1);
+      if(a.fetch && a.fetch.indexOf("claim") === 0){ a.fetch = null; a.carrying = null; }
+      a.claimFetch = null;
+    }
+  });
+  G.agents.forEach(function(a){
+    if(a.claimParty){ a.claimParty = null; if(a.stationId === "claim"){ a.state = "idle"; a.decideT = 0.2; } }
+  });
+  if(c.group){ scene.remove(c.group); c.group = null; }
+  returnStores(c.matsIn.stores || 0);
+  G.claim = null;
+  showToast("🚩 Claim called off: the party walks home" + (back ? ", 📦" + back + " stores back." : "."));
+  chronicle("A claim was called off; the party walked home" + (back ? " with 📦" + back + " stores returned." : "."));
+  Store.commit();
+  return true;
+}
+// CF-REF: road-building.md [199]
 /* CONNECT roads (v4 sim step 3, spec section 23): built segments between
    stations that shorten walk times. The player arms the Road tray verb
    (Town tier, the same gate as CLAIM), taps two different stations, and
@@ -3569,6 +3614,31 @@ function checkRoadBuilt(r){
   chronicle("Road finished: " + STATION3[r.stA].name + " to " + STATION3[r.stB].name + ".");
   if(G.roadBuild === r) G.roadBuild = null;
   Store.commit();
+}
+// CF-REF: recall-in-flight.md [24]
+/* RECALL (v4 step 5, spec section 23): an in-flight road can be called
+   off, the same way as a claim. The crew the imitation graph recruited
+   walks home, the surveyed line is removed, and the road record is
+   dropped, freeing the road slot; planks are carry labor, not stock, so
+   a road recall returns no stores. It adds no graph edge and writes no
+   wk() ledger, mirroring the season-boundary abandon path, but named
+   as the player's own call instead of the crew scattering. */
+function cancelRoad(){
+  var r = G.roadBuild; if(!r || r.built) return false;
+  G.agents.forEach(function(a){
+    if(a.roadCrew === r.id){
+      if(a.fetch && a.fetch.indexOf("road") === 0){ a.fetch = null; a.roadFetch = null; a.carrying = null; }
+      a.roadCrew = null; a.roadFetch = null;
+      if(a.stationId === "road"){ a.state = "idle"; a.decideT = 0.2; }
+    }
+  });
+  if(r.group){ scene.remove(r.group); r.group = null; }
+  G.roads = G.roads.filter(function(x){ return x.id !== r.id; });
+  G.roadBuild = null;
+  showToast("🛣 Road called off: the crew walks home.");
+  chronicle("A road was called off; the crew walked home.");
+  Store.commit();
+  return true;
 }
 function buildRoadMesh(r){
   /* The road is a built segment on the map: a packed-earth strip in a
@@ -4926,14 +4996,14 @@ function refreshTray(force){
         if(!claimUnlocked()){ showToast("🚩 Claims unlock when the village grows into a Town."); refreshTray(true); return; }
         G.claimArm = !G.claimArm; G.claimBearing = null; G.claimRing = null;
         G.armed = false; G.modelArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false;
-        if(G.claimArm) showToast("🚩 Pick a bearing and a ring: the founding party stakes the claim and carries the materials");
+        if(G.claimArm) showToast((G.claim && !G.claim.staked) ? "🚩 The claim party is still out: recall them, or let them finish" : "🚩 Pick a bearing and a ring: the founding party stakes the claim and carries the materials");
         refreshTray(true); return;
       }
       if(o === "road"){
         if(!roadUnlocked()){ showToast("🛣 Roads unlock when the village grows into a Town."); refreshTray(true); return; }
         G.roadArm = !G.roadArm; G.roadFrom = null; G.roadTo = null;
         G.armed = false; G.modelArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.claimArm = false;
-        if(G.roadArm) showToast("🛣 Tap one station, then another: the crew lays a road between them");
+        if(G.roadArm) showToast((G.roadBuild && !G.roadBuild.built) ? "🛣 The road crew is still out: recall them, or let them finish" : "🛣 Tap one station, then another: the crew lays a road between them");
         refreshTray(true); return;
       }
       setOrder3(o);
@@ -5290,9 +5360,15 @@ function hudTick(dt){
      cost previewed, then a priced Stake confirm once both are picked. */
   var cpEl = document.getElementById("claimPick");
   if(cpEl){
-    var showClaim = !!G.claimArm && !(G.claim && !G.claim.staked);
+    var showClaim = !!G.claimArm;
     var cpHtml = "";
-    if(showClaim){
+    if(showClaim && G.claim && !G.claim.staked){
+      /* Recall row: the claim is already out, so the row names the way
+         back instead of new ground: the stores that come home, then the
+         choice to recall or let the party finish. */
+      var cbBack = claimRefundStores(G.claim);
+      cpHtml = "<span class='pick-lab'>Claim under way</span>" + "<button class='alert-chip go' onclick='__claimRecall()'>🚩 Recall the claim" + (cbBack ? " · 📦" + cbBack + " back" : "") + "</button>" + "<button class='alert-chip' onclick='__claimCancel()'>✕ Let them finish</button>";
+    } else if(showClaim){
       var bearSel = (G.claimBearing == null) ? -1 : G.claimBearing;
       var ringSel = (G.claimRing == null) ? -1 : G.claimRing;
       cpHtml = "<span class='pick-lab'>Bearing</span>" + CLAIM_BEARINGS.map(function(b, ix){
@@ -5317,9 +5393,14 @@ function hudTick(dt){
      repeated on the confirm, the same grammar as the Claim pick row. */
   var rpEl = document.getElementById("roadPick");
   if(rpEl){
-    var showRoad = !!G.roadArm && !(G.roadBuild && !G.roadBuild.built);
+    var showRoad = !!G.roadArm;
     var rpHtml = "";
-    if(showRoad){
+    if(showRoad && G.roadBuild && !G.roadBuild.built){
+      /* Recall row: the crew is already out, so the row names the way
+         back instead of new ends: recall, or let them finish. Planks are
+         carry labor, not stock, so no refund number is owed here. */
+      rpHtml = "<span class='pick-lab'>Road under way</span>" + "<button class='alert-chip go' onclick='__roadRecall()'>🛣 Recall the road</button>" + "<button class='alert-chip' onclick='__roadCancel()'>✕ Let them finish</button>";
+    } else if(showRoad){
       var fromSel = G.roadFrom, toSel = G.roadTo;
       rpHtml = "<span class='pick-lab'>From</span>" + TIER_STATIONS.map(function(k){
         var st = STATION3[k];
@@ -5444,7 +5525,7 @@ function hudTick(dt){
         if(stEl.style.bottom !== sb) stEl.style.bottom = sb;
         if(stEl.style.top) stEl.style.top = "";
         /* CF-REF: phone-stats-compact-during-picks.md [2] */
-        var pickOpen = ["offerPick","projPick","foundPick","claimPick","arrPick","lensPick"].some(function(pid){ var pe = document.getElementById(pid); return pe && pe.style.display !== "none"; });
+        var pickOpen = ["offerPick","projPick","foundPick","claimPick","roadPick","arrPick","lensPick"].some(function(pid){ var pe = document.getElementById(pid); return pe && pe.style.display !== "none"; });
         if(stEl.classList.contains("compact") !== pickOpen) stEl.classList.toggle("compact", pickOpen);
       } else {
         /* Desktop: anchor the stats panel below the objective card's real
@@ -5677,10 +5758,12 @@ window.__claimPickB = function(ix){ G.claimBearing = ix; refreshTray(true); };
 window.__claimPickR = function(ix){ G.claimRing = ix; refreshTray(true); };
 window.__claimStake = function(){ var b = G.claimBearing, r = G.claimRing; G.claimArm = false; G.claimBearing = null; G.claimRing = null; if(b != null && r != null) stakeClaim(b, r); refreshTray(true); };
 window.__claimCancel = function(){ G.claimArm = false; G.claimBearing = null; G.claimRing = null; refreshTray(true); };
+window.__claimRecall = function(){ G.claimArm = false; G.claimBearing = null; G.claimRing = null; cancelClaim(); refreshTray(true); };
 window.__roadPick = function(k){ G.roadFrom = k; G.roadTo = null; refreshTray(true); };
 window.__roadPick2 = function(k){ if(k !== G.roadFrom) G.roadTo = k; refreshTray(true); };
 window.__roadLay = function(){ var a = G.roadFrom, b = G.roadTo; G.roadArm = false; G.roadFrom = null; G.roadTo = null; if(a && b) layRoad(a, b); refreshTray(true); };
 window.__roadCancel = function(){ G.roadArm = false; G.roadFrom = null; G.roadTo = null; refreshTray(true); };
+window.__roadRecall = function(){ G.roadArm = false; G.roadFrom = null; G.roadTo = null; cancelRoad(); refreshTray(true); };
 window.__lensPick = function(m){ G.lensArm = false; Store.dispatch("ui/lens", {mode: m}); var lm = (G.ui && G.ui.lens) || null; showToast(lm === "tension" ? "⚔ Tension lens: lines join residents heating toward a feud. Separate them or cool them on the green." : (lm === "desire" ? "👁 Desire lens: lines flow model to follower, thicker means more followers. Watch what the village is copying." : "🗺 Lenses off")); refreshTray(true); };
 window.__lensCancel = function(){ G.lensArm = false; refreshTray(true); };
 window.__foundCancel = function(){ G.foundPlot = null; refreshTray(true); };

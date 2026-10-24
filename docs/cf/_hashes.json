@@ -175,158 +175,170 @@
       "hash": "966395af"
     },
     {
-      "article": "road-building.md",
+      "article": "recall-in-flight.md",
       "ref_line": 3465,
-      "lines": 174,
-      "hash": "a253d4c9"
+      "lines": 44,
+      "hash": "2b3e66d3"
     },
     {
       "article": "road-building.md",
-      "ref_line": 3651,
+      "ref_line": 3510,
+      "lines": 199,
+      "hash": "9afe0ce9"
+    },
+    {
+      "article": "recall-in-flight.md",
+      "ref_line": 3618,
+      "lines": 24,
+      "hash": "1897c44f"
+    },
+    {
+      "article": "road-building.md",
+      "ref_line": 3721,
       "lines": 22,
       "hash": "694bff3c"
     },
     {
       "article": "claim-preview.md",
-      "ref_line": 3689,
+      "ref_line": 3759,
       "lines": 37,
       "hash": "4c742e7a"
     },
     {
       "article": "rivalry-drift.md",
-      "ref_line": 3731,
+      "ref_line": 3801,
       "lines": 13,
       "hash": "778e8834"
     },
     {
       "article": "village-growth-gates.md",
-      "ref_line": 3765,
+      "ref_line": 3835,
       "lines": 81,
       "hash": "9af53548"
     },
     {
       "article": "autonomous-founding-gates.md",
-      "ref_line": 3847,
+      "ref_line": 3917,
       "lines": 28,
       "hash": "0727e0b6"
     },
     {
       "article": "driven-work-progress.md",
-      "ref_line": 4039,
+      "ref_line": 4109,
       "lines": 14,
       "hash": "39fb637f"
     },
     {
       "article": "spec-tables-drift-gate.md",
-      "ref_line": 4040,
+      "ref_line": 4110,
       "lines": 14,
       "hash": "c77a272b"
     },
     {
       "article": "rivalry-drift.md",
-      "ref_line": 4120,
+      "ref_line": 4190,
       "lines": 11,
       "hash": "aa574fd2"
     },
     {
       "article": "departure-forecast.md",
-      "ref_line": 4171,
+      "ref_line": 4241,
       "lines": 14,
       "hash": "bf0008cd"
     },
     {
       "article": "soil-tints.md",
-      "ref_line": 4217,
+      "ref_line": 4287,
       "lines": 13,
       "hash": "6ad1e918"
     },
     {
       "article": "desires-travel-the-graph.md",
-      "ref_line": 4397,
+      "ref_line": 4467,
       "lines": 19,
       "hash": "23d42fdb"
     },
     {
       "article": "chronicle-and-saves.md",
-      "ref_line": 4568,
+      "ref_line": 4638,
       "lines": 138,
       "hash": "72f226ec"
     },
     {
       "article": "axis-label-selected-surfaces.md",
-      "ref_line": 4835,
+      "ref_line": 4905,
       "lines": 2,
       "hash": "6caa504a"
     },
     {
       "article": "highlight-vocabulary.md",
-      "ref_line": 4848,
+      "ref_line": 4918,
       "lines": 37,
       "hash": "95a461d9"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 5041,
+      "ref_line": 5111,
       "lines": 39,
       "hash": "d5a4f014"
     },
     {
       "article": "claim-minimap.md",
-      "ref_line": 5107,
+      "ref_line": 5177,
       "lines": 12,
       "hash": "bb41812d"
     },
     {
       "article": "rivalry-drift.md",
-      "ref_line": 5146,
+      "ref_line": 5216,
       "lines": 8,
       "hash": "2a88a8fe"
     },
     {
       "article": "desire-lens.md",
-      "ref_line": 5164,
+      "ref_line": 5234,
       "lines": 31,
       "hash": "a56463cc"
     },
     {
       "article": "phone-stats-compact-during-picks.md",
-      "ref_line": 5446,
+      "ref_line": 5527,
       "lines": 2,
-      "hash": "195763f4"
+      "hash": "4448d346"
     },
     {
       "article": "sheet-below-objective-card.md",
-      "ref_line": 5464,
+      "ref_line": 5545,
       "lines": 16,
       "hash": "6b2224dc"
     },
     {
       "article": "desires-travel-the-graph.md",
-      "ref_line": 5547,
+      "ref_line": 5628,
       "lines": 33,
       "hash": "89ae1cb6"
     },
     {
       "article": "overlay-anchor-budget.md",
-      "ref_line": 5783,
+      "ref_line": 5866,
       "lines": 66,
       "hash": "9a9122e9"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 6033,
+      "ref_line": 6116,
       "lines": 11,
       "hash": "27da632f"
     },
     {
       "article": "pointercancel-never-a-tap.md",
-      "ref_line": 6046,
+      "ref_line": 6129,
       "lines": 4,
       "hash": "3471fc97"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 6125,
+      "ref_line": 6208,
       "lines": 4,
       "hash": "ce66959f"
     }
