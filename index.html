@@ -5286,16 +5286,16 @@ function drawMinimap(){
      shape and color both carry the read, never color alone. 4 sim-seconds,
      then gone; display only, drawn from state, never committed. */
   var PINGC = {warn:"#e8b34b", feud:"#e86a3c", blame:"#b48ce8", death:"#9aa0a6"};
-  var pgs = G.pings || [], pgi, pgg, pga, pcol;
+  var pgs = G.pings || [], pgi, pgg, pga, pcol, mmScale = (typeof window === "undefined" || window.innerWidth > 560) ? 1 : 118 / 192;
   for(pgi = 0; pgi < pgs.length; pgi++){
     pgg = pgs[pgi]; pga = G.t - pgg.t;
     if(pga < 0 || pga > 4) continue;
     pcol = PINGC[pgg.kind] || PINGC.feud;
     c.globalAlpha = 0.95 * (1 - pga / 4);
-    c.strokeStyle = pcol; c.lineWidth = 2;
-    c.beginPath(); c.arc(X(pgg.x), Y(pgg.z), 4 + pga * 1.6, 0, 6.29); c.stroke();
+    c.strokeStyle = pcol; c.lineWidth = 2 / mmScale;
+    c.beginPath(); c.arc(X(pgg.x), Y(pgg.z), (4 + pga * 1.6) / mmScale, 0, 6.29); c.stroke();
     c.fillStyle = pcol;
-    c.beginPath(); c.arc(X(pgg.x), Y(pgg.z), 2, 0, 6.29); c.fill();
+    c.beginPath(); c.arc(X(pgg.x), Y(pgg.z), 2 / mmScale, 0, 6.29); c.fill(); /* Scale-aware ping: the canvas is always 192 wide but displays at 118 on phones, so radii and widths are divided by the displayed-width ratio, keeping the ping the same CSS size on both; the 14 CSS px snap tolerance is unchanged. */
   }
   c.globalAlpha = 1;
   c.strokeStyle = "rgba(255,255,255,0.55)"; c.lineWidth = 1;
