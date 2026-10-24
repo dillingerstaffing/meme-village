@@ -44,6 +44,11 @@ MIM.resentTension to the pair with its origin and counts in
 G.mimic.missedCopied. Keep the existing morale effects and the
 player-order bonus exactly as they are.
 
-Every tuning number for this system lives in the MIM table.
-Change behavior by editing that table, never by scattering new
-constants through giveWant or the want lifecycle.
+Every tuning number for this system lives in the MIM table,
+with one v4 exception: the model-prestige flip threshold lives in the
+spec-registered MODEL_PRESTIGE table (spec sections 24/25, the v4 data
+discipline from the world-expansion research brief 5.4: content lives in
+tables the drift gate checks), while the heat the flip lays stays in
+MIM (MIM.prestigeFlipTension). Change behavior by editing that table,
+never by scattering new constants through giveWant or the want
+lifecycle.

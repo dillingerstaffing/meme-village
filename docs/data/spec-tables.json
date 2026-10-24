@@ -75,7 +75,10 @@
         "threshold",
         "flipBehavior"
       ],
-      "status": "queued"
+      "keys": [
+        "prestigeFlip"
+      ],
+      "status": "live"
     },
     "NEED_DEFS": {
       "keys": [
