@@ -3616,6 +3616,40 @@ function roadSeasonCheck(){
   party.forEach(function(a){ goRoad(a, r); });
   showToast("🛣 A new crew walks out to finish the road.");
 }
+/* ROAD ROUTE PREVIEW (v4 view step 5, spec section 23): the ghost of
+   the road the player is about to lay, in the Factorio ghost grammar:
+   a semi-transparent marker for the thing to be built, doing none of
+   the thing's work. Once both ends are picked, hudTick's road-pick row
+   syncs a gold ghost strip between the two stations, so the player sees the
+   exact route before the Lay chip commits any planks; picking a
+   different end, cancelling, arming another verb, or laying the road
+   clears it, and it never enters G.roads, never boosts a walker, and
+   never survives a save. Shape plus color: the ghost is gold where
+   surveyed lines are brown and built roads are packed earth, and it
+   carries no flags, so a ghost can never be mistaken for a road.
+   CF-REF: road-building.md [22] */
+var roadPreviewGroup = null, roadPreviewKey = "";
+function syncRoadPreview(){
+  var key = (G.roadArm && G.roadFrom && G.roadTo) ? (G.roadFrom + ">" + G.roadTo) : "";
+  if(key === roadPreviewKey && roadPreviewGroup) return;
+  if(roadPreviewGroup){ try{ scene.remove(roadPreviewGroup); }catch(e){} roadPreviewGroup = null; }
+  roadPreviewKey = key;
+  if(!key || typeof scene === "undefined" || !scene) return;
+  var sa = STATION3[G.roadFrom], sb = STATION3[G.roadTo];
+  if(!sa || !sb) return;
+  var dx = sb.x - sa.x, dz = sb.z - sa.z, len = Math.hypot(dx, dz) || 1;
+  var g = new THREE.Group();
+  g.position.set((sa.x + sb.x) / 2, 0, (sa.z + sb.z) / 2);
+  g.rotation.y = Math.atan2(dx, dz);
+  var edge = new THREE.Mesh(new THREE.PlaneGeometry(4.0, len),
+    new THREE.MeshBasicMaterial({color: 0xe8b34b, transparent: true, opacity: 0.14, side: THREE.DoubleSide}));
+  edge.rotation.x = -Math.PI / 2; edge.position.y = 0.055; g.add(edge);
+  var strip = new THREE.Mesh(new THREE.PlaneGeometry(3.2, len),
+    new THREE.MeshBasicMaterial({color: 0xe8b34b, transparent: true, opacity: 0.28, side: THREE.DoubleSide}));
+  strip.rotation.x = -Math.PI / 2; strip.position.y = 0.065; g.add(strip);
+  scene.add(g);
+  roadPreviewGroup = g;
+}
 /* RIVALRY DRIFT (v4 sim step 3, spec section 4): the season boundary
    cools every drift floor; when a floor has fallen low and the pair's
    tension has too, the drift clears and the chronicle notes the quiet.
@@ -5207,6 +5241,7 @@ function hudTick(dt){
     }
     if(rpEl.innerHTML !== rpHtml) rpEl.innerHTML = rpHtml;
     rpEl.style.display = showRoad ? "flex" : "none";
+    syncRoadPreview();
   }
   var apEl = document.getElementById("arrPick");
   if(apEl){

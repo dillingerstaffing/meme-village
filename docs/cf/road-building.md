@@ -6,7 +6,18 @@ same gate as CLAIM), and only when no other road is under construction.
 The price is named before anything commits: the Road pick row previews
 CONNECT_ROAD basePlanks plus one plank per planksPerDist world units of
 station-to-station distance on every To chip and repeats it on the Lay
-confirm. A pair already joined by a road refuses with the reason named,
+confirm. The route is shown before anything commits too: once both
+ends are picked, syncRoadPreview() (called from hudTick's road-pick
+row, the per-frame HUD render, so every pick change re-syncs it)
+draws a gold ghost strip between the two stations, in the Factorio
+ghost grammar: a semi-transparent marker for the thing to be built,
+doing none of the thing's work. Picking a different end, cancelling,
+arming another verb, or laying the road clears it; it never enters
+G.roads, never boosts a walker, and never survives a save. The ghost
+is gold where surveyed lines are brown and built roads are packed
+earth, and it carries no flags, so a ghost can never be mistaken for
+a road. A pair already joined by a road refuses with the reason
+named,
 and the village keeps at most CONNECT_ROAD.maxRoads roads.
 
 The road crew is recruited from the imitation graph: the earliest-formed
