@@ -4848,7 +4848,7 @@ function refreshTray(force){
   html += "<button class='cbtn" + (G.roadArm ? " armed" : "") + "' data-o='road'><span class='i'>🛣</span><span class='l'>Road</span></button>";
   html += "<button class='cbtn' data-o='story'><span class='i'>📖</span><span class='l'>Story</span></button>";
   html += "<button class='cbtn' data-o='mute'><span class='i'>" + (G.ui && G.ui.muted ? "🔇" : "🔊") + "</span><span class='l'>Sound</span></button>";
-  html += "<button class='cbtn' data-o='lens'><span class='i'>" + ((G.ui && G.ui.lens === "desire") ? "👁" : (G.ui && G.ui.lens ? "⚔" : "🗺")) + "</span><span class='l'>Lens</span></button></div>";
+  html += "<button class='cbtn' data-o='lens'><span class='i'>" + ((G.ui && G.ui.lens === "desire") ? "👁" : (G.ui && G.ui.lens ? "⚔" : "🗺")) + "</span><span class='l'>" + ((G.ui && G.ui.lens === "desire") ? "Desire" : (G.ui && G.ui.lens ? "Tension" : "Lens")) + "</span></button></div>";
   var cmds = document.getElementById("cmds");
   cmds.innerHTML = html;
   cmds.querySelectorAll(".cbtn").forEach(function(b){
@@ -4879,7 +4879,7 @@ function refreshTray(force){
       if(o === "callout"){ if(a) callOut(a); refreshTray(true); return; }
       if(o === "mute"){ Store.dispatch("ui/mute"); try { if(typeof localStorage !== "undefined") localStorage.setItem("mv_muted", (G.ui && G.ui.muted) ? "1" : "0"); } catch(e){} SND.play("toggle"); refreshTray(true); return; }
       /* Tension lens toggle: a view switch in the Village cluster, the mute
-         button's precedent (icon swap only, never a lit verb treatment). */
+         button's precedent (icon swap plus a persistent mode label, never a lit verb treatment). */
       if(o === "lens"){ Store.dispatch("ui/lens"); var lm = (G.ui && G.ui.lens) || null; showToast(lm === "tension" ? "⚔ Tension lens: lines join residents heating toward a feud. Separate them or cool them on the green." : (lm === "desire" ? "👁 Desire lens: lines flow model to follower, thicker means more followers. Watch what the village is copying." : "🗺 Lenses off")); refreshTray(true); return; }
       if(o === "story"){ storySoFar(false); return; }
       if(o === "build"){ if(a && !firstSiteOpen()){ showToast("🔨 No building site is open right now. Found a building first, or let the current one finish."); return; } setOrder3("build"); return; }

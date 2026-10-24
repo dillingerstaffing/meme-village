@@ -6,7 +6,7 @@ overlay, marker, bubble, name tag, hud, camera move, collision, anchor, hide, de
 | Article | Summary |
 |---------|---------|
 | overlay-anchor-budget.md | Markers stay within 56px up and 110px sideways of their resident, or hide; the selected resident's card may sidestep past the sideways cap when the west-edge nudge clears the HUD column |
-| desire-lens.md | The desire lens draws model-to-follower edges from live a.model edges, thickness by follower count, one lens active at a time, view only |
+| desire-lens.md | The desire lens draws model-to-follower edges from live a.model edges, thickness by follower count, one lens active at a time, view only; the Lens button names its active mode persistently |
 | soil-tints.md | The field soil boxes and crop cones render the soil clock stage on the map itself: recolor plus stunted height per stage, display only |
 | claim-minimap.md | Surveyed plots read on the minimap: original plots as gold outline squares, CLAIM/GROW plots filled solid, an in-flight claim as a dashed gold ring, display only |
 | claim-preview.md | The pending claim reads on the map before staking: a gold ring at the picked center plus three dots at the pending cluster, no pole or flag, display only |

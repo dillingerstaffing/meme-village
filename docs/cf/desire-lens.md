@@ -8,9 +8,12 @@ question the map answers):
 - G.ui.lens is a mode, never a boolean: null (off), "tension", or
   "desire". The tray Lens button cycles off to tension to desire to
   off. Legacy boolean lens state restores to "tension".
-- The button is a view switch with an icon swap only (the mute button
-  precedent): map with no lens, crossed swords for tension, eye for
-  desire. It is never a lit verb: no .on, .armed, or .cam class.
+- The button is a view switch with an icon swap plus a persistent mode
+  label (the mute button precedent, extended): map plus "Lens" with no
+  lens, crossed swords plus "Tension", eye plus "Desire". The label names
+  the active layer after the switch toast expires, so the player never
+  has to guess which question the minimap is answering. It is never a
+  lit verb: no .on, .armed, or .cam class.
 - The desire lens draws model-to-follower edges from the live
   imitation graph: a.model inbound edges, read at draw time, never a
   cached graph. Edge thickness is the copy number (0.75 plus 0.35 per
