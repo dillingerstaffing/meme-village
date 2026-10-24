@@ -18,6 +18,7 @@ objective, progress, project, parts, work credit, score, driven, order bonus, ho
 |---------|---------|
 | driven-work-progress.md | Progress reads weekWorkP only, credited through the driveObj gate in wk() |
 | household-capacity-ledger.md | Housing is one ledger: households plus solo newcomers never exceed G.houseCapacity |
+| departure-forecast.md | The departure rule renders before it can fire: contentment under 30 with blame at 60 or more forecasts the lowest-morale household once per approach, display only |
 | desires-travel-the-graph.md | Wants carry an origin; spread follows model edges first, convergence adds tension, fulfillment and misses write back into the graph |
 | membership-never-gates-the-medic.md | The medic serves everyone through the manual path; tiers move only queue order and the death roll; premiums debit bank only, floor zero, lapse never debt |
 | autonomous-founding-gates.md | The village founds at most one building a season, at the boundary, only when every GROWTH gate holds, through foundSite |
