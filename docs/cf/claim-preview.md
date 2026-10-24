@@ -7,10 +7,10 @@ become, so the player stakes blind and learns the 10-unit spacing
 refusal only from the post-commit error. The Emperor standard: when
 you are placing a building, the footprint image shows where it will
 land, and a red footprint means it cannot go there. Meme Village
-applies the same grammar to a claim, without validity tinting (that
-follow-up still needs a vocabulary decision, since red already means
-envied models and tension): the pending claim itself is drawn, in
-gold, before the Stake chip commits anything.
+applies the same grammar to a claim, with one deliberate change of
+vocabulary: red already means envied models and tension on the
+lenses, so the refused footprint is carried by shape, not by a new
+color, and the ghost stays gold in both states.
 
 - syncClaimPreview() is called from hudTick's claim-pick row, the
   per-frame HUD render, so every pick change re-syncs it. The ghost
@@ -29,6 +29,15 @@ gold, before the Stake chip commits anything.
   never calls wk(), never touches the driven-work ledgers, never
   recruits the founding party, and never survives a save, because
   it is rebuilt from the picks on every hudTick and dies with them.
+- Validity reads from the ghost itself, before any tap: when the
+  picked center sits within 10 units of a surveyed plot, the ring
+  breaks into four arcs, the three plot dots hollow out into rings,
+  and a cross marks the center, and the pick row's Stake chip is
+  renamed "Ground already claimed" (tapping it still runs the stake
+  path, which toasts the same named refusal). The ghost and the
+  refusal share one pure test, claimCenterBlocked(), so the preview
+  and the refusal can never disagree; the ghost's key carries the
+  blocked flag, so a change to PLOTS re-syncs it.
 
 Why: the road route preview already proved this grammar in the same
 pick-row family (a gold ghost strip between two picked stations,

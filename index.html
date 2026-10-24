@@ -3400,6 +3400,17 @@ function buildClaimMesh(c){
   ring.rotation.x = -Math.PI / 2; ring.position.y = 0.06; g.add(ring);
   c.group = g;
 }
+/* The same 10-unit spacing rule the stake refusal uses, as a pure read:
+   a picked center is blocked when any surveyed plot sits within 10 units
+   of it. Shared by stakeClaim and the ghost, so the preview and the
+   refusal can never disagree. */
+function claimCenterBlocked(ctr){
+  for(var pi = 0; pi < PLOTS.length; pi++){
+    var pp = PLOTS[pi];
+    if(Math.hypot(pp.x - ctr.x, pp.z - ctr.z) < 10) return true;
+  }
+  return false;
+}
 function stakeClaim(bearingIx, ringIx){
   if(!G.started || G.over) return null;
   if(!claimUnlocked()){ showToast("🚩 Claims unlock when the village grows into a Town."); return null; }
@@ -3409,10 +3420,7 @@ function stakeClaim(bearingIx, ringIx){
   var hn = householdSurname(h), ctr = claimCenter(bearingIx, ringIx);
   /* No double-claiming: ground already claimed or surveyed within 10 units
      refuses the stake, the way Civ refuses a city on settled ground. */
-  for(var pi = 0; pi < PLOTS.length; pi++){
-    var pp = PLOTS[pi];
-    if(Math.hypot(pp.x - ctr.x, pp.z - ctr.z) < 10){ showToast("🚩 That ground is already claimed or surveyed."); return null; }
-  }
+  if(claimCenterBlocked(ctr)){ showToast("🚩 That ground is already claimed or surveyed."); return null; }
   var cl = {id: "claim" + (++G.claimSeq), bearingIx: bearingIx, ringIx: ringIx, x: ctr.x, z: ctr.z,
     cost: claimTotals(ringIx), matsIn: {stores: 0, planks: 0}, party: [], household: null, staked: false};
   G.claim = cl;
@@ -3666,26 +3674,48 @@ function syncRoadPreview(){
    claimClusterPlots(), no pole, no flag, so it can never be mistaken
    for a staked claim banner. Re-picking moves it, cancelling, staking,
    or arming another verb clears it, and it never enters G.claim,
-   G.claimPlots, or PLOTS and never survives a save.
-   CF-REF: claim-preview.md [21] */
+   G.claimPlots, or PLOTS and never survives a save. When the picked
+   center is blocked by the 10-unit spacing rule, the ghost itself reads
+   as refused before any tap: the ring breaks into four arcs, the three
+   plot dots hollow out, and a cross marks the center. Shape carries the
+   refusal, not a new color: red already means envied models and tension
+   on the lenses, so the ghost stays gold in both states. The key carries
+   the blocked flag, so a change to PLOTS re-syncs the ghost.
+   CF-REF: claim-preview.md [37] */
 var claimPreviewGroup = null, claimPreviewKey = "";
 function syncClaimPreview(){
-  var key = (G.claimArm && G.claimBearing != null && G.claimRing != null) ? (G.claimBearing + ">" + G.claimRing) : "";
+  var ctr = (G.claimArm && G.claimBearing != null && G.claimRing != null) ? claimCenter(G.claimBearing, G.claimRing) : null;
+  var blocked = !!(ctr && claimCenterBlocked(ctr));
+  var key = ctr ? (G.claimBearing + ">" + G.claimRing + ">" + (blocked ? "X" : "")) : "";
   if(key === claimPreviewKey && claimPreviewGroup) return;
   if(claimPreviewGroup){ try{ scene.remove(claimPreviewGroup); }catch(e){} claimPreviewGroup = null; }
   claimPreviewKey = key;
-  if(!key || typeof scene === "undefined" || !scene) return;
-  var ctr = claimCenter(G.claimBearing, G.claimRing);
-  if(!ctr) return;
+  if(!key || typeof scene === "undefined" || !scene || !ctr) return;
   var g = new THREE.Group();
   g.position.set(ctr.x, 0, ctr.z);
-  var ring = new THREE.Mesh(new THREE.RingGeometry(3.1, 3.5, 28), new THREE.MeshBasicMaterial({color: 0xe8b34b, transparent: true, opacity: 0.85, side: THREE.DoubleSide}));
-  ring.rotation.x = -Math.PI / 2; ring.position.y = 0.06; g.add(ring);
+  var gold = {color: 0xe8b34b, transparent: true, opacity: 0.85, side: THREE.DoubleSide};
   var plots = claimClusterPlots(ctr.x, ctr.z);
-  plots.forEach(function(p){
-    var dot = new THREE.Mesh(new THREE.CircleGeometry(1.1, 20), new THREE.MeshBasicMaterial({color: 0xe8b34b, transparent: true, opacity: 0.85, side: THREE.DoubleSide}));
-    dot.rotation.x = -Math.PI / 2; dot.position.set(p.x - ctr.x, 0.06, p.z - ctr.z); g.add(dot);
-  });
+  if(blocked){
+    [0, 1.7, 3.4, 5.1].forEach(function(s){
+      var arc = new THREE.Mesh(new THREE.RingGeometry(3.1, 3.5, 28, 1, s, 1.0), new THREE.MeshBasicMaterial(gold));
+      arc.rotation.x = -Math.PI / 2; arc.position.y = 0.06; g.add(arc);
+    });
+    plots.forEach(function(p){
+      var hollow = new THREE.Mesh(new THREE.RingGeometry(0.7, 1.1, 20), new THREE.MeshBasicMaterial(gold));
+      hollow.rotation.x = -Math.PI / 2; hollow.position.set(p.x - ctr.x, 0.06, p.z - ctr.z); g.add(hollow);
+    });
+    [-0.785, 0.785].forEach(function(rot){
+      var bar = new THREE.Mesh(new THREE.BoxGeometry(5.2, 0.12, 0.6), new THREE.MeshBasicMaterial(gold));
+      bar.rotation.y = rot; bar.position.y = 0.08; g.add(bar);
+    });
+  } else {
+    var ring = new THREE.Mesh(new THREE.RingGeometry(3.1, 3.5, 28), new THREE.MeshBasicMaterial(gold));
+    ring.rotation.x = -Math.PI / 2; ring.position.y = 0.06; g.add(ring);
+    plots.forEach(function(p){
+      var dot = new THREE.Mesh(new THREE.CircleGeometry(1.1, 20), new THREE.MeshBasicMaterial(gold));
+      dot.rotation.x = -Math.PI / 2; dot.position.set(p.x - ctr.x, 0.06, p.z - ctr.z); g.add(dot);
+    });
+  }
   scene.add(g);
   claimPreviewGroup = g;
 }
@@ -5267,7 +5297,8 @@ function hudTick(dt){
       }).join("");
       if(bearSel >= 0 && ringSel >= 0){
         var tc = claimTotals(ringSel);
-        cpHtml += "<button class='alert-chip go' onclick='__claimStake()'>🚩 Stake the claim · 📦" + tc.stores + " 🪵" + tc.planks + "</button>";
+        var cpBlocked = claimCenterBlocked(claimCenter(bearSel, ringSel));
+        cpHtml += cpBlocked ? "<button class='alert-chip' onclick='__claimStake()'>🚩 Ground already claimed</button>" : "<button class='alert-chip go' onclick='__claimStake()'>🚩 Stake the claim · 📦" + tc.stores + " 🪵" + tc.planks + "</button>";
       }
       cpHtml += "<button class='alert-chip' onclick='__claimCancel()'>✕ Not yet</button>";
     }
