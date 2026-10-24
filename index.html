@@ -56,6 +56,10 @@ canvas{display:block}
 #roadPick .alert-chip.sel{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
 #roadPick .alert-chip.go{border-color:var(--gold);background:rgba(90,64,16,.55);font-weight:800}
 #roadPick .pick-lab{align-self:center;font:700 11px 'Inter',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2);padding:0 4px}
+#lensPick .alert-chip{min-height:44px;padding:10px 12px;font-size:13px;display:flex;align-items:center;gap:6px}
+@media (max-width:560px){#lensPick .alert-chip{flex:1 1 100%}}
+#lensPick .alert-chip.sel{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+#lensPick .pick-lab{align-self:center;font:700 11px 'Inter',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2);padding:0 4px}
 #arrPick .alert-chip{min-height:44px;padding:10px 12px;font-size:13px;display:flex;align-items:center;gap:6px}
 #arrPick .arr-note{display:flex;align-items:center;font-size:13px;padding:4px 2px}
 @media (max-width:560px){#arrPick .alert-chip{flex:1 1 100%}}
@@ -301,6 +305,7 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
   <div id="foundPick" style="display:none;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
   <div id="claimPick" style="display:none;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
   <div id="roadPick" style="display:none;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
+  <div id="lensPick" style="display:none;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
   <div id="arrPick" style="display:none;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
   <div id="siteLine"></div>
 </div>
@@ -938,7 +943,7 @@ function newSlice(){
     rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, drifts:{}, driftLog:[], blame:0, blameWarn:false, departWarn:false, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0,
     sites:[], siteSeq:0, lastFoundSeason:0, houseCapacity:10, banked:false, foundArm:false, foundPlot:null, buildPref:null,
     claimArm:false, claimBearing:null, claimRing:null, claim:null, claimPlots:[], claimSeq:0,
-    roadArm:false, roadFrom:null, roadTo:null, roadBuild:null, roads:[], roadSeq:0,
+    roadArm:false, roadFrom:null, roadTo:null, roadBuild:null, roads:[], roadSeq:0, lensArm:false,
     growRings:0, growPlots:[],
     bonds:{}, households:[], householdSeq:0, soloHoused:0, departed:0, arrival:null, speakCd:0, speakArm:false, coverArm:false, chronCloseArm:false, coachBank:false, coachSick:false, coachPing:false, levelSeen:null, newSeq:0, kidSeq:0, births:0,
     tiers:{clinic:1, fields:1, store:1, green:1, mill:1, school:1, well:1}, tierProg:{}, tierWorkers:{}, builtWealth:0, deaths:[], proclaim:null, proclaimArm:false, lastHarmWeek:null, lastIncidentWeek:null, incidentRollWeek:null,
@@ -4821,7 +4826,7 @@ function refreshTray(force){
      moment the verb comes back reads at a glance (display only, no sim change). */
   var spotCdN = Math.ceil(G.spotCd - G.t), spotOnCd = G.spotCd > G.t;
   var spotFresh = !spotOnCd && !!a && G.spotCd > 0 && G.t - G.spotCd < 4;
-  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.sick ? "S" : "") : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + (G.ui && G.ui.lens ? "L" + G.ui.lens : "l") + "|" + (G.foundArm ? "F" : "") + (G.claimArm ? "C" : "") + (G.claimBearing == null ? "" : "b" + G.claimBearing) + (G.claimRing == null ? "" : "r" + G.claimRing) + (G.roadArm ? "R" : "") + (G.roadFrom || "") + (G.roadTo || "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "") + "|" + (G.modelArm ? "MA" : "") + (G.coverArm ? "CA" : "") + (G.banked ? "BK" : "") + (a && a.bank != null ? "AC" : "") + (a && a.child ? "K" : "") + (a && a.spotUntil ? Math.ceil(Math.max(0, a.spotUntil - G.t)) : "") + (G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : "");
+  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.sick ? "S" : "") : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + (G.ui && G.ui.lens ? "L" + G.ui.lens : "l") + "|" + (G.foundArm ? "F" : "") + (G.claimArm ? "C" : "") + (G.lensArm ? "LA" : "") + (G.claimBearing == null ? "" : "b" + G.claimBearing) + (G.claimRing == null ? "" : "r" + G.claimRing) + (G.roadArm ? "R" : "") + (G.roadFrom || "") + (G.roadTo || "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "") + "|" + (G.modelArm ? "MA" : "") + (G.coverArm ? "CA" : "") + (G.banked ? "BK" : "") + (a && a.bank != null ? "AC" : "") + (a && a.child ? "K" : "") + (a && a.spotUntil ? Math.ceil(Math.max(0, a.spotUntil - G.t)) : "") + (G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : "");
   if(!force && key === trayKey) return;
   trayKey = key;
   var info = document.getElementById("selInfo");
@@ -4908,9 +4913,10 @@ function refreshTray(force){
       if(o === "covertier"){ if(a){ var tid2 = b.getAttribute("data-t") || null; G.coverArm = false; if((a.tier || null) !== tid2 && setTier(a, tid2)) showToast("🛡 " + a.name.split(" ")[0] + ": " + (tid2 ? TTI[tid2].name + " cover, " + TTI[tid2].premium + "🪙 a season" : "no cover")); } refreshTray(true); return; }
       if(o === "callout"){ if(a) callOut(a); refreshTray(true); return; }
       if(o === "mute"){ Store.dispatch("ui/mute"); try { if(typeof localStorage !== "undefined") localStorage.setItem("mv_muted", (G.ui && G.ui.muted) ? "1" : "0"); } catch(e){} SND.play("toggle"); refreshTray(true); return; }
-      /* Tension lens toggle: a view switch in the Village cluster, the mute
-         button's precedent (icon swap plus a persistent mode label, never a lit verb treatment). */
-      if(o === "lens"){ Store.dispatch("ui/lens"); var lm = (G.ui && G.ui.lens) || null; showToast(lm === "tension" ? "⚔ Tension lens: lines join residents heating toward a feud. Separate them or cool them on the green." : (lm === "desire" ? "👁 Desire lens: lines flow model to follower, thicker means more followers. Watch what the village is copying." : "🗺 Lenses off")); refreshTray(true); return; }
+      /* Lens direct pick: a view switch in the Village cluster, the mute
+         button's precedent (icon swap plus a persistent mode label, never a lit verb treatment).
+         Tapping Lens opens the pick row naming every layer; tapping it again closes the row. */
+      if(o === "lens"){ G.lensArm = !G.lensArm; refreshTray(true); return; }
       if(o === "story"){ storySoFar(false); return; }
       if(o === "build"){ if(a && !firstSiteOpen()){ showToast("🔨 No building site is open right now. Found a building first, or let the current one finish."); return; } setOrder3("build"); return; }
       if(o === "found"){ G.foundArm = !G.foundArm; G.foundPlot = null; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; if(G.foundArm) showToast("🏗 Tap a surveyed plot (gold ring) to found a building"); refreshTray(true); return; }
@@ -5336,6 +5342,21 @@ function hudTick(dt){
     rpEl.style.display = showRoad ? "flex" : "none";
     syncRoadPreview();
   }
+  /* Lens pick row: every layer named before any commit, the current layer
+     marked; picking a chip sets the layer through ui/lens and closes. */
+  var lpEl = document.getElementById("lensPick");
+  if(lpEl){
+    var showLens = !!G.lensArm;
+    var lpHtml = "";
+    if(showLens){
+      var curLens = (G.ui && G.ui.lens) || "off";
+      lpHtml = "<span class='pick-lab'>Lens</span>" + [["off","🗺","Off"],["tension","⚔","Tension"],["desire","👁","Desire"]].map(function(lm){
+        return "<button class='alert-chip" + (lm[0] === curLens ? " sel" : "") + "' data-m='" + lm[0] + "' onclick='__lensPick(\"" + lm[0] + "\")'>" + lm[1] + " " + lm[2] + "</button>";
+      }).join("") + "<button class='alert-chip' data-m='cancel' onclick='__lensCancel()'>✕ Not yet</button>";
+    }
+    if(lpEl.innerHTML !== lpHtml) lpEl.innerHTML = lpHtml;
+    lpEl.style.display = showLens ? "flex" : "none";
+  }
   var apEl = document.getElementById("arrPick");
   if(apEl){
     var arr2 = G.arrival;
@@ -5423,7 +5444,7 @@ function hudTick(dt){
         if(stEl.style.bottom !== sb) stEl.style.bottom = sb;
         if(stEl.style.top) stEl.style.top = "";
         /* CF-REF: phone-stats-compact-during-picks.md [2] */
-        var pickOpen = ["offerPick","projPick","foundPick","claimPick","arrPick"].some(function(pid){ var pe = document.getElementById(pid); return pe && pe.style.display !== "none"; });
+        var pickOpen = ["offerPick","projPick","foundPick","claimPick","arrPick","lensPick"].some(function(pid){ var pe = document.getElementById(pid); return pe && pe.style.display !== "none"; });
         if(stEl.classList.contains("compact") !== pickOpen) stEl.classList.toggle("compact", pickOpen);
       } else {
         /* Desktop: anchor the stats panel below the objective card's real
@@ -5660,6 +5681,8 @@ window.__roadPick = function(k){ G.roadFrom = k; G.roadTo = null; refreshTray(tr
 window.__roadPick2 = function(k){ if(k !== G.roadFrom) G.roadTo = k; refreshTray(true); };
 window.__roadLay = function(){ var a = G.roadFrom, b = G.roadTo; G.roadArm = false; G.roadFrom = null; G.roadTo = null; if(a && b) layRoad(a, b); refreshTray(true); };
 window.__roadCancel = function(){ G.roadArm = false; G.roadFrom = null; G.roadTo = null; refreshTray(true); };
+window.__lensPick = function(m){ G.lensArm = false; Store.dispatch("ui/lens", {mode: m}); var lm = (G.ui && G.ui.lens) || null; showToast(lm === "tension" ? "⚔ Tension lens: lines join residents heating toward a feud. Separate them or cool them on the green." : (lm === "desire" ? "👁 Desire lens: lines flow model to follower, thicker means more followers. Watch what the village is copying." : "🗺 Lenses off")); refreshTray(true); };
+window.__lensCancel = function(){ G.lensArm = false; refreshTray(true); };
 window.__foundCancel = function(){ G.foundPlot = null; refreshTray(true); };
 window.__arrivalChoice = function(w){ arrivalChoice(w === 1 || w === true); };
 var projV = null;

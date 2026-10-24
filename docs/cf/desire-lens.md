@@ -6,8 +6,10 @@ over the map, each with its own visual code, and the player picks which
 question the map answers):
 
 - G.ui.lens is a mode, never a boolean: null (off), "tension", or
-  "desire". The tray Lens button cycles off to tension to desire to
-  off. Legacy boolean lens state restores to "tension".
+  "desire". The tray Lens button opens a pick row naming every layer
+  (Off, Tension, Desire, current layer marked) instead of cycling:
+  no layer is reachable only by tapping past another. Legacy boolean
+  lens state restores to "tension".
 - The button is a view switch with an icon swap plus a persistent mode
   label (the mute button precedent, extended): map plus "Lens" with no
   lens, crossed swords plus "Tension", eye plus "Desire". The label names
