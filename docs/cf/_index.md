@@ -9,6 +9,7 @@ overlay, marker, bubble, name tag, hud, camera move, collision, anchor, hide, de
 | desire-lens.md | The desire lens draws model-to-follower edges from live a.model edges, thickness by follower count, one lens active at a time, view only |
 | soil-tints.md | The field soil boxes and crop cones render the soil clock stage on the map itself: recolor plus stunted height per stage, display only |
 | claim-minimap.md | Surveyed plots read on the minimap: original plots as gold outline squares, CLAIM/GROW plots filled solid, an in-flight claim as a dashed gold ring, display only |
+| claim-preview.md | The pending claim reads on the map before staking: a gold ring at the picked center plus three dots at the pending cluster, no pole or flag, display only |
 
 ## Game Rules and Scoring
 objective, progress, project, parts, work credit, score, driven, order bonus, household, arrival, newcomer, cottage, capacity, speak for, blame, want, desire, model, spread, contagion, origin, coverage, tier, premium, medic, queue, call out, founding, growth, expansion, autonomous, plot
