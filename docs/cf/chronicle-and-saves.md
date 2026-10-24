@@ -15,8 +15,12 @@ true endings, and the localStorage snapshot.
   capped at CHRONICLE_CAP entries; past the cap the oldest drop.
 - The game ends only through endGame(kind): "collapse" when
   checkEnd() finds zero residents after a removal path (dieAgent,
-  or a departure inside arrivalCheck), or "closed" when the player
-  picks Close the Chronicle on a manual Story open. The winter death
+  or a departure inside arrivalCheck), or "closed" when the player confirms
+  Close the Chronicle on a manual Story open: the first tap arms (gold, the
+  button and an arm toast both name the permanent end and the cleared save)
+  and only the second tap commits. The arm clears when the panel closes and
+  on save restore, so a reopened or restored panel never inherits a stale
+  arm. The winter death
   floor (LIFE.minPopulation) guards the winter death roll only; it
   does not guard departures, so collapse stays reachable without
   weakening the floor. After an ending the sim stays gated by G.over,

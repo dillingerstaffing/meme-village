@@ -95,6 +95,7 @@ canvas{display:block}
 .cbtn:hover{border-color:#46586c}
 .cbtn.on{border-color:var(--teal);background:rgba(92,201,167,.13)}
 .cbtn.armed{border-color:var(--gold);background:rgba(232,179,75,.14)}
+.btn.armed{border-color:var(--gold);background:rgba(232,179,75,.14)}
 .cbtn.cam{border-style:dashed;border-color:#46586c}
 .cbtn.cur{border-color:#46586c;background:rgba(255,255,255,.06)}
 .cbtn .i{font-size:21px;display:block}
@@ -871,7 +872,7 @@ function newSlice(){
     rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, blameWarn:false, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0, offer:null, offerAccepted:false,
     rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, blame:0, blameWarn:false, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0,
     sites:[], siteSeq:0, lastFoundSeason:0, houseCapacity:10, banked:false, foundArm:false, foundPlot:null, buildPref:null,
-    bonds:{}, households:[], householdSeq:0, soloHoused:0, departed:0, arrival:null, speakCd:0, speakArm:false, coverArm:false, coachBank:false, coachSick:false, coachPing:false, levelSeen:null, newSeq:0, kidSeq:0, births:0,
+    bonds:{}, households:[], householdSeq:0, soloHoused:0, departed:0, arrival:null, speakCd:0, speakArm:false, coverArm:false, chronCloseArm:false, coachBank:false, coachSick:false, coachPing:false, levelSeen:null, newSeq:0, kidSeq:0, births:0,
     tiers:{clinic:1, fields:1, store:1, green:1, mill:1, school:1, well:1}, tierProg:{}, tierWorkers:{}, builtWealth:0, deaths:[], proclaim:null, proclaimArm:false, lastHarmWeek:null, lastIncidentWeek:null, incidentRollWeek:null,
     stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
     objStation:"clinic", objComplete:false, objDone:0, scapegoats:0, delays:[],
@@ -3542,7 +3543,12 @@ function storySoFar(auto, final){
   if(entries.length) entries.forEach(function(e){ chHtml += "<div class='centry'><span class='cstamp'>" + chronicleStamp(e) + "</span><span>" + e.text + "</span></div>"; });
   else chHtml += "<div class='centry'><span>No entries yet.</span></div>";
   chHtml += "</div>";
-  var closeBtn = (!auto && !final && !G.over) ? "<button type='button' class='btn story-close-btn' onclick='__closeChronicle()'>Close the Chronicle</button>" : "";
+  /* Close the Chronicle is the game's one destructive verb: a single tap ends
+     the village for good and clears the save. The destructive-confirm
+     grammar arms on the first tap (the toast names the consequence, the
+     button goes gold and names it too) and commits only on the second tap.
+     Display only: no new dispatch, this panel's own renderer re-renders. */
+  var closeBtn = (!auto && !final && !G.over) ? (G.chronCloseArm ? "<button type='button' class='btn story-close-btn armed' onclick='__closeChronicle()'>Close it: the village ends for good</button>" : "<button type='button' class='btn story-close-btn' onclick='__closeChronicle()'>Close the Chronicle</button>") : "";
   /* The Remembered block: on a true ending the final panel names the
      dead and the eldest living, from real state (G.deaths is pushed in
      chronological order by dieAgent; ages live on the agents). An
@@ -3591,7 +3597,7 @@ function storySoFar(auto, final){
     (function(seq){ setTimeout(function(){ if(seq === storyAutoSeq){ ov.classList.remove("open"); ov.classList.remove("story"); ov.classList.remove("manual"); } }, 15000); })(storyAutoSeq);
   }
 }
-window.__closeStory = function(){ storyAutoSeq++; var ov = document.getElementById("endOverlay"); ov.classList.remove("open"); ov.classList.remove("story"); ov.classList.remove("manual"); };
+window.__closeStory = function(){ storyAutoSeq++; if(G) G.chronCloseArm = false; var ov = document.getElementById("endOverlay"); ov.classList.remove("open"); ov.classList.remove("story"); ov.classList.remove("manual"); };
 document.getElementById("endOverlay").addEventListener("click", function(e){ if(e.target === this && this.classList.contains("manual")) window.__closeStory(); });
 /* Stage 8: the two true endings. Collapse fires when the last resident
    is gone, checked after every removal path (deaths, departures); the
@@ -3610,9 +3616,14 @@ function endGame(kind){
 function checkEnd(){
   if(G && G.started && !G.over && G.agents.length === 0) endGame("collapse");
 }
-window.__closeChronicle = function(){ endGame("closed"); };
+window.__closeChronicle = function(){
+  if(G.chronCloseArm){ endGame("closed"); return; }
+  G.chronCloseArm = true;
+  showToast("🕯 Closing the chronicle ends the village for good and clears the save. Tap the button again to finish it.");
+  storySoFar(false);
+};
 
-/* CF-REF: chronicle-and-saves.md [137] */
+/* CF-REF: chronicle-and-saves.md [138] */
 /* Stage 8: persistence. One localStorage snapshot lets a village
    survive a reload. The save is the Store state as JSON with the
    transient render objects stripped by key (figures, overlay
@@ -3708,6 +3719,7 @@ function restoreState(st){
   if(!Array.isArray(st.chronicle)) st.chronicle = [];
   if(!Array.isArray(st.medicQueue)) st.medicQueue = [];
   st.coverArm = false;
+  st.chronCloseArm = false;
   if(typeof st.coachBank !== "boolean") st.coachBank = false;
   if(typeof st.coachSick !== "boolean") st.coachSick = false;
   if(typeof st.coachPing !== "boolean") st.coachPing = false;
