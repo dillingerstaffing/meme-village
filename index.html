@@ -553,6 +553,7 @@ function sph(r,c,x,y,z,parent){
 }
 
 /* ================= WORLD ================= */
+/* CF-REF: spec-tables-drift-gate.md [10] */
 var STATION3 = {
   clinic:{name:"Clinic", icon:"✚", x:-28, z:-15, work:[[-31,-12],[-25,-12],[-28,-11.4]], hit:[-28,-14,13,11]},
   fields:{name:"Fields", icon:"🌿", x:-30, z:16, work:[[-36,13],[-30,16],[-24,13],[-33,19],[-27,19]], hit:[-30,16,21,13]},
@@ -730,6 +731,7 @@ function buildBuilding(x, z, w, h, wallC, roofC, kind){
 }
 
 /* ================= RESIDENTS ================= */
+/* CF-REF: spec-tables-drift-gate.md [12] */
 var RES3 = [
   {id:"mara", name:"Mara Voss", role:"Repair Lead", aff:"clinic", home:[-16,-24], admires:"jonah", vis:66, disp:"Diligent", skin:0xc98a5e, hair:0, hairC:0x2e2018, shirt:0xa34d24, persona:{voice:["blunt","dry humour","measures twice"], values:"work that holds up when it is leaned on", fear:"a repair failing while someone depends on it", pride:"My repairs hold. That is the whole of it.", tic:"Count it twice, fix it once.", stance:"Follows Jonah because Jonah stays calm when things bleed.", secret:"one morning with nothing broken in it"}},
   {id:"jonah", name:"Jonah Reyes", role:"Medic", aff:"clinic", home:[-27,-11], admires:"priya", vis:60, disp:"Helpful", skin:0x8a5a34, hair:2, hairC:0x16120e, shirt:0x3f6d5a, persona:{voice:["gentle","unhurried","soft spoken"], values:"nobody hurting alone and unnoticed", fear:"arriving too late", pride:"A steady hand is a kind of promise, and I keep mine.", tic:"Slow hands, steady hands.", stance:"Follows Priya because Priya is patient with frightened people.", secret:"to be the one looked after, just once"}},
@@ -975,6 +977,7 @@ function needVal(a, id){
 function addNeed(a, id, amt){
   a.needs[id] = Math.max(0, Math.min(100, needVal(a, id) + amt));
 }
+/* CF-REF: spec-tables-drift-gate.md [55] */
 var NEED_DEFS = [
   { id:"belonging", label:"Belonging",
     start:function(i){ return 62 + (i%5)*6; },
@@ -1322,6 +1325,7 @@ var CONTENTMENT_BANDS = [
 /* Newcomer personas are data: a future arrival is a new row here.
    Fields mirror RES3 (persona cards included); affinity, disposition,
    and axis are dealt at spawn, and the model starts null by design. */
+/* CF-REF: spec-tables-drift-gate.md [10] */
 var NEWCOMERS = [
   {name:"Wren Halloway", role:"Cooper", aff:"mill", disp:"Diligent", vis:26, skin:0xd9a878, hair:1, hairC:0x5a3a1e, shirt:0x7a5c8e, persona:{voice:["steady","plain spoken","hums at work"], values:"a barrel that does not leak", fear:"being a burden on a house that took her in", pride:"My hoops hold. Press them and see.", tic:"Tap it twice, trust it once.", stance:"New here; follows the first steady example the village offers.", secret:"to be asked to stay, out loud"}},
   {name:"Silas Berg", role:"Shepherd", aff:"fields", disp:"Helpful", vis:30, skin:0xb57a48, hair:3, hairC:0x2e2018, shirt:0x5d7a45, persona:{voice:["quiet","patient","counts heads"], values:"nothing living left out overnight", fear:"losing one and not noticing", pride:"I have never lost a lamb I was watching.", tic:"Count them at the gate, count them at the fold.", stance:"New here; watches whoever the flock of people gathers around.", secret:"one night of sleep with nobody to count"}},
@@ -2602,6 +2606,7 @@ function sendMedic(patientId){ var j = agent("jonah"), p = agent(patientId); if(
 function recoverPatient(id, morale){ var p = agent(id); if(!p) return; p.sick = false; p.morale = morale; p.state = "idle"; p.decideT = 1; }
 function restPatient(id){ var p = agent(id); if(!p) return; p.order = null; goStation(p, "home"); showToast("🏠 " + p.name.split(" ")[0] + " heads home to rest"); }
 function applyStatMods(mods){ if(!mods) return; Object.keys(mods).forEach(function(k){ if(G.stats[k] != null) G.stats[k] = Math.max(0, Math.min(100, G.stats[k] + mods[k])); }); }
+/* CF-REF: spec-tables-drift-gate.md [50] */
 var INCIDENTS = [
   {key:"rosafaint", at:26, patient:"rosa", title:"Rosa feels faint", text:"She has sat down by the fire, pale. The village is watching what happens next.", options:[
     {icon:"✚", label:"Send Jonah", hint:"The medic, in person", fx:function(){ sendMedic("rosa"); }},
@@ -2779,6 +2784,7 @@ function chooseIncident(i){
    changes the village permanently (G.perks), and an unfinished
    project persists across weeks until it is done. */
 function hasPerk(id){ return !!(G.perks && G.perks.indexOf(id) >= 0); }
+/* CF-REF: spec-tables-drift-gate.md [6] */
 var PROJECTS = [
   {id:"granary", icon:"🌾", title:"Raised Granary", station:"fields", parts:{harvest:6, mill:4}, chainKey:"harvest", perkText:"Stores stretch further now: scarcity eases and the storehouse draws more hands."},
   {id:"longtable", icon:"🍲", title:"The Long Table", station:"green", parts:{green:24}, peak:6, cost:4, perkText:"Talking it out on the green now drains blame faster, and time there restores more heart."},
@@ -2893,10 +2899,12 @@ function projectTick(){
    chain rule and the perks stay exactly where they always lived (the
    project ledger and projectTick), and the site mesh rises with
    projectProgress. */
+/* CF-REF: spec-tables-drift-gate.md [4] */
 var PLOTS = [
   {x:-8, z:30}, {x:48, z:8}, {x:-38, z:4}, {x:46, z:-2}, {x:14, z:-34}, {x:-20, z:-36}
 ];
 var PROJ_SITE_POS = {granary:[-19.5, 25], longtable:[4.5, 14.5], roofsealed:[-19, -19], schoolbell:[-34, -20]};
+/* CF-REF: spec-tables-drift-gate.md [21] */
 var BUILD_KINDS = {
   cottage: {id:"cottage", title:"Cottage", icon:"🏠", plot:true, mesh:"cottage", wall:0xdfc9a8, roof:0x74543a,
     stages:[{name:"Foundation", labor:10, stores:2, planks:0}, {name:"Frame", labor:12, stores:1, planks:2}, {name:"Roof", labor:10, stores:1, planks:2}],
@@ -3195,6 +3203,7 @@ function buildPlots(){
 }
 
 // CF-REF: driven-work-progress.md [14]
+/* CF-REF: spec-tables-drift-gate.md [14] */
 var OBJECTIVES = [
   {station:"clinic", icon:"🔨", title:"Repair the clinic roof", hint:"Planks land as the crew works", metric:function(){ return G.roof; }},
   {station:"store", icon:"📦", title:"Fill the storehouse", hint:"Crates and harvests, all season food", metric:function(){ return G.weekWorkP.stores * 100 / 10; }},

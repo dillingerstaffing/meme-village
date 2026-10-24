@@ -1,0 +1,132 @@
+{
+  "tables": {
+    "ADJACENCY": {
+      "columns": [
+        "kindA",
+        "kindB",
+        "maxDistance",
+        "bonusStat",
+        "bonusAmount"
+      ],
+      "fixed": [
+        "workshop:mill:labor",
+        "hall:green:mediation"
+      ],
+      "status": "queued"
+    },
+    "BUILD_KINDS": {
+      "keys": [
+        "cottage",
+        "bank",
+        "townhouse",
+        "workshop",
+        "hall"
+      ],
+      "status": "live"
+    },
+    "CLAIM_COST": {
+      "columns": [
+        "ring",
+        "allowedBearings",
+        "storesCost",
+        "planksCost",
+        "carryTimeMult"
+      ],
+      "status": "queued"
+    },
+    "DEPLETION": {
+      "columns": [
+        "fieldKind",
+        "workSeasonsToDepletion",
+        "restSeasons",
+        "tintStages",
+        "rotationReset"
+      ],
+      "status": "queued"
+    },
+    "INCIDENTS": {
+      "keys": [
+        "rosafaint",
+        "roofleak",
+        "shortstores",
+        "feudwell",
+        "feverpriya",
+        "milljam",
+        "stranger",
+        "storm",
+        "longtable",
+        "whispers",
+        "fieldclaim",
+        "frost"
+      ],
+      "status": "live"
+    },
+    "MODEL_PRESTIGE": {
+      "columns": [
+        "sourceStat",
+        "threshold",
+        "flipBehavior"
+      ],
+      "status": "queued"
+    },
+    "NEED_DEFS": {
+      "keys": [
+        "belonging",
+        "purpose"
+      ],
+      "status": "live"
+    },
+    "NEWCOMERS": {
+      "keyless": true,
+      "rows": 8,
+      "status": "live"
+    },
+    "OBJECTIVES": {
+      "keyless": true,
+      "rows": 12,
+      "status": "live"
+    },
+    "PLOTS": {
+      "keyless": true,
+      "rows": 6,
+      "status": "live"
+    },
+    "PROJECTS": {
+      "keys": [
+        "granary",
+        "longtable",
+        "roofsealed",
+        "schoolbell"
+      ],
+      "status": "live"
+    },
+    "RES3": {
+      "keys": [
+        "mara",
+        "jonah",
+        "priya",
+        "tomas",
+        "ines",
+        "felix",
+        "rosa",
+        "abel",
+        "nadia",
+        "bram"
+      ],
+      "status": "live"
+    },
+    "STATION3": {
+      "keys": [
+        "clinic",
+        "fields",
+        "store",
+        "green",
+        "mill",
+        "school",
+        "well",
+        "home"
+      ],
+      "status": "live"
+    }
+  }
+}

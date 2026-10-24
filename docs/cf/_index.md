@@ -25,6 +25,7 @@ state, store, dispatch, transact, render, dom, panel, new field, new event, chro
 |---------|---------|
 | store-single-source.md | Store.state is the only state; only the four subscribed renderers write DOM |
 | chronicle-and-saves.md | The chronicle is written by systems only; saves are versioned, index based, and restored only via Continue |
+| spec-tables-drift-gate.md | Content lives in spec-registered data tables; the drift gate fails on dead rows, undefined references, or stale JSON |
 
 ## Input and Touch
 tap, drag, scroll, touch, pointer, gesture, tray, alerts, minimap, button, click, highlight, armed, selection panel
