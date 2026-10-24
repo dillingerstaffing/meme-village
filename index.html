@@ -4896,7 +4896,11 @@ function refreshTray(force){
      moment the verb comes back reads at a glance (display only, no sim change). */
   var spotCdN = Math.ceil(G.spotCd - G.t), spotOnCd = G.spotCd > G.t;
   var spotFresh = !spotOnCd && !!a && G.spotCd > 0 && G.t - G.spotCd < 4;
-  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.sick ? "S" : "") : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + (G.ui && G.ui.lens ? "L" + G.ui.lens : "l") + "|" + (G.foundArm ? "F" : "") + (G.claimArm ? "C" : "") + (G.lensArm ? "LA" : "") + (G.claimBearing == null ? "" : "b" + G.claimBearing) + (G.claimRing == null ? "" : "r" + G.claimRing) + (G.roadArm ? "R" : "") + (G.roadFrom || "") + (G.roadTo || "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "") + "|" + (G.modelArm ? "MA" : "") + (G.coverArm ? "CA" : "") + (G.banked ? "BK" : "") + (a && a.bank != null ? "AC" : "") + (a && a.child ? "K" : "") + (a && a.spotUntil ? Math.ceil(Math.max(0, a.spotUntil - G.t)) : "") + (G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : "");
+  /* Idle finder: the tray key includes the live loafer list, so the
+     Idle button face names its count the moment the count changes. */
+  var idleList = idleResidents();
+  var idleIds = idleList.map(function(x){ return x.id; }).join(",");
+  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.sick ? "S" : "") : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + (G.ui && G.ui.lens ? "L" + G.ui.lens : "l") + "|" + (G.foundArm ? "F" : "") + (G.claimArm ? "C" : "") + (G.lensArm ? "LA" : "") + (G.claimBearing == null ? "" : "b" + G.claimBearing) + (G.claimRing == null ? "" : "r" + G.claimRing) + (G.roadArm ? "R" : "") + (G.roadFrom || "") + (G.roadTo || "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "") + "|" + (G.modelArm ? "MA" : "") + (G.coverArm ? "CA" : "") + (G.banked ? "BK" : "") + (a && a.bank != null ? "AC" : "") + (a && a.child ? "K" : "") + (a && a.spotUntil ? Math.ceil(Math.max(0, a.spotUntil - G.t)) : "") + (G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : "") + "|I" + idleIds;
   if(!force && key === trayKey) return;
   trayKey = key;
   var info = document.getElementById("selInfo");
@@ -4915,7 +4919,7 @@ function refreshTray(force){
   }
   var selX = document.getElementById("selX");
   if(selX) selX.addEventListener("click", function(){ Store.dispatch("ui/select", {id: null}); refreshTray(true); });
-  /* CF-REF: highlight-vocabulary.md [37] */
+  /* CF-REF: highlight-vocabulary.md [41] */
   var speakCdN = G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : 0;
   var html = "<div class='cgrp'><span class='glab'>Send to</span>" + CMDS.map(function(c){
     var on = a && ((c.id === "auto" && !a.order) || a.order === c.id);
@@ -4947,6 +4951,10 @@ function refreshTray(force){
   }
   html += "<div class='cgrp sep'><span class='glab'>Village</span>";
   html += "<button class='cbtn" + (cam.follow ? " cam" : "") + "' data-o='follow'" + (!a ? " disabled" : "") + "><span class='i'>🎥</span><span class='l'>Follow</span></button>";
+  /* Idle finder: navigation in the Village cluster, beside Follow. It
+     stays tappable with no selection, since finding a resident is how
+     a selection starts; it carries no lit treatment in any state. */
+  html += "<button class='cbtn' data-o='idle'><span class='i'>💤</span><span class='l'>Idle" + (idleList.length ? " · " + idleList.length : "") + "</span></button>";
   html += "<button class='cbtn" + (G.proclaimArm ? " armed" : "") + "' data-o='proclaim'><span class='i'>📣</span><span class='l'>Proclaim</span></button>";
   html += "<button class='cbtn" + (G.foundArm ? " armed" : "") + "' data-o='found'><span class='i'>🏗</span><span class='l'>Found</span></button>";
   html += "<button class='cbtn" + (G.claimArm ? " armed" : "") + "' data-o='claim'><span class='i'>🚩</span><span class='l'>Claim</span></button>";
@@ -4960,6 +4968,21 @@ function refreshTray(force){
     b.addEventListener("click", function(){
       var o = b.getAttribute("data-o");
       if(o === "follow"){ cam.follow = cam.follow ? null : G.selected; refreshTray(true); return; }
+      /* Idle finder: cycle one loafer at a time, navigation only. The
+         list is computed fresh on every tap; the tap selects the next
+         loafer after the current selection (or the first, when the
+         selection is not a loafer), moves the camera to them, and
+         issues no order and selects no group. With no loafer the tap
+         answers aloud instead of going silent. */
+      if(o === "idle"){
+        var idleNow = idleResidents();
+        if(!idleNow.length){ showToast("💤 Everyone is busy right now"); refreshTray(true); return; }
+        var idleIx = -1;
+        for(var ii = 0; ii < idleNow.length; ii++) if(idleNow[ii].id === G.selected) idleIx = ii;
+        var idleNext = idleNow[(idleIx + 1) % idleNow.length];
+        G.selected = idleNext.id; cam.follow = null; cam.target.x = idleNext.x; cam.target.z = idleNext.z;
+        refreshTray(true); return;
+      }
       if(o === "spot"){ G.armed = true; G.modelArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; showToast("✨ Tap a resident to spotlight them: a 20s shield, then a 45s cooldown"); refreshTray(true); return; }
       if(o === "model"){ G.modelArm = true; G.armed = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; showToast("👁 Tap who " + (a ? a.name.split(" ")[0] : "they") + " should look up to: they copy them until you pick again"); refreshTray(true); return; }
       if(o === "proclaim"){ G.proclaimArm = !G.proclaimArm; G.armed = false; G.modelArm = false; G.foundArm = false; G.speakArm = false; G.coverArm = false; if(G.proclaimArm){ var pcEarly = !!(G.proclaim && G.proclaim.week === G.week); showToast("📣 Tap a building, or a building site, to proclaim the village's focus for the season" + (pcEarly ? ". Shifting the focus early costs " + LIFE.proclaimRecost + " cohesion" : "")); } refreshTray(true); return; }
@@ -5748,6 +5771,13 @@ function fxTick(dt){
   } else if(selLine) selLine.visible = false;
 }
 window.__pickAlert = function(id){ var a = agent(id); G.selected = id; cam.follow = null; if(a){ cam.target.x = a.x; cam.target.z = a.z; } refreshTray(true); };
+// CF-REF: idle-finder.md [6]
+function idleResidents(){
+  if(!G.agents) return [];
+  return G.agents.filter(function(a){
+    return !a.child && !a.sick && (a.loafT || 0) > 15;
+  });
+}
 window.__toastFocus = function(){ var tst = G.ui && G.ui.toast, f = tst && tst.focus; if(!f) return; var x = 0, z = 0, n = 0; if(f.ids) f.ids.forEach(function(id){ var a = agent(id); if(a){ x += a.x; z += a.z; n++; } }); else if(f.x !== undefined){ x = f.x; z = f.z; n = 1; } if(n){ cam.target.x = Math.max(-62, Math.min(62, x / n)); cam.target.z = Math.max(-48, Math.min(48, z / n)); cam.follow = null; } };
 window.__toastSkip = function(){ Store.dispatch("ui/toastSkip"); SND.play("tap"); };
 window.__pickProject = function(i){ pickProject(i); };

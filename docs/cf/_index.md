@@ -44,6 +44,7 @@ tap, drag, scroll, touch, pointer, gesture, tray, alerts, minimap, button, click
 |---------|---------|
 | tray-passes-taps.md | Overlay containers are pointer-events none; only their buttons capture |
 | highlight-vocabulary.md | Each tray treatment means one thing: teal is the current order, gold is the one armed verb, status is chips never lit buttons |
+| idle-finder.md | The Idle button cycles one loafer at a time, orders nothing, and never carries a lit treatment |
 | minimap-canvas-tap.md | Minimap jump is detected in endPointer at canvas level, never on the element |
 | pointercancel-never-a-tap.md | pointercancel only resets pointer state; only pointerup can become a tap |
 

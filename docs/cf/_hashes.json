@@ -266,79 +266,85 @@
     },
     {
       "article": "axis-label-selected-surfaces.md",
-      "ref_line": 4905,
+      "ref_line": 4909,
       "lines": 2,
       "hash": "6caa504a"
     },
     {
       "article": "highlight-vocabulary.md",
-      "ref_line": 4918,
-      "lines": 37,
-      "hash": "95a461d9"
+      "ref_line": 4922,
+      "lines": 41,
+      "hash": "10895f69"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 5111,
+      "ref_line": 5134,
       "lines": 39,
       "hash": "d5a4f014"
     },
     {
       "article": "claim-minimap.md",
-      "ref_line": 5177,
+      "ref_line": 5200,
       "lines": 12,
       "hash": "bb41812d"
     },
     {
       "article": "rivalry-drift.md",
-      "ref_line": 5216,
+      "ref_line": 5239,
       "lines": 8,
       "hash": "2a88a8fe"
     },
     {
       "article": "desire-lens.md",
-      "ref_line": 5234,
+      "ref_line": 5257,
       "lines": 31,
       "hash": "a56463cc"
     },
     {
       "article": "phone-stats-compact-during-picks.md",
-      "ref_line": 5527,
+      "ref_line": 5550,
       "lines": 2,
       "hash": "4448d346"
     },
     {
       "article": "sheet-below-objective-card.md",
-      "ref_line": 5545,
+      "ref_line": 5568,
       "lines": 16,
       "hash": "6b2224dc"
     },
     {
       "article": "desires-travel-the-graph.md",
-      "ref_line": 5628,
+      "ref_line": 5651,
       "lines": 33,
       "hash": "89ae1cb6"
     },
     {
+      "article": "idle-finder.md",
+      "ref_line": 5774,
+      "lines": 6,
+      "hash": "ce6fdd68"
+    },
+    {
       "article": "overlay-anchor-budget.md",
-      "ref_line": 5866,
+      "ref_line": 5896,
       "lines": 66,
       "hash": "9a9122e9"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 6116,
+      "ref_line": 6146,
       "lines": 11,
       "hash": "27da632f"
     },
     {
       "article": "pointercancel-never-a-tap.md",
-      "ref_line": 6129,
+      "ref_line": 6159,
       "lines": 4,
       "hash": "3471fc97"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 6208,
+      "ref_line": 6238,
       "lines": 4,
       "hash": "ce66959f"
     }
