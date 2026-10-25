@@ -5014,7 +5014,7 @@ function refreshTray(force){
   }
   var selX = document.getElementById("selX");
   if(selX) selX.addEventListener("click", function(){ Store.dispatch("ui/select", {id: null}); refreshTray(true); });
-  /* CF-REF: highlight-vocabulary.md [41] */
+  /* CF-REF: highlight-vocabulary.md [50] */
   var speakCdN = G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : 0;
   var html = "<div class='cgrp'><span class='glab'>Send to</span>" + CMDS.map(function(c){
     var on = a && ((c.id === "auto" && !a.order) || a.order === c.id);
@@ -5036,7 +5036,18 @@ function refreshTray(force){
       } else {
         html += [null, "silver", "executive", "platinum"].map(function(tid){
           var cur = (a.tier || null) === tid;
-          var lb = tid ? TTI[tid].name + " · " + TTI[tid].premium + "🪙" : "None";
+          /* Each tier button names what the tier buys, read from its TTI
+             row, so the recurring premium is weighed against its return
+             before the commit: Silver joins the automatic medic dispatch
+             (no manual call fee), higher tiers move up the queue, and any
+             tier with a winter divisor or a save names it. */
+          var row = tid ? TTI[tid] : null, ben = "";
+          if(row){
+            ben = row.queue <= 1 ? " · first in line" : (row.queue === 2 ? " · ahead in line" : " · auto medic, no call fee");
+            if(row.deathDivisor > 1) ben += ", winter risk ÷" + row.deathDivisor;
+            if(row.saves > 0) ben += ", " + row.saves + (row.saves === 1 ? " save" : " saves") + " a year";
+          }
+          var lb = row ? row.name + " · " + row.premium + "🪙" + ben : "None";
           var ic = tid ? TTI[tid].glyph : "🛡";
           return "<button class='cbtn" + (cur ? " cur" : "") + "' data-o='covertier' data-t='" + (tid || "") + "'><span class='i'>" + ic + "</span><span class='l'>" + (cur ? "✓ " : "") + lb + "</span></button>";
         }).join("");
@@ -5098,7 +5109,7 @@ function refreshTray(force){
         } else { speakFor(); }
         refreshTray(true); return;
       }
-      if(o === "cover"){ if(a && !a.child && G.banked && a.bank != null){ G.coverArm = true; G.armed = false; G.modelArm = false; G.proclaimArm = false; G.speakArm = false; G.foundArm = false; showToast("🛡 Cover for " + a.name.split(" ")[0] + " is " + (a.tier ? TTI[a.tier].name : "none") + " now. Premiums come out of the bank account each season. Platinum goes first in the medic queue, winter deaths are halved, and one death a year is turned away."); } refreshTray(true); return; }
+      if(o === "cover"){ if(a && !a.child && G.banked && a.bank != null){ G.coverArm = true; G.armed = false; G.modelArm = false; G.proclaimArm = false; G.speakArm = false; G.foundArm = false; showToast("🛡 Cover for " + a.name.split(" ")[0] + " is " + (a.tier ? TTI[a.tier].name : "none") + " now. Premiums come out of the bank account each season. Each tier button names what it buys."); } refreshTray(true); return; }
       if(o === "covertier"){ if(a){ var tid2 = b.getAttribute("data-t") || null; G.coverArm = false; if((a.tier || null) !== tid2 && setTier(a, tid2)) showToast("🛡 " + a.name.split(" ")[0] + ": " + (tid2 ? TTI[tid2].name + " cover, " + TTI[tid2].premium + "🪙 a season" : "no cover")); } refreshTray(true); return; }
       if(o === "callout"){ if(a) callOut(a); refreshTray(true); return; }
       if(o === "mute"){ Store.dispatch("ui/mute"); try { if(typeof localStorage !== "undefined") localStorage.setItem("mv_muted", (G.ui && G.ui.muted) ? "1" : "0"); } catch(e){} SND.play("toggle"); refreshTray(true); return; }
