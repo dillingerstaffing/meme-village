@@ -5480,10 +5480,12 @@ function hudTick(dt){
     var cpHtml = "";
     if(showClaim && G.claim && !G.claim.staked){
       /* Recall row: the claim is already out, so the row names the way
-         back instead of new ground: the stores that come home, then the
-         choice to recall or let the party finish. */
+         back instead of new ground: the delivered materials against the
+         cost, so the player can weigh recall against letting it finish,
+         then the stores that come home, then the choice itself. */
       var cbBack = claimRefundStores(G.claim);
-      cpHtml = "<span class='pick-lab'>Claim under way</span>" + "<button class='alert-chip go' onclick='__claimRecall()'>🚩 Recall the claim" + (cbBack ? " · 📦" + cbBack + " back" : "") + "</button>" + "<button class='alert-chip' onclick='__claimCancel()'>✕ Let them finish</button>";
+      var cpProg = " · 📦" + (G.claim.matsIn.stores || 0) + "/" + G.claim.cost.stores + " 🪵" + (G.claim.matsIn.planks || 0) + "/" + G.claim.cost.planks;
+      cpHtml = "<span class='pick-lab'>Claim under way" + cpProg + "</span>" + "<button class='alert-chip go' onclick='__claimRecall()'>🚩 Recall the claim" + (cbBack ? " · 📦" + cbBack + " back" : "") + "</button>" + "<button class='alert-chip' onclick='__claimCancel()'>✕ Let them finish</button>";
     } else if(showClaim){
       var bearSel = (G.claimBearing == null) ? -1 : G.claimBearing;
       var ringSel = (G.claimRing == null) ? -1 : G.claimRing;
@@ -5513,9 +5515,12 @@ function hudTick(dt){
     var rpHtml = "";
     if(showRoad && G.roadBuild && !G.roadBuild.built){
       /* Recall row: the crew is already out, so the row names the way
-         back instead of new ends: recall, or let them finish. Planks are
-         carry labor, not stock, so no refund number is owed here. */
-      rpHtml = "<span class='pick-lab'>Road under way</span>" + "<button class='alert-chip go' onclick='__roadRecall()'>🛣 Recall the road</button>" + "<button class='alert-chip' onclick='__roadCancel()'>✕ Let them finish</button>";
+         back instead of new ends: the delivered planks against the cost,
+         so the player can weigh recall against letting it finish, then
+         recall, or let them finish. Planks are carry labor, not stock,
+         so no refund number is owed here. */
+      var rpProg = " · 🪵" + (G.roadBuild.matsIn.planks || 0) + "/" + G.roadBuild.cost.planks;
+      rpHtml = "<span class='pick-lab'>Road under way" + rpProg + "</span>" + "<button class='alert-chip go' onclick='__roadRecall()'>🛣 Recall the road</button>" + "<button class='alert-chip' onclick='__roadCancel()'>✕ Let them finish</button>";
     } else if(showRoad){
       var fromSel = G.roadFrom, toSel = G.roadTo;
       rpHtml = "<span class='pick-lab'>From</span>" + TIER_STATIONS.map(function(k){
