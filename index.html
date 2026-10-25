@@ -5572,9 +5572,15 @@ function hudTick(dt){
   if(apEl){
     var arr2 = G.arrival;
     var apHtml = "";
+    /* Arrival price read: turning travelers away costs HH.turnAwaySting
+       cohesion, but the pick row named no price at all, and even the
+       post-commit toast says only that it stung. The chip reads the
+       same HH value arrivalChoice spends, so price and effect cannot
+       disagree. Welcome carries no stat price: its seat cost already
+       reads in the Homes row during the pick. */
     if(arr2) apHtml = "<span class='arr-note'>🚶 " + arrivalWho(arr2) + " at the valley edge</span>"
       + "<button class='alert-chip' onclick='__arrivalChoice(1)'>🤝 <b>Welcome</b></button>"
-      + "<button class='alert-chip' onclick='__arrivalChoice(0)'>🚪 <b>Turn away</b></button>";
+      + "<button class='alert-chip' onclick='__arrivalChoice(0)'>🚪 <b>Turn away</b> · costs " + HH.turnAwaySting + " cohesion</button>";
     if(apEl.innerHTML !== apHtml) apEl.innerHTML = apHtml;
     apEl.style.display = arr2 ? "flex" : "none";
   }
