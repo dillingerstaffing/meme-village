@@ -5092,7 +5092,7 @@ function refreshTray(force){
       }
       if(o === "spot"){ G.armed = true; G.modelArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; showToast("✨ Tap a resident to spotlight them: a 20s shield, then a 45s cooldown"); refreshTray(true); return; }
       if(o === "model"){ G.modelArm = true; G.armed = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; showToast("👁 Tap who " + (a ? a.name.split(" ")[0] : "they") + " should look up to: they copy them until you pick again"); refreshTray(true); return; }
-      if(o === "proclaim"){ G.proclaimArm = !G.proclaimArm; G.armed = false; G.modelArm = false; G.foundArm = false; G.speakArm = false; G.coverArm = false; if(G.proclaimArm){ var pcEarly = !!(G.proclaim && G.proclaim.week === G.week); showToast("📣 Tap a building, or a building site, to proclaim the village's focus for the season" + (pcEarly ? ". Shifting the focus early costs " + LIFE.proclaimRecost + " cohesion" : "")); } refreshTray(true); return; }
+      if(o === "proclaim"){ G.proclaimArm = !G.proclaimArm; G.armed = false; G.modelArm = false; G.foundArm = false; G.speakArm = false; G.coverArm = false; if(G.proclaimArm){ var pcEarly = !!(G.proclaim && G.proclaim.week === G.week); showToast("📣 Tap a building, or a building site, to proclaim the village's focus for the season, drawing more residents to work there" + (pcEarly ? ". Shifting the focus early costs " + LIFE.proclaimRecost + " cohesion" : "")); } refreshTray(true); return; }
       if(o === "thoughts"){ if(G.selected) Store.dispatch("ui/sheet", {id:G.selected}); return; }
       if(o === "speak"){
         G.coverArm = false;
