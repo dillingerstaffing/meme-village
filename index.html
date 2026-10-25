@@ -4428,9 +4428,16 @@ function endWeek(){
   driftSeasonCheck();
   var o = curObjective();
   if(G.offerAccepted && o){
-    if(G.objComplete) showToast("✓ " + seasonName() + " done: " + o.title + " · " + G.objDone + " all time");
+    /* Season-end receipt: the offer card names the bonus before the commit,
+       so the season-end toasts close the loop with the same numbers, read
+       from OBJ_COMPLETE_BONUS so card and receipt can never disagree.
+       Non-project commissions only, the card's settled grammar: a project's
+       payoff is its permanent perk, named in the pick row and the
+       project-complete toast, so project toasts keep their plain wording. */
+    var seasBonus = o.project ? "" : " · +" + OBJ_COMPLETE_BONUS.trust + " trust and +" + OBJ_COMPLETE_BONUS.cohesion + " cohesion";
+    if(G.objComplete) showToast("✓ " + seasonName() + " done: " + o.title + " · " + G.objDone + " all time" + (seasBonus ? seasBonus + " paid" : ""));
     else if(o.project && G.project && !G.project.done) showToast(seasonLabel() + " ends: " + projectTitle() + " carries on, parts stay filled");
-    else showToast(seasonLabel() + " ends: " + o.title + " missed at " + Math.round(clamp100(o.metric())) + "%");
+    else showToast(seasonLabel() + " ends: " + o.title + " missed at " + Math.round(clamp100(o.metric())) + "%" + (seasBonus ? seasBonus + " not earned" : ""));
   }
   /* an offer the player never accepted lapses here, silently: no toast, no penalty */
   G.week++; G.weekTime = 0; G.incidentDone = false; G.curIncident = null; G.weekIncident = null;
