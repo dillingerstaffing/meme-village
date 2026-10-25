@@ -5228,9 +5228,9 @@ function showToast(msg, focus){ Store.dispatch("ui/toast", {msg:msg, focus: focu
    Display only: the verb stays armed and the gold border keeps meaning
    the one armed verb. */
 function announceArmedStill(){
-  if(G.armed) showToast("✨ Spotlight still armed, tap a resident to use it");
-  else if(G.modelArm){ var ma = G.selected ? agent(G.selected) : null; showToast("👁 Model still armed, tap who " + (ma ? ma.name.split(" ")[0] : "they") + " should look up to"); }
-  else if(G.proclaimArm) showToast("📣 Proclaim still armed, tap a building or building site");
+  if(G.armed) showToast("✨ Spotlight still armed, tap a resident to use it: a 20s shield, then a 45s cooldown");
+  else if(G.modelArm){ var ma = G.selected ? agent(G.selected) : null; showToast("👁 Model still armed, tap who " + (ma ? ma.name.split(" ")[0] : "they") + " should look up to: they copy them until you pick again"); }
+  else if(G.proclaimArm) showToast("📣 Proclaim still armed, tap a building or building site, drawing more residents to work there");
   else if(G.foundArm) showToast("🏗 Found still armed, tap a surveyed plot");
   else if(G.claimArm) showToast("🚩 Claim still armed, pick a bearing and a ring");
   else if(G.roadArm) showToast("🛣 Road still armed, tap two stations");
