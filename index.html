@@ -44,6 +44,8 @@ canvas{display:block}
 #projPick .alert-chip{min-height:44px;padding:10px 12px;font-size:13px;display:flex;align-items:center;gap:6px}
 @media (max-width:560px){#projPick .alert-chip{flex:1 1 100%}}
 #projPick .pp-cost{color:var(--ink2);font-weight:400;font-size:11.5px}
+#projPick .alert-chip.pp-stack{flex-direction:column;align-items:flex-start;text-align:left}
+#projPick .alert-chip.pp-stack .pp-cost{width:100%}
 #foundPick .alert-chip{min-height:44px;padding:10px 12px;font-size:13px;display:flex;align-items:center;gap:6px}
 @media (max-width:560px){#foundPick .alert-chip{flex:1 1 100%}}
 #claimPick .alert-chip{min-height:44px;padding:10px 12px;font-size:13px;display:flex;align-items:center;gap:6px}
@@ -3091,8 +3093,13 @@ function projectHint(){
    same decision-UX rule as the found-kind chips: total driven-work parts,
    the per-part stations where that driven work must happen (station icon
    plus need, read through PART_STATION, the same mapping projectHint
-   shows after the pick), the chain and peak sub-parts, and any stores
-   cost. Read from the project def rows, so the numbers can never lie.
+   shows after the pick), the chain and peak sub-parts, any stores
+   cost, and the permanent perk the project grants (its perkText, the
+   payoff the completion toast otherwise reveals only after the choice).
+   Read from the project def rows, so the numbers can never lie.
+   Chips stack vertically (pp-stack: title, cost, perk) so the perk
+   sentence wraps as a paragraph at phone width instead of squeezing
+   into a word-wide flex column beside the cost bits.
    Display only. */
 function projectPickPreview(pd){
   var bits = [], total = 0;
@@ -3105,7 +3112,9 @@ function projectPickPreview(pd){
   if(pd.chainKey) bits.push("⛓chain of 2");
   if(pd.peak) bits.push("👥" + pd.peak + " together");
   if(pd.cost) bits.push("📦" + pd.cost);
-  return bits.length ? " <span class='pp-cost'>· " + bits.join(" · ") + "</span>" : "";
+  var out = bits.length ? " <span class='pp-cost'>· " + bits.join(" · ") + "</span>" : "";
+  if(pd.perkText) out += " <span class='pp-cost'>" + pd.perkText + "</span>";
+  return out;
 }
 function pickProject(i){
   var off = G.projectOffer; if(!off || !off[i]) return;
@@ -5444,7 +5453,7 @@ function hudTick(dt){
     var ppKey = showPick ? ("pick:" + G.projectOffer.join(",")) : "";
     if(ppEl.dataset.k !== ppKey){
       ppEl.dataset.k = ppKey;
-      ppEl.innerHTML = showPick ? G.projectOffer.map(function(pid, ix){ var pd = null; PROJECTS.forEach(function(p){ if(p.id === pid) pd = p; }); return pd ? "<button class='alert-chip' onclick='__pickProject(" + ix + ")'>" + pd.icon + " <b>" + pd.title + "</b>" + projectPickPreview(pd) + "</button>" : ""; }).join("") : "";
+      ppEl.innerHTML = showPick ? G.projectOffer.map(function(pid, ix){ var pd = null; PROJECTS.forEach(function(p){ if(p.id === pid) pd = p; }); return pd ? "<button class='alert-chip pp-stack' onclick='__pickProject(" + ix + ")'>" + "<span>" + pd.icon + " <b>" + pd.title + "</b></span>" + projectPickPreview(pd) + "</button>" : ""; }).join("") : "";
     }
     ppEl.style.display = showPick ? "flex" : "none";
   }
