@@ -2845,6 +2845,8 @@ function ttiQueueWatch(){
 }
 function callOut(a){
   if(!a || a.child || a.tier || !a.sick) return false;
+  /* A Call Out buys the front of the queue once: a patient already in line pays nothing more, and a patient joining a busy line hears that they wait, so a paid tap never goes silent and never charges twice for one place in line */
+  if(medicQueued(a.id)){ showToast("🚑 " + a.name.split(" ")[0] + " is already waiting for Jonah, so no new fee"); return false; }
   var fee = TTI.spotFee, cash = a.cash || 0, bank = a.bank || 0;
   if(cash + bank < fee){ showToast("🚑 " + a.name.split(" ")[0] + " cannot cover the call out fee"); return false; }
   var fromCash = Math.min(cash, fee);
@@ -2852,7 +2854,7 @@ function callOut(a){
   if(fee - fromCash > 0) a.bank = bank - (fee - fromCash);
   G.ttiPaid = (G.ttiPaid || 0) + fee;
   if(medicFree()){ sendMedic(a.id); showToast("🚑 Call out: Jonah is on his way to " + a.name.split(" ")[0], {ids: [a.id, "jonah"]}); }
-  else enqueueMedic(a, true);
+  else { enqueueMedic(a, true); showToast("🚑 Jonah is busy, so " + a.name.split(" ")[0] + " waits in the medic line", {ids: [a.id]}); }
   SND.play("order");
   return true;
 }
