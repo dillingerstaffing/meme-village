@@ -4203,6 +4203,11 @@ var OBJECTIVES = [
   {station:"green", icon:"🍲", title:"The long table", hint:"Everyone on the green, often", metric:function(){ return G.weekWorkP.green * 100 / 48; }},
   {station:"store", icon:"❄", title:"The Winter Count", hint:"Final stores before the snow", metric:function(){ return G.weekWorkP.stores * 100 / 10; }}
 ];
+/* A finished commission pays trust and cohesion: the same bonus the offer
+   card names before the player accepts, so the card and the payout can
+   never disagree. Project offers name their perk in the pick row, so this
+   bonus is named only on non-project offers. */
+var OBJ_COMPLETE_BONUS = {trust: 3, cohesion: 3};
 /* Seasonal offers: each season draws one commission from the deck and offers it.
    The player may accept it (it becomes the tracked commission), ignore it, or
    let it lapse at season end. A lapsed offer costs nothing: no toast, no penalty.
@@ -4250,7 +4255,7 @@ function objectiveTick(){
   if(!G.offerAccepted || G.objComplete) return;
   var o = curObjective();
   if(o && o.metric() >= 100){
-    G.objComplete = true; G.objDone++; applyStatMods({trust:3, cohesion:3});
+    G.objComplete = true; G.objDone++; applyStatMods(OBJ_COMPLETE_BONUS);
     showToast("✓ Objective complete: " + o.title);
     SND.play("objwin");
     var st = STATION3[o.station];
@@ -5440,7 +5445,7 @@ function hudTick(dt){
   } else if(G.offer){
     document.getElementById("objK").textContent = "OFFER · " + seasonName().toUpperCase();
     document.getElementById("objT").textContent = o.icon + " " + (o.titleDyn ? o.titleDyn() : o.title);
-    document.getElementById("objHint").textContent = o.hintDyn ? o.hintDyn() : o.hint;
+    document.getElementById("objHint").textContent = (o.hintDyn ? o.hintDyn() : o.hint) + (o.project ? "" : " Completing it pays +" + OBJ_COMPLETE_BONUS.trust + " trust and +" + OBJ_COMPLETE_BONUS.cohesion + " cohesion.");
     document.getElementById("objPct").textContent = "-";
   } else {
     document.getElementById("objK").textContent = "SEASON · " + seasonName().toUpperCase();
