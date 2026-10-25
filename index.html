@@ -5240,7 +5240,7 @@ function showToast(msg, focus){ Store.dispatch("ui/toast", {msg:msg, focus: focu
 function announceArmedStill(){
   if(G.armed) showToast("✨ Spotlight still armed, tap a resident to use it: a 20s shield, then a 45s cooldown");
   else if(G.modelArm){ var ma = G.selected ? agent(G.selected) : null; showToast("👁 Model still armed, tap who " + (ma ? ma.name.split(" ")[0] : "they") + " should look up to: they copy them until you pick again"); }
-  else if(G.visitArm){ var va = G.selected ? agent(G.selected) : null; showToast("💬 Visit still armed, tap who " + (va ? va.name.split(" ")[0] : "they") + " should visit"); }
+  else if(G.visitArm){ var va = G.selected ? agent(G.selected) : null; showToast("💬 Visit still armed, tap who " + (va ? va.name.split(" ")[0] : "they") + " should visit: they walk over for a chat"); }
   else if(G.proclaimArm) showToast("📣 Proclaim still armed, tap a building or building site, drawing more residents to work there");
   else if(G.foundArm) showToast("🏗 Found still armed, tap a surveyed plot to found a building");
   else if(G.claimArm) showToast((G.claim && !G.claim.staked) ? "🚩 Claim still armed, the claim party is still out: recall them, or let them finish" : "🚩 Claim still armed, pick a bearing and a ring: three surveyed plots join the village");
