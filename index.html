@@ -5535,7 +5535,11 @@ function hudTick(dt){
       if(bearSel >= 0 && ringSel >= 0){
         var tc = claimTotals(ringSel);
         var cpBlocked = claimCenterBlocked(claimCenter(bearSel, ringSel));
-        cpHtml += cpBlocked ? "<button class='alert-chip' onclick='__claimStake()'>🚩 Ground already claimed</button>" : "<button class='alert-chip go' onclick='__claimStake()'>🚩 Stake the claim · 📦" + tc.stores + " 🪵" + tc.planks + "</button>";
+        /* Claim payoff read: the Stake chip names the yield beside the
+           cost, read from claimClusterPlots, the same rows staking
+           appends, so the priced claim states what it buys before the
+           commit, not only in the staked toast. */
+        cpHtml += cpBlocked ? "<button class='alert-chip' onclick='__claimStake()'>🚩 Ground already claimed</button>" : "<button class='alert-chip go' onclick='__claimStake()'>🚩 Stake the claim · 📦" + tc.stores + " 🪵" + tc.planks + " · " + claimClusterPlots(0, 0).length + " new plots</button>";
       }
       cpHtml += "<button class='alert-chip' onclick='__claimCancel()'>✕ Not yet</button>";
     }
