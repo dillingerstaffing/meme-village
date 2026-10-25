@@ -5507,7 +5507,7 @@ function hudTick(dt){
       var kd = BUILD_KINDS[k];
       var mt = {stores: 0, planks: 0, labor: 0};
       kd.stages.forEach(function(stg){ mt.stores += stg.stores; mt.planks += stg.planks; mt.labor += stg.labor; });
-      return "<button class='alert-chip' onclick='__foundPick(" + ix + ")'>" + kd.icon + " <b>" + kd.title + "</b> · 📦" + mt.stores + " 🪵" + mt.planks + " 🔨" + mt.labor + "</button>";
+      return "<button class='alert-chip' onclick='__foundPick(" + ix + ")'>" + kd.icon + " <b>" + kd.title + "</b> · 📦" + mt.stores + " 🪵" + mt.planks + " 🔨" + mt.labor + " · " + (kd.blurb || "") + "</button>";
     }).join("") + Object.keys(BUILD_KINDS).filter(function(k){ var kd = BUILD_KINDS[k]; return kd.plot && !kindUnlocked(kd); }).map(function(k){
       /* Found-ladder read: locked kinds are named, never offered. The
          unlock level is the LIFE.levels name for the kind's minLevel, so
@@ -5518,7 +5518,7 @@ function hudTick(dt){
       var kd = BUILD_KINDS[k];
       var lv = LIFE.levels[0].name;
       LIFE.levels.forEach(function(L){ if(kd.minLevel >= L.min) lv = L.name; });
-      return "<span class='alert-chip' style='opacity:.55;cursor:default'>" + kd.icon + " <b>" + kd.title + "</b> · Unlocks at " + lv + "</span>";
+      return "<span class='alert-chip' style='opacity:.55;cursor:default'>" + kd.icon + " <b>" + kd.title + "</b> · Unlocks at " + lv + " · " + (kd.blurb || "") + "</span>";
     }).join("") + "<button class='alert-chip' onclick='__foundCancel()'>✕ Not yet</button>";
     if(fpEl.innerHTML !== fpHtml) fpEl.innerHTML = fpHtml;
     fpEl.style.display = showFound ? "flex" : "none";
