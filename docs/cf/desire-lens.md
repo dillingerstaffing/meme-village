@@ -9,7 +9,11 @@ question the map answers):
   "desire". The tray Lens button opens a pick row naming every layer
   (Off, Tension, Desire, current layer marked) instead of cycling:
   no layer is reachable only by tapping past another. Legacy boolean
-  lens state restores to "tension".
+  lens state restores to "tension". Each layer chip also carries a
+  short gloss of what its lines show (Tension: feuds heating; Desire:
+  who copies whom), drawn from the post-pick toast's own words, so
+  the pick is decidable from the row itself rather than from recalling
+  the toast.
 - The button is a view switch with an icon swap plus a persistent mode
   label (the mute button precedent, extended): map plus "Lens" with no
   lens, crossed swords plus "Tension", eye plus "Desire". The label names

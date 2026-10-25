@@ -5603,15 +5603,19 @@ function hudTick(dt){
     syncRoadPreview();
   }
   /* Lens pick row: every layer named before any commit, the current layer
-     marked; picking a chip sets the layer through ui/lens and closes. */
+     marked; each layer chip also carries a short gloss of what its lines
+     show, drawn from the post-pick toast's own words, so the pick is
+     decidable from the row itself instead of from recalling the toast
+     (Nielsen heuristic 6, recognition rather than recall). Picking a chip
+     sets the layer through ui/lens and closes. */
   var lpEl = document.getElementById("lensPick");
   if(lpEl){
     var showLens = !!G.lensArm;
     var lpHtml = "";
     if(showLens){
       var curLens = (G.ui && G.ui.lens) || "off";
-      lpHtml = "<span class='pick-lab'>Lens</span>" + [["off","🗺","Off"],["tension","⚔","Tension"],["desire","👁","Desire"]].map(function(lm){
-        return "<button class='alert-chip" + (lm[0] === curLens ? " sel" : "") + "' data-m='" + lm[0] + "' onclick='__lensPick(\"" + lm[0] + "\")'>" + lm[1] + " " + lm[2] + "</button>";
+      lpHtml = "<span class='pick-lab'>Lens</span>" + [["off","🗺","Off",""],["tension","⚔","Tension"," · feuds heating"],["desire","👁","Desire"," · who copies whom"]].map(function(lm){
+        return "<button class='alert-chip" + (lm[0] === curLens ? " sel" : "") + "' data-m='" + lm[0] + "' onclick='__lensPick(\"" + lm[0] + "\")'>" + lm[1] + " " + lm[2] + lm[3] + "</button>";
       }).join("") + "<button class='alert-chip' data-m='cancel' onclick='__lensCancel()'>✕ Not yet</button>";
     }
     if(lpEl.innerHTML !== lpHtml) lpEl.innerHTML = lpHtml;
