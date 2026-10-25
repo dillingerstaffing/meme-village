@@ -5231,9 +5231,9 @@ function announceArmedStill(){
   if(G.armed) showToast("✨ Spotlight still armed, tap a resident to use it: a 20s shield, then a 45s cooldown");
   else if(G.modelArm){ var ma = G.selected ? agent(G.selected) : null; showToast("👁 Model still armed, tap who " + (ma ? ma.name.split(" ")[0] : "they") + " should look up to: they copy them until you pick again"); }
   else if(G.proclaimArm) showToast("📣 Proclaim still armed, tap a building or building site, drawing more residents to work there");
-  else if(G.foundArm) showToast("🏗 Found still armed, tap a surveyed plot");
-  else if(G.claimArm) showToast("🚩 Claim still armed, pick a bearing and a ring");
-  else if(G.roadArm) showToast("🛣 Road still armed, tap two stations");
+  else if(G.foundArm) showToast("🏗 Found still armed, tap a surveyed plot to found a building");
+  else if(G.claimArm) showToast((G.claim && !G.claim.staked) ? "🚩 Claim still armed, the claim party is still out: recall them, or let them finish" : "🚩 Claim still armed, pick a bearing and a ring: three surveyed plots join the village");
+  else if(G.roadArm) showToast((G.roadBuild && !G.roadBuild.built) ? "🛣 Road still armed, the road crew is still out: recall them, or let them finish" : "🛣 Road still armed, tap two stations: walkers " + CONNECT_ROAD.walkMult.toFixed(1) + "x faster");
 }
 var hudAcc = 0;
 var mmCtx = null;
