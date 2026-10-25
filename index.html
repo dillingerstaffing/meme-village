@@ -5573,7 +5573,10 @@ function hudTick(dt){
       }
       if(fromSel && toSel){
         var tc = roadCost(fromSel, toSel);
-        rpHtml += "<button class='alert-chip go' onclick='__roadLay()'>🛣 Lay the road · 🪵" + tc.planks + " planks</button>";
+        /* Road payoff read: the Lay chip names the return beside the cost,
+           read from CONNECT_ROAD.walkMult, so the priced investment states
+           what it buys before the commit, not only in the built toast. */
+        rpHtml += "<button class='alert-chip go' onclick='__roadLay()'>🛣 Lay the road · 🪵" + tc.planks + " planks · walkers " + CONNECT_ROAD.walkMult.toFixed(1) + "x faster</button>";
       }
       rpHtml += "<button class='alert-chip' onclick='__roadCancel()'>✕ Not yet</button>";
     }
