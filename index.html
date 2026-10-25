@@ -4249,6 +4249,9 @@ function ignoreOffer(){
   G.offer = null; G.offerAccepted = false; G.objComplete = false; G.objStation = null; G.projectOffer = null; G.objTarget = null;
   if(objRing) objRing.visible = false;
   if(pipGroup) pipGroup.visible = false;
+  /* The Ignore tap commits for the season, so it confirms like Accept
+     does, in the card's own words: set aside now, a new offer next season. */
+  showToast("📜 Commission set aside. A new offer comes with the next season.");
   Store.commit();
 }
 function objectiveTick(){
