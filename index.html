@@ -5032,7 +5032,7 @@ function refreshTray(force){
     html += "</div>";
   }
   html += "<div class='cgrp sep'><span class='glab'>Village</span>";
-  html += "<button class='cbtn" + (cam.follow ? " cam" : "") + "' data-o='follow'" + (!a ? " disabled" : "") + "><span class='i'>🎥</span><span class='l'>Follow</span></button>";
+  html += "<button class='cbtn" + (a && cam.follow === a.id ? " cam" : "") + "' data-o='follow'" + (!a ? " disabled" : "") + "><span class='i'>🎥</span><span class='l'>Follow</span></button>";
   /* Idle finder: navigation in the Village cluster, beside Follow. It
      stays tappable with no selection, since finding a resident is how
      a selection starts; it carries no lit treatment in any state. */
@@ -5049,7 +5049,8 @@ function refreshTray(force){
   cmds.querySelectorAll(".cbtn").forEach(function(b){
     b.addEventListener("click", function(){
       var o = b.getAttribute("data-o");
-      if(o === "follow"){ cam.follow = cam.follow ? null : G.selected; refreshTray(true); return; }
+      /* Follow acts on the tray's resident: dashed means the camera follows the selected resident, so tapping Follow on another resident's tray follows them instead of silently dropping the current follow. */
+      if(o === "follow"){ cam.follow = (cam.follow === G.selected) ? null : G.selected; refreshTray(true); return; }
       /* Idle finder: cycle one loafer at a time, navigation only. The
          list is computed fresh on every tap; the tap selects the next
          loafer after the current selection (or the first, when the
