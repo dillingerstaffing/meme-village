@@ -32,319 +32,325 @@
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 401,
+      "ref_line": 405,
       "lines": 89,
       "hash": "ddbf928c"
     },
     {
       "article": "rivalry-drift.md",
-      "ref_line": 507,
+      "ref_line": 511,
       "lines": 28,
       "hash": "12d2a578"
     },
     {
       "article": "axis-label-selected-surfaces.md",
-      "ref_line": 554,
+      "ref_line": 558,
       "lines": 4,
       "hash": "5edddeb8"
     },
     {
       "article": "model-prestige-flip.md",
-      "ref_line": 572,
+      "ref_line": 576,
       "lines": 1,
       "hash": "cdc6ff83"
     },
     {
       "article": "rivalry-drift.md",
-      "ref_line": 574,
+      "ref_line": 578,
       "lines": 9,
       "hash": "3e00cdfb"
     },
     {
       "article": "spec-tables-drift-gate.md",
-      "ref_line": 624,
+      "ref_line": 628,
       "lines": 10,
       "hash": "300093cc"
     },
     {
       "article": "spec-tables-drift-gate.md",
-      "ref_line": 802,
+      "ref_line": 806,
       "lines": 12,
       "hash": "6bb41b8a"
     },
     {
       "article": "driven-work-progress.md",
-      "ref_line": 995,
+      "ref_line": 999,
       "lines": 27,
       "hash": "f08cbff5"
     },
     {
       "article": "spec-tables-drift-gate.md",
-      "ref_line": 1051,
+      "ref_line": 1055,
       "lines": 55,
       "hash": "5acb962a"
     },
     {
       "article": "model-prestige-flip.md",
-      "ref_line": 1258,
+      "ref_line": 1262,
       "lines": 7,
       "hash": "a7a65fe5"
     },
     {
       "article": "spec-tables-drift-gate.md",
-      "ref_line": 1456,
+      "ref_line": 1460,
       "lines": 10,
       "hash": "e10b880f"
     },
     {
       "article": "household-capacity-ledger.md",
-      "ref_line": 1478,
+      "ref_line": 1482,
       "lines": 47,
       "hash": "e7228c5e"
     },
     {
       "article": "membership-never-gates-the-medic.md",
-      "ref_line": 1860,
+      "ref_line": 1864,
       "lines": 15,
       "hash": "6b9842f8"
     },
     {
       "article": "membership-never-gates-the-medic.md",
-      "ref_line": 2203,
+      "ref_line": 2225,
       "lines": 12,
       "hash": "05a2a2ba"
     },
     {
       "article": "rivalry-drift.md",
-      "ref_line": 2344,
+      "ref_line": 2366,
       "lines": 21,
       "hash": "786f727e"
     },
     {
       "article": "thoughts-local-inference-only.md",
-      "ref_line": 2507,
+      "ref_line": 2529,
       "lines": 31,
       "hash": "abf52637"
     },
     {
       "article": "model-prestige-flip.md",
-      "ref_line": 2562,
+      "ref_line": 2584,
       "lines": 49,
       "hash": "14f74e7f"
     },
     {
       "article": "spec-tables-drift-gate.md",
-      "ref_line": 2827,
+      "ref_line": 2849,
       "lines": 50,
       "hash": "8cbc7946"
     },
     {
       "article": "spec-tables-drift-gate.md",
-      "ref_line": 3005,
+      "ref_line": 3037,
       "lines": 6,
       "hash": "c12ad933"
     },
     {
       "article": "spec-tables-drift-gate.md",
-      "ref_line": 3120,
+      "ref_line": 3159,
       "lines": 4,
       "hash": "edc3c69c"
     },
     {
       "article": "spec-tables-drift-gate.md",
-      "ref_line": 3125,
+      "ref_line": 3164,
       "lines": 21,
       "hash": "2ac77b93"
     },
     {
       "article": "spec-tables-drift-gate.md",
-      "ref_line": 3168,
+      "ref_line": 3207,
       "lines": 3,
       "hash": "db280d3b"
     },
     {
       "article": "spec-tables-drift-gate.md",
-      "ref_line": 3179,
+      "ref_line": 3218,
       "lines": 56,
       "hash": "3b23959f"
     },
     {
       "article": "spec-tables-drift-gate.md",
-      "ref_line": 3197,
+      "ref_line": 3236,
       "lines": 3,
       "hash": "966395af"
     },
     {
       "article": "recall-in-flight.md",
-      "ref_line": 3484,
+      "ref_line": 3523,
       "lines": 44,
       "hash": "2b3e66d3"
     },
     {
       "article": "road-building.md",
-      "ref_line": 3529,
+      "ref_line": 3568,
       "lines": 199,
       "hash": "9afe0ce9"
     },
     {
       "article": "recall-in-flight.md",
-      "ref_line": 3637,
+      "ref_line": 3676,
       "lines": 24,
       "hash": "1897c44f"
     },
     {
       "article": "road-building.md",
-      "ref_line": 3740,
+      "ref_line": 3779,
       "lines": 22,
       "hash": "694bff3c"
     },
     {
       "article": "claim-preview.md",
-      "ref_line": 3778,
+      "ref_line": 3817,
       "lines": 37,
       "hash": "4c742e7a"
     },
     {
       "article": "rivalry-drift.md",
-      "ref_line": 3820,
+      "ref_line": 3859,
       "lines": 13,
       "hash": "778e8834"
     },
     {
       "article": "village-growth-gates.md",
-      "ref_line": 3854,
+      "ref_line": 3893,
       "lines": 81,
       "hash": "9af53548"
     },
     {
       "article": "autonomous-founding-gates.md",
-      "ref_line": 3936,
+      "ref_line": 3975,
       "lines": 28,
       "hash": "0727e0b6"
     },
     {
       "article": "driven-work-progress.md",
-      "ref_line": 4128,
+      "ref_line": 4167,
       "lines": 14,
       "hash": "39fb637f"
     },
     {
       "article": "spec-tables-drift-gate.md",
-      "ref_line": 4129,
+      "ref_line": 4168,
       "lines": 14,
       "hash": "c77a272b"
     },
     {
       "article": "rivalry-drift.md",
-      "ref_line": 4209,
+      "ref_line": 4248,
       "lines": 11,
       "hash": "aa574fd2"
     },
     {
       "article": "departure-forecast.md",
-      "ref_line": 4260,
+      "ref_line": 4299,
       "lines": 14,
       "hash": "bf0008cd"
     },
     {
       "article": "soil-tints.md",
-      "ref_line": 4306,
+      "ref_line": 4345,
       "lines": 13,
       "hash": "6ad1e918"
     },
     {
       "article": "desires-travel-the-graph.md",
-      "ref_line": 4486,
+      "ref_line": 4525,
       "lines": 19,
       "hash": "23d42fdb"
     },
     {
       "article": "chronicle-and-saves.md",
-      "ref_line": 4657,
+      "ref_line": 4696,
       "lines": 139,
       "hash": "f14f1e23"
     },
     {
       "article": "axis-label-selected-surfaces.md",
-      "ref_line": 4929,
+      "ref_line": 4968,
       "lines": 2,
       "hash": "6caa504a"
     },
     {
       "article": "highlight-vocabulary.md",
-      "ref_line": 4942,
+      "ref_line": 4981,
       "lines": 41,
       "hash": "10895f69"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 5154,
+      "ref_line": 5193,
       "lines": 39,
       "hash": "d5a4f014"
     },
     {
       "article": "claim-minimap.md",
-      "ref_line": 5220,
+      "ref_line": 5259,
       "lines": 12,
       "hash": "bb41812d"
     },
     {
       "article": "rivalry-drift.md",
-      "ref_line": 5259,
+      "ref_line": 5298,
       "lines": 8,
       "hash": "2a88a8fe"
     },
     {
       "article": "desire-lens.md",
-      "ref_line": 5277,
+      "ref_line": 5316,
       "lines": 31,
       "hash": "a56463cc"
     },
     {
+      "article": "proclaim-minimap.md",
+      "ref_line": 5373,
+      "lines": 12,
+      "hash": "8dd93f23"
+    },
+    {
       "article": "phone-stats-compact-during-picks.md",
-      "ref_line": 5570,
+      "ref_line": 5717,
       "lines": 2,
       "hash": "4448d346"
     },
     {
       "article": "sheet-below-objective-card.md",
-      "ref_line": 5588,
+      "ref_line": 5735,
       "lines": 16,
       "hash": "6b2224dc"
     },
     {
       "article": "desires-travel-the-graph.md",
-      "ref_line": 5671,
+      "ref_line": 5818,
       "lines": 33,
       "hash": "89ae1cb6"
     },
     {
       "article": "idle-finder.md",
-      "ref_line": 5794,
+      "ref_line": 5941,
       "lines": 6,
       "hash": "ce6fdd68"
     },
     {
       "article": "overlay-anchor-budget.md",
-      "ref_line": 5916,
+      "ref_line": 6063,
       "lines": 66,
       "hash": "9a9122e9"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 6166,
+      "ref_line": 6313,
       "lines": 11,
       "hash": "27da632f"
     },
     {
       "article": "pointercancel-never-a-tap.md",
-      "ref_line": 6179,
+      "ref_line": 6326,
       "lines": 4,
       "hash": "3471fc97"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 6258,
+      "ref_line": 6405,
       "lines": 4,
       "hash": "ce66959f"
     }

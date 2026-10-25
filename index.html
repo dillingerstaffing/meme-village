@@ -5360,6 +5360,29 @@ function drawMinimap(){
   c.strokeStyle = "rgba(255,255,255,0.55)"; c.lineWidth = 1;
   var hw = cam.dist * 0.72, hh = cam.dist * 0.54;
   c.save(); c.translate(X(cam.target.x), Y(cam.target.z)); c.rotate(-cam.yaw); c.strokeRect(-hw / 120 * W, -hh / 90 * H, hw / 60 * W, hh / 45 * H); c.restore();
+  /* Proclaimed focus on the strategic channel: Proclaim names a
+     station (or a building site) as the village focus for the
+     season, but after its commit toast expired nothing on the map
+     said which one, so a player returning mid-season could not
+     check the choice they made. The focus now reads on the minimap
+     for exactly the week it holds: the tray's own megaphone glyph
+     above the focus, ringed dashed in the objective gold, so the
+     mark carries by icon and by shape, never by color alone.
+     Display only: reads G.proclaim, writes the canvas, never
+     state, never wk(), never the driven-work ledgers. */
+  // CF-REF: proclaim-minimap.md [12]
+  if(G.proclaim && G.proclaim.week === G.week){
+    var pf = null;
+    if(G.proclaim.station && G.proclaim.station !== "home" && STATION3[G.proclaim.station]) pf = STATION3[G.proclaim.station];
+    else if(G.proclaim.site){ var psy = siteById(G.proclaim.site); if(psy && !psy.done && PLOTS[psy.plot]) pf = PLOTS[psy.plot]; }
+    if(pf){
+      var pmx = X(pf.x), pmy = Y(pf.z);
+      c.strokeStyle = "rgba(255,215,94,0.95)"; c.lineWidth = 1.5 / mmScale; c.setLineDash([3, 2]);
+      c.beginPath(); c.arc(pmx, pmy, 8 / mmScale, 0, 6.29); c.stroke(); c.setLineDash([]);
+      c.fillStyle = "rgba(255,255,255,0.95)"; c.font = Math.round(13 / mmScale) + "px sans-serif"; c.textAlign = "center";
+      c.fillText("📣", pmx, pmy - 9 / mmScale); c.textAlign = "start";
+    }
+  }
 }
 function hudTick(dt){
   hudAcc += dt;
