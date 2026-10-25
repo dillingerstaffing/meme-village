@@ -2186,14 +2186,26 @@ function villageLevel(){
    finishSite, tierUp, and the project-site path in siteTick are the
    only events that can move the count, so the check hooks those three;
    the levelSeen guard keeps each promotion to exactly one celebration.
-   Display only: the level math and every ledger are untouched. */
+   Display only: the level math and every ledger are untouched.
+   The toast also names what the new level unlocks, so the promotion
+   itself teaches the new verbs instead of leaving them to be found:
+   kinds come from the BUILD_KINDS rows whose minLevel the promotion
+   crosses (Workshop at Large Village, Town House and Village Hall at
+   Town), and the Town-tier verbs (Claims, roads) from the Town level
+   threshold the promotion crosses. Levels with no crossing (Village,
+   City) keep the plain toast; no unlock is ever invented. */
 function checkLevelUp(){
   if(!G.started || G.over) return;
   var lv = villageLevel();
   if(G.levelSeen == null){ G.levelSeen = lv.name; return; }
   if(lv.name === G.levelSeen) return;
+  var prevMin = 0, newMin = 0, townMin = 0;
+  LIFE.levels.forEach(function(L){ if(L.name === G.levelSeen) prevMin = L.min; if(L.name === lv.name) newMin = L.min; if(L.name === "Town") townMin = L.min; });
   G.levelSeen = lv.name;
-  showToast("🎉 The village has grown into a " + lv.name + "!");
+  var fresh = [];
+  if(prevMin < townMin && newMin >= townMin) fresh.push("Claims", "roads");
+  Object.keys(BUILD_KINDS).forEach(function(k){ var kd = BUILD_KINDS[k]; if(kd.minLevel && kd.minLevel > prevMin && kd.minLevel <= newMin) fresh.push(kd.title); });
+  showToast("🎉 The village has grown into a " + lv.name + "!" + (fresh.length ? " New: " + fresh.join(", ") + "." : ""));
   SND.play("objwin");
   chronicle("The village grew into a " + lv.name + ".");
 }
