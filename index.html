@@ -4256,7 +4256,8 @@ function objectiveTick(){
   var o = curObjective();
   if(o && o.metric() >= 100){
     G.objComplete = true; G.objDone++; applyStatMods(OBJ_COMPLETE_BONUS);
-    showToast("✓ Objective complete: " + o.title);
+    /* The moment-of-completion toast names the bonus just paid on non-project commissions, the same numbers the card promised and the season-end toast repeats; project toasts stay plain, their payoff is the perk. */
+    showToast("✓ Objective complete: " + o.title + (o.project ? "" : " · +" + OBJ_COMPLETE_BONUS.trust + " trust and +" + OBJ_COMPLETE_BONUS.cohesion + " cohesion paid"));
     SND.play("objwin");
     var st = STATION3[o.station];
     if(st){
