@@ -1974,6 +1974,24 @@ function spawnChild(h){
 function birthCheck(force){
   if(!G.started || G.over) return null;
   if(!G.households || !G.households.length) return null;
+  /* A spring at the cap must name the cap: the loop below breaks
+     before any roll, so without this receipt the missing young one
+     passes in silence. Display only, no state change, no chronicle
+     line, no boundary roll consumed. Fires only when a live
+     household still has room for another young one. */
+  if(G.agents.length >= POP_CAP){
+    var capRoom = false;
+    for(var ci = 0; ci < G.households.length; ci++){
+      var ch = G.households[ci];
+      var cp1 = agent(ch.members[0]), cp2 = agent(ch.members[1]);
+      if(!cp1 || !cp2) continue;
+      var ckids = 0;
+      G.agents.forEach(function(x){ if(x.child && x.parents && x.parents.indexOf(cp1.id) >= 0 && x.parents.indexOf(cp2.id) >= 0) ckids++; });
+      if(ckids < KIDS.maxPerHousehold){ capRoom = true; break; }
+    }
+    if(capRoom) showToast("The village is full at 16, so no young one arrives this spring. Births wait until a seat frees.");
+    return null;
+  }
   var born = null;
   for(var i = 0; i < G.households.length; i++){
     if(G.agents.length >= POP_CAP) break;
