@@ -2118,7 +2118,7 @@ function tierUp(st){
   applyTierMesh(st);
   recomputeWealth();
   var sn = STATION3[st];
-  showToast((sn ? sn.icon + " " : "") + "The " + (sn ? sn.name : st) + " has grown to tier " + G.tiers[st]);
+  showToast((sn ? sn.icon + " " : "") + "The " + (sn ? sn.name : st) + " has grown to tier " + G.tiers[st] + ", opening a new work spot and drawing more residents to work here.");
   SND.play("objwin");
   chronicle((sn && sn.name.indexOf("The ") === 0 ? sn.name : "The " + (sn ? sn.name : st)) + " reached tier " + G.tiers[st] + ".");
   checkLevelUp();
