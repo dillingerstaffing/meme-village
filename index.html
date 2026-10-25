@@ -5162,7 +5162,10 @@ function setOrder3(orderId){
     return;
   }
   if(a.initPend){ a.initPend = null; showToast("↩ " + a.name.split(" ")[0] + " drops the plan and takes your order"); }
-  if(orderId !== "auto" && a.order === orderId){ refreshTray(true); return; }
+  /* A re-tap of the standing order answers the same way (it changes
+     nothing, so it says so) instead of going silent: the button is
+     already lit teal, so silence reads as a dead tap. */
+  if(orderId !== "auto" && a.order === orderId){ if(orderId === "build") showToast("🔨 " + a.name.split(" ")[0] + " is already on the build"); else showToast(STATION3[orderId].icon + " " + a.name.split(" ")[0] + " already has your order at " + STATION3[orderId].name); refreshTray(true); return; }
   G.firstOrder = true;
   Object.keys(G.pairs).forEach(function(k){ if(k.split("|").indexOf(a.id) >= 0) G.pairs[k] = Math.max(0, G.pairs[k] - 22); });
   if(a.medicTask){ a.medicTask = 0; var pat = G.medicPatient ? agent(G.medicPatient) : null; if(pat && pat.sick){ pat.sick = false; pat.morale = Math.max(pat.morale, 50); pat.state = "idle"; pat.decideT = 0.5; } G.medicPatient = null; }
