@@ -6349,6 +6349,12 @@ function tapAt(cx, cy, smart){
     if(p.agent && me4 && p.agent !== G.selected && !me4.sick && !me4.child){ var them4 = agent(p.agent); me4.visitId = them4.id; me4.order = null; me4.reason = "Visiting " + them4.name.split(" ")[0]; goTo(me4, them4.x + 1.2, them4.z + 0.6, me4.stationId); spawnOrderPing(them4.x, them4.z); setBubble(me4, "💬", 1.1); SND.play("order"); showToast("💬 " + me4.name.split(" ")[0] + " goes to visit " + them4.name.split(" ")[0]); }
     else if(me4 && me4.sick) showToast("🚑 " + me4.name.split(" ")[0] + " is sick and cannot visit right now");
     else if(me4 && me4.child) showToast("🧒 " + me4.name.split(" ")[0] + " is still a child and cannot visit");
+    /* Tapping the visitor themselves is not a missed pick: the tap
+       landed, and a visit from a resident to themselves is invalid
+       because visitor and visited must differ. Answer the invalid
+       self-visit instead of the miss wording, which would send the
+       player back to re-aim a tap that already hit. Display only. */
+    else if(p.agent && me4 && p.agent === G.selected) showToast("💬 " + me4.name.split(" ")[0] + " cannot visit themselves");
     else showToast("💬 No visit picked");
     refreshTray(true); return;
   }
