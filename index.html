@@ -2347,11 +2347,23 @@ function dieAgent(m){
 function proclaimAt(stationId, siteId){
   if(!G.started || G.over) return false;
   var early = !!(G.proclaim && G.proclaim.week === G.week);
-  if(early) applyStatMods({cohesion: -LIFE.proclaimRecost});
-  G.proclaim = {station: stationId || null, site: siteId || null, week: G.week};
   var nm = "the village";
   if(siteId){ var sk = siteById(siteId); var kd = sk ? BUILD_KINDS[sk.kind] : null; nm = kd ? kd.title : "the building site"; }
   else if(stationId && STATION3[stationId]) nm = artName(stationId);
+  /* A re-proclaim of the identical target is not a shift: the focus, its
+     advertisement, and its vis rate are all unchanged, so charging the
+     early-shift cost for it bills a change that never happened, and the
+     old toast claimed one ("shifting it early cost 4 cohesion"). Answer
+     that the target already holds the focus, charge nothing, change
+     nothing. A different target in the same week still shifts, and
+     still costs 4 cohesion, unchanged below. */
+  if(early && G.proclaim.station === (stationId || null) && G.proclaim.site === (siteId || null)){
+    showToast("📣 " + nm + " already holds the village's focus this season");
+    refreshTray(true);
+    return false;
+  }
+  if(early) applyStatMods({cohesion: -LIFE.proclaimRecost});
+  G.proclaim = {station: stationId || null, site: siteId || null, week: G.week};
   showToast("📣 Proclaimed: " + nm + " holds the village's focus this season" + (early ? " (shifting it early cost " + LIFE.proclaimRecost + " cohesion)" : ""));
   SND.play("order");
   refreshTray(true);
