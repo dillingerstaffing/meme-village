@@ -5049,7 +5049,23 @@ function refreshTray(force){
        the voucher standing. The gold clearing beside the new
        selection is the signal, as in the order, Idle, and alert
        ends-arm reads; tapping Speak again re-arms with a fresh
-       preview. Display and grammar only: no commit, no cooldown. */ G.speakArm = false; }
+       preview. Display and grammar only: no commit, no cooldown. */ G.speakArm = false;
+    /* A selection change ends a pending subject-bound map verb, in the
+       same grammar: Spotlight, Model, Visit, and Proclaim were armed
+       for the selection that just changed, and a selection the sim
+       itself clears (a death or departure through removeAgent, which
+       dispatches ui/select null without touching any arm) left them
+       standing gold with no subject, so the next resident tap was
+       consumed by the zombie mode instead of selecting: a spotlight
+       for a resident meant only as a selection, a missed-pick answer
+       for Model and Visit, a cancel for Proclaim. With no item
+       selected, a command action must go inactive, not linger. The
+       gold clearing with the selection is the signal, as in the
+       order, Idle, alert, and deselect ends-arm reads. Found is
+       untouched here on purpose: its target is a surveyed plot, not
+       the selected resident, and a selection change already passes
+       under a Found arm, so clearing it would break a live pick. */
+    G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; }
   if(a){
     // CF-REF: axis-label-selected-surfaces.md [2]
     var ax = axisOf(a);
