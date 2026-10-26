@@ -5198,6 +5198,21 @@ function setOrder3(orderId){
      already lit teal, so silence reads as a dead tap. */
   if(orderId !== "auto" && a.order === orderId){ if(orderId === "build") showToast("🔨 " + a.name.split(" ")[0] + " is already on the build"); else showToast(STATION3[orderId].icon + " " + a.name.split(" ")[0] + " already has your order at " + STATION3[orderId].name); refreshTray(true); return; }
   G.firstOrder = true;
+  /* A committed order ends a pending map-targeted verb. Every map tap
+     already resolves such a verb (a resident tap commits it, a miss
+     cancels it with a toast), but a tray order tap took the setOrder3
+     path, which left the verb armed: the next resident tap then meant
+     "assign" instead of "select", a mode error, because the player had
+     just committed something else and reasonably believed they were
+     back in plain selection mode. Clear the five map-targeted arms
+     here, on the commit only: the sick, child, and standing-order
+     returns above change nothing, so they keep the mode, and the
+     button-local modes are untouched (Speak For commits on its own
+     button, Cover opens a chooser, Claim and Road carry their own
+     pick-row cancel grammar), so no resident tap can be hijacked by
+     them. The gold clears with the order through the refreshTray
+     below, the same signal as the armed-button toggle. */
+  G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.foundArm = false;
   Object.keys(G.pairs).forEach(function(k){ if(k.split("|").indexOf(a.id) >= 0) G.pairs[k] = Math.max(0, G.pairs[k] - 22); });
   if(a.medicTask){ a.medicTask = 0; var pat = G.medicPatient ? agent(G.medicPatient) : null; if(pat && pat.sick){ pat.sick = false; pat.morale = Math.max(pat.morale, 50); pat.state = "idle"; pat.decideT = 0.5; } G.medicPatient = null; }
   a.resting = false; a.order = (orderId === "auto") ? null : orderId;
