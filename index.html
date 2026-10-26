@@ -4903,8 +4903,17 @@ function restoreState(st){
   chosenDiff = G.difficulty || "standard"; chosenPolicy = G.policy || "hearth";
   document.getElementById("seasonLine").textContent = "Village #" + G.seed + " · the village reshuffles its commissions every year";
 }
+/* Begin-over-save confirm: Begin and Continue sit on adjacent title
+   buttons, and one Begin tap used to clear a saved village silently.
+   Mirror the chronicle-close confirm: the first tap arms, the second
+   commits. The armed signal is the button label itself, since the toast
+   pill sits under the title overlay (z 12 vs 50) and would never be
+   seen there. */
+var beginArm = false;
+function resetBeginArm(){ beginArm = false; var bb = document.getElementById("beginBtn"); if(bb) bb.textContent = "Begin the season"; }
 function continueGame(){
   if(!pendingSave || (G && G.started)) return false;
+  resetBeginArm();
   var st = pendingSave; pendingSave = null;
   restoreState(st);
   G.started = true;
@@ -6482,7 +6491,7 @@ function beginGame(fromButton){
   /* Begin from the title is a new village: any saved snapshot goes.
      The #play and #ff auto-begins pass no flag, so they start fresh
      without ever reading or clearing a snapshot. */
-  if(fromButton){ clearSave(); pendingSave = null; var cb0 = document.getElementById("continueBtn"); if(cb0) cb0.style.display = "none"; }
+  if(fromButton){ clearSave(); pendingSave = null; resetBeginArm(); var cb0 = document.getElementById("continueBtn"); if(cb0) cb0.style.display = "none"; }
   SND.init();
   G.policy = chosenPolicy; G.difficulty = chosenDiff;
   if(chosenDiff === "hard"){ G.stats.scarcity = 68; G.stats.trust = 48; G.agents.forEach(function(a){ a.energy -= 10; }); }
@@ -6496,7 +6505,12 @@ function beginGame(fromButton){
   showToast("🔨 Year 1, Spring: Mara is on the roof. Bram is watching.");
   G.agents.forEach(function(a){ refreshThought(a, "start"); });
 }
-document.getElementById("beginBtn").addEventListener("click", function(){ beginGame(true); });
+document.getElementById("beginBtn").addEventListener("click", function(){
+  var bb = document.getElementById("beginBtn");
+  if(pendingSave && !beginArm){ beginArm = true; if(bb) bb.textContent = "Start fresh: saved village clears"; return; }
+  beginArm = false;
+  beginGame(true);
+});
 /* ================= MAIN LOOP ================= */
 initThree();
 buildWorld();
