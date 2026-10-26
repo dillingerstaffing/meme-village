@@ -6331,6 +6331,12 @@ function tapAt(cx, cy, smart){
   if(G.modelArm){
     G.modelArm = false;
     if(p.agent && G.selected && p.agent !== G.selected){ var me3 = agent(G.selected), nw3 = agent(p.agent); if(me3.model === nw3.id){ /* Tapping the current model is not a new look-up: the edge is unchanged, and resetting modelCd would clear the imitation cooldown for an assignment that never happened, so answer the standing state and change nothing, in the same-target re-proclaim grammar. */ showToast("👁 " + me3.name.split(" ")[0] + " already looks up to " + nw3.name.split(" ")[0]); } else { me3.model = nw3.id; me3.modelCd = 0; setBubble(me3, "👁", 2); spawnPulse(nw3, me3); SND.play("order"); showToast("👁 " + me3.name.split(" ")[0] + " now looks up to " + nw3.name.split(" ")[0]); } }
+    /* Tapping the selected resident themselves is not a missed pick: the
+       tap landed, and a model edge from a resident to themselves is
+       invalid because a.model names another resident, so answer the
+       invalid self-model instead of the miss wording, which would send
+       the player back to re-aim a tap that already hit. Display only. */
+    else if(p.agent && G.selected && p.agent === G.selected){ var meS = agent(G.selected); showToast("👁 " + meS.name.split(" ")[0] + " cannot look up to themselves"); }
     /* A missed model tap used to disarm with no word at all: the armed
        verb simply stopped being armed, and the next tap selected instead
        of assigning a model. Say the mode ended. Display only. */
