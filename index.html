@@ -6091,7 +6091,9 @@ function fxTick(dt){
     selLine.geometry.setFromPoints([new THREE.Vector3(sa.x, 0.35, sa.z), new THREE.Vector3(sa.tx, 0.35, sa.tz)]);
   } else if(selLine) selLine.visible = false;
 }
-window.__pickAlert = function(id){ var a = agent(id); G.selected = id; cam.follow = null; if(a){ cam.target.x = a.x; cam.target.z = a.z; } refreshTray(true); };
+window.__pickAlert = function(id){ var a = agent(id); /* A chip tap ends a pending map-targeted verb, in the order-ends-arm grammar: the verb belonged to the selection the tap replaces, so a still-armed verb would act for the alerted resident the player never armed it for, and the next resident tap would assign instead of selecting. The gold clearing beside the new selection is the signal; button-local and pick-row modes keep their own grammar. */
+  G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.foundArm = false;
+  G.selected = id; cam.follow = null; if(a){ cam.target.x = a.x; cam.target.z = a.z; } refreshTray(true); };
 // CF-REF: idle-finder.md [6]
 function idleResidents(){
   if(!G.agents) return [];

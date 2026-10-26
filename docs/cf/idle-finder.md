@@ -18,7 +18,10 @@ an armed verb, and not a follow state, and it sets no order when
 tapped. A tap that finds a loafer does end a pending map-targeted
 armed verb (Spotlight, Model, Visit, Proclaim, Found), because the
 verb belonged to the selection the tap replaces; a tap with no
-loafer changes no selection, so it changes no arm. The loafer list is computed fresh on
+loafer changes no selection, so it changes no arm. Tapping an idle
+alert chip ends a pending map-targeted armed verb for the same
+reason: the chip changes the selection the verb belonged to, while
+still selecting the alerted resident and moving the camera. The loafer list is computed fresh on
 every tap from the live loafT values, never cached, so a resident
 who starts working between taps is never selected as idle.
 
