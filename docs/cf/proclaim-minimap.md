@@ -21,9 +21,12 @@ read what they decided without re-committing it.
 - Display only: the block reads G.proclaim, STATION3, PLOTS, and
   siteById, and writes the minimap canvas. It never writes state, never
   calls wk(), never touches the driven-work ledgers, and never changes
-  what the focus does. The commit toast, the arm grammar, and the
-  focus effects are untouched; this layer is the same decision on the
-  second channel. The mark paints last in drawMinimap, above the lens
+  what the focus does. This layer itself leaves the commit toast, the
+  arm grammar, and the focus effects alone; it is the same decision on
+  the second channel. Separately, the arm toast now names the standing
+  focus beside the early-shift cost when one stands this week, so the
+  decision point carries the same name the minimap mark carries; the
+  mark itself is unchanged by that toast change. The mark paints last in drawMinimap, above the lens
   layers and the ping rings, so it is never hidden by them, and it
   restores the canvas text alignment it borrows, so the lens captions
   keep their left alignment.
