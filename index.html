@@ -3516,7 +3516,7 @@ function stakeClaim(bearingIx, ringIx){
   var hn = householdSurname(h), ctr = claimCenter(bearingIx, ringIx);
   /* No double-claiming: ground already claimed or surveyed within 10 units
      refuses the stake, the way Civ refuses a city on settled ground. */
-  if(claimCenterBlocked(ctr)){ showToast("🚩 That ground is already claimed or surveyed."); return null; }
+  if(claimCenterBlocked(ctr)){ showToast("🚩 That ground is already claimed or surveyed. Tap Claim again and pick another bearing or ring."); return null; }
   var cl = {id: "claim" + (++G.claimSeq), bearingIx: bearingIx, ringIx: ringIx, x: ctr.x, z: ctr.z,
     cost: claimTotals(ringIx), matsIn: {stores: 0, planks: 0}, party: [], household: null, staked: false};
   G.claim = cl;
@@ -3662,7 +3662,7 @@ function layRoad(stA, stB){
   for(var i = 0; i < (G.roads || []).length; i++){
     var r0 = G.roads[i];
     if((r0.stA === stA && r0.stB === stB) || (r0.stA === stB && r0.stB === stA)){
-      showToast("🛣 " + STATION3[stA].name + " and " + STATION3[stB].name + " are already joined by a road.");
+      showToast("🛣 " + STATION3[stA].name + " and " + STATION3[stB].name + " are already joined by a road. Tap Road again and pick two stations not yet joined.");
       return null;
     }
   }

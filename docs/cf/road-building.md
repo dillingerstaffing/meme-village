@@ -17,8 +17,10 @@ G.roads, never boosts a walker, and never survives a save. The ghost
 is gold where surveyed lines are brown and built roads are packed
 earth, and it carries no flags, so a ghost can never be mistaken for
 a road. A pair already joined by a road refuses with the reason
-named,
-and the village keeps at most CONNECT_ROAD.maxRoads roads.
+named, and the refusal names the way back: re-arm Road and pick
+two stations not yet joined, because the failed lay disarms the
+verb and the pick row closes with it. The village keeps at most
+CONNECT_ROAD.maxRoads roads.
 
 The road crew is recruited from the imitation graph: the earliest-formed
 household's members plus up to 2 admirers (followersOf counts, spec
