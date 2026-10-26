@@ -5623,8 +5623,19 @@ function hudTick(dt){
         var tc = roadCost(fromSel, toSel);
         /* Road payoff read: the Lay chip names the return beside the cost,
            read from CONNECT_ROAD.walkMult, so the priced investment states
-           what it buys before the commit, not only in the built toast. */
-        rpHtml += "<button class='alert-chip go' onclick='__roadLay()'>🛣 Lay the road · 🪵" + tc.planks + " planks · walkers " + CONNECT_ROAD.walkMult.toFixed(1) + "x faster</button>";
+           what it buys before the commit, not only in the built toast.
+           Joined-pair read: the same pair check layRoad refuses on, run
+           before the commit, so the Lay chip names the joined state
+           instead of offering a lay the game will refuse (Nielsen
+           heuristic 5, error prevention). The chip stays tappable, in the
+           blocked-Claim grammar: tapping it still refuses loudly with the
+           diagnosis and the way back, never a silent dead tap. */
+        var rpJoined = false;
+        for(var rpi = 0; rpi < (G.roads || []).length; rpi++){
+          var rr0 = G.roads[rpi];
+          if((rr0.stA === fromSel && rr0.stB === toSel) || (rr0.stA === toSel && rr0.stB === fromSel)){ rpJoined = true; break; }
+        }
+        rpHtml += rpJoined ? "<button class='alert-chip' onclick='__roadLay()'>🛣 Already joined by a road</button>" : "<button class='alert-chip go' onclick='__roadLay()'>🛣 Lay the road · 🪵" + tc.planks + " planks · walkers " + CONNECT_ROAD.walkMult.toFixed(1) + "x faster</button>";
       }
       rpHtml += "<button class='alert-chip' onclick='__roadCancel()'>✕ Not yet</button>";
     }

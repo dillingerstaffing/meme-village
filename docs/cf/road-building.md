@@ -19,7 +19,11 @@ earth, and it carries no flags, so a ghost can never be mistaken for
 a road. A pair already joined by a road refuses with the reason
 named, and the refusal names the way back: re-arm Road and pick
 two stations not yet joined, because the failed lay disarms the
-verb and the pick row closes with it. The village keeps at most
+verb and the pick row closes with it. Before the commit, the Lay chip names the joined state
+for such a pair (no priced Lay chip offered), in the blocked-Claim
+grammar, so the player sees the refusal before committing; the chip
+stays tappable, so tapping it still refuses loudly rather than
+going silent. The village keeps at most
 CONNECT_ROAD.maxRoads roads.
 
 The road crew is recruited from the imitation graph: the earliest-formed
