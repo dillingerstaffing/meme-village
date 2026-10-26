@@ -5323,6 +5323,16 @@ function announceArmedStill(){
   else if(G.foundArm) showToast("🏗 Found still armed, tap a surveyed plot to found a building");
   else if(G.claimArm) showToast((G.claim && !G.claim.staked) ? "🚩 Claim still armed, the claim party is still out: recall them, or let them finish" : "🚩 Claim still armed, pick a bearing and a ring: three surveyed plots join the village");
   else if(G.roadArm) showToast((G.roadBuild && !G.roadBuild.built) ? "🛣 Road still armed, the road crew is still out: recall them, or let them finish" : "🛣 Road still armed, tap two stations: walkers " + CONNECT_ROAD.walkMult.toFixed(1) + "x faster");
+  /* Speak For was the one armed verb this reminder never covered: a
+     minimap tap with Speak armed jumped the camera and said nothing,
+     while every sibling re-announced its effect. The reminder reads
+     the plan fresh instead of repeating the arm toast, because
+     speakPlan() follows the current selection and the village state,
+     so a stale preview name would be worse than no name; when no plan
+     stands, the generic still-armed wording still says the mode, and
+     the next button tap commits or explains, as Speak always does.
+     Display only: the arm, the plan, and the cooldown are untouched. */
+  else if(G.speakArm){ var sp = speakPlan(); if(sp && !sp.fail) showToast("🕊 Speak still armed, " + sp.voucher.name.split(" ")[0] + " would speak for " + sp.target.name.split(" ")[0] + " (" + sp.vf + " followers, trust " + Math.round(G.stats.trust) + ", needs " + HH.speakStrength + "). Tap the button again to commit."); else showToast("🕊 Speak still armed, tap the button again to commit."); }
 }
 var hudAcc = 0;
 var mmCtx = null;
