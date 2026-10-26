@@ -5122,6 +5122,19 @@ function refreshTray(force){
         var idleIx = -1;
         for(var ii = 0; ii < idleNow.length; ii++) if(idleNow[ii].id === G.selected) idleIx = ii;
         var idleNext = idleNow[(idleIx + 1) % idleNow.length];
+        /* Idle changes the selection, and a pending map-targeted verb
+           belongs to its subject: the arm toast named the resident the
+           verb would act for, and tapAt commits it for G.selected. If
+           the verb survived the navigation it would act for the loafer
+           instead, under the same gold, with the player reasonably
+           believing they are back in plain selection mode. End the
+           five map-targeted arms here, in the order-ends-arm grammar;
+           the gold clearing beside the new selection is the signal, and
+           a tap with no loafer changes no selection, so it changes no
+           arm. Button-local and pick-row modes are untouched, as in
+           setOrder3: Speak For, Cover, Claim, and Road keep their own
+           grammar, so no resident tap can be hijacked by them. */
+        G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.foundArm = false;
         G.selected = idleNext.id; cam.follow = null; cam.target.x = idleNext.x; cam.target.z = idleNext.z;
         refreshTray(true); return;
       }

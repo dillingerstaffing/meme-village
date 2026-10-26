@@ -14,8 +14,11 @@ before tapping.
 
 The button carries no lit treatment in any state: never .on,
 .armed, or .cam. It is navigation, like Follow, not an order, not
-an armed verb, and not a follow state, and it clears no arm and
-sets no order when tapped. The loafer list is computed fresh on
+an armed verb, and not a follow state, and it sets no order when
+tapped. A tap that finds a loafer does end a pending map-targeted
+armed verb (Spotlight, Model, Visit, Proclaim, Found), because the
+verb belonged to the selection the tap replaces; a tap with no
+loafer changes no selection, so it changes no arm. The loafer list is computed fresh on
 every tap from the live loafT values, never cached, so a resident
 who starts working between taps is never selected as idle.
 
