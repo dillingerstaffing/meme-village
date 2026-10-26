@@ -100,6 +100,7 @@ canvas{display:block}
 #sheet .sh-role{font-size:10.5px;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;font-weight:700;margin-top:1px}
 #sheet .sh-x{margin-left:auto;background:#131a23;border:1px solid var(--line);color:var(--ink);border-radius:8px;width:34px;height:34px;font-size:15px;cursor:pointer;flex:none}
 #sheet .sh-x:hover{border-color:var(--gold)}
+#sheet .sh-close{display:block;width:100%;margin:18px 0 4px;padding:12px;background:#131a23;border:1px solid var(--gold);color:var(--ink);border-radius:8px;font-size:15px;font-weight:700;cursor:pointer}
 #sheet .sh-quote{font-size:17px;line-height:1.45;margin-top:16px}
 #sheet .sh-needs{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
 #sheet .sh-need{display:flex;align-items:center;gap:9px;margin:5px 0}
@@ -608,10 +609,14 @@ function renderSheet(s){
   } else {
     h += "<div class='sh-empty'>Nothing yet.</div>";
   }
+  /* A second close at the foot of the sheet, where the thumb already is after reading: on the phone the sheet is a bottom sheet, so the header close sits near the top of the screen, a reach zone, while the tray deselect sits under the sheet. Same dispatch as the header close, same surface, no new state. */
+  h += "<button class='sh-close' type='button' aria-label='Close sheet'>Close</button>";
   el.innerHTML = h;
   el.style.display = "block";
   var x = el.querySelector(".sh-x");
   if(x) x.addEventListener("click", function(){ Store.dispatch("ui/sheet", {id:null}); });
+  var fc = el.querySelector(".sh-close");
+  if(fc) fc.addEventListener("click", function(){ Store.dispatch("ui/sheet", {id:null}); });
 }
 
 
