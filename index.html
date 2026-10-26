@@ -5063,7 +5063,7 @@ function refreshTray(force){
     info.innerHTML = "<div class='rl'>Village</div><div class='nm'>No selection</div><div class='st'>Tap a resident. Tap a building to send them. Drag to look around.</div>";
   }
   var selX = document.getElementById("selX");
-  if(selX) selX.addEventListener("click", function(){ Store.dispatch("ui/select", {id: null}); refreshTray(true); });
+  if(selX) selX.addEventListener("click", function(){ /* Deselect ends a pending map-targeted verb, in the Idle/alert/order ends-arm grammar: the verb belonged to the selection the X clears, so a still-armed verb would eat the next resident tap (a missed-pick answer for Model and Visit, a spotlight for Spotlight, a cancel for Proclaim) instead of selecting, while the gold showed an armed verb with no subject at all. The gold clearing with the deselect is the signal; button-local and pick-row modes keep their own grammar, so Speak For, Cover, Claim, and Road are untouched here. */ G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.foundArm = false; Store.dispatch("ui/select", {id: null}); refreshTray(true); });
   /* CF-REF: highlight-vocabulary.md [51] */
   var speakCdN = G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : 0;
   var html = "<div class='cgrp'><span class='glab'>Send to</span>" + CMDS.map(function(c){
