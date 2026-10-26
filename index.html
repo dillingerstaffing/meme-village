@@ -5033,7 +5033,23 @@ function refreshTray(force){
   if(!force && key === trayKey) return;
   trayKey = key;
   var info = document.getElementById("selInfo");
-  if((G.selected || null) !== traySelId){ traySelId = G.selected || null; G.coverArm = false; }
+  if((G.selected || null) !== traySelId){ traySelId = G.selected || null; G.coverArm = false;
+    /* A selection change ends a pending Speak For arm, in the same
+       grammar as the Cover chooser above it: the arm's preview named
+       a voucher and a target, and speakPlan() picks its target from
+       the current selection, so a preview read for one selection
+       cannot commit for another. The earlier ends-arm carve-out
+       (Speak commits on its own button, so no resident tap can
+       hijack it) assumed the button-local commit was selection
+       independent; the plan is selection dependent, so the carve-out
+       fails here: without this, arming for one resident, tapping
+       another to select them, and tapping Speak again commits a
+       defense for the new selection, or the candidate, under a
+       preview that named someone else, and a failed defense costs
+       the voucher standing. The gold clearing beside the new
+       selection is the signal, as in the order, Idle, and alert
+       ends-arm reads; tapping Speak again re-arms with a fresh
+       preview. Display and grammar only: no commit, no cooldown. */ G.speakArm = false; }
   if(a){
     // CF-REF: axis-label-selected-surfaces.md [2]
     var ax = axisOf(a);

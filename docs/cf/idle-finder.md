@@ -21,7 +21,12 @@ verb belonged to the selection the tap replaces; a tap with no
 loafer changes no selection, so it changes no arm. Tapping an idle
 alert chip ends a pending map-targeted armed verb for the same
 reason: the chip changes the selection the verb belonged to, while
-still selecting the alerted resident and moving the camera. The loafer list is computed fresh on
+still selecting the alerted resident and moving the camera. Any
+selection change, by any route, also ends a pending Speak For arm:
+Speak commits on its own button, but its preview is read from the
+current selection (speakPlan picks its target from the selection),
+so a preview read for one selection cannot commit for another, and
+the gold clearing beside the new selection is the signal. The loafer list is computed fresh on
 every tap from the live loafT values, never cached, so a resident
 who starts working between taps is never selected as idle.
 
