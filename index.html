@@ -4725,7 +4725,7 @@ function storySoFar(auto, final){
   ov.classList.add("open"); ov.classList.add("story"); ov.classList.toggle("manual", !auto);
   storyAutoSeq++;
   if(auto && !final){
-    (function(seq){ setTimeout(function(){ if(seq === storyAutoSeq){ ov.classList.remove("open"); ov.classList.remove("story"); ov.classList.remove("manual"); } }, 15000); })(storyAutoSeq);
+    (function(seq){ setTimeout(function(){ if(seq === storyAutoSeq){ /* A timed close is still a close: the Chronicle arm clears here exactly as __closeStory clears it, or an arm set during a manual open, then overwritten by this auto panel, would survive the dismiss and greet the next manual open already armed, so one tap would end the village with no fresh confirmation. */ if(G) G.chronCloseArm = false; ov.classList.remove("open"); ov.classList.remove("story"); ov.classList.remove("manual"); } }, 15000); })(storyAutoSeq);
   }
 }
 window.__closeStory = function(){ storyAutoSeq++; if(G) G.chronCloseArm = false; var ov = document.getElementById("endOverlay"); ov.classList.remove("open"); ov.classList.remove("story"); ov.classList.remove("manual"); };
