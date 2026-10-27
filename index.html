@@ -3392,6 +3392,59 @@ function foundSite(plotIx, kindId){
   Store.commit();
   return site;
 }
+// CF-REF: recall-in-flight.md [52]
+/* RECALL (founded site, spec section 11): an unfinished founded site
+   can be called off, the same way as a claim or road, but the refund
+   differs because a founded site has already built: only the current
+   stage's delivered stores are still unused, so only they come home,
+   plus any crate in a builder's hands; stores consumed by finished
+   stages stay consumed, stage labor stays sunk, and planks are carry
+   labor, not stock. Project sites are never recallable here: they
+   belong to the project system, which has no cancel verb. The recall
+   releases every builder and fetcher, removes the site mesh, restores
+   the plot ring, and frees the plot, so a new founding can start at
+   once. It adds no graph edge and writes no wk() ledger. */
+function foundSiteOpen(){
+  if(!G.sites) return null;
+  for(var i = 0; i < G.sites.length; i++){
+    var s = G.sites[i]; if(s.done) continue;
+    if(BUILD_KINDS[s.kind] && BUILD_KINDS[s.kind].project) continue;
+    return s;
+  }
+  return null;
+}
+function siteRefundStores(site){
+  if(!site) return 0;
+  var n = site.matsIn.stores || 0;
+  G.agents.forEach(function(a){ if(a.fetchSite === site.id && a.fetch === "sitecrate-back") n++; });
+  return n;
+}
+function cancelFoundSite(site){
+  if(!site || site.done) return false;
+  var kind = BUILD_KINDS[site.kind]; if(!kind || kind.project) return false;
+  var back = siteRefundStores(site);
+  G.agents.forEach(function(a){
+    if(a.fetchSite === site.id){
+      if(a.fetch === "sitecrate-back") returnStores(1);
+      if(a.fetch && a.fetch.indexOf("site") === 0){ a.fetch = null; a.carrying = null; }
+      a.fetchSite = null;
+    }
+    if(a.buildSite === site.id){
+      a.buildSite = null;
+      if(a.stationId === "build"){ a.state = "idle"; a.decideT = 0.2; }
+    }
+  });
+  if(site.group){ scene.remove(site.group); site.group = null; }
+  if(site.plot >= 0 && plotMeshes[site.plot]) plotMeshes[site.plot].visible = true;
+  G.sites = G.sites.filter(function(x){ return x.id !== site.id; });
+  if(G.buildPref === site.id) G.buildPref = null;
+  returnStores(site.matsIn.stores || 0);
+  if(!firstSiteOpen()) G.agents.forEach(function(a){ if(a.order === "build") a.order = null; });
+  showToast(kind.icon + " " + kind.title + " called off: the builders walk home" + (back ? ", 📦" + back + " stores back." : "."));
+  chronicle(kind.title + " called off; the builders walked home" + (back ? " with 📦" + back + " stores returned." : "."));
+  Store.commit();
+  return true;
+}
 /* CLAIM (v4 sim step 3, spec sections 23/24): the player-directed founding
    of new surveyed plot clusters at Town tier and above. The player picks a
    bearing and a distance ring; a household-led founding party walks out,
@@ -5619,6 +5672,7 @@ function hudTick(dt){
   var fpEl = document.getElementById("foundPick");
   if(fpEl){
     var showFound = (G.foundPlot !== null && G.foundPlot !== undefined) && !plotSite(G.foundPlot);
+    var recallSite = (!showFound && G.foundArm) ? foundSiteOpen() : null;
     var fpHtml = "";
     if(showFound) fpHtml = foundableKinds().map(function(k, ix){
       var kd = BUILD_KINDS[k];
@@ -5637,8 +5691,19 @@ function hudTick(dt){
       LIFE.levels.forEach(function(L){ if(kd.minLevel >= L.min) lv = L.name; });
       return "<span class='alert-chip' style='opacity:.55;cursor:default'>" + kd.icon + " <b>" + kd.title + "</b> · Unlocks at " + lv + " · " + (kd.blurb || "") + "</span>";
     }).join("") + "<button class='alert-chip' onclick='__foundCancel()'>✕ Not yet</button>";
+    if(!showFound && recallSite){
+      /* Recall row: a site is already under way, so the row names the
+         way back instead of new ground: the kind, its current stage
+         and labor, and the materials on site, then the stores that
+         come home, then the choice itself, in the claim and road
+         recall grammar. A pick in progress keeps its kind chips. */
+      var rk = BUILD_KINDS[recallSite.kind];
+      var rnd = rk.stages ? rk.stages[recallSite.stage] : null;
+      var rbBack = siteRefundStores(recallSite);
+      fpHtml = "<span class='pick-lab'>" + rk.icon + " " + rk.title + " under way · " + (rnd ? rnd.name.toLowerCase() : "") + ", labor " + Math.floor(recallSite.stageLabor) + "/" + (rnd ? rnd.labor : 0) + ", materials " + ((recallSite.matsIn.stores || 0) + (recallSite.matsIn.planks || 0)) + " on site</span>" + "<button class='alert-chip go' onclick='__foundRecall(\"" + recallSite.id + "\")'>🏗 Recall the build" + (rbBack ? " · 📦" + rbBack + " back" : "") + "</button>" + "<button class='alert-chip' onclick='__foundRecallCancel()'>✕ Let them finish</button>";
+    }
     if(fpEl.innerHTML !== fpHtml) fpEl.innerHTML = fpHtml;
-    fpEl.style.display = showFound ? "flex" : "none";
+    fpEl.style.display = (showFound || recallSite) ? "flex" : "none";
   }
   /* Claim pick row (v4): bearing chips then ring chips with the carried
      cost previewed, then a priced Stake confirm once both are picked. */
@@ -6167,6 +6232,8 @@ window.__roadRecall = function(){ G.roadArm = false; G.roadFrom = null; G.roadTo
 window.__lensPick = function(m){ G.lensArm = false; Store.dispatch("ui/lens", {mode: m}); var lm = (G.ui && G.ui.lens) || null; showToast(lm === "tension" ? "⚔ Tension lens: lines join residents heating toward a feud. Separate them or cool them on the green." : (lm === "desire" ? "👁 Desire lens: lines flow model to follower, thicker means more followers. Watch what the village is copying." : "🗺 Lenses off")); refreshTray(true); };
 window.__lensCancel = function(){ G.lensArm = false; refreshTray(true); };
 window.__foundCancel = function(){ G.foundPlot = null; refreshTray(true); };
+window.__foundRecall = function(id){ var s = id ? siteById(id) : foundSiteOpen(); G.foundArm = false; G.foundPlot = null; if(s) cancelFoundSite(s); refreshTray(true); };
+window.__foundRecallCancel = function(){ G.foundArm = false; G.foundPlot = null; refreshTray(true); };
 window.__arrivalChoice = function(w){ arrivalChoice(w === 1 || w === true); };
 var projV = null;
 function leftHudRect(){

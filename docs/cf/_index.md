@@ -27,7 +27,7 @@ objective, progress, project, parts, work credit, score, driven, order bonus, ho
 | model-prestige-flip.md | Past a documented vis threshold a model attracts rivalry instead of admiration; the flip is announced and shown as a sheet line, never silent, and a latched forecast warns a followed model within 10 of the threshold before it flips |
 | village-growth-gates.md | Growth extends the boundary one plot-ring per qualifying season at Town tier, earned never labored, the price named on the receipt |
 | road-building.md | Roads are built segments between stations at Town tier, priced by distance, laid by a crew from the imitation graph, and they shorten walks only on the segment |
-| recall-in-flight.md | An in-flight claim or road can be called off from its tray verb; carried stores come home, the party or crew walks home, and the slot frees |
+| recall-in-flight.md | An in-flight claim, road, or founded site can be called off from its tray verb; carried stores come home, the party, crew, or builders walk home, and the slot or plot frees |
 
 ## State and Architecture
 state, store, dispatch, transact, render, dom, panel, new field, new event, chronicle, save, snapshot, ending, persistence, continue, grave
