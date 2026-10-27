@@ -191,6 +191,7 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
 .logotype span{color:var(--gold)}
 .promise{margin:0;font-size:16.5px;color:var(--ink);text-shadow:0 1px 10px rgba(0,0,0,.65)}
 #startOverlay #seasonLine{color:var(--ink2);font-size:13px;margin-top:9px;text-shadow:0 1px 8px rgba(0,0,0,.6)}
+#startOverlay #choiceLine{color:var(--ink2);font-size:13px;margin-top:10px;line-height:1.45;text-shadow:0 1px 8px rgba(0,0,0,.6)}
 .menuBlock{width:100%;max-width:600px;margin:26px auto 0}
 .menuRow{display:flex;align-items:center;gap:16px;min-height:44px;border-top:1px solid rgba(242,236,217,.16);padding:3px 2px}
 .menuRow .seglabel{margin:0;width:72px;flex:none}
@@ -385,6 +386,7 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
           <button class="segbtn" data-p="order" type="button">Quiet Order</button>
         </div>
       </div>
+      <div id="choiceLine"></div>
       <button class="btn" id="beginBtn" type="button">Begin the season</button>
       <button class="btn" id="continueBtn" type="button" style="display:none">Continue</button>
     </div>
@@ -6773,8 +6775,31 @@ window.addEventListener("pointerup", function(){ ptrDown = false; });
 window.addEventListener("pointercancel", function(){ ptrDown = false; });
 window.addEventListener("blur", function(){ mouseIn = false; ptrDown = false; });
 var chosenDiff = "standard", chosenPolicy = "hearth";
-document.querySelectorAll("#diffSeg .segbtn").forEach(function(b){ b.addEventListener("click", function(){ document.querySelectorAll("#diffSeg .segbtn").forEach(function(x){ x.classList.remove("on"); }); b.classList.add("on"); chosenDiff = b.getAttribute("data-d"); }); });
-document.querySelectorAll("#polSeg .segbtn").forEach(function(b){ b.addEventListener("click", function(){ document.querySelectorAll("#polSeg .segbtn").forEach(function(x){ x.classList.remove("on"); }); b.classList.add("on"); chosenPolicy = b.getAttribute("data-p"); }); });
+/* Title choice line: the SEASON and POSTING picks are the one choice the
+   game used to ask blind, with no effect text anywhere, while every armed
+   verb names its effect before its commit tap. This line names both picks
+   in plain words, updated on every tap, from the effects the code itself
+   applies at beginGame and in the fit and scarcity formulas: standard
+   changes nothing; hard starts scarcity high, trust low, and every resident
+   tired, and scarcity bites harder; dry starts scarcity higher and work
+   slower; open grows trust faster and pays more trust for opening the
+   books; hearth draws people to the green more strongly; order draws
+   people to clinic, store, and mill more, home less, and the village runs
+   a little less on its own. Display only: it writes no state and moves
+   no sim value, and Begin still commits exactly the chosen pair. */
+function updateChoiceLine(){
+  var el = document.getElementById("choiceLine"); if(!el) return;
+  var diff = (chosenDiff === "hard") ? "Hard Winter: scarcity bites harder, and the village starts with scarcity high, trust low, and everyone tired."
+    : (chosenDiff === "dry") ? "Dry Year: scarcity runs higher, and work starts slower."
+    : "Standard season: the valley as it is, with no extra hardship.";
+  var pol = (chosenPolicy === "open") ? "Open Books: trust grows a little faster, and opening the books pays more trust."
+    : (chosenPolicy === "order") ? "Quiet Order: clinic, store, and mill draw people more, home draws less, and the village runs a little less on its own."
+    : "Shared Hearth: the green draws people more strongly.";
+  el.textContent = diff + " " + pol;
+}
+document.querySelectorAll("#diffSeg .segbtn").forEach(function(b){ b.addEventListener("click", function(){ document.querySelectorAll("#diffSeg .segbtn").forEach(function(x){ x.classList.remove("on"); }); b.classList.add("on"); chosenDiff = b.getAttribute("data-d"); updateChoiceLine(); }); });
+document.querySelectorAll("#polSeg .segbtn").forEach(function(b){ b.addEventListener("click", function(){ document.querySelectorAll("#polSeg .segbtn").forEach(function(x){ x.classList.remove("on"); }); b.classList.add("on"); chosenPolicy = b.getAttribute("data-p"); updateChoiceLine(); }); });
+updateChoiceLine();
 function beginGame(fromButton){
   if(G.started) return;
   G.started = true;
