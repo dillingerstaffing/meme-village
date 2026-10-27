@@ -5261,7 +5261,7 @@ function refreshTray(force){
   html += "<button class='cbtn" + (G.claimArm ? " armed" : "") + "' data-o='claim'><span class='i'>🚩</span><span class='l'>Claim</span></button>";
   html += "<button class='cbtn" + (G.roadArm ? " armed" : "") + "' data-o='road'><span class='i'>🛣</span><span class='l'>Road</span></button>";
   html += "<button class='cbtn' data-o='story'><span class='i'>📖</span><span class='l'>Story</span></button>";
-  html += "<button class='cbtn' data-o='mute'><span class='i'>" + (G.ui && G.ui.muted ? "🔇" : "🔊") + "</span><span class='l'>Sound</span></button>";
+  html += "<button class='cbtn' data-o='mute'><span class='i'>" + (G.ui && G.ui.muted ? "🔇" : "🔊") + "</span><span class='l'>" + (G.ui && G.ui.muted ? "Muted" : "Sound") + "</span></button>"; /* Sound's face names its state beside the icon swap, in the Follow face grammar. Display only. */
   html += "<button class='cbtn' data-o='lens'><span class='i'>" + ((G.ui && G.ui.lens === "desire") ? "👁" : (G.ui && G.ui.lens ? "⚔" : "🗺")) + "</span><span class='l'>" + ((G.ui && G.ui.lens === "desire") ? "Desire" : (G.ui && G.ui.lens ? "Tension" : "Lens")) + "</span></button></div>";
   var cmds = document.getElementById("cmds");
   cmds.innerHTML = html;

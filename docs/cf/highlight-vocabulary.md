@@ -21,7 +21,10 @@ treatment means exactly one thing:
   resident's want. A badge, never a border treatment or a pulse.
 
 Status is never a lit button: sickness, tier, childhood, and the
-watched state render as read-only chips in the info block. Buttons
+watched state render as read-only chips in the info block. Sound's
+face also names its state: Muted while muted, Sound while sounding,
+beside its icon swap, so the one toggle that silences every other
+answer still reads in words. Buttons
 are verbs only. Resident verbs group as Send to, Influence, and
 Care; village-scope controls (Follow, Proclaim, Found, Story,
 Sound) sit in their own separated cluster and never mix into the
