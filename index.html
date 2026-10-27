@@ -960,7 +960,7 @@ function animateAgent(a, dt){
 function newSlice(){
   var g = {t:0, weekTime:0, week:1, speed:1, started:false, over:false, agents:makeAgents(), selected:null,
     roof:30, stores:0, flour:0, copied:0, fieldGrowth:0, growthApplied:-1, soil:1, soilStage:0, incidentOpen:false, incidentDone:false,
-    rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, visitArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, drifts:{}, driftLog:[], prestigeFlip:{}, prestigeWarn:{}, prestigeT:0, blame:0, blameWarn:false, departWarn:false, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0, offer:null, offerAccepted:false,
+    rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, visitArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, drifts:{}, driftLog:[], prestigeFlip:{}, prestigeWarn:{}, prestigeT:0, seasonEarn:{}, blame:0, blameWarn:false, departWarn:false, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0, offer:null, offerAccepted:false,
     rosaOutcome:"", imitateT:0, spotCd:0, armed:false, modelArm:false, visitArm:false, hintModel:false, pairs:{}, feudCd:{}, feudWarn:{}, drifts:{}, driftLog:[], blame:0, blameWarn:false, departWarn:false, expelled:0, mediated:false, calmT:0, peakGreen:0, objWorkers:{}, objTarget:null, toastUntil:0, perks:[], projDone:[], project:null, projectOffer:null, initT:0, initFired:0,
     sites:[], siteSeq:0, lastFoundSeason:0, houseCapacity:10, banked:false, foundArm:false, foundPlot:null, buildPref:null,
     claimArm:false, claimBearing:null, claimRing:null, claim:null, claimPlots:[], claimSeq:0,
@@ -1836,6 +1836,13 @@ function earnPay(a, key, amt){
   var r = ECON.pay[key];
   if(r == null || !(amt > 0)) return;
   a.cash = (a.cash || 0) + amt * r;
+  /* Season top earner ledger: the same paid amount, per resident, read
+     once at the season boundary and reset there, so earning gets one
+     aggregate read a season instead of a pop per work event. */
+  if(G){
+    if(!G.seasonEarn || typeof G.seasonEarn !== "object") G.seasonEarn = {};
+    G.seasonEarn[a.id] = (G.seasonEarn[a.id] || 0) + amt * r;
+  }
 }
 function bankSweep(){
   if(!G.banked) return 0;
@@ -4565,6 +4572,19 @@ function endWeek(){
     if(settlePrem.enrolled.length > 0) settleBits.push(settlePrem.enrolled.join(", ") + " joined Silver cover");
     showToast("🏦 The bank settled the season: " + settleBits.join(", ") + ".");
   }
+  /* Season top earner, toast only: pay lands per work event with no
+     per-earner signal (the sheet balance reads only while that resident
+     is selected, and the bank digest totals the sweep, not the earning),
+     so the boundary names who earned the most last season, in the
+     sleep-summary grammar: many small earnings, one aggregate read at
+     the boundary, never a pop per work event. No number is promised
+     beyond the rounded total, ties keep the first resident in cast
+     order, and the accumulator resets here whether or not it toasts. */
+  var earnTop = null, earnTopAmt = 0;
+  var earnMap = (G.seasonEarn && typeof G.seasonEarn === "object") ? G.seasonEarn : {};
+  G.agents.forEach(function(a){ if(a.child) return; var t = earnMap[a.id] || 0; if(t > earnTopAmt){ earnTopAmt = t; earnTop = a; } });
+  if(earnTop) showToast("🪙 " + earnTop.name.split(" ")[0] + " earned the most last season: " + Math.round(earnTopAmt) + "🪙.");
+  G.seasonEarn = {};
   if(!G.coachBank){
     if(G.banked){ G.coachBank = true; }
     else { var richA = null; for(var ci = 0; ci < G.agents.length; ci++){ var ca = G.agents[ci]; if(!ca.child && (ca.cash || 0) >= 20){ richA = ca; break; } }
