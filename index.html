@@ -461,12 +461,12 @@ var Store = (function(){
     "bubble/show": function(p){ var a = findA(p.id); if(a){ a.bubble = p.icon || null; a.bubbleUntil = p.icon ? state.t + (p.secs || 2) : 0; } },
     "want/set": function(p){ var a = findA(p.id); if(a && !a.want) a.want = {station:p.station, until: state.t + (p.secs || 26), from: p.from || null}; },
     "want/clear": function(p){ var a = findA(p.id); if(a) a.want = null; },
-    "ui/toast": function(p){ var t = {msg: String(p.msg || ""), ms: p.ms || 3600, focus: p.focus || null}; var cur = state.ui.toast; if(cur && Date.now() < cur.until){ var q = state.ui.queue || (state.ui.queue = []); if(q.length < 12) q.push(t); } else { t.until = Date.now() + t.ms; state.ui.toast = t; } },
+    "ui/toast": function(p){ var t = {msg: String(p.msg || ""), ms: p.ms || 3600, focus: p.focus || null}; var cur = state.ui.toast; if(cur && Date.now() < cur.until){ var q = state.ui.queue || (state.ui.queue = []); if(q.length < 12) q.push(t); } else { t.until = Date.now() + t.ms; state.ui.toast = t; if(t.focus && (t.focus.ids || t.focus.x !== undefined)) state.lastAlert = {msg: t.msg, focus: t.focus}; } },
     /* A toast that arrives while one is showing waits its turn instead of
        overwriting it (RimWorld's letter stack: no alert silently erases
        another). The animation loop promotes the head of the queue through
        this action the moment the current toast expires. */
-    "ui/toastNext": function(p){ var q = state.ui.queue, cur = state.ui.toast; if(q && q.length && !(cur && Date.now() < cur.until)){ var nx = q.shift(); nx.until = Date.now() + nx.ms; state.ui.toast = nx; } },
+    "ui/toastNext": function(p){ var q = state.ui.queue, cur = state.ui.toast; if(q && q.length && !(cur && Date.now() < cur.until)){ var nx = q.shift(); nx.until = Date.now() + nx.ms; state.ui.toast = nx; if(nx.focus && (nx.focus.ids || nx.focus.x !== undefined)) state.lastAlert = {msg: nx.msg, focus: nx.focus}; } },
     /* Skip the showing toast: expire it now so the renderer hides it and the
        promotion loop advances the queue on the next frame. Transient UI is
        player paced: a queued boundary can stack a dozen toasts and the player
@@ -971,7 +971,7 @@ function newSlice(){
     stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
     objStation:"clinic", objComplete:false, objDone:0, scapegoats:0, delays:[],
     weekWork:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0, build:0}, weekWorkP:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0}, fieldWorkers:{},
-    ui:{toast:null, queue:[], sheet:null, muted:false}, mimic:{spread:0, converged:0, doneCopied:0, doneSelf:0, missedCopied:0}, policy:"hearth", difficulty:"standard", medicPatient:null, pendingIncident:null, curIncident:null, alerts:[], firstOrder:false, chronicle: [], endKind: null, ttiPaid: 0, ttiSavesUsed: 0, medicQueue: [], medicSeq: 0, pings:[]};
+    ui:{toast:null, queue:[], sheet:null, muted:false}, mimic:{spread:0, converged:0, doneCopied:0, doneSelf:0, missedCopied:0}, policy:"hearth", difficulty:"standard", medicPatient:null, pendingIncident:null, curIncident:null, alerts:[], lastAlert:null, firstOrder:false, chronicle: [], endKind: null, ttiPaid: 0, ttiSavesUsed: 0, medicQueue: [], medicSeq: 0, pings:[]};
   g.agents.forEach(function(a){
     a.speedNow = 0; a.slot = null; a.fetch = null; a.fetchT = 0; a.watchCd = 0; a.mimicStation = null;
     a.buildSite = null; a.fetchSite = null;
@@ -4952,6 +4952,7 @@ function restoreState(st){
   if(!Array.isArray(st.medicQueue)) st.medicQueue = [];
   if(!st.prestigeFlip || typeof st.prestigeFlip !== "object") st.prestigeFlip = {};
   if(!st.prestigeWarn || typeof st.prestigeWarn !== "object") st.prestigeWarn = {};
+  if(!st.lastAlert || typeof st.lastAlert !== "object") st.lastAlert = null;
   st.coverArm = false;
   st.chronCloseArm = false;
   if(typeof st.coachBank !== "boolean") st.coachBank = false;
@@ -5997,6 +5998,15 @@ function hudTick(dt){
   G.alerts = G.alerts.filter(function(x){ return G.t - x.at < 9; });
   var alEl = document.getElementById("alerts");
   var ahtml = G.alerts.slice(-2).map(function(x){ return "<button class='alert-chip' onclick='__pickAlert(\"" + x.id + "\")'>⚠ <b>" + x.name + "</b> is idle · tap to direct</button>"; }).join("");
+  /* Last-alert return: the most recent displayed focus toast survives its
+     own expiry as one chip in this stack, so the camera can still return
+     to that event's site after the toast and its minimap ping are gone.
+     While a focus toast is live, its view chip is the return affordance,
+     so this chip hides and exactly one return affordance shows at a time.
+     The chip carries alert-chip so the container's pointer-events rule
+     keeps it tappable, like the idle chips. */
+  var liveFocus = G.ui && G.ui.toast && Date.now() < G.ui.toast.until && G.ui.toast.focus && (G.ui.toast.focus.ids || G.ui.toast.focus.x !== undefined);
+  if(G.lastAlert && !liveFocus) ahtml += "<button class='alert-chip last-alert-chip' onclick='__lastAlertFocus()'>⌖ " + G.lastAlert.msg + "</button>";
   if(alEl.innerHTML !== ahtml) alEl.innerHTML = ahtml;
   refreshTray(false);
   var trayEl = document.getElementById("tray");
@@ -6255,6 +6265,12 @@ function idleResidents(){
 }
 window.__toastFocus = function(){ var tst = G.ui && G.ui.toast, f = tst && tst.focus; if(!f) return; var x = 0, z = 0, n = 0; if(f.ids) f.ids.forEach(function(id){ var a = agent(id); if(a){ x += a.x; z += a.z; n++; } }); else if(f.x !== undefined){ x = f.x; z = f.z; n = 1; } if(n){ cam.target.x = Math.max(-62, Math.min(62, x / n)); cam.target.z = Math.max(-48, Math.min(48, z / n)); cam.follow = null; } };
 window.__toastSkip = function(){ Store.dispatch("ui/toastSkip"); SND.play("tap"); };
+/* Last-alert return: jump the camera to the retained focus toast's site,
+   using the same centroid and clamp math as __toastFocus, but reading
+   G.lastAlert instead of the live toast, since the live toast is gone by
+   the time this chip shows. A focus that resolves to nothing (its
+   residents are gone) answers loudly instead of moving nowhere. */
+window.__lastAlertFocus = function(){ var la = G.lastAlert, f = la && la.focus; if(!f) return; var x = 0, z = 0, n = 0; if(f.ids) f.ids.forEach(function(id){ var a = agent(id); if(a){ x += a.x; z += a.z; n++; } }); else if(f.x !== undefined){ x = f.x; z = f.z; n = 1; } if(n){ cam.target.x = Math.max(-62, Math.min(62, x / n)); cam.target.z = Math.max(-48, Math.min(48, z / n)); cam.follow = null; } else showToast("No site to return to"); };
 window.__pickProject = function(i){ pickProject(i); };
 window.__acceptOffer = function(){ acceptOffer(); };
 window.__ignoreOffer = function(){ ignoreOffer(); };
