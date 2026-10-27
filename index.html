@@ -4570,6 +4570,19 @@ function endWeek(){
     else { var richA = null; for(var ci = 0; ci < G.agents.length; ci++){ var ca = G.agents[ci]; if(!ca.child && (ca.cash || 0) >= 20){ richA = ca; break; } }
       if(richA){ G.coachBank = true; showToast("💰 " + richA.name.split(" ")[0] + " is carrying " + Math.floor(richA.cash) + "🪙 in cash. A bank would let residents save what they earn, and buy cover."); } }
   }
+  if(seasonOfYear() === 2){
+    /* Failing-risk forecast, toast only: the elder closest to failing
+       reads a full season before the autumn telegraph, the same
+       forecast-before-the-boundary grammar as the departure forecast
+       and the coming-of-age warning. Highest elderRisk wins, ties keep
+       the first elder in cast order; an already failing elder already
+       carries a marker and a toast, so they are skipped. No state, no
+       chronicle line, and no promise: morale moves during summer and
+       the autumn roll is a fresh roll. */
+    var frail = null, frailRisk = -1;
+    G.agents.forEach(function(a){ if(a.failing || arcOf(a).id !== "elder") return; var r = elderRisk(a); if(r > frailRisk){ frailRisk = r; frail = a; } });
+    if(frail) showToast("🍂 Autumn nears, and " + frail.name.split(" ")[0] + " is the village's frailest elder.");
+  }
   if(seasonOfYear() === 3){
     telegraphFailing();
     /* Frostpunk's calendar principle: the winter scarcity bill (+8 to the
