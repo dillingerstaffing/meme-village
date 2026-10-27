@@ -28,6 +28,14 @@ re-extended onto PLOTS on Continue, G.growRings counts the rings),
 and the new plots accept Founding exactly like the original six
 through the ordinary foundSite path.
 
+The gate also reads ahead: the stats panel carries a growth row
+(growLbl, rendered by renderHud after the tier row) that names the
+Town gate below Town, the contentment against the 78 line at Town,
+and the ring count throughout, and promises no further ring once
+all four rings are grown. The read names the gate, it never moves
+it: no gate, ledger, or labor rule in this article changes because
+the row exists.
+
 Why: earned ground must read as earned. A boundary that grows only
 at the season boundary, only past a named contentment price, with
 the price printed on the receipt, teaches the player that good

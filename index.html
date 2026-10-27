@@ -337,6 +337,7 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
   <div class="srow"><span class="sl">🕊 Autonomy</span><span class="sb"><i id="bar-aut" style="background:#6fb3e8"></i></span><b id="val-aut">60</b></div>
   <div class="srow"><span class="sl">🌱 Contentment</span><span class="sb"><i id="bar-cont" style="background:#7ec850"></i></span><b id="val-cont">0</b></div>
   <div class="srow" id="tierRow"><span class="sl" id="tierLbl" style="width:auto">Next tier</span></div>
+  <div class="srow" id="growRow"><span class="sl" id="growLbl" style="width:auto">Growth</span></div>
   <div class="srow" id="homeRow"><span class="sl" id="homeLbl" style="width:auto">Homes</span></div>
   <div class="srow" id="popRow"><span class="sl" id="popLbl" style="width:auto">Villagers</span></div>
   <div class="srow" id="blameRow" style="display:none"><span class="sl" id="blameLbl">🌩 Blame</span><span class="sb"><i id="blameBar" style="background:#e85a3c"></i></span><b id="blameVal">0</b></div>
@@ -5987,6 +5988,22 @@ function hudTick(dt){
       if(!tierBest || rem < tierBest.rem) tierBest = {st:st, t:t, prog:prog, need:need, rem:rem};
     });
     tierLbl.textContent = tierBest ? (STATION3[tierBest.st].icon + " " + (tierBest.st === "green" ? "Green" : STATION3[tierBest.st].name) + " T" + tierBest.t + "->" + (tierBest.t + 1) + " · " + tierBest.prog + "/" + tierBest.need) : "All stations at tier 3";
+  }
+  /* Growth read-ahead: the earned-growth gate reads where the other
+     village reads live, instead of only in the post-ship toast. Below
+     Town the row names the Town gate and the rings grown; at Town it
+     names the rounded contentment against the 78 line and the rings
+     grown; at 4 rings it promises no further ring. Display only: the
+     row renders growUnlocked, villageLevel, contentment, and
+     G.growRings, and changes no gate, ledger, graph edge, want, or
+     tension. Guarded element write keeps the node harness working
+     with its stubbed document. */
+  var growLbl = document.getElementById("growLbl");
+  if(growLbl){
+    var growN = G.growRings || 0;
+    if(growN >= GROWTH.growMaxRings) growLbl.textContent = "Growth complete, " + growN + "/" + GROWTH.growMaxRings + " rings";
+    else if(!growUnlocked()) growLbl.textContent = "Growth unlocks at Town, " + growN + "/" + GROWTH.growMaxRings + " rings";
+    else growLbl.textContent = "Contentment " + Math.round(contentment()) + "/" + GROWTH.growMin + ", " + growN + "/" + GROWTH.growMaxRings + " rings";
   }
   /* Housing read: the one ledger the village plans around, rendered
      where the other village reads live. Free homes are capacity minus
