@@ -260,8 +260,12 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
   #alerts{bottom:158px}
   #tray{padding:8px;gap:8px;min-height:0}
   #tray{flex-wrap:wrap}
-  #tray #speeds{flex-basis:100%;justify-content:flex-end}
-  #tray .sbtn{padding:10px 14px;font-size:13px}
+  #tray #speeds{flex-basis:100%;justify-content:flex-end;gap:3px}
+  /* Phone: the speeds row carries nine buttons once zoom joins it, so
+     the tray row narrows its buttons (side padding only, height and
+     font unchanged) to keep the whole row inside the tray at 390 and
+     375 without shrinking any tap height. */
+  #tray .sbtn{padding:10px 10px;font-size:13px}
   #selInfo{min-width:102px;max-width:118px}
   #selInfo .st{display:none}
   #selInfo .nm{font-size:14px}
@@ -349,6 +353,8 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
     <button class="sbtn" id="camBtn" type="button" title="Reset camera">🎥</button>
     <button class="sbtn" id="rotL" type="button" title="Rotate view left (Q)">↺</button>
     <button class="sbtn" id="rotR" type="button" title="Rotate view right (E)">↻</button>
+    <button class="sbtn" id="zoomIn" type="button" title="Zoom in (wheel up)">+</button>
+    <button class="sbtn" id="zoomOut" type="button" title="Zoom out (wheel down)">-</button>
     <button class="sbtn" id="markBtn" type="button" title="Save this view">📌</button>
   </div>
 </div>
@@ -6761,6 +6767,13 @@ document.getElementById("camBtn").addEventListener("click", function(){ cam.targ
 /* CF-REF: camera-rotate-buttons.md [2] */
 document.getElementById("rotL").addEventListener("click", function(){ cam.yaw += 0.35; });
 document.getElementById("rotR").addEventListener("click", function(){ cam.yaw -= 0.35; });
+/* Camera zoom buttons: the visible form of the mouse wheel, which no
+   on-screen element ever named. Each tap steps cam.dist by exactly the
+   wheel factor: zoom in 0.9, zoom out 1.1, clamped 15 to 62, so buttons
+   and wheel cannot disagree, and neither button clears a camera follow. */
+/* CF-REF: camera-zoom-buttons.md [2] */
+document.getElementById("zoomIn").addEventListener("click", function(){ cam.dist = Math.max(15, Math.min(62, cam.dist * 0.9)); });
+document.getElementById("zoomOut").addEventListener("click", function(){ cam.dist = Math.max(15, Math.min(62, cam.dist * 1.1)); });
 /* Camera bookmark save: one tap appends the current pose through the
    ui/cammark dispatch (the button sits inside #speeds, so on phones it
    rides the thumb-zone move into the tray with the reset button). The
