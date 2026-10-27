@@ -13,6 +13,7 @@ overlay, marker, bubble, name tag, hud, camera move, collision, anchor, hide, de
 | claim-preview.md | The pending claim reads on the map before staking: a gold ring at the picked center plus three dots at the pending cluster, no pole or flag; a blocked center breaks the ring, hollows the dots, and crosses the center, display only |
 | camera-rotate-buttons.md | The speeds-row rotate buttons step cam.yaw by the Q/E step (left +0.35, right -0.35), never clear a camera follow, and ride the thumb-zone move into the tray on phones |
 | camera-zoom-buttons.md | The speeds-row zoom buttons step cam.dist by the wheel factor (in 0.9, out 1.1, clamped 15 to 62), never clear a camera follow, and ride the thumb-zone move into the tray on phones, whose buttons narrow by side padding only to fit the pair |
+| coach-teach-line.md | A gold line joins the loafer coach cone to the destination station coach cone while the first-order teach window holds, and vanishes with the cones at the first order, display only |
 
 ## Game Rules and Scoring
 objective, progress, project, parts, work credit, score, driven, order bonus, household, arrival, newcomer, cottage, capacity, speak for, blame, want, desire, model, spread, contagion, origin, coverage, tier, premium, medic, queue, call out, founding, growth, expansion, autonomous, plot

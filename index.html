@@ -679,7 +679,7 @@ var STATION3 = {
 var roofPlanks = [], roofHole = null, storedCrates = [], cropMesh = null, cropData = [], flourSacks = [], soilMeshes = [];
 var plotMeshes = [], plotHitMeshes = [];
 var fireLight = null, fireCore = null, millBlades = null, objRing = null;
-var pulses = [], coachStation = null, coachAgent = null, pipGroup = null, pipMats = [];
+var pulses = [], coachStation = null, coachAgent = null, coachLine = null, pipGroup = null, pipMats = [];
 var orderPings = [], selLine = null, netLines = null;
 var mouseX = -1, mouseY = -1, mouseIn = false, ptrDown = false, mouseT = 0, mouseBtn = 0;
 var FINE_POINTER = !!(window.matchMedia && matchMedia("(pointer:fine)").matches);
@@ -818,6 +818,9 @@ function buildWorld(){
   var coneGeo = new THREE.ConeGeometry(1.2, 2.4, 4);
   coachStation = new THREE.Mesh(coneGeo, coachMat); coachStation.rotation.x = Math.PI; coachStation.visible = false; scene.add(coachStation);
   coachAgent = new THREE.Mesh(coneGeo, coachMat); coachAgent.rotation.x = Math.PI; coachAgent.visible = false; scene.add(coachAgent);
+  /* CF-REF: coach-teach-line.md [2] */
+  coachLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]), new THREE.LineBasicMaterial({color:0xffc94d, transparent:true, opacity:0.65}));
+  coachLine.visible = false; scene.add(coachLine);
   pipGroup = new THREE.Group(); pipGroup.visible = false; scene.add(pipGroup);
   for(var pi = 0; pi < 3; pi++){ var pm = new THREE.MeshBasicMaterial({color:0xffc94d, transparent:true, opacity:0.22}); var pip = new THREE.Mesh(new THREE.SphereGeometry(0.34, 10, 8), pm); pip.position.set((pi - 1) * 2.3, 2.6, 0); pipGroup.add(pip); pipMats.push(pm); };
   /* hit boxes for stations */
@@ -6305,6 +6308,17 @@ function fxTick(dt){
     G.agents.forEach(function(a){ if((a.loafT || 0) > lt && !a.sick){ lt = a.loafT; loafer = a; } });
     coachAgent.visible = !!(showCoach && loafer);
     if(loafer){ coachAgent.position.set(loafer.x, 5.4 + Math.sin(G.t * 3.2) * 0.45, loafer.z); var ca = 1 + 0.13 * Math.sin(G.t * 5); coachAgent.scale.set(ca, ca, ca); }
+  }
+  /* CF-REF: coach-teach-line.md [10] */
+  if(coachLine){
+    var showLine = !!(showCoach && st && loafer);
+    coachLine.visible = showLine;
+    if(showLine){
+      var lp = coachLine.geometry.attributes.position.array;
+      lp[0] = coachAgent.position.x; lp[1] = coachAgent.position.y; lp[2] = coachAgent.position.z;
+      lp[3] = coachStation.position.x; lp[4] = coachStation.position.y; lp[5] = coachStation.position.z;
+      coachLine.geometry.attributes.position.needsUpdate = true;
+    }
   }
   for(var i = pulses.length - 1; i >= 0; i--){
     var p = pulses[i]; p.life -= dt;
