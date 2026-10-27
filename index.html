@@ -5115,11 +5115,20 @@ function updateCamera(dt){
   fxTick(dt);
 }
 /* ================= HUD ================= */
+/* The medic's status line names the patient he is actually walking to or
+   treating, read from G.medicPatient: the queue takes any sick resident,
+   so a fixed name here misnamed every patient who was not Rosa. With no
+   patient recorded the line falls back to a generic wording. Display
+   only: no state, gate, or dispatch changes. */
+function medicPatientName(){
+  var p = (G.medicPatient && agent(G.medicPatient)) ? agent(G.medicPatient) : null;
+  return p ? p.name.split(" ")[0] : null;
+}
 function activityText(a){
   if(a.sick) return "Unwell, by the fire";
-  if(a.state === "walk") return a.medicTask ? "Hurrying to Rosa" : "Going to " + (stationW(a.stationId) ? stationW(a.stationId).name : "somewhere");
+  if(a.state === "walk") return a.medicTask ? "Hurrying to " + (medicPatientName() || "help") : "Going to " + (stationW(a.stationId) ? stationW(a.stationId).name : "somewhere");
   if(a.state === "watch") return "Watching " + (a.watchOf ? agent(a.watchOf).name.split(" ")[0] : "");
-  if(a.state === "kneel") return "Treating Rosa";
+  if(a.state === "kneel") return "Treating " + (medicPatientName() || "a patient");
   if(a.state === "sit") return a.stationId === "home" ? "Resting at home" : "Sitting";
   if(a.state === "act"){
     if(a.stationId === "clinic") return a.carrying === "plank" ? "Carrying a plank" : "🔨 Repairing the roof";
