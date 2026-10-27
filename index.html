@@ -5214,7 +5214,7 @@ function refreshTray(force){
   html += "<button class='cbtn' data-o='thoughts'" + (!a ? " disabled" : "") + "><span class='i'>💭</span><span class='l'>Thoughts</span></button></div>";
   if(a && !a.child && ((G.banked && a.bank != null) || (a.sick && !a.tier))){
     html += "<div class='cgrp sep'><span class='glab'>Care</span>";
-    if(a.sick && !a.tier) html += "<button class='cbtn' data-o='callout'><span class='i'>🚑</span><span class='l'>Call Out · " + TTI.spotFee + "🪙</span></button>";
+    if(a.sick && !a.tier) html += "<button class='cbtn' data-o='callout'><span class='i'>🚑</span><span class='l'>Call Out · front of queue · " + TTI.spotFee + "🪙</span></button>";
     if(G.banked && a.bank != null){
       if(!G.coverArm){
         html += "<button class='cbtn' data-o='cover'><span class='i'>🛡</span><span class='l'>Cover: " + (a.tier && TTI[a.tier] ? TTI[a.tier].name : "None") + "</span></button>";

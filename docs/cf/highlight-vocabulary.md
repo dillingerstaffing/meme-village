@@ -26,7 +26,8 @@ Care; village-scope controls (Follow, Proclaim, Found, Story,
 Sound) sit in their own separated cluster and never mix into the
 resident groups. Cover is picked from priced chips that name the
 tier, its per-season premium, and what the tier buys before the
-committing tap; it is never cycled blind.
+committing tap; it is never cycled blind. Call Out follows the same rule in the same Care group: its button names
+what the fee buys (the front of the medic queue) beside the fee before the one-tap commit, never the fee alone.
 
 Why: in the 2026-10-22 playtest the single teal treatment meant six
 different things at once (an order, a camera toggle, a mute state,
