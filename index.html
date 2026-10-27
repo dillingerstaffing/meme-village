@@ -347,6 +347,8 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
     <button class="sbtn on" id="sp1" type="button">1x</button>
     <button class="sbtn" id="sp2" type="button">2x</button>
     <button class="sbtn" id="camBtn" type="button" title="Reset camera">🎥</button>
+    <button class="sbtn" id="rotL" type="button" title="Rotate view left (Q)">↺</button>
+    <button class="sbtn" id="rotR" type="button" title="Rotate view right (E)">↻</button>
     <button class="sbtn" id="markBtn" type="button" title="Save this view">📌</button>
   </div>
 </div>
@@ -6753,6 +6755,12 @@ document.getElementById("sp0").addEventListener("click", function(){ setSpeed(0)
 document.getElementById("sp1").addEventListener("click", function(){ setSpeed(1); });
 document.getElementById("sp2").addEventListener("click", function(){ setSpeed(2); });
 document.getElementById("camBtn").addEventListener("click", function(){ cam.target.set(0, 0, 4); cam.yaw = 0; cam.dist = 38; cam.follow = null; refreshTray(true); });
+/* Camera rotate buttons: the visible form of the Q/E keys, which no
+   on-screen element ever named. Each tap steps cam.yaw by exactly the
+   key step, so the buttons and the keys cannot disagree. */
+/* CF-REF: camera-rotate-buttons.md [2] */
+document.getElementById("rotL").addEventListener("click", function(){ cam.yaw += 0.35; });
+document.getElementById("rotR").addEventListener("click", function(){ cam.yaw -= 0.35; });
 /* Camera bookmark save: one tap appends the current pose through the
    ui/cammark dispatch (the button sits inside #speeds, so on phones it
    rides the thumb-zone move into the tray with the reset button). The

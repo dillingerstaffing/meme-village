@@ -11,6 +11,7 @@ overlay, marker, bubble, name tag, hud, camera move, collision, anchor, hide, de
 | claim-minimap.md | Surveyed plots read on the minimap: original plots as gold outline squares, CLAIM/GROW plots filled solid, an in-flight claim as a dashed gold ring, display only |
 | proclaim-minimap.md | The season focus reads on the minimap for exactly the week it holds: the tray megaphone glyph above the focus station or site plot, ringed dashed in gold, display only |
 | claim-preview.md | The pending claim reads on the map before staking: a gold ring at the picked center plus three dots at the pending cluster, no pole or flag; a blocked center breaks the ring, hollows the dots, and crosses the center, display only |
+| camera-rotate-buttons.md | The speeds-row rotate buttons step cam.yaw by the Q/E step (left +0.35, right -0.35), never clear a camera follow, and ride the thumb-zone move into the tray on phones |
 
 ## Game Rules and Scoring
 objective, progress, project, parts, work credit, score, driven, order bonus, household, arrival, newcomer, cottage, capacity, speak for, blame, want, desire, model, spread, contagion, origin, coverage, tier, premium, medic, queue, call out, founding, growth, expansion, autonomous, plot
