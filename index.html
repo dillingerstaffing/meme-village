@@ -2721,7 +2721,7 @@ function fireInitiative(a, p){
 }
 function initiativeScan(){
   G.agents.forEach(function(a){
-    if(a.initPend && G.t >= a.initPend.at){ var p = a.initPend; a.initPend = null; G.initFired++; fireInitiative(a, p); }
+    if(a.initPend && G.t >= a.initPend.at){ var p = a.initPend; a.initPend = null; if(a.sick){ showToast("🚑 " + a.name.split(" ")[0] + " is sick, so the plan drops"); } else { G.initFired++; fireInitiative(a, p); } }
   });
   if(G.initT > G.t) return;
   G.initT = G.t + 4;
