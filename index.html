@@ -4622,7 +4622,7 @@ function endWeek(){
        the autumn roll is a fresh roll. */
     var frail = null, frailRisk = -1;
     G.agents.forEach(function(a){ if(a.failing || arcOf(a).id !== "elder") return; var r = elderRisk(a); if(r > frailRisk){ frailRisk = r; frail = a; } });
-    if(frail) showToast("🍂 Autumn nears, and " + frail.name.split(" ")[0] + " is the village's frailest elder.");
+    if(frail) showToast("🍂 Autumn nears, and " + frail.name.split(" ")[0] + " is the village's frailest elder. Keep their wants met while you can.");
   }
   if(seasonOfYear() === 3){
     telegraphFailing();
