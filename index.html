@@ -4533,7 +4533,14 @@ function endWeek(){
      health is telegraphed as autumn opens, and winter opens with
      the death roll, all before the arrival check below so a freed
      dwelling can be refilled at the same boundary. */
-  if(seasonOfYear() === 1) G.agents.forEach(function(a){ a.age = (a.age || 34) + 1; });
+  if(seasonOfYear() === 1) G.agents.forEach(function(a){ a.age = (a.age || 34) + 1;
+    /* Coming-of-age warning, toast only: a child who just reached one
+       year short of maturation reads a full year before they grow up,
+       the same forecast-before-the-boundary grammar as the departure
+       forecast and the winter scarcity toast. No state, no chronicle
+       line; the child stays a child until the next spring, so this
+       fires exactly once in normal play. */
+    if(a.child && a.age === KIDS.matureAge - 1) showToast("🌱 " + a.name.split(" ")[0] + " will come of age next year."); });
   /* Stage 7 lifecycle, on the same spring boundary: children who
      have reached the maturation age grow up first, then established
      households roll for a young one, so a newborn is never aged or
