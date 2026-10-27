@@ -5560,7 +5560,16 @@ function drawMinimap(){
     c.beginPath(); c.arc(X(G.claim.x), Y(G.claim.z), 6, 0, 6.29); c.stroke();
     c.setLineDash([]);
   }
-  G.agents.forEach(function(a){ c.fillStyle = a.sick ? "#e85a3c" : (a.id === G.selected ? "#ffd75e" : "rgba(255,255,255,0.92)"); c.beginPath(); c.arc(X(a.x), Y(a.z), a.id === G.selected ? 3 : 2, 0, 6.29); c.fill(); });
+  G.agents.forEach(function(a){ c.fillStyle = a.sick ? "#e85a3c" : (a.id === G.selected ? "#ffd75e" : "rgba(255,255,255,0.92)"); c.beginPath(); c.arc(X(a.x), Y(a.z), a.id === G.selected ? 3 : 2, 0, 6.29); c.fill();
+    /* Minimap sick ring: a sick or sick-walking resident's dot is red
+       only while sick, and red at 2px on white is color alone, against
+       this function's own discipline (tension rings, drift dashes, claim
+       fill-vs-outline, ping expanding rings all carry shape plus color).
+       The red ring at radius 5 carries the medic-relevant state in shape
+       too, in the tension lens ring grammar, so it reads on the strategic
+       channel at phone minimap scale and not only as the 3D stethoscope
+       marker. Display only: reads a.sick and a.sickWalk, changes nothing. */
+    if(a.sick || a.sickWalk){ c.strokeStyle = "rgba(232,90,60,0.95)"; c.lineWidth = 1.5; c.beginPath(); c.arc(X(a.x), Y(a.z), 5, 0, 6.29); c.stroke(); } });
   /* Tension lens (SimCity data-map read): pairs with tension at or past 40,
      the same threshold the want strip marks hot, get a drawn edge between
      the two residents' dots, and each heated resident gets a gold ring.
