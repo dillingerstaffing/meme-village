@@ -474,11 +474,11 @@ var Store = (function(){
        can move past the ones they have read. Nothing is lost; the queue keeps
        its order. */
     "ui/toastSkip": function(p){ var cur = state.ui && state.ui.toast; if(cur && Date.now() < cur.until) cur.until = 0; },
-    /* Camera bookmark: the player-chosen saved view (the SC2 save-location
-       half the last-alert return left open). The save verb reads the live
-       camera pose and stores it here; the return chip restores it exactly.
-       Camera only, never sim state: no graph edge, want, or tension moves. */
-    "ui/cammark": function(p){ if(p && typeof p.x === "number" && typeof p.z === "number") state.camMark = {x: p.x, z: p.z, yaw: (typeof p.yaw === "number" ? p.yaw : 0), dist: (typeof p.dist === "number" ? p.dist : 38)}; },
+    /* Camera bookmarks: the player-chosen saved views (the SC2 save-location
+       grammar, four slots, F5 to F8 on desktop). The save verb reads the live
+       camera pose and appends it; a fifth save drops the oldest, so the ring
+       always holds the four most recent views. Camera only, never sim state. */
+    "ui/cammark": function(p){ if(p && typeof p.x === "number" && typeof p.z === "number"){ var ms = state.camMarks || (state.camMarks = []); ms.push({x: p.x, z: p.z, yaw: (typeof p.yaw === "number" ? p.yaw : 0), dist: (typeof p.dist === "number" ? p.dist : 38)}); if(ms.length > 4) ms.shift(); } },
     /* Season-boundary save receipt: the boundary save is acknowledged
        in game by a transient chip, never a toast (the toast queue must
        not grow for routine system work) and never a chronicle line
@@ -982,7 +982,7 @@ function newSlice(){
     stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
     objStation:"clinic", objComplete:false, objDone:0, scapegoats:0, delays:[],
     weekWork:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0, build:0}, weekWorkP:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0}, fieldWorkers:{},
-    ui:{toast:null, queue:[], sheet:null, muted:false}, mimic:{spread:0, converged:0, doneCopied:0, doneSelf:0, missedCopied:0}, policy:"hearth", difficulty:"standard", medicPatient:null, pendingIncident:null, curIncident:null, alerts:[], lastAlert:null, camMark:null, savedAt:0, firstOrder:false, chronicle: [], endKind: null, ttiPaid: 0, ttiSavesUsed: 0, medicQueue: [], medicSeq: 0, pings:[]};
+    ui:{toast:null, queue:[], sheet:null, muted:false}, mimic:{spread:0, converged:0, doneCopied:0, doneSelf:0, missedCopied:0}, policy:"hearth", difficulty:"standard", medicPatient:null, pendingIncident:null, curIncident:null, alerts:[], lastAlert:null, camMarks:[], savedAt:0, firstOrder:false, chronicle: [], endKind: null, ttiPaid: 0, ttiSavesUsed: 0, medicQueue: [], medicSeq: 0, pings:[]};
   g.agents.forEach(function(a){
     a.speedNow = 0; a.slot = null; a.fetch = null; a.fetchT = 0; a.watchCd = 0; a.mimicStation = null;
     a.buildSite = null; a.fetchSite = null;
@@ -4966,7 +4966,7 @@ function restoreState(st){
   if(!st.prestigeFlip || typeof st.prestigeFlip !== "object") st.prestigeFlip = {};
   if(!st.prestigeWarn || typeof st.prestigeWarn !== "object") st.prestigeWarn = {};
   if(!st.lastAlert || typeof st.lastAlert !== "object") st.lastAlert = null;
-  if(!st.camMark || typeof st.camMark !== "object") st.camMark = null;
+  if(!Array.isArray(st.camMarks)) st.camMarks = (st.camMark && typeof st.camMark === "object") ? [st.camMark] : []; delete st.camMark;
   /* The save receipt is a live acknowledgement, never restored: a
      reloaded village must not flash a save it did not just make. */
   st.savedAt = 0;
@@ -6024,12 +6024,12 @@ function hudTick(dt){
      keeps it tappable, like the idle chips. */
   var liveFocus = G.ui && G.ui.toast && Date.now() < G.ui.toast.until && G.ui.toast.focus && (G.ui.toast.focus.ids || G.ui.toast.focus.x !== undefined);
   if(G.lastAlert && !liveFocus) ahtml += "<button class='alert-chip last-alert-chip' onclick='__lastAlertFocus()'>⌖ " + G.lastAlert.msg + "</button>";
-  /* Camera bookmark return: the player-chosen saved view reads as its own
+  /* Camera bookmark return: each player-chosen saved view reads as its own
      chip beside the system-chosen last-alert chip, so saving is visibly
-     kept and returning costs one tap. It shows whenever a mark exists,
-     even while a focus toast is live, because it returns to a place the
+     kept and returning costs one tap. Chips show whenever marks exist,
+     even while a focus toast is live, because they return to places the
      player chose, not to the toast's site. */
-  if(G.camMark) ahtml += "<button class='alert-chip cammark-chip' onclick='__camMarkFocus()'>📌 Saved view · tap to return</button>";
+  if(G.camMarks && G.camMarks.length) G.camMarks.forEach(function(mk, ix){ ahtml += "<button class='alert-chip cammark-chip' onclick='__camMarkFocus(" + ix + ")'>📌 View " + (ix + 1) + " · return</button>"; });
   /* Boundary-save receipt: a transient, non-tappable span in this stack
      while the save is fresh (3s of real time), so the acknowledgement
      survives a backed-up toast queue without spending a slot in it.
@@ -6300,11 +6300,11 @@ window.__toastSkip = function(){ Store.dispatch("ui/toastSkip"); SND.play("tap")
    the time this chip shows. A focus that resolves to nothing (its
    residents are gone) answers loudly instead of moving nowhere. */
 window.__lastAlertFocus = function(){ var la = G.lastAlert, f = la && la.focus; if(!f) return; var x = 0, z = 0, n = 0; if(f.ids) f.ids.forEach(function(id){ var a = agent(id); if(a){ x += a.x; z += a.z; n++; } }); else if(f.x !== undefined){ x = f.x; z = f.z; n = 1; } if(n){ cam.target.x = Math.max(-62, Math.min(62, x / n)); cam.target.z = Math.max(-48, Math.min(48, z / n)); cam.follow = null; } else showToast("No site to return to"); };
-/* Camera bookmark return: restore the saved pose exactly (target, yaw,
+/* Camera bookmark return: restore the slot's saved pose exactly (target, yaw,
    distance) and clear follow, so the returned view is the saved view, not
-   a nearby one. A chip only renders while a mark exists, so a missing mark
+   a nearby one. A chip only renders while its slot exists, so a missing slot
    here answers loudly instead of jumping nowhere. */
-window.__camMarkFocus = function(){ var m = G.camMark; if(!m){ showToast("No saved view yet"); return; } cam.target.x = Math.max(-62, Math.min(62, m.x)); cam.target.z = Math.max(-48, Math.min(48, m.z)); cam.yaw = m.yaw; cam.dist = m.dist; cam.follow = null; };
+window.__camMarkFocus = function(ix){ var ms = G.camMarks || []; var m = ms[typeof ix === "number" ? ix : 0]; if(!m){ showToast("No saved view yet"); return; } cam.target.x = Math.max(-62, Math.min(62, m.x)); cam.target.z = Math.max(-48, Math.min(48, m.z)); cam.yaw = m.yaw; cam.dist = m.dist; cam.follow = null; };
 window.__pickProject = function(i){ pickProject(i); };
 window.__acceptOffer = function(){ acceptOffer(); };
 window.__ignoreOffer = function(){ ignoreOffer(); };
@@ -6751,12 +6751,12 @@ document.getElementById("sp0").addEventListener("click", function(){ setSpeed(0)
 document.getElementById("sp1").addEventListener("click", function(){ setSpeed(1); });
 document.getElementById("sp2").addEventListener("click", function(){ setSpeed(2); });
 document.getElementById("camBtn").addEventListener("click", function(){ cam.target.set(0, 0, 4); cam.yaw = 0; cam.dist = 38; cam.follow = null; refreshTray(true); });
-/* Camera bookmark save: one tap stores the current pose through the
+/* Camera bookmark save: one tap appends the current pose through the
    ui/cammark dispatch (the button sits inside #speeds, so on phones it
    rides the thumb-zone move into the tray with the reset button). The
-   toast names the return chip, so the save is never silent, and re-saving
-   overwrites: one mark, one chip, no stack to manage. */
-document.getElementById("markBtn").addEventListener("click", function(){ Store.dispatch("ui/cammark", {x: cam.target.x, z: cam.target.z, yaw: cam.yaw, dist: cam.dist}); showToast("📌 View saved: tap the Saved view chip to return"); refreshTray(true); });
+   toast names the slot just saved, and on overflow it names the drop,
+   so the save is never silent and the ring's size is never a surprise. */
+document.getElementById("markBtn").addEventListener("click", function(){ var before = (G.camMarks || []).length; Store.dispatch("ui/cammark", {x: cam.target.x, z: cam.target.z, yaw: cam.yaw, dist: cam.dist}); var n = (G.camMarks || []).length; showToast(before >= 4 ? "📌 View 4 saved, oldest view replaced: tap its chip to return" : "📌 View " + n + " saved: tap its chip to return"); refreshTray(true); });
 /* Thumb-zone rule (mobile): pause/speed/camera are the highest-urgency controls, so on small screens they move out of the top-right corner and into the bottom tray, where a thumb reaches without shifting grip. Pure CSS moves nothing across parents, so the reparenting happens here; CSS lays it out as the tray's own right-aligned row. */
 function placeSpeeds(){
   var sp = document.getElementById("speeds"), tray = document.getElementById("tray"), tr = document.getElementById("topRight");
