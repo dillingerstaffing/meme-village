@@ -2728,7 +2728,7 @@ function initiativeScan(){
   if(G.agents.some(function(a){ return !!a.initPend; })) return;
   var cands = [];
   G.agents.forEach(function(a){
-    if(a.sick || a.child || a.initWk === G.week || a.order) return;
+    if(a.sick || a.sickWalk || a.child || a.initWk === G.week || a.order) return;
     var fol = followersOf(a);
     if(a.disp === "Diligent" && a.model){
       var m = agent(a.model);
