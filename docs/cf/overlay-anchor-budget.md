@@ -23,3 +23,9 @@ selection readout while the resident walks behind the column, and
 identity stays unambiguous: the resident carries the visible selection
 ring and the card names them. Non-selected overlays have no exemption;
 past the budget they hide for the frame.
+
+The station aggregate bubble (#pressure, "N all want the <station>") follows
+the same rule against opaque chrome: it clears the minimap and the offer
+card within the same 110px sideways budget measured from its clamped
+station anchor, or hides for the frame, never rendering clipped under
+either panel.

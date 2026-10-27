@@ -6483,21 +6483,30 @@ function renderOverlay(s){
       var ptxt = "\u2694\u00d7" + pressN + " all want the " + pst.name; if(pEl.textContent !== ptxt) pEl.textContent = ptxt;
       pEl.style.display = "block";
       // Centered on the station via translate(-50%,-100%): keep the whole bubble
-      // on screen and clear of the minimap, staying near its station (the 110px
-      // sideways budget from the anchor discipline; past it the bubble hides for
-      // the frame rather than rendering clipped under the minimap).
+      // on screen and clear of the minimap and the offer card, staying near its
+      // station (the 110px sideways budget from the anchor discipline, measured
+      // from the clamped anchor). A shift that clears one panel but lands under
+      // the other is no clearance at all: try the minimap-left shift, then the
+      // offer-card-right shift, accept only one that clears both panels, and
+      // otherwise hide for the frame rather than rendering clipped under
+      // opaque chrome.
       var pcx = (projV.x * 0.5 + 0.5) * window.innerWidth;
       var pcy = (-projV.y * 0.5 + 0.5) * window.innerHeight;
       var pbw = pEl.offsetWidth || 170, pbh = pEl.offsetHeight || 26;
       pcx = Math.max(pbw/2 + 4, Math.min(window.innerWidth - pbw/2 - 4, pcx));
       if(pcy - pbh < 4) pcy = pbh + 4;
-      var pmm = document.getElementById("minimap"), pShow = true;
-      if(pmm){
-        var pmr = pmm.getBoundingClientRect();
-        if(pcx + pbw/2 > pmr.left && pcx - pbw/2 < pmr.right && pcy > pmr.top && pcy - pbh < pmr.bottom){
-          var pnl = pmr.left - 6 - pbw/2;
-          if(Math.abs(pnl - pcx) <= 110 && pnl - pbw/2 >= 4) pcx = pnl;
-          else pShow = false;
+      var pcx0 = pcx;
+      var pRect = function(el){ if(!el) return null; var r = el.getBoundingClientRect(); if(r.width < 4 || r.height < 4) return null; return r; };
+      var pmr = pRect(document.getElementById("minimap")), por = pRect(document.getElementById("objCard"));
+      var pHits = function(x){ var hit = false; [pmr, por].forEach(function(r){ if(r && x + pbw/2 > r.left && x - pbw/2 < r.right && pcy > r.top && pcy - pbh < r.bottom) hit = true; }); return hit; };
+      var pShow = !pHits(pcx);
+      if(!pShow){
+        var pCands = [];
+        if(pmr) pCands.push(pmr.left - 6 - pbw/2);
+        if(por) pCands.push(por.right + 6 + pbw/2);
+        for(var ci = 0; ci < pCands.length; ci++){
+          var cx = pCands[ci];
+          if(Math.abs(cx - pcx0) <= 110 && cx - pbw/2 >= 4 && cx + pbw/2 <= window.innerWidth - 4 && !pHits(cx)){ pcx = cx; pShow = true; break; }
         }
       }
       if(pShow){ pEl.style.left = pcx + "px"; pEl.style.top = pcy + "px"; }
