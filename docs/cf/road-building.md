@@ -24,7 +24,11 @@ for such a pair (no priced Lay chip offered), in the blocked-Claim
 grammar, so the player sees the refusal before committing; the chip
 stays tappable, so tapping it still refuses loudly rather than
 going silent. The village keeps at most
-CONNECT_ROAD.maxRoads roads.
+CONNECT_ROAD.maxRoads roads, and the cap reads before any lay: the
+stats panel claim row (claimLbl, rendered by renderHud after the
+growth row) names the live road count against the cap once Town is
+reached, and names the Town gate for both verbs below Town. The row
+is display only and changes no gate.
 
 The road crew is recruited from the imitation graph: the earliest-formed
 household's members plus up to 2 admirers (followersOf counts, spec

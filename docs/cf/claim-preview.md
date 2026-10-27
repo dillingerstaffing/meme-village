@@ -47,3 +47,11 @@ no graph cause: it renders the already-spec'd claim (spec section
 23: the founding household's imitation edges recruit the party)
 before it commits, so the decision the player makes is the ground
 they actually see.
+
+The Town gate itself reads before any tap, in the stats panel claim
+row (claimLbl, rendered by renderHud after the growth row): below
+Town it names the gate for both Town verbs, "Claims and roads unlock
+at Town"; at Town and above it names the unlocked state and the live
+road count against the cap. The row is display only and changes no
+gate, so a refusal toast after a tap can never be the first time the
+player hears about the gate.

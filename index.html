@@ -338,6 +338,7 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
   <div class="srow"><span class="sl">🌱 Contentment</span><span class="sb"><i id="bar-cont" style="background:#7ec850"></i></span><b id="val-cont">0</b></div>
   <div class="srow" id="tierRow"><span class="sl" id="tierLbl" style="width:auto">Next tier</span></div>
   <div class="srow" id="growRow"><span class="sl" id="growLbl" style="width:auto">Growth</span></div>
+  <div class="srow" id="claimRow"><span class="sl" id="claimLbl" style="width:auto">Claims</span></div>
   <div class="srow" id="homeRow"><span class="sl" id="homeLbl" style="width:auto">Homes</span></div>
   <div class="srow" id="popRow"><span class="sl" id="popLbl" style="width:auto">Villagers</span></div>
   <div class="srow" id="blameRow" style="display:none"><span class="sl" id="blameLbl">🌩 Blame</span><span class="sb"><i id="blameBar" style="background:#e85a3c"></i></span><b id="blameVal">0</b></div>
@@ -6004,6 +6005,25 @@ function hudTick(dt){
     if(growN >= GROWTH.growMaxRings) growLbl.textContent = "Growth complete, " + growN + "/" + GROWTH.growMaxRings + " rings";
     else if(!growUnlocked()) growLbl.textContent = "Growth unlocks at Town, " + growN + "/" + GROWTH.growMaxRings + " rings";
     else growLbl.textContent = "Contentment " + Math.round(contentment()) + "/" + GROWTH.growMin + ", " + growN + "/" + GROWTH.growMaxRings + " rings";
+  }
+  /* Claim and road read-ahead: the two Town-tier BUILD verbs read where
+     the other village reads live, instead of only in the refusal toast
+     after a tap. Their tray buttons look enabled at every tier, so a
+     tap below Town reads as a dead verb until the toast lands, and no
+     surface named the road cap before a lay. Below Town the row names
+     the shared Town gate for both verbs; at Town it names the unlocked
+     state and the live road count against CONNECT_ROAD.maxRoads. Both
+     gates are read (they are the same count today, but the row must
+     not claim one verb open while the other is still gated if they
+     ever diverge). Display only: the row renders claimUnlocked,
+     roadUnlocked, and G.roads, and changes no gate, ledger, graph
+     edge, want, or tension. Guarded element write keeps the node
+     harness working with its stubbed document. */
+  var claimLbl = document.getElementById("claimLbl");
+  if(claimLbl){
+    var roadN = (G.roads || []).length;
+    if(!claimUnlocked() || !roadUnlocked()) claimLbl.textContent = "🚩 Claims and 🛣 roads unlock at Town";
+    else claimLbl.textContent = "🚩 Claims unlocked · 🛣 Roads " + roadN + "/" + CONNECT_ROAD.maxRoads;
   }
   /* Housing read: the one ledger the village plans around, rendered
      where the other village reads live. Free homes are capacity minus
