@@ -11,7 +11,8 @@ treatment means exactly one thing:
   included; at most one gold border exists on screen.
 - Gold flash (.rdyflash): a cooldown just expired. Spotlight only.
 - Dashed border (.cam): the camera follows the selected resident.
-  Follow only.
+  Follow only. Follow's face also names its state: Following while
+  the camera follows, Follow when it does not.
 - Dimmed: temporarily unavailable. The reason or the countdown
   rides on the button's face, or the tap itself explains why the
   verb cannot act yet (Speak For, Build); a verb never disables
