@@ -416,7 +416,7 @@ function curObjective(){ var deck = (G.objectives && G.objectives.length) ? G.ob
 var scene, camera, renderer, sunLight;
 var cam = {target:new THREE.Vector3(0,0,4), yaw:0, pitch:0.94, dist:38, follow:null};
 var G = null;
-// CF-REF: store-single-source.md [94]
+// CF-REF: store-single-source.md [99]
 /* ================= STORE =================
    Single source of truth for all game state.
    Rules:
@@ -479,6 +479,11 @@ var Store = (function(){
        camera pose and stores it here; the return chip restores it exactly.
        Camera only, never sim state: no graph edge, want, or tension moves. */
     "ui/cammark": function(p){ if(p && typeof p.x === "number" && typeof p.z === "number") state.camMark = {x: p.x, z: p.z, yaw: (typeof p.yaw === "number" ? p.yaw : 0), dist: (typeof p.dist === "number" ? p.dist : 38)}; },
+    /* Season-boundary save receipt: the boundary save is acknowledged
+       in game by a transient chip, never a toast (the toast queue must
+       not grow for routine system work) and never a chronicle line
+       (routine system noise is never written). Display only. */
+    "ui/saved": function(p){ state.savedAt = Date.now(); },
     "ui/select": function(p){ state.selected = p.id || null; if(state.ui && state.ui.sheet) state.ui.sheet = state.selected; },
     "ui/sheet": function(p){ if(state.ui) state.ui.sheet = p && p.id ? p.id : null; },
     "ui/mute": function(p){ if(state.ui) state.ui.muted = (p && typeof p.on === "boolean") ? p.on : !state.ui.muted; },
@@ -977,7 +982,7 @@ function newSlice(){
     stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
     objStation:"clinic", objComplete:false, objDone:0, scapegoats:0, delays:[],
     weekWork:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0, build:0}, weekWorkP:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0}, fieldWorkers:{},
-    ui:{toast:null, queue:[], sheet:null, muted:false}, mimic:{spread:0, converged:0, doneCopied:0, doneSelf:0, missedCopied:0}, policy:"hearth", difficulty:"standard", medicPatient:null, pendingIncident:null, curIncident:null, alerts:[], lastAlert:null, camMark:null, firstOrder:false, chronicle: [], endKind: null, ttiPaid: 0, ttiSavesUsed: 0, medicQueue: [], medicSeq: 0, pings:[]};
+    ui:{toast:null, queue:[], sheet:null, muted:false}, mimic:{spread:0, converged:0, doneCopied:0, doneSelf:0, missedCopied:0}, policy:"hearth", difficulty:"standard", medicPatient:null, pendingIncident:null, curIncident:null, alerts:[], lastAlert:null, camMark:null, savedAt:0, firstOrder:false, chronicle: [], endKind: null, ttiPaid: 0, ttiSavesUsed: 0, medicQueue: [], medicSeq: 0, pings:[]};
   g.agents.forEach(function(a){
     a.speedNow = 0; a.slot = null; a.fetch = null; a.fetchT = 0; a.watchCd = 0; a.mimicStation = null;
     a.buildSite = null; a.fetchSite = null;
@@ -4633,7 +4638,9 @@ function endWeek(){
   /* Stage X: the village raises one building of its own at the
      boundary, after arrivals and departures have resolved. */
   foundingCheck();
-  saveGame();
+  /* Boundary-save receipt: only a successful save flashes, and only
+     through the dispatch door, so the sim never writes DOM. */
+  if(saveGame()) Store.dispatch("ui/saved");
 }
 
 function stepSim(dt){
@@ -4858,7 +4865,7 @@ window.__closeChronicle = function(){
   storySoFar(false);
 };
 
-/* CF-REF: chronicle-and-saves.md [140] */
+/* CF-REF: chronicle-and-saves.md [143] */
 /* Stage 8: persistence. One localStorage snapshot lets a village
    survive a reload. The save is the Store state as JSON with the
    transient render objects stripped by key (figures, overlay
@@ -4960,6 +4967,9 @@ function restoreState(st){
   if(!st.prestigeWarn || typeof st.prestigeWarn !== "object") st.prestigeWarn = {};
   if(!st.lastAlert || typeof st.lastAlert !== "object") st.lastAlert = null;
   if(!st.camMark || typeof st.camMark !== "object") st.camMark = null;
+  /* The save receipt is a live acknowledgement, never restored: a
+     reloaded village must not flash a save it did not just make. */
+  st.savedAt = 0;
   st.coverArm = false;
   st.chronCloseArm = false;
   if(typeof st.coachBank !== "boolean") st.coachBank = false;
@@ -6020,6 +6030,12 @@ function hudTick(dt){
      even while a focus toast is live, because it returns to a place the
      player chose, not to the toast's site. */
   if(G.camMark) ahtml += "<button class='alert-chip cammark-chip' onclick='__camMarkFocus()'>📌 Saved view · tap to return</button>";
+  /* Boundary-save receipt: a transient, non-tappable span in this stack
+     while the save is fresh (3s of real time), so the acknowledgement
+     survives a backed-up toast queue without spending a slot in it.
+     A span, never a button: it is a status read, not a verb, and its
+     border stays neutral so it never borrows the armed-verb gold. */
+  if(G.savedAt && Date.now() - G.savedAt < 3000) ahtml += "<span style='background:rgba(14,20,16,.9);border:1px solid rgba(255,255,255,.25);color:var(--ink);border-radius:8px;padding:7px 11px;font:600 12px Inter,sans-serif'>✓ Progress saved</span>";
   if(alEl.innerHTML !== ahtml) alEl.innerHTML = ahtml;
   refreshTray(false);
   var trayEl = document.getElementById("tray");

@@ -50,3 +50,10 @@ true endings, and the localStorage snapshot.
   paths (makeFigure, buildSiteMesh, applyTierMesh, rebuildGraves from
   the G.deaths entries that carry x/z); nothing render-side is ever
   serialized.
+- The boundary save is acknowledged in game by a transient,
+  non-tappable chip in the #alerts stack, shown for 3 seconds of real
+  time from a ui/saved dispatch that fires only when saveGame returns
+  true. It is not a toast (the queue must not grow for routine system
+  work) and not a chronicle line (routine system noise is never
+  written), and restoreState clears it so a reloaded village never
+  flashes a save it did not just make.
