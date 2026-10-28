@@ -2268,9 +2268,13 @@ function telegraphFailing(){
     if(Math.random() < elderRisk(a)){
       a.failing = true;
       /* The 🤒 marker itself is rendered persistently by overlayModel
-         while a.failing holds, so no timed bubble is needed here. */
+         while a.failing holds, so no timed bubble is needed here. The
+         toast names the counter-move the winter roll supports, in the
+         frail-forecast grammar: a fulfilled want pays morale +9, and
+         morale below 50 feeds the winter death roll, so wants met
+         before winter are the lever the player still holds. */
       noteEvent(a, "failing", "");
-      showToast("🤒 " + a.name.split(" ")[0] + " is failing. The village walks slower around them now.", {ids: [a.id]});
+      showToast("🤒 " + a.name.split(" ")[0] + " is failing. The village walks slower around them now. Keep their wants met while you can.", {ids: [a.id]});
       SND.play("warn");
     }
   });
