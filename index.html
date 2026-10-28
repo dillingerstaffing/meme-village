@@ -3521,7 +3521,7 @@ function cancelFoundSite(site){
     }
     if(a.buildSite === site.id){
       a.buildSite = null;
-      if(a.stationId === "build"){ a.state = "idle"; a.decideT = 0.2; }
+      if(a.stationId === "build"){ a.state = "idle"; a.decideT = 0.2; a.visitId = null; a.pendingWatch = null; a.watchOf = null; }
     }
   });
   if(site.group){ scene.remove(site.group); site.group = null; }
@@ -3720,7 +3720,7 @@ function checkClaimStaked(c){
   });
   if(c.group){ scene.remove(c.group); c.group = null; }
   G.agents.forEach(function(a){
-    if(a.claimParty){ a.claimParty = null; if(a.stationId === "claim" && !a.fetch){ a.state = "idle"; a.decideT = 0.2; } }
+    if(a.claimParty){ a.claimParty = null; if(a.stationId === "claim" && !a.fetch){ a.state = "idle"; a.decideT = 0.2; a.visitId = null; a.pendingWatch = null; a.watchOf = null; } }
   });
   showToast("🚩 Claim staked: three surveyed plots join the village.", {x: c.x, z: c.z});
   SND.play("objwin");
@@ -3763,7 +3763,7 @@ function cancelClaim(){
     }
   });
   G.agents.forEach(function(a){
-    if(a.claimParty){ a.claimParty = null; if(a.stationId === "claim"){ a.state = "idle"; a.decideT = 0.2; } }
+    if(a.claimParty){ a.claimParty = null; if(a.stationId === "claim"){ a.state = "idle"; a.decideT = 0.2; a.visitId = null; a.pendingWatch = null; a.watchOf = null; } }
   });
   if(c.group){ scene.remove(c.group); c.group = null; }
   returnStores(c.matsIn.stores || 0);
@@ -3885,7 +3885,7 @@ function checkRoadBuilt(r){
   r.built = true;
   buildRoadMesh(r);
   G.agents.forEach(function(a){
-    if(a.roadCrew === r.id){ a.roadCrew = null; a.roadFetch = null; if(a.stationId === "road" && !a.fetch){ a.state = "idle"; a.decideT = 0.2; } }
+    if(a.roadCrew === r.id){ a.roadCrew = null; a.roadFetch = null; if(a.stationId === "road" && !a.fetch){ a.state = "idle"; a.decideT = 0.2; a.visitId = null; a.pendingWatch = null; a.watchOf = null; } }
   });
   var mid = roadMid(r);
   showToast("🛣 The road is built: walkers move faster between " + STATION3[r.stA].name + " and " + STATION3[r.stB].name + ".", {x: mid.x, z: mid.z});
@@ -3908,7 +3908,7 @@ function cancelRoad(){
     if(a.roadCrew === r.id){
       if(a.fetch && a.fetch.indexOf("road") === 0){ a.fetch = null; a.roadFetch = null; a.carrying = null; }
       a.roadCrew = null; a.roadFetch = null;
-      if(a.stationId === "road"){ a.state = "idle"; a.decideT = 0.2; }
+      if(a.stationId === "road"){ a.state = "idle"; a.decideT = 0.2; a.visitId = null; a.pendingWatch = null; a.watchOf = null; }
     }
   });
   if(r.group){ scene.remove(r.group); r.group = null; }

@@ -52,7 +52,11 @@ walk-out, which walks a resident out at once whatever they were doing.
 When the carried planks meet the cost, the road is built: the surveyed
 line becomes a solid packed-earth strip with a Settlers flag at each
 end, the crew is released, and a camera-focus toast plus a chronicle
-line name the finished road.
+line name the finished road. The completion release cancels the
+social intent on the same rule as the walk-out and the recall: the
+released crew's visitId, pendingWatch, and stale watchOf clear beside
+the idle, or arrive() fires the stale leg at the crew's next station
+instead of the work there.
 
 The walk boost is physical, not a tooltip number: roadBoostFor() runs in
 the walk branch and returns CONNECT_ROAD.walkMult only when the

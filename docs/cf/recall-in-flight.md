@@ -23,10 +23,15 @@ kind locked its plot until the site finished, with no way back.
   delivered stores with it, clears every claim fetch and claimParty
   flag, releases claim-stationed members to idle, removes the stake
   banner mesh, nulls G.claim, and frees the claim slot, so a new
-  claim can be staked at once. cancelRoad() clears every road fetch
+  claim can be staked at once. The release also cancels the social
+  intent it replaces, on the same rule as the other walk-replacing
+  doors: visitId, pendingWatch, and a stale watchOf clear beside the
+  idle, or arrive() fires the stale leg at the released resident's
+  next station instead of the work there. cancelRoad() clears every road fetch
   and roadCrew flag, releases road-stationed crew to idle, removes
   the surveyed line, drops the road record from G.roads, and nulls
-  G.roadBuild, freeing the road slot.
+  G.roadBuild, freeing the road slot. Its release cancels the social
+  intent on the same rule as the claim release.
 - Both recalls toast and chronicle as the player's own call ("called
   off", never "scattered" or "abandoned", which are the season
   boundary's words for a crew that died or departed). Both add no
@@ -50,7 +55,11 @@ kind locked its plot until the site finished, with no way back.
   the site to idle, removes the site mesh, restores the plot ring,
   drops the site from G.sites, clears buildPref when it pointed at
   the site, and clears Build orders when no site remains open, so a
-  new founding can start on the freed plot at once. It toasts and
+  new founding can start on the freed plot at once. The release
+  cancels the social intent on the same rule as the claim and road
+  releases: visitId, pendingWatch, and a stale watchOf clear beside
+  the idle, or arrive() fires the stale leg at the released
+  builder's next station instead of the work there. It toasts and
   chronicles as the player's own call, adds no graph edge, and writes
   no wk() ledger, the same as the claim and road recalls.
 - The recall row is a pick row, so on phones it compacts the stats
