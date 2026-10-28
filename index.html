@@ -4481,7 +4481,7 @@ function statDrift(dt){
   s.trust += (clamp100(avgM * 0.72 + (G.policy === "open" ? 7 : 0)) - s.trust) * dt * 0.05;
   s.cohesion += (clamp100(avgM * 0.85) - s.cohesion) * dt * 0.04;
   var maxCrowd = 0, maxCrowdSt = null; Object.keys(crowd).forEach(function(k){ if(crowd[k] > maxCrowd){ maxCrowd = crowd[k]; maxCrowdSt = k; } });
-  if(maxCrowd >= 4 && maxCrowdSt && G.pressToastWk !== G.week){ G.pressToastWk = G.week; showToast("\u26a4 Everyone wants the " + STATION3[maxCrowdSt].name + " \u00b7 rivalry is rising"); }
+  if(maxCrowd >= 4 && maxCrowdSt && G.pressToastWk !== G.week){ G.pressToastWk = G.week; showToast("\u26a4 Everyone wants the " + STATION3[maxCrowdSt].name + " \u00b7 rivalry is rising. Order some elsewhere to thin the crowd."); }
   if(maxCrowd >= 4) s.rivalry = clamp100(s.rivalry + dt * 0.4); else s.rivalry = clamp100(s.rivalry - dt * 0.1);
   var autT = clamp100(100 - (ordered / G.agents.length) * 58 - (G.policy === "order" ? 8 : 0));
   s.autonomy += (autT - s.autonomy) * dt * 0.08;
