@@ -37,6 +37,15 @@ Crew members stay committed through the decide() roadCrew hook, fetch
 planks from the lumber pile to the road midpoint, and deposit them into
 the road's matsIn. Road carries make no wk() calls, so road labor never
 leaks into the driven-work ledgers (the same rule as claim carries).
+A crew member walked out walks out clean: goRoad() settles any
+unrelated carry before the walk, in the recall's own terms, so a
+season-boundary re-recruit cannot deposit a crate into a site from
+the road midpoint or fire a pickup leg there: a site or claim crate
+carry returns one store, every other carry drops with nothing owed,
+and fetch and carrying clear. The initial lay walks the crew out
+through decide() when idle, after any haul has completed on arrival,
+so the settle changes nothing there; it bites on the re-recruit
+walk-out, which walks a resident out at once whatever they were doing.
 When the carried planks meet the cost, the road is built: the surveyed
 line becomes a solid packed-earth strip with a Settlers flag at each
 end, the crew is released, and a camera-focus toast plus a chronicle

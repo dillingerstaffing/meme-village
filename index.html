@@ -3634,6 +3634,17 @@ function recruitClaimParty(c){
 function goClaim(a, c){
   var w = [[-3.4, 0], [3.4, 0], [0, -3.4], [0, 3.4], [-2.4, -2.4], [2.4, 2.4]];
   var spot = w[Math.floor(Math.random() * w.length)];
+  /* A claim walk-out settles a carry the same way makeSick, blameAgent,
+     the order doors, sendMedic, the visit commits, death, exhaustion,
+     and initiatives settle one: stakeClaim and the season re-recruit
+     walk a recruited resident out at once, and arrive() fires a fetch
+     leg on any arrival, so a recruited carrier used to deposit a crate
+     into a site from the claim spot, or fire a pickup leg there and
+     walk back to the build slot. A site or claim crate carry returns
+     one store through returnStores, every other carry drops with
+     nothing owed, and fetch and carrying clear before the walk. */
+  if(a.fetch === "sitecrate-back" || a.fetch === "claimcrate-back") returnStores(1);
+  a.fetch = null; a.carrying = null;
   a.slot = {x: c.x + spot[0], z: c.z + spot[1]};
   a.reason = "Staking the claim";
   goTo(a, a.slot.x, a.slot.z, "claim");
@@ -3809,6 +3820,16 @@ function goRoad(a, r){
   var w = [[-3.2, 0], [3.2, 0], [0, -3.2], [0, 3.2]];
   var spot = w[Math.floor(Math.random() * w.length)];
   var mid = roadMid(r);
+  /* A road walk-out settles a carry the same way goClaim settles one:
+     the season re-recruit walks a scattered crew out at once, and
+     arrive() fires a fetch leg on any arrival, so a recruited carrier
+     used to deposit a crate into a site from the road midpoint, or
+     fire a pickup leg there and walk back to the build slot. A site
+     or claim crate carry returns one store through returnStores,
+     every other carry drops with nothing owed, and fetch and carrying
+     clear before the walk. */
+  if(a.fetch === "sitecrate-back" || a.fetch === "claimcrate-back") returnStores(1);
+  a.fetch = null; a.carrying = null;
   a.slot = {x: mid.x + spot[0], z: mid.z + spot[1]};
   a.reason = "Laying the road";
   goTo(a, a.slot.x, a.slot.z, "road");
