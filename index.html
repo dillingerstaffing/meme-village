@@ -428,7 +428,7 @@ function curObjective(){ var deck = (G.objectives && G.objectives.length) ? G.ob
 var scene, camera, renderer, sunLight;
 var cam = {target:new THREE.Vector3(0,0,4), yaw:0, pitch:0.94, dist:38, follow:null};
 var G = null;
-// CF-REF: store-single-source.md [99]
+// CF-REF: store-single-source.md [103]
 /* ================= STORE =================
    Single source of truth for all game state.
    Rules:
@@ -474,11 +474,17 @@ var Store = (function(){
     "bubble/show": function(p){ var a = findA(p.id); if(a){ a.bubble = p.icon || null; a.bubbleUntil = p.icon ? state.t + (p.secs || 2) : 0; } },
     "want/set": function(p){ var a = findA(p.id); if(a && !a.want) a.want = {station:p.station, until: state.t + (p.secs || 26), from: p.from || null}; },
     "want/clear": function(p){ var a = findA(p.id); if(a) a.want = null; },
-    "ui/toast": function(p){ var t = {msg: String(p.msg || ""), ms: p.ms || 3600, focus: p.focus || null}; var cur = state.ui.toast; if(cur && Date.now() < cur.until){ var q = state.ui.queue || (state.ui.queue = []); if(q.length < 12) q.push(t); } else { t.until = Date.now() + t.ms; state.ui.toast = t; if(t.focus && (t.focus.ids || t.focus.x !== undefined)) state.lastAlert = {msg: t.msg, focus: t.focus}; } },
+    "ui/toast": function(p){ var t = {msg: String(p.msg || ""), ms: p.ms || 3600, focus: p.focus || null}; var cur = state.ui.toast; if(p.jump && cur && Date.now() < cur.until){ var q = state.ui.queue || (state.ui.queue = []); if(q.length < 12) q.unshift({msg: cur.msg, ms: cur.ms, focus: cur.focus}); t.until = Date.now() + t.ms; state.ui.toast = t; if(t.focus && (t.focus.ids || t.focus.x !== undefined)) state.lastAlert = {msg: t.msg, focus: t.focus}; } else if(cur && Date.now() < cur.until){ var q2 = state.ui.queue || (state.ui.queue = []); if(q2.length < 12) q2.push(t); } else { t.until = Date.now() + t.ms; state.ui.toast = t; if(t.focus && (t.focus.ids || t.focus.x !== undefined)) state.lastAlert = {msg: t.msg, focus: t.focus}; } },
     /* A toast that arrives while one is showing waits its turn instead of
        overwriting it (RimWorld's letter stack: no alert silently erases
        another). The animation loop promotes the head of the queue through
-       this action the moment the current toast expires. */
+       this action the moment the current toast expires. The one exception
+       is a jump toast: a direct answer to the player's own tap (an order
+       refusal) shows at once, and the toast it displaces goes to the head
+       of the queue, so it still shows next and nothing is erased; a tap
+       that waits up to a full toast behind an unrelated message reads as
+       a dead tap, and instant feedback for every input outranks queue
+       order. */
     "ui/toastNext": function(p){ var q = state.ui.queue, cur = state.ui.toast; if(q && q.length && !(cur && Date.now() < cur.until)){ var nx = q.shift(); nx.until = Date.now() + nx.ms; state.ui.toast = nx; if(nx.focus && (nx.focus.ids || nx.focus.x !== undefined)) state.lastAlert = {msg: nx.msg, focus: nx.focus}; } },
     /* Skip the showing toast: expire it now so the renderer hides it and the
        promotion loop advances the queue on the next frame. Transient UI is
@@ -5417,8 +5423,8 @@ function setOrder3(orderId){
      divert them to the ordered station, where arrive() then fired the
      sickWalk branch and stranded them sick at the wrong station. */
   if(!a || a.sick || a.sickWalk || a.child){
-    if(a && (a.sick || a.sickWalk)) showToast("🚑 " + a.name.split(" ")[0] + " is sick and cannot take orders right now");
-    else if(a && a.child) showToast("🧒 " + a.name.split(" ")[0] + " is still a child and cannot take work orders");
+    if(a && (a.sick || a.sickWalk)) showToast("🚑 " + a.name.split(" ")[0] + " is sick and cannot take orders right now", null, true);
+    else if(a && a.child) showToast("🧒 " + a.name.split(" ")[0] + " is still a child and cannot take work orders", null, true);
     return;
   }
   if(a.initPend){ a.initPend = null; showToast("↩ " + a.name.split(" ")[0] + " drops the plan and takes your order"); }
@@ -5507,7 +5513,7 @@ var SND = {
 };
 window.__snd = SND;
 document.addEventListener("pointerdown", function(){ SND.resume(); });
-function showToast(msg, focus){ Store.dispatch("ui/toast", {msg:msg, focus: focus || null}); }
+function showToast(msg, focus, jump){ Store.dispatch("ui/toast", {msg:msg, focus: focus || null, jump: !!jump}); }
 /* An armed verb plus a minimap tap is Norman's mode error: the jump
    consumes the tap at canvas level in endPointer, the verb stays armed,
    and the mode goes quiet, so the next resident tap applies it by
