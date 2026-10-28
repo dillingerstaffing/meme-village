@@ -6741,7 +6741,7 @@ function tapAt(cx, cy, smart){
   if(G.visitArm){
     G.visitArm = false;
     var me4 = G.selected ? agent(G.selected) : null;
-    if(p.agent && me4 && p.agent !== G.selected && !me4.sick && !me4.sickWalk && !me4.child){ var them4 = agent(p.agent); me4.visitId = them4.id; me4.order = null; me4.reason = "Visiting " + them4.name.split(" ")[0]; goTo(me4, them4.x + 1.2, them4.z + 0.6, me4.stationId); spawnOrderPing(them4.x, them4.z); setBubble(me4, "💬", 1.1); SND.play("order"); showToast("💬 " + me4.name.split(" ")[0] + " goes to visit " + them4.name.split(" ")[0]); }
+    if(p.agent && me4 && p.agent !== G.selected && !me4.sick && !me4.sickWalk && !me4.child){ var them4 = agent(p.agent); /* A visit settles a carry the same way an order settles one: arrive() fires a fetch leg on any arrival, so a visiting carrier used to deposit a crate into a site from the visit spot, or fire a pickup leg there and walk back to the build slot. A site or claim crate carry returns one store through returnStores, every other carry drops with nothing owed, and fetch and carrying clear before the visit walk. */ if(me4.fetch === "sitecrate-back" || me4.fetch === "claimcrate-back") returnStores(1); me4.fetch = null; me4.carrying = null; me4.visitId = them4.id; me4.order = null; me4.reason = "Visiting " + them4.name.split(" ")[0]; goTo(me4, them4.x + 1.2, them4.z + 0.6, me4.stationId); spawnOrderPing(them4.x, them4.z); setBubble(me4, "💬", 1.1); SND.play("order"); showToast("💬 " + me4.name.split(" ")[0] + " goes to visit " + them4.name.split(" ")[0]); }
     else if(me4 && (me4.sick || me4.sickWalk)) showToast("🚑 " + me4.name.split(" ")[0] + " is sick and cannot visit right now");
     else if(me4 && me4.child) showToast("🧒 " + me4.name.split(" ")[0] + " is still a child and cannot visit");
     /* Tapping the visitor themselves is not a missed pick: the tap
@@ -6785,7 +6785,7 @@ function tapAt(cx, cy, smart){
          visit at the end of it. */
       if(me.sick || me.sickWalk){ showToast("🚑 " + me.name.split(" ")[0] + " is sick and cannot visit right now"); refreshTray(true); return; }
       if(me.child){ showToast("🧒 " + me.name.split(" ")[0] + " is still a child and cannot visit"); refreshTray(true); return; }
-      me.visitId = them.id; me.order = null; me.reason = "Visiting " + them.name.split(" ")[0]; goTo(me, them.x + 1.2, them.z + 0.6, me.stationId); spawnOrderPing(them.x, them.z); setBubble(me, "💬", 1.1);
+      /* A visit settles a carry the same way an order settles one: arrive() fires a fetch leg on any arrival, so a visiting carrier used to deposit a crate into a site from the visit spot, or fire a pickup leg there and walk back to the build slot. A site or claim crate carry returns one store through returnStores, every other carry drops with nothing owed, and fetch and carrying clear before the visit walk. */ if(me.fetch === "sitecrate-back" || me.fetch === "claimcrate-back") returnStores(1); me.fetch = null; me.carrying = null; me.visitId = them.id; me.order = null; me.reason = "Visiting " + them.name.split(" ")[0]; goTo(me, them.x + 1.2, them.z + 0.6, me.stationId); spawnOrderPing(them.x, them.z); setBubble(me, "💬", 1.1);
       SND.play("order");
       refreshTray(true); return;
     }
