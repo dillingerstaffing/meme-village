@@ -2855,7 +2855,11 @@ function imitationScan(){
 }
 /* ================= INCIDENTS & OBJECTIVES ================= */
 function orderAgent(id, station){ var a = agent(id); if(!a || a.child) return; a.order = station; a.fetch = null; a.carrying = null; if(a.state !== "walk"){ a.state = "idle"; a.decideT = 0; } }
-function blameAgent(id){ var a = agent(id); if(!a) return; a.blamed = (a.blamed || 0) + 1; G.blame = Math.min(100, (G.blame || 0) + 14); a.disp = "Withdrawn"; a.morale = Math.max(5, a.morale - 25); a.order = null; noteEvent(a, "blamed", ""); setBubble(a, "🔴", 2.5); goStation(a, "home"); G.stats.rivalry = Math.min(100, G.stats.rivalry + 5); }
+function blameAgent(id){ var a = agent(id); if(!a) return; a.blamed = (a.blamed || 0) + 1; G.blame = Math.min(100, (G.blame || 0) + 14); a.disp = "Withdrawn"; a.morale = Math.max(5, a.morale - 25); a.order = null; /* The home walk replaces whatever walk was in flight, so it
+     cancels the same social intents makeSick cancels: a blamed
+     resident mid-visit used to arrive home and fire the stale visit
+     instead, acting at the green rather than sitting at home. */
+  a.visitId = null; a.pendingWatch = null; noteEvent(a, "blamed", ""); setBubble(a, "🔴", 2.5); goStation(a, "home"); G.stats.rivalry = Math.min(100, G.stats.rivalry + 5); }
 /* The coverage queue. A member who falls sick is enrolled by the
    watch in stepSim and Jonah works the queue by tier rank, then by
    time waiting. Non-members are never enrolled by the watch: they
@@ -3042,6 +3046,15 @@ function drawIncident(){
    a resident already close falls sick where they stand. */
 function makeSick(p){
   if(!p || p.sick || p.sickWalk) return false;
+  /* A redirected walk cancels its social intent, in both branches
+     below: visitId and pendingWatch are consumed only by arrive(),
+     so leaving them set lets the redirected arrival fire as a visit
+     or a watch at the wrong place (a rest walk home after a mid-visit
+     sickness used to end watching at home, or acting at the green,
+     with the visit still owed). A standing order is untouched here:
+     it resumes through decide(), and carried materials keep their
+     fetch accounting, which this clearing does not touch. */
+  p.visitId = null; p.pendingWatch = null;
   if(!G.coachSick && !p.child){ G.coachSick = true; showToast(G.banked ? "🚑 " + p.name.split(" ")[0] + " is sick. Jonah is the only medic: cover sends him to members first, and Call Out buys a visit for anyone else." : "🚑 " + p.name.split(" ")[0] + " is sick. Jonah is the only medic, and he takes people in turn.", {ids:[p.id]}); }
   var d = Math.sqrt(p.x * p.x + (p.z - 8.6) * (p.z - 8.6));
   if(d > 3){ p.sickWalk = true; p.order = null; p.fetch = null; p.carrying = null; goTo(p, 0, 8.6, "green"); setBubble(p, "✚", 3); return true; }
