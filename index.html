@@ -1924,7 +1924,7 @@ function premiumSweep(){
     }
     else if(!a.tier && a.bank != null && a.bank >= TTI.selfEnrollBank){ a.tier = "silver"; enrolled.push(a.name.split(" ")[0]); }
   });
-  if(lapsed > 0) showToast("🛡 Coverage lapsed for " + lapsed + (lapsed === 1 ? " resident" : " residents") + " (unpaid)");
+  if(lapsed > 0) showToast("🛡 Coverage lapsed for " + lapsed + (lapsed === 1 ? " resident" : " residents") + " (unpaid). Cover can sign them up again.");
   return {paid:paid, members:members, enrolled:enrolled};
 }
 /* ================= CHILDREN AND INHERITANCE (Stage 7) =================
