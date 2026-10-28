@@ -3642,9 +3642,13 @@ function goClaim(a, c){
      into a site from the claim spot, or fire a pickup leg there and
      walk back to the build slot. A site or claim crate carry returns
      one store through returnStores, every other carry drops with
-     nothing owed, and fetch and carrying clear before the walk. */
+     nothing owed, and fetch and carrying clear before the walk. It
+     cancels the social intent on the same rule as the other
+     walk-replacing doors: visitId, pendingWatch, and a stale watchOf
+     clear before the walk, or arrive() fires the stale leg at the
+     claim spot instead of the claim work. */
   if(a.fetch === "sitecrate-back" || a.fetch === "claimcrate-back") returnStores(1);
-  a.fetch = null; a.carrying = null;
+  a.fetch = null; a.carrying = null; a.visitId = null; a.pendingWatch = null; a.watchOf = null;
   a.slot = {x: c.x + spot[0], z: c.z + spot[1]};
   a.reason = "Staking the claim";
   goTo(a, a.slot.x, a.slot.z, "claim");
@@ -3827,9 +3831,12 @@ function goRoad(a, r){
      fire a pickup leg there and walk back to the build slot. A site
      or claim crate carry returns one store through returnStores,
      every other carry drops with nothing owed, and fetch and carrying
-     clear before the walk. */
+     clear before the walk. It cancels the social intent on the same
+     rule as the other walk-replacing doors: visitId, pendingWatch,
+     and a stale watchOf clear before the walk, or arrive() fires the
+     stale leg at the road midpoint instead of the road work. */
   if(a.fetch === "sitecrate-back" || a.fetch === "claimcrate-back") returnStores(1);
-  a.fetch = null; a.carrying = null;
+  a.fetch = null; a.carrying = null; a.visitId = null; a.pendingWatch = null; a.watchOf = null;
   a.slot = {x: mid.x + spot[0], z: mid.z + spot[1]};
   a.reason = "Laying the road";
   goTo(a, a.slot.x, a.slot.z, "road");

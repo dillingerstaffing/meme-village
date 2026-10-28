@@ -188,199 +188,199 @@
     },
     {
       "article": "recall-in-flight.md",
-      "ref_line": 3727,
+      "ref_line": 3731,
       "lines": 44,
       "hash": "2b3e66d3"
     },
     {
       "article": "road-building.md",
-      "ref_line": 3772,
+      "ref_line": 3776,
       "lines": 199,
-      "hash": "2da913bd"
+      "hash": "a393792b"
     },
     {
       "article": "recall-in-flight.md",
-      "ref_line": 3890,
+      "ref_line": 3897,
       "lines": 24,
       "hash": "1897c44f"
     },
     {
       "article": "road-building.md",
-      "ref_line": 3993,
+      "ref_line": 4000,
       "lines": 22,
       "hash": "694bff3c"
     },
     {
       "article": "claim-preview.md",
-      "ref_line": 4031,
+      "ref_line": 4038,
       "lines": 37,
       "hash": "4c742e7a"
     },
     {
       "article": "rivalry-drift.md",
-      "ref_line": 4073,
+      "ref_line": 4080,
       "lines": 13,
       "hash": "778e8834"
     },
     {
       "article": "village-growth-gates.md",
-      "ref_line": 4107,
+      "ref_line": 4114,
       "lines": 81,
       "hash": "9af53548"
     },
     {
       "article": "autonomous-founding-gates.md",
-      "ref_line": 4189,
+      "ref_line": 4196,
       "lines": 28,
       "hash": "0727e0b6"
     },
     {
       "article": "driven-work-progress.md",
-      "ref_line": 4381,
+      "ref_line": 4388,
       "lines": 14,
       "hash": "39fb637f"
     },
     {
       "article": "spec-tables-drift-gate.md",
-      "ref_line": 4382,
+      "ref_line": 4389,
       "lines": 14,
       "hash": "c77a272b"
     },
     {
       "article": "rivalry-drift.md",
-      "ref_line": 4471,
+      "ref_line": 4478,
       "lines": 11,
       "hash": "aa574fd2"
     },
     {
       "article": "departure-forecast.md",
-      "ref_line": 4522,
+      "ref_line": 4529,
       "lines": 14,
       "hash": "bf0008cd"
     },
     {
       "article": "soil-tints.md",
-      "ref_line": 4568,
+      "ref_line": 4575,
       "lines": 13,
       "hash": "6ad1e918"
     },
     {
       "article": "desires-travel-the-graph.md",
-      "ref_line": 4790,
+      "ref_line": 4797,
       "lines": 19,
       "hash": "23d42fdb"
     },
     {
       "article": "chronicle-and-saves.md",
-      "ref_line": 4961,
+      "ref_line": 4970,
       "lines": 143,
       "hash": "14f58f1a"
     },
     {
       "article": "axis-label-selected-surfaces.md",
-      "ref_line": 5288,
+      "ref_line": 5297,
       "lines": 2,
       "hash": "6caa504a"
     },
     {
       "article": "highlight-vocabulary.md",
-      "ref_line": 5301,
+      "ref_line": 5310,
       "lines": 51,
       "hash": "7866f884"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 5593,
+      "ref_line": 5602,
       "lines": 39,
       "hash": "d5a4f014"
     },
     {
       "article": "claim-minimap.md",
-      "ref_line": 5659,
+      "ref_line": 5668,
       "lines": 12,
       "hash": "bb41812d"
     },
     {
       "article": "rivalry-drift.md",
-      "ref_line": 5707,
+      "ref_line": 5716,
       "lines": 8,
       "hash": "2a88a8fe"
     },
     {
       "article": "desire-lens.md",
-      "ref_line": 5725,
+      "ref_line": 5734,
       "lines": 31,
       "hash": "a56463cc"
     },
     {
       "article": "proclaim-minimap.md",
-      "ref_line": 5782,
+      "ref_line": 5791,
       "lines": 12,
       "hash": "8dd93f23"
     },
     {
       "article": "phone-stats-compact-during-picks.md",
-      "ref_line": 6227,
+      "ref_line": 6236,
       "lines": 2,
       "hash": "4448d346"
     },
     {
       "article": "sheet-below-objective-card.md",
-      "ref_line": 6245,
+      "ref_line": 6254,
       "lines": 16,
       "hash": "6b2224dc"
     },
     {
       "article": "desires-travel-the-graph.md",
-      "ref_line": 6328,
+      "ref_line": 6337,
       "lines": 33,
       "hash": "89ae1cb6"
     },
     {
       "article": "coach-teach-line.md",
-      "ref_line": 6418,
+      "ref_line": 6427,
       "lines": 10,
       "hash": "c762b273"
     },
     {
       "article": "idle-finder.md",
-      "ref_line": 6464,
+      "ref_line": 6473,
       "lines": 6,
       "hash": "ce6fdd68"
     },
     {
       "article": "overlay-anchor-budget.md",
-      "ref_line": 6599,
+      "ref_line": 6608,
       "lines": 66,
       "hash": "9a9122e9"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 6892,
+      "ref_line": 6901,
       "lines": 11,
       "hash": "27da632f"
     },
     {
       "article": "pointercancel-never-a-tap.md",
-      "ref_line": 6905,
+      "ref_line": 6914,
       "lines": 4,
       "hash": "3471fc97"
     },
     {
       "article": "camera-rotate-buttons.md",
-      "ref_line": 6934,
+      "ref_line": 6943,
       "lines": 2,
       "hash": "2c372e98"
     },
     {
       "article": "camera-zoom-buttons.md",
-      "ref_line": 6941,
+      "ref_line": 6950,
       "lines": 2,
       "hash": "c38034d2"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 7031,
+      "ref_line": 7040,
       "lines": 4,
       "hash": "ce66959f"
     }

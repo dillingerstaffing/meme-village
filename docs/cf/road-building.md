@@ -42,7 +42,10 @@ unrelated carry before the walk, in the recall's own terms, so a
 season-boundary re-recruit cannot deposit a crate into a site from
 the road midpoint or fire a pickup leg there: a site or claim crate
 carry returns one store, every other carry drops with nothing owed,
-and fetch and carrying clear. The initial lay walks the crew out
+and fetch and carrying clear. It cancels the social intent on the
+same rule as the other walk-replacing doors: visitId, pendingWatch,
+and a stale watchOf clear before the walk, or arrive() fires the
+stale leg at the road midpoint instead of the road work. The initial lay walks the crew out
 through decide() when idle, after any haul has completed on arrival,
 so the settle changes nothing there; it bites on the re-recruit
 walk-out, which walks a resident out at once whatever they were doing.
