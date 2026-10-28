@@ -2926,7 +2926,12 @@ function callOut(a){
   SND.play("order");
   return true;
 }
-function sendMedic(patientId){ var j = agent("jonah"), p = agent(patientId); if(!j || !p) return; if(G.medicQueue) G.medicQueue = G.medicQueue.filter(function(e){ return e.id !== patientId; }); G.medicPatient = patientId; j.medicTask = 1; j.order = null; j.fetch = null; j.carrying = null; goTo(j, 1.1, 9.0, "green"); showToast("✚ Jonah is on his way", {ids:[p.id, "jonah"]}); }
+/* A medic dispatch replaces Jonah's walk in flight, on the same rule as
+   makeSick and blameAgent: visitId and pendingWatch are consumed only by
+   arrive(), and arrive() takes the medicTask branch first, so leaving them
+   set lets the medic walk's kneel pass and the next arrival fire as a
+   visit or a watch at the wrong station. Clear both at the dispatch. */
+function sendMedic(patientId){ var j = agent("jonah"), p = agent(patientId); if(!j || !p) return; if(G.medicQueue) G.medicQueue = G.medicQueue.filter(function(e){ return e.id !== patientId; }); G.medicPatient = patientId; j.medicTask = 1; j.order = null; j.fetch = null; j.carrying = null; j.visitId = null; j.pendingWatch = null; goTo(j, 1.1, 9.0, "green"); showToast("✚ Jonah is on his way", {ids:[p.id, "jonah"]}); }
 function recoverPatient(id, morale){ var p = agent(id); if(!p) return; p.sick = false; p.morale = morale; p.state = "idle"; p.decideT = 1; }
 function restPatient(id){ var p = agent(id); if(!p) return; p.order = null; goStation(p, "home"); showToast("🏠 " + p.name.split(" ")[0] + " heads home to rest"); }
 function applyStatMods(mods){ if(!mods) return; Object.keys(mods).forEach(function(k){ if(G.stats[k] != null) G.stats[k] = Math.max(0, Math.min(100, G.stats[k] + mods[k])); }); }
