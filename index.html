@@ -5375,9 +5375,13 @@ function setOrder3(orderId){
   /* Explain-on-tap: an order tap that cannot act still answers. A sick
      resident sits out under the medic's care and a child never takes work
      orders, but their tray buttons stay enabled (the Speak For gated-tap
-     precedent), so the tap teaches instead of vanishing silently. */
-  if(!a || a.sick || a.child){
-    if(a && a.sick) showToast("🚑 " + a.name.split(" ")[0] + " is sick and cannot take orders right now");
+     precedent), so the tap teaches instead of vanishing silently. A
+     sick-walking resident counts as sick here: they are already sick in
+     transit to the green, and an order tap during that walk used to
+     divert them to the ordered station, where arrive() then fired the
+     sickWalk branch and stranded them sick at the wrong station. */
+  if(!a || a.sick || a.sickWalk || a.child){
+    if(a && (a.sick || a.sickWalk)) showToast("🚑 " + a.name.split(" ")[0] + " is sick and cannot take orders right now");
     else if(a && a.child) showToast("🧒 " + a.name.split(" ")[0] + " is still a child and cannot take work orders");
     return;
   }
@@ -6673,13 +6677,13 @@ function tapAt(cx, cy, smart){
      tray button and tapping a resident sends the selected resident to
      visit them, on the Model arm grammar, so the verb is reachable and
      discoverable at both phone sizes instead of living only behind an
-     untaught gesture. A sick or child resident answers instead of
-     promising a visit the sim would immediately drop. */
+     untaught gesture. A sick, sick-walking, or child resident answers
+     instead of promising a visit the sim would immediately drop. */
   if(G.visitArm){
     G.visitArm = false;
     var me4 = G.selected ? agent(G.selected) : null;
-    if(p.agent && me4 && p.agent !== G.selected && !me4.sick && !me4.child){ var them4 = agent(p.agent); me4.visitId = them4.id; me4.order = null; me4.reason = "Visiting " + them4.name.split(" ")[0]; goTo(me4, them4.x + 1.2, them4.z + 0.6, me4.stationId); spawnOrderPing(them4.x, them4.z); setBubble(me4, "💬", 1.1); SND.play("order"); showToast("💬 " + me4.name.split(" ")[0] + " goes to visit " + them4.name.split(" ")[0]); }
-    else if(me4 && me4.sick) showToast("🚑 " + me4.name.split(" ")[0] + " is sick and cannot visit right now");
+    if(p.agent && me4 && p.agent !== G.selected && !me4.sick && !me4.sickWalk && !me4.child){ var them4 = agent(p.agent); me4.visitId = them4.id; me4.order = null; me4.reason = "Visiting " + them4.name.split(" ")[0]; goTo(me4, them4.x + 1.2, them4.z + 0.6, me4.stationId); spawnOrderPing(them4.x, them4.z); setBubble(me4, "💬", 1.1); SND.play("order"); showToast("💬 " + me4.name.split(" ")[0] + " goes to visit " + them4.name.split(" ")[0]); }
+    else if(me4 && (me4.sick || me4.sickWalk)) showToast("🚑 " + me4.name.split(" ")[0] + " is sick and cannot visit right now");
     else if(me4 && me4.child) showToast("🧒 " + me4.name.split(" ")[0] + " is still a child and cannot visit");
     /* Tapping the visitor themselves is not a missed pick: the tap
        landed, and a visit from a resident to themselves is invalid
@@ -6717,9 +6721,10 @@ function tapAt(cx, cy, smart){
       var me = agent(G.selected), them = agent(p.agent);
       /* The tray Visit arm answers instead of promising a visit the sim
          would drop; the gesture twin carries the same guard, in the same
-         words, or a right-click from a child or sick resident promises a
-         walk arrive() settles into a sit with no visit at the end of it. */
-      if(me.sick){ showToast("🚑 " + me.name.split(" ")[0] + " is sick and cannot visit right now"); refreshTray(true); return; }
+         words, or a right-click from a child, sick, or sick-walking
+         resident promises a walk arrive() settles into a sit with no
+         visit at the end of it. */
+      if(me.sick || me.sickWalk){ showToast("🚑 " + me.name.split(" ")[0] + " is sick and cannot visit right now"); refreshTray(true); return; }
       if(me.child){ showToast("🧒 " + me.name.split(" ")[0] + " is still a child and cannot visit"); refreshTray(true); return; }
       me.visitId = them.id; me.order = null; me.reason = "Visiting " + them.name.split(" ")[0]; goTo(me, them.x + 1.2, them.z + 0.6, me.stationId); spawnOrderPing(them.x, them.z); setBubble(me, "💬", 1.1);
       SND.play("order");
