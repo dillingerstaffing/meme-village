@@ -35,7 +35,8 @@ like any pair edge.
 Announcements. prestigeScan runs on a 1-second tick in stepSim and
 recomputes G.prestigeFlip from live a.vis and the tier gate; nothing
 else writes the flags. Crossing upward fires a camera-focus toast
-naming the model plus a chronicle line; crossing back down fires a
+naming the model and the counter-move (point some followers elsewhere
+to shrink the pushback) plus a chronicle line; crossing back down fires a
 plain toast plus a chronicle line. The flip is never silent, and it
 is never a surprise either: a forecast fires before it. At Village
 tier and above, a model with at least one follower whose a.vis is

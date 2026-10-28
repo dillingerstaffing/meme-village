@@ -2700,7 +2700,7 @@ function prestigeScan(){
     if(flipped && !was){
       G.prestigeFlip[a.id] = true;
       var nn = a.name.split(" ")[0];
-      showToast("\uD83D\uDC40 " + nn + " is envied now: at " + row.threshold + " standing, followers push back instead of just copying", {x: a.x, z: a.z});
+      showToast("\uD83D\uDC40 " + nn + " is envied now: at " + row.threshold + " standing, followers push back instead of just copying. Point some followers elsewhere to shrink the pushback.", {x: a.x, z: a.z});
       chronicle("\uD83D\uDC40 " + a.name + " passed the flip point: their shadow is so big that admirers are starting to push back.");
     } else if(!flipped && was){
       delete G.prestigeFlip[a.id];
