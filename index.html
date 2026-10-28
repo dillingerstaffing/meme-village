@@ -4821,6 +4821,8 @@ function stepSim(dt){
   roofPlanks.forEach(function(p, i){ p.visible = i < Math.max(2, targetPlanks); });
   if(roofHole){ var hs = Math.max(0.05, 1 - G.roof/115); roofHole.scale.set(hs, 1, hs); roofHole.visible = G.roof < 99; }
   flourSacks.forEach(function(sk, i){ sk.visible = i < Math.min(6, Math.floor(G.flour / 2)); });
+  /* The storehouse stack reads the live stores count every tick, like the roof and flour beside it: harvests and incident moves change stores with no haul deposit, and a Continue rebuilds the stack hidden, so an event-only stack reads wrong. Capped at the 12 meshes. */
+  storedCrates.forEach(function(cr, i){ cr.visible = i < Math.min(12, G.stores); });
   /* crops */
   applySoilTint();
   if(Math.abs(G.fieldGrowth - G.growthApplied) > 0.03){
