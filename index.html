@@ -3057,12 +3057,20 @@ function makeSick(p){
      or a watch at the wrong place (a rest walk home after a mid-visit
      sickness used to end watching at home, or acting at the green,
      with the visit still owed). A standing order is untouched here:
-     it resumes through decide(), and carried materials keep their
-     fetch accounting, which this clearing does not touch. */
+     it resumes through decide(). A carry is settled, in both
+     branches alike: fetch and carrying clear, so the back leg cannot
+     fire on the next arrival anywhere and deposit the load at the
+     wrong station, and a crate already taken from stock (a site or
+     claim crate carry, whose stores were decremented at pickup)
+     returns to stock through returnStores, the same settle the
+     recall paths use; every other carry drops with nothing owed,
+     since its material was never taken from stock. */
   p.visitId = null; p.pendingWatch = null;
+  if(p.fetch === "sitecrate-back" || p.fetch === "claimcrate-back") returnStores(1);
+  p.fetch = null; p.carrying = null;
   if(!G.coachSick && !p.child){ G.coachSick = true; showToast(G.banked ? "🚑 " + p.name.split(" ")[0] + " is sick. Jonah is the only medic: cover sends him to members first, and Call Out buys a visit for anyone else." : "🚑 " + p.name.split(" ")[0] + " is sick. Jonah is the only medic, and he takes people in turn. Call Out buys a visit.", {ids:[p.id]}); }
   var d = Math.sqrt(p.x * p.x + (p.z - 8.6) * (p.z - 8.6));
-  if(d > 3){ p.sickWalk = true; p.order = null; p.fetch = null; p.carrying = null; goTo(p, 0, 8.6, "green"); setBubble(p, "✚", 3); return true; }
+  if(d > 3){ p.sickWalk = true; p.order = null; goTo(p, 0, 8.6, "green"); setBubble(p, "✚", 3); return true; }
   p.sick = true; p.state = "sit"; p.stationId = "green";
   return true;
 }
