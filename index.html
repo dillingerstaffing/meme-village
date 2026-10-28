@@ -2858,8 +2858,18 @@ function orderAgent(id, station){ var a = agent(id); if(!a || a.child) return; a
 function blameAgent(id){ var a = agent(id); if(!a) return; a.blamed = (a.blamed || 0) + 1; G.blame = Math.min(100, (G.blame || 0) + 14); a.disp = "Withdrawn"; a.morale = Math.max(5, a.morale - 25); a.order = null; /* The home walk replaces whatever walk was in flight, so it
      cancels the same social intents makeSick cancels: a blamed
      resident mid-visit used to arrive home and fire the stale visit
-     instead, acting at the green rather than sitting at home. */
-  a.visitId = null; a.pendingWatch = null; noteEvent(a, "blamed", ""); setBubble(a, "🔴", 2.5); goStation(a, "home"); G.stats.rivalry = Math.min(100, G.stats.rivalry + 5); }
+     instead, acting at the green rather than sitting at home. A carry
+     is settled the same way makeSick settles one: arrive() fires a
+     fetch leg on any arrival, so a blamed carrier used to deposit a
+     crate into a site from home, or fire a pickup leg at home and
+     walk back to the build slot, hijacking the blame walk. A site or
+     claim crate carry returns one store through returnStores, every
+     other carry drops with nothing owed, and fetch and carrying clear
+     before the home walk, so the arrival sits at home. */
+  a.visitId = null; a.pendingWatch = null;
+  if(a.fetch === "sitecrate-back" || a.fetch === "claimcrate-back") returnStores(1);
+  a.fetch = null; a.carrying = null;
+  noteEvent(a, "blamed", ""); setBubble(a, "🔴", 2.5); goStation(a, "home"); G.stats.rivalry = Math.min(100, G.stats.rivalry + 5); }
 /* The coverage queue. A member who falls sick is enrolled by the
    watch in stepSim and Jonah works the queue by tier rank, then by
    time waiting. Non-members are never enrolled by the watch: they
