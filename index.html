@@ -2457,7 +2457,7 @@ function addTension(a, b, amt){
     if(!G.driftLog) G.driftLog = [];
     G.driftLog.push({a: a.id, b: b.id, an: a.name, bn: b.name, wk: G.week, yr: yearOf(), sn: seasonName(), over: over, model: shared ? shared.id : null});
     while(G.driftLog.length > MIM.driftLogCap) G.driftLog.shift();
-    showToast("⚔ " + a.name.split(" ")[0] + " and " + b.name.split(" ")[0] + (shared ? " both follow " + shared.name.split(" ")[0] + ", and imitation has turned to rivalry" : " have fallen out over the same work"), {ids:[a.id, b.id]});
+    showToast("⚔ " + a.name.split(" ")[0] + " and " + b.name.split(" ")[0] + (shared ? " both follow " + shared.name.split(" ")[0] + ", and imitation has turned to rivalry" : " have fallen out over the same work") + ". Separate them or cool them on the green.", {ids:[a.id, b.id]});
     Store.dispatch("ui/ping", {x:(a.x + b.x) / 2, z:(a.z + b.z) / 2, kind:"feud"});
     SND.play("feud");
     noteEvent(a, "rivalry", b.id); noteEvent(b, "rivalry", a.id);

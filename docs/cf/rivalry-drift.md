@@ -45,8 +45,10 @@ stamps, and the live tension number, plus the current convergences
 (residents wanting the same station right now). Cleared drifts leave
 the sheet; their ledger entries stay in the chronicle. The sheet
 section omits itself when there are no records, and it never explains
-or moralizes: facts and numbers only. The feud warning and eruption
-grammar is unchanged. The drift is never a verb or a button;
+or moralizes: facts and numbers only. The feud warning names its lever (separate them or cool them on the
+green), and the eruption toast now carries the same lever sentence,
+because ordering either member and the green still cool the pair
+after eruption. The drift is never a verb or a button;
 scapegoating stays emergent and nonconscious.
 
 Mimetic cause. The drift record is written at the moment converging
