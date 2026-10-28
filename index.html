@@ -2738,33 +2738,33 @@ function fireInitiative(a, p){
     a.reason = "Extra shift, following " + (m ? m.name.split(" ")[0] : "their model");
     var fromSt = a.stationId;
     /* An initiative redirect settles a carry the same way makeSick, blameAgent, the order doors, sendMedic, the visit commits, death, and exhaustion settle one: arrive() fires a fetch leg on any arrival, so a redirected carrier used to deposit a crate into a site from the initiative destination. A site or claim crate carry returns one store through returnStores, every other carry drops with nothing owed, and fetch and carrying clear before the walk. Only a move settles: a shift to the station the resident already works keeps the carry standing, and the followers below only boost, so they settle nothing. */
-    if(p.station && a.stationId !== p.station){ if(a.fetch === "sitecrate-back" || a.fetch === "claimcrate-back") returnStores(1); a.fetch = null; a.carrying = null; goStation(a, p.station); }
+    if(p.station && a.stationId !== p.station){ if(a.fetch === "sitecrate-back" || a.fetch === "claimcrate-back") returnStores(1); a.fetch = null; a.carrying = null; /* A redirected walk cancels its social intent, on the same only-on-a-move rule as the carry settle: visitId and pendingWatch are consumed only by arrive(), and arrive() fires the pendingWatch leg before every other leg and the visitId leg as act at the green, so leaving them set lets the initiative arrival fire as a watch or a visit at the wrong place. Clear both, and a stale watchOf, before the walk. */ a.visitId = null; a.pendingWatch = null; a.watchOf = null; goStation(a, p.station); }
     a.boostUntil = G.t + 8; setBubble(a, "⚡", 2);
     G.agents.forEach(function(b){ if(b.model === a.id && b.stationId === fromSt && Math.random() < 0.3){ b.boostUntil = G.t + 8; b.reason = "Joining " + nm; } });
   }
   if(p.kind === "mediate"){
     var ids = p.pair.split("|"); var other = agent(ids[0] === a.id ? ids[1] : ids[0]);
     a.reason = "Cooling a feud";
-    /* A mediate redirect settles a carry in the same terms as the shift above, for the protagonist and for the other resident it leads to the green. */
-    if(a.fetch === "sitecrate-back" || a.fetch === "claimcrate-back") returnStores(1); a.fetch = null; a.carrying = null;
+    /* A mediate redirect settles a carry in the same terms as the shift above, for the protagonist and for the other resident it leads to the green. It cancels their social intents in the same terms as the shift: a redirected walk cancels visitId, pendingWatch, and a stale watchOf, or arrive() fires the stale leg at the green instead of the mediation. */
+    if(a.fetch === "sitecrate-back" || a.fetch === "claimcrate-back") returnStores(1); a.fetch = null; a.carrying = null; a.visitId = null; a.pendingWatch = null; a.watchOf = null;
     goStation(a, "green"); setBubble(a, "🌿", 2);
-    if(other){ other.driveObj = false; if(other.fetch === "sitecrate-back" || other.fetch === "claimcrate-back") returnStores(1); other.fetch = null; other.carrying = null; goStation(other, "green"); other.reason = "Cooling a feud"; }
+    if(other){ other.driveObj = false; if(other.fetch === "sitecrate-back" || other.fetch === "claimcrate-back") returnStores(1); other.fetch = null; other.carrying = null; other.visitId = null; other.pendingWatch = null; other.watchOf = null; goStation(other, "green"); other.reason = "Cooling a feud"; }
   }
   if(p.kind === "claim"){
     var crew = G.agents.filter(function(b){ return b !== a && b.stationId === p.station; });
     var disp = null, df = 99;
     crew.forEach(function(b){ var f = followersOf(b); if(f < df){ df = f; disp = b; } });
     a.reason = "Claiming a spot";
-    /* A claim redirect settles a carry in the same terms as the shift above, for the protagonist and for any follower it actually moves (followers that only stay put settle nothing). */
-    if(a.fetch === "sitecrate-back" || a.fetch === "claimcrate-back") returnStores(1); a.fetch = null; a.carrying = null;
+    /* A claim redirect settles a carry in the same terms as the shift above, for the protagonist and for any follower it actually moves (followers that only stay put settle nothing). It cancels their social intents on the same rule: a moved resident's visitId, pendingWatch, and stale watchOf clear before the walk, or arrive() fires the stale leg at the claim station instead of the claim. */
+    if(a.fetch === "sitecrate-back" || a.fetch === "claimcrate-back") returnStores(1); a.fetch = null; a.carrying = null; a.visitId = null; a.pendingWatch = null; a.watchOf = null;
     goStation(a, p.station); setBubble(a, "🧲", 2);
     if(disp) addTension(a, disp, 8);
-    G.agents.forEach(function(b){ if(b.model === a.id && Math.random() < 0.3){ if(b.fetch === "sitecrate-back" || b.fetch === "claimcrate-back") returnStores(1); b.fetch = null; b.carrying = null; goStation(b, p.station); b.reason = "Joining " + nm; return; } });
+    G.agents.forEach(function(b){ if(b.model === a.id && Math.random() < 0.3){ if(b.fetch === "sitecrate-back" || b.fetch === "claimcrate-back") returnStores(1); b.fetch = null; b.carrying = null; b.visitId = null; b.pendingWatch = null; b.watchOf = null; goStation(b, p.station); b.reason = "Joining " + nm; return; } });
   }
   if(p.kind === "refuse"){
     a.reason = "Refusing, after the blame";
-    /* A refuse redirect settles a carry in the same terms as the shift above, before the home walk. */
-    if(a.fetch === "sitecrate-back" || a.fetch === "claimcrate-back") returnStores(1); a.fetch = null; a.carrying = null;
+    /* A refuse redirect settles a carry in the same terms as the shift above, before the home walk. It cancels the social intent on the same rule: visitId, pendingWatch, and a stale watchOf clear before the home walk, or arrive() fires the stale leg at home instead of the sit (a watch at home, or act at the green). */
+    if(a.fetch === "sitecrate-back" || a.fetch === "claimcrate-back") returnStores(1); a.fetch = null; a.carrying = null; a.visitId = null; a.pendingWatch = null; a.watchOf = null;
     goStation(a, "home"); setBubble(a, "🚪", 2);
     G.agents.forEach(function(b){ if(b.model === a.id) b.morale = Math.max(0, b.morale - 2); });
   }
