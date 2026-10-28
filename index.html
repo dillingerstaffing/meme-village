@@ -2371,6 +2371,8 @@ function dieAgent(m){
   /* Capture the death site before the graph is cut: the death notice
      carries a camera focus like the other high-stakes toasts. */
   var dx = m.x, dz = m.z;
+  /* A death settles a carry the same way makeSick, blameAgent, the order doors, sendMedic, and the visit commits settle one: a site or claim crate carry returns one store through returnStores, every other carry drops with nothing owed, so a carrier who dies mid-haul takes no village store to the grave. */
+  if(m.fetch === "sitecrate-back" || m.fetch === "claimcrate-back") returnStores(1);
   removeAgent(m);
   /* A dead parent's children keep the surviving parent as their
      model: removeAgent just nulled the edge, so retarget it before
