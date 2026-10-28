@@ -1336,7 +1336,7 @@ function stepAgents(dt){
       if(a.stationId === "home"){
         a.energy = Math.min(energyCapOf(a), a.energy + 6*dt); a.morale = Math.min(100, a.morale + 0.4*dt);
         if(a.sick && a.energy > (hasPerk("roofsealed") ? 40 : 55)){ a.sick = false; }
-        if(a.energy > Math.min(92, energyCapOf(a) - 4) && !a.sick){ a.state = "idle"; a.decideT = 0.3; if(a.disp === "Withdrawn" && a.morale > 45) a.disp = "Helpful"; }
+        if(a.energy > Math.min(92, energyCapOf(a) - 4) && !a.sick){ /* Rest ends here, whatever happened to the order: decide() clears resting only on its order branch, so a resting resident whose order vanished mid-rest kept the flag and its thought at full energy. */ a.resting = false; a.state = "idle"; a.decideT = 0.3; if(a.disp === "Withdrawn" && a.morale > 45) a.disp = "Helpful"; }
       } else if(a.sick){ /* Rosa, waiting */ }
       else { a.energy = Math.min(energyCapOf(a), a.energy + 2*dt); a.actT -= dt; if(a.actT <= 0){ a.state = "idle"; a.decideT = 0.3; } }
     }
