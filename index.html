@@ -2860,7 +2860,9 @@ function imitationScan(){
   });
 }
 /* ================= INCIDENTS & OBJECTIVES ================= */
-function orderAgent(id, station){ var a = agent(id); if(!a || a.child) return; a.order = station; a.fetch = null; a.carrying = null; if(a.state !== "walk"){ a.state = "idle"; a.decideT = 0; } }
+function orderAgent(id, station){ var a = agent(id); if(!a || a.child) return; a.order = station; /* An order settles a carry the same way makeSick and blameAgent settle one: arrive() fires a fetch leg on any arrival, so an uncleared back leg used to deposit a crate into a site from the ordered station. A site or claim crate carry returns one store through returnStores, every other carry drops with nothing owed, and fetch and carrying clear before the ordered walk. */
+  if(a.fetch === "sitecrate-back" || a.fetch === "claimcrate-back") returnStores(1);
+  a.fetch = null; a.carrying = null; if(a.state !== "walk"){ a.state = "idle"; a.decideT = 0; } }
 function blameAgent(id){ var a = agent(id); if(!a) return; a.blamed = (a.blamed || 0) + 1; G.blame = Math.min(100, (G.blame || 0) + 14); a.disp = "Withdrawn"; a.morale = Math.max(5, a.morale - 25); a.order = null; /* The home walk replaces whatever walk was in flight, so it
      cancels the same social intents makeSick cancels: a blamed
      resident mid-visit used to arrive home and fire the stale visit
@@ -5453,6 +5455,8 @@ function setOrder3(orderId){
   a.resting = false; a.order = (orderId === "auto") ? null : orderId;
   a.reason = orderId === "auto" ? "Free will" : "Your order";
   a.driveObj = (orderId === G.objStation);
+  /* An order settles a carry the same way makeSick and blameAgent settle one: a site or claim crate carry returns one store through returnStores, every other carry drops with nothing owed, so the ordered arrival cannot fire a stale fetch leg at the ordered station. */
+  if(a.fetch === "sitecrate-back" || a.fetch === "claimcrate-back") returnStores(1);
   a.mimicStation = null; a.visitId = null; a.fetch = null; a.carrying = null; a.pendingWatch = null; a.watchOf = null;
   if(orderId !== "auto" && STATION3[orderId]){ var stp = STATION3[orderId]; spawnOrderPing(stp.x, stp.z); setBubble(a, stp.icon, 1.4); }
   a.state = "idle"; a.decideT = 0;
