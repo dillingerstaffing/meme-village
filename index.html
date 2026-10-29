@@ -247,7 +247,15 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
   #sliceTag{top:136px;font-size:9px;padding:4px 8px;letter-spacing:.12em}
   #stats{top:auto;bottom:250px;width:150px;padding:6px 8px}
   .srow .sl{width:76px;font-size:9.5px}
-  #toast{bottom:auto;top:300px;font-size:12.5px;padding:7px 13px;z-index:10}
+  /* Phone toast slot: the fixed top 300px pill sat on the stats strip
+     when a resident was selected (stats pins above the tall tray) and
+     inside the tray itself on short viewports, so a transient message
+     covered a persistent read or a control for its whole life. The pill
+     now sits in the one slot that is free in every phone state, below
+     the top chips and above the minimap, right anchored so its left
+     edge never reaches the offer card, with its width capped so it
+     cannot stretch left over the stats panel either. */
+  #toast{bottom:auto;top:114px;left:auto;right:10px;transform:none;max-width:calc(100vw - 192px);font-size:12.5px;padding:7px 13px;z-index:10}
   #stats{bottom:262px;width:140px}
   .srow .sb{width:36px}
   /* CF-REF: phone-stats-compact-during-picks.md [4] */
@@ -6249,6 +6257,18 @@ function hudTick(dt){
     if(mmEl){
       if(window.innerWidth <= 560){ if(mmEl.style.bottom) mmEl.style.bottom = ""; }
       else if(mmEl.style.bottom !== tb) mmEl.style.bottom = tb;
+    }
+    /* Desktop toast: pin its bottom above the real tray height on the
+       same rule as the alerts and the minimap, instead of the old
+       118px constant. The selection-UX tray grew to two rows when a
+       resident is selected, so the constant pill sat inside the
+       tray's first button row and covered its icons for its whole
+       life. On phones the media query owns the pill's top-anchored
+       slot, so the inline bottom is cleared there. */
+    var toastEl = document.getElementById("toast");
+    if(toastEl){
+      if(window.innerWidth <= 560){ if(toastEl.style.bottom) toastEl.style.bottom = ""; }
+      else if(toastEl.style.display === "block" && toastEl.style.bottom !== tb) toastEl.style.bottom = tb;
     }
     /* Phone stats panel: pin its bottom above the real tray top (plus the idle
        alerts when present) instead of a fixed px constant, so the last meter
