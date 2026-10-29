@@ -2886,8 +2886,14 @@ function blameAgent(id){ var a = agent(id); if(!a) return; a.blamed = (a.blamed 
      walk back to the build slot, hijacking the blame walk. A site or
      claim crate carry returns one store through returnStores, every
      other carry drops with nothing owed, and fetch and carrying clear
-     before the home walk, so the arrival sits at home. */
-  a.visitId = null; a.pendingWatch = null;
+     before the home walk, so the arrival sits at home. A telegraphed
+     initiative plan drops the same way an order drops one: the blame
+     walk replaces the walk in flight, so a plan left standing fired at
+     fire time and walked the resident away from the home the blame had
+     just sent them to, undoing the blame. A stale watchOf clears beside
+     visitId and pendingWatch, on the same parity as the order doors. */
+  if(a.initPend){ a.initPend = null; showToast("↩ " + a.name.split(" ")[0] + " drops the plan and heads home"); }
+  a.visitId = null; a.pendingWatch = null; a.watchOf = null;
   if(a.fetch === "sitecrate-back" || a.fetch === "claimcrate-back") returnStores(1);
   a.fetch = null; a.carrying = null;
   noteEvent(a, "blamed", ""); setBubble(a, "🔴", 2.5); goStation(a, "home"); G.stats.rivalry = Math.min(100, G.stats.rivalry + 5); }
