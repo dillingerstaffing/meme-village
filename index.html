@@ -2773,7 +2773,7 @@ function fireInitiative(a, p){
 }
 function initiativeScan(){
   G.agents.forEach(function(a){
-    if(a.initPend && G.t >= a.initPend.at){ var p = a.initPend; a.initPend = null; var medOther = null; if(p.kind === "mediate" && p.pair){ var medIds = p.pair.split("|"); medOther = agent(medIds[0] === a.id ? medIds[1] : medIds[0]); } if(a.sick || a.sickWalk){ showToast("🚑 " + a.name.split(" ")[0] + " is sick, so the plan drops"); } else if(medOther && (medOther.sick || medOther.sickWalk)){ showToast("🚑 " + medOther.name.split(" ")[0] + " is sick, so the plan drops"); } else { G.initFired++; fireInitiative(a, p); } }
+    if(a.initPend && G.t >= a.initPend.at){ var p = a.initPend; a.initPend = null; var medOther = null; if(p.kind === "mediate" && p.pair){ var medIds = p.pair.split("|"); medOther = agent(medIds[0] === a.id ? medIds[1] : medIds[0]); } if(a.sick || a.sickWalk){ showToast("🚑 " + a.name.split(" ")[0] + " is sick, so the plan drops"); } else if(medOther && (medOther.sick || medOther.sickWalk)){ showToast("🚑 " + medOther.name.split(" ")[0] + " is sick, so the plan drops"); } else if(p.kind === "mediate" && p.pair && !medOther){ showToast("↩ " + a.name.split(" ")[0] + " drops the plan: their feud partner is gone"); } else { G.initFired++; fireInitiative(a, p); } }
   });
   if(G.initT > G.t) return;
   G.initT = G.t + 4;
