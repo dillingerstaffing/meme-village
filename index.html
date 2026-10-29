@@ -6534,7 +6534,13 @@ function idleResidents(){
     return !a.child && !a.sick && (a.loafT || 0) > 15;
   });
 }
-window.__toastFocus = function(){ var tst = G.ui && G.ui.toast, f = tst && tst.focus; if(!f) return; var x = 0, z = 0, n = 0; if(f.ids) f.ids.forEach(function(id){ var a = agent(id); if(a){ x += a.x; z += a.z; n++; } }); else if(f.x !== undefined){ x = f.x; z = f.z; n = 1; } if(n){ cam.target.x = Math.max(-62, Math.min(62, x / n)); cam.target.z = Math.max(-48, Math.min(48, z / n)); cam.follow = null; } };
+/* A live toast view tap answers loudly when its focus is gone, on the
+   same rule as the last-alert return below it: a focus that resolves
+   to no living resident used to leave the lit view chip silent, so the
+   tap read as broken input. The answer is a jump toast, a direct answer
+   to the player's own tap, so it shows at once and the displaced toast
+   waits at the head of the queue instead of being erased. */
+window.__toastFocus = function(){ var tst = G.ui && G.ui.toast, f = tst && tst.focus; if(!f) return; var x = 0, z = 0, n = 0; if(f.ids) f.ids.forEach(function(id){ var a = agent(id); if(a){ x += a.x; z += a.z; n++; } }); else if(f.x !== undefined){ x = f.x; z = f.z; n = 1; } if(n){ cam.target.x = Math.max(-62, Math.min(62, x / n)); cam.target.z = Math.max(-48, Math.min(48, z / n)); cam.follow = null; } else showToast("No site to return to", null, true); };
 window.__toastSkip = function(){ Store.dispatch("ui/toastSkip"); SND.play("tap"); };
 /* Last-alert return: jump the camera to the retained focus toast's site,
    using the same centroid and clamp math as __toastFocus, but reading
