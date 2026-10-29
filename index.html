@@ -5185,6 +5185,18 @@ function continueGame(){
   document.getElementById("startOverlay").classList.remove("open");
   document.body.classList.remove("pre");
   var cb = document.getElementById("continueBtn"); if(cb) cb.style.display = "none";
+  /* A save made while an incident card stands must resume with the card
+     standing: restoreState maps curIncident back and keeps incidentOpen
+     true, but fresh DOM leaves the panel hidden, so the resumed sim ran
+     at 0.3x with no visible cause and no answerable decision until the
+     season boundary lapsed it. Re-open the same card through its own
+     writer. A patient card whose patient is gone lapses instead, on the
+     same rule as the open-card lapse: incidentDone true so the drawn
+     row does not re-fire on the next tick. */
+  if(G.incidentOpen && G.curIncident){
+    if(G.curIncident.patient && !agent(G.curIncident.patient)){ G.incidentOpen = false; G.incidentDone = true; G.curIncident = null; }
+    else openIncident(G.curIncident);
+  }
   showToast("↩ The village resumes: " + seasonLabel() + ".");
   refreshTray(true);
   Store.commit();
