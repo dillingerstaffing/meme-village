@@ -6282,7 +6282,17 @@ function hudTick(dt){
 }
 function intentIcon(a){
   if(a.child && a.state === "sit" && !a.sick) return "💤";
-  if(a.sick || a.state === "sit") return "✚";
+  if(a.sick) return "✚";
+  /* Resting at home reads as rest, not medicine: a healthy adult sitting
+     at home is regenerating energy (the sit-at-home tick), and the cross
+     is the clinic and medic glyph everywhere else in the game, so sharing
+     it made a resting resident read as sick. The rest glyph matches the
+     child sit glyph above and the low-energy rest bubble. Selector only:
+     no state, no position, no dispatch. A healthy sit anywhere else keeps
+     the old glyph as the fallback; in practice only children sit away
+     from home, and they are covered by the first branch. */
+  if(a.state === "sit" && a.stationId === "home") return "💤";
+  if(a.state === "sit") return "✚";
   if(a.medicTask || a.state === "kneel") return "✚";
   if(a.state === "watch") return "👀";
   if(a.state === "walk" || a.state === "act"){ if(a.stationId === "build") return "🔨"; if(a.stationId === "claim") return "🚩"; var st = STATION3[a.stationId]; return st ? st.icon : "•"; }
@@ -6561,10 +6571,10 @@ function overlayModel(a, s){
   else if(a.failing) bubble = {icon:"🤒", kind:"event", opacity:1};
   /* A sick resident carries the 🩺 as a persistent resting state until
      recovery or the medic's visit: the sim acts on sickness (medic queue,
-     Call Out, lost labor), and the intent slot cannot carry the signal
-     because every resting resident shows the ✚ there too. Same priority
-     and anchor rules as the failing marker above; transient bubbles
-     still win while fresh. */
+     Call Out, lost labor), and the intent slot shows the station glyph
+     while a sick resident walks, so the bubble is the persistent signal.
+     Same priority and anchor rules as the failing marker above;
+     transient bubbles still win while fresh. */
   else if(a.sick || a.sickWalk) bubble = {icon:"🩺", kind:"event", opacity:1};
   /* A watched (Spotlight-shielded) resident carries the ✨ as a persistent
      resting state for the whole 20s shield: the sim acts on the shield
