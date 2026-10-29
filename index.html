@@ -5230,7 +5230,13 @@ function updateCamera(dt){
     var a = agent(cam.follow);
     if(a){ cam.target.x += (a.x - cam.target.x) * Math.min(1, dt*4); cam.target.z += (a.z - cam.target.z) * Math.min(1, dt*4); }
   }
-  if(mouseIn && FINE_POINTER && !ptrDown && mouseBtn === 0 && performance.now() - mouseT < 1500 && G.started && !G.over && !G.incidentOpen){
+  /* Edge scroll never fights a camera follow: a passive mouse position at the
+     screen edge must not drag the camera off the resident being watched, and
+     must not silently drop the follow mode either (drag, minimap jump, and
+     selection are the explicit follow releases; rotate and zoom orbit the
+     followed resident instead of dropping them, and edge scroll follows the
+     same rule by standing aside while follow holds). */
+  if(mouseIn && FINE_POINTER && !ptrDown && !cam.follow && mouseBtn === 0 && performance.now() - mouseT < 1500 && G.started && !G.over && !G.incidentOpen){
     var eps = cam.dist * 0.9 * dt, em = 30;
     var efx = -Math.sin(cam.yaw), efz = -Math.cos(cam.yaw), erx = Math.cos(cam.yaw), erz = -Math.sin(cam.yaw);
     if(mouseX < em){ cam.target.x -= erx * eps; cam.target.z -= erz * eps; }
