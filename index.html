@@ -6598,7 +6598,7 @@ window.__toastSkip = function(){ Store.dispatch("ui/toastSkip"); SND.play("tap")
    G.lastAlert instead of the live toast, since the live toast is gone by
    the time this chip shows. A focus that resolves to nothing (its
    residents are gone) answers loudly instead of moving nowhere. */
-window.__lastAlertFocus = function(){ var la = G.lastAlert, f = la && la.focus; if(!f) return; var x = 0, z = 0, n = 0; if(f.ids) f.ids.forEach(function(id){ var a = agent(id); if(a){ x += a.x; z += a.z; n++; } }); else if(f.x !== undefined){ x = f.x; z = f.z; n = 1; } if(n){ cam.target.x = Math.max(-62, Math.min(62, x / n)); cam.target.z = Math.max(-48, Math.min(48, z / n)); cam.follow = null; } else showToast("No site to return to"); };
+window.__lastAlertFocus = function(){ var la = G.lastAlert, f = la && la.focus; if(!f) return; var x = 0, z = 0, n = 0; if(f.ids) f.ids.forEach(function(id){ var a = agent(id); if(a){ x += a.x; z += a.z; n++; } }); else if(f.x !== undefined){ x = f.x; z = f.z; n = 1; } if(n){ cam.target.x = Math.max(-62, Math.min(62, x / n)); cam.target.z = Math.max(-48, Math.min(48, z / n)); cam.follow = null; } else showToast("No site to return to", null, true); /* The answer is a direct reply to the player's tap, so it jumps: without the jump flag it queued behind a live unrelated toast and the tap read as dead, the same rule __toastFocus already follows. */ };
 /* Camera bookmark return: restore the slot's saved pose exactly (target, yaw,
    distance) and clear follow, so the returned view is the saved view, not
    a nearby one. A chip only renders while its slot exists, so a missing slot
