@@ -2967,8 +2967,8 @@ function callOut(a){
    makeSick and blameAgent: visitId and pendingWatch are consumed only by
    arrive(), and arrive() takes the medicTask branch first, so leaving them
    set lets the medic walk's kneel pass and the next arrival fire as a
-   visit or a watch at the wrong station. Clear both at the dispatch. */
-function sendMedic(patientId){ var j = agent("jonah"), p = agent(patientId); if(!j || !p) return; if(G.medicQueue) G.medicQueue = G.medicQueue.filter(function(e){ return e.id !== patientId; }); G.medicPatient = patientId; j.medicTask = 1; j.order = null; /* A medic dispatch settles a carry the same way makeSick, blameAgent, and the order doors settle one: a site or claim crate carry returns one store through returnStores, every other carry drops with nothing owed, and fetch and carrying clear before the walk to the green. */ if(j.fetch === "sitecrate-back" || j.fetch === "claimcrate-back") returnStores(1); j.fetch = null; j.carrying = null; j.visitId = null; j.pendingWatch = null; goTo(j, 1.1, 9.0, "green"); showToast("✚ Jonah is on his way", {ids:[p.id, "jonah"]}); }
+   visit or a watch at the wrong station. Clear both at the dispatch. A dispatch also drops a telegraphed initiative plan, on the same rule as the order doors: the walk replaces the walk in flight, so a plan left standing fired at fire time and walked Jonah away from the patient. */
+function sendMedic(patientId){ var j = agent("jonah"), p = agent(patientId); if(!j || !p) return; if(G.medicQueue) G.medicQueue = G.medicQueue.filter(function(e){ return e.id !== patientId; }); G.medicPatient = patientId; j.medicTask = 1; j.order = null; /* A medic dispatch settles a carry the same way makeSick, blameAgent, and the order doors settle one: a site or claim crate carry returns one store through returnStores, every other carry drops with nothing owed, and fetch and carrying clear before the walk to the green. */ if(j.fetch === "sitecrate-back" || j.fetch === "claimcrate-back") returnStores(1); j.fetch = null; j.carrying = null; j.visitId = null; j.pendingWatch = null; if(j.initPend){ j.initPend = null; showToast("↩ " + j.name.split(" ")[0] + " drops the plan and goes to " + p.name.split(" ")[0]); } goTo(j, 1.1, 9.0, "green"); showToast("✚ Jonah is on his way", {ids:[p.id, "jonah"]}); }
 function recoverPatient(id, morale){ var p = agent(id); if(!p) return; p.sick = false; p.morale = morale; p.state = "idle"; p.decideT = 1; }
 function restPatient(id){ var p = agent(id); if(!p) return; p.order = null; goStation(p, "home"); showToast("🏠 " + p.name.split(" ")[0] + " heads home to rest"); }
 function applyStatMods(mods){ if(!mods) return; Object.keys(mods).forEach(function(k){ if(G.stats[k] != null) G.stats[k] = Math.max(0, Math.min(100, G.stats[k] + mods[k])); }); }
@@ -3656,9 +3656,10 @@ function goClaim(a, c){
      cancels the social intent on the same rule as the other
      walk-replacing doors: visitId, pendingWatch, and a stale watchOf
      clear before the walk, or arrive() fires the stale leg at the
-     claim spot instead of the claim work. */
+     claim spot instead of the claim work. A claim walk-out also drops a telegraphed initiative plan, on the same rule as the order doors, blameAgent, and the visit commits: the walk replaces the walk in flight, so a plan left standing fired at fire time and walked the recruited resident away from the claim spot. */
   if(a.fetch === "sitecrate-back" || a.fetch === "claimcrate-back") returnStores(1);
   a.fetch = null; a.carrying = null; a.visitId = null; a.pendingWatch = null; a.watchOf = null;
+  if(a.initPend){ a.initPend = null; showToast("↩ " + a.name.split(" ")[0] + " drops the plan and goes to stake the claim"); }
   a.slot = {x: c.x + spot[0], z: c.z + spot[1]};
   a.reason = "Staking the claim";
   goTo(a, a.slot.x, a.slot.z, "claim");
@@ -3844,9 +3845,9 @@ function goRoad(a, r){
      clear before the walk. It cancels the social intent on the same
      rule as the other walk-replacing doors: visitId, pendingWatch,
      and a stale watchOf clear before the walk, or arrive() fires the
-     stale leg at the road midpoint instead of the road work. */
+     stale leg at the road midpoint instead of the road work. A road walk-out also drops a telegraphed initiative plan, on the same rule as the order doors, blameAgent, and the visit commits: the walk replaces the walk in flight, so a plan left standing fired at fire time and walked the recruited crew member away from the road midpoint. */
   if(a.fetch === "sitecrate-back" || a.fetch === "claimcrate-back") returnStores(1);
-  a.fetch = null; a.carrying = null; a.visitId = null; a.pendingWatch = null; a.watchOf = null;
+  a.fetch = null; a.carrying = null; a.visitId = null; a.pendingWatch = null; a.watchOf = null; if(a.initPend){ a.initPend = null; showToast("↩ " + a.name.split(" ")[0] + " drops the plan and goes to lay the road"); }
   a.slot = {x: mid.x + spot[0], z: mid.z + spot[1]};
   a.reason = "Laying the road";
   goTo(a, a.slot.x, a.slot.z, "road");
