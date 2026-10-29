@@ -6,7 +6,12 @@ same gate as CLAIM), and only when no other road is under construction.
 The price is named before anything commits: the Road pick row previews
 CONNECT_ROAD basePlanks plus one plank per planksPerDist world units of
 station-to-station distance on every To chip and repeats it on the Lay
-confirm. The route is shown before anything commits too: once both
+confirm. Ends are picked in the tray pick row, or by tapping stations
+on the map while Road is armed: a map tap while armed picks the From
+end, then the To end, and never orders the selected resident (the
+station branch used to fall through to an order, leaving Road armed
+with no end picked). The priced Lay confirm stays in the pick row;
+map taps pick ends only, they never lay. The route is shown before anything commits too: once both
 ends are picked, syncRoadPreview() (called from hudTick's road-pick
 row, the per-frame HUD render, so every pick change re-syncs it)
 draws a gold ghost strip between the two stations, in the Factorio

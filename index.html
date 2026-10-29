@@ -6852,6 +6852,25 @@ function tapAt(cx, cy, smart){
     return;
   }
   if(p.station){
+    /* Road armed intercepts its own station taps, on the grammar of the
+       other map-targeted arms: the arm toast promises "Tap one station,
+       then another", so a station tap while Road is armed must pick a
+       road end, never order the selected resident. Before this branch
+       the tap fell through to setOrder3, which committed an order to
+       the tapped station and left Road armed with no end picked, a
+       silent misfire of the armed verb. This is a god's-eye direct
+       verb, so it needs no selection. The priced Lay confirm stays in
+       the tray pick row: map taps pick ends only, they never lay. */
+    if(G.roadArm){
+      if(!roadUnlocked()){ showToast("🛣 Roads unlock when the village grows into a Town."); refreshTray(true); return; }
+      if(G.roadBuild && !G.roadBuild.built){ showToast("🛣 The road crew is still out: recall them, or let them finish"); refreshTray(true); return; }
+      if(p.station === "home"){ showToast("🛣 Roads join two village stations, never home"); refreshTray(true); return; }
+      if(!G.roadFrom){ G.roadFrom = p.station; G.roadTo = null; showToast("🛣 From " + stationW(p.station).name + ": tap another station for the far end"); }
+      else if(G.roadTo){ showToast("🛣 Both ends picked: tap Lay in the tray to lay the road"); }
+      else if(p.station === G.roadFrom){ showToast("🛣 " + stationW(p.station).name + " is already the From end: tap a different station"); }
+      else { G.roadTo = p.station; var rc = roadCost(G.roadFrom, p.station); showToast("🛣 To " + stationW(p.station).name + " · 🪵" + rc.planks + " planks: tap Lay in the tray to confirm"); }
+      refreshTray(true); return;
+    }
     if(G.selected){ setOrder3(p.station); }
     else if(G.started && !G.over){ showToast("👆 Tap a resident first, then tap the " + stationW(p.station).name.toLowerCase()); }
     else showToast(stationW(p.station).icon + " " + stationW(p.station).name);
