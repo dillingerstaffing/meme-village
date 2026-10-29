@@ -5236,6 +5236,7 @@ function updateCamera(dt){
      selection are the explicit follow releases; rotate and zoom orbit the
      followed resident instead of dropping them, and edge scroll follows the
      same rule by standing aside while follow holds). */
+  /* CF-REF: follow-edge-scroll.md [1] */
   if(mouseIn && FINE_POINTER && !ptrDown && !cam.follow && mouseBtn === 0 && performance.now() - mouseT < 1500 && G.started && !G.over && !G.incidentOpen){
     var eps = cam.dist * 0.9 * dt, em = 30;
     var efx = -Math.sin(cam.yaw), efz = -Math.cos(cam.yaw), erx = Math.cos(cam.yaw), erz = -Math.sin(cam.yaw);
