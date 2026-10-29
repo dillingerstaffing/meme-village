@@ -1561,7 +1561,7 @@ function removeAgent(m){
   Object.keys(G.pairs || {}).forEach(function(k){ if(k.split("|").indexOf(m.id) >= 0) delete G.pairs[k]; });
   Object.keys(G.drifts || {}).forEach(function(k){ if(k.split("|").indexOf(m.id) >= 0) delete G.drifts[k]; });
   Object.keys(G.bonds || {}).forEach(function(k){ if(k.split("|").indexOf(m.id) >= 0) delete G.bonds[k]; });
-  if(G.medicPatient === m.id) G.medicPatient = null;
+  if(G.medicPatient === m.id){ G.medicPatient = null; var jn = agent("jonah"); if(jn && jn.medicTask === 1) jn.medicTask = 0; } /* A medic walk ends when its patient is gone: the walk task stood on after the patient cleared, so Jonah walked to the green and knelt 4 seconds treating nobody. He keeps the walk and arrives as an ordinary act; a kneel already in progress still ends through its own guarded tick. */
   if(G.medicQueue) G.medicQueue = G.medicQueue.filter(function(e){ return e.id !== m.id; });
   if(m.solo){ m.solo = false; G.soloHoused = Math.max(0, (G.soloHoused || 0) - 1); }
   if(G.selected === m.id) Store.dispatch("ui/select", {id: null});
