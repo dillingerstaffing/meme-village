@@ -2871,7 +2871,11 @@ function imitationScan(){
 /* ================= INCIDENTS & OBJECTIVES ================= */
 function orderAgent(id, station){ var a = agent(id); if(!a || a.child) return; a.order = station; /* An order settles a carry the same way makeSick and blameAgent settle one: arrive() fires a fetch leg on any arrival, so an uncleared back leg used to deposit a crate into a site from the ordered station. A site or claim crate carry returns one store through returnStores, every other carry drops with nothing owed, and fetch and carrying clear before the ordered walk. */
   if(a.fetch === "sitecrate-back" || a.fetch === "claimcrate-back") returnStores(1);
-  a.fetch = null; a.carrying = null; if(a.state !== "walk"){ a.state = "idle"; a.decideT = 0; } }
+  a.fetch = null; a.carrying = null;
+  /* An incident order cancels the superseded intents the same way a tray order (setOrder3) does: arrive() fires the pendingWatch leg before every other leg and the visitId leg as act at the green, so an incident-ordered watch-walker used to watch at the walk destination and an incident-ordered visitor used to act at the green instead of the ordered station, and a telegraphed plan left standing fired at fire time and walked the resident away from the order. The walk itself is preserved (a walker finishes the walk, then decide() routes to the order; medicTask and sickWalk are untouched), only the intents clear. */
+  if(a.initPend){ a.initPend = null; showToast("↩ " + a.name.split(" ")[0] + " drops the plan and takes your order"); }
+  a.visitId = null; a.pendingWatch = null; a.watchOf = null;
+  if(a.state !== "walk"){ a.state = "idle"; a.decideT = 0; } }
 function blameAgent(id){ var a = agent(id); if(!a) return; a.blamed = (a.blamed || 0) + 1; G.blame = Math.min(100, (G.blame || 0) + 14); a.disp = "Withdrawn"; a.morale = Math.max(5, a.morale - 25); a.order = null; /* The home walk replaces whatever walk was in flight, so it
      cancels the same social intents makeSick cancels: a blamed
      resident mid-visit used to arrive home and fire the stale visit
