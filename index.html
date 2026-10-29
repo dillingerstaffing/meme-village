@@ -1528,7 +1528,7 @@ function householdOf(a){
   return null;
 }
 function householdPartner(a){ var h = householdOf(a); if(!h) return null; return agent(h.members[0] === a.id ? h.members[1] : h.members[0]); }
-// CF-REF: household-capacity-ledger.md [49]
+// CF-REF: household-capacity-ledger.md [50]
 function housingFree(){ return (G.houseCapacity || 0) - (G.households ? G.households.length : 0) - (G.soloHoused || 0); }
 function housingKind(kindId){ var kd = BUILD_KINDS[kindId]; return !!(kd && kd.effect && kd.effect.householdCapacity); }
 function formHousehold(a, b){
@@ -1563,6 +1563,7 @@ function removeAgent(m){
   Object.keys(G.bonds || {}).forEach(function(k){ if(k.split("|").indexOf(m.id) >= 0) delete G.bonds[k]; });
   if(G.medicPatient === m.id){ G.medicPatient = null; var jn = agent("jonah"); if(jn && jn.medicTask === 1) jn.medicTask = 0; } /* A medic walk ends when its patient is gone: the walk task stood on after the patient cleared, so Jonah walked to the green and knelt 4 seconds treating nobody. He keeps the walk and arrives as an ordinary act; a kneel already in progress still ends through its own guarded tick. */
   if(m.id === "jonah" && G.medicPatient){ G.medicPatient = null; } /* The dispatch pointer belongs to the medic task: when Jonah himself is removed mid-dispatch, the pointer must clear with him, so the patient re-enters queue eligibility instead of being excluded forever by the watch enrollment rule. The patient is not cured by this clear, sickness keeps its own recovery path, and the death or departure toast already announces the loss. */
+  if(G.pendingIncident && G.pendingIncident.patient === m.id) G.pendingIncident = null; /* A parked incident drains when its patient is gone: the row parks while the patient sick-walks to the green, and arrive is its only opener, so a death or departure on the walk used to leave the row parked forever and the roll and trigger guards refused every later season. No new toast: the death or departure toast already announces the loss, and the season's incident is lost with the patient. */
   if(G.medicQueue) G.medicQueue = G.medicQueue.filter(function(e){ return e.id !== m.id; });
   if(G.alerts) G.alerts = G.alerts.filter(function(x){ return x.id !== m.id; }); /* An idle alert chip is a route to its resident: it selects them and moves the camera to them, so a chip for a resident who is gone inside its 9 second window used to keep rendering, and tapping it set the selection to a dead id, moved no camera, and opened no selection. A lit control with no effect is worse than no chip, and the death or departure toast already announces the loss. */
   if(G.objTarget === m.id){ if(G.offerAccepted && !G.objComplete){ var lv=null; G.agents.forEach(function(a){ if(!lv || a.vis < lv.vis) lv=a; }); G.objTarget = lv ? lv.id : null; } else G.objTarget = null; } /* A commission target who is gone must not strand the season: the dynModel metric counts followers of G.objTarget, so a dead id scores 0 forever and the card hint falls back to "the least watched" while the metric counts nobody. Re-pick by acceptOffer's own rule, the least watched living resident, so the commission stays winnable; when the commission is not live, clear the pointer. No new toast: the death or departure toast already announces the loss, and the objective card re-reads the live target every render. */
