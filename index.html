@@ -1557,7 +1557,7 @@ function removeAgent(m){
   G.agents.splice(ix, 1);
   if(m.root) scene.remove(m.root);
   if(m.ovlEl && m.ovlEl.parentNode) m.ovlEl.parentNode.removeChild(m.ovlEl);
-  G.agents.forEach(function(b){ if(b.model === m.id) b.model = null; if(b.watchOf === m.id) b.watchOf = null; if(b.pendingWatch === m.id) b.pendingWatch = null; if(b.visitId === m.id) b.visitId = null; });
+  G.agents.forEach(function(b){ if(b.model === m.id) b.model = null; if(b.watchOf === m.id){ if(b.state === "watch"){ b.state = "idle"; b.decideT = 0.2; b.watchT = 0; } b.watchOf = null; } if(b.pendingWatch === m.id) b.pendingWatch = null; if(b.visitId === m.id) b.visitId = null; }); /* A watch ends when its subject is gone: the watch state stood on after watchOf cleared, so the sheet read "Watching " with no name and the lightbulb fired for nothing learned. */
   Object.keys(G.pairs || {}).forEach(function(k){ if(k.split("|").indexOf(m.id) >= 0) delete G.pairs[k]; });
   Object.keys(G.drifts || {}).forEach(function(k){ if(k.split("|").indexOf(m.id) >= 0) delete G.drifts[k]; });
   Object.keys(G.bonds || {}).forEach(function(k){ if(k.split("|").indexOf(m.id) >= 0) delete G.bonds[k]; });
