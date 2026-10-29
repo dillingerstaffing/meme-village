@@ -3121,6 +3121,7 @@ function makeSick(p){
 }
 function triggerIncident(inc){
   G.lastIncidentWeek = G.week;
+  if(inc.patient && !agent(inc.patient)){ G.incidentDone = true; return; } /* A patient incident never opens when its patient is gone: the row is drawn at the season roll but fires only when weekTime reaches its at time, so a patient removed after the draw and before the fire, a patient removed while parked (the parked drain clears the park but weekIncident still stands past its at time, so the fire line re-triggers it the next tick), or a patient already dead when a later draw picks the row again would all open a card naming someone gone, with Send Jonah confirming a dispatch that never happens. The season's incident is lost with the patient, the same semantics as the parked drain, the open-card lapse, and the season-boundary lapse; incidentDone is true so the fire line never retries it. No new toast: the death or departure toast already announced the loss. */
   if(inc.patient){
     var p = agent(inc.patient);
     if(p && !p.sick && !p.sickWalk){
