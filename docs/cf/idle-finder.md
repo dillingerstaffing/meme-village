@@ -33,5 +33,8 @@ who starts working between taps is never selected as idle.
 Why: the idle alert chips fire once per loaf episode and expire
 after 9 seconds, and they show at most two loafers, so a resident
 still loafing a minute later, or a third loafer, had no route back
-to the player at all. The finder is the persistent route for the
+to the player at all. A chip for a resident who leaves the village
+ends at once rather than standing out its 9 seconds: a chip is a
+route to its resident, and a route to someone gone selects nobody
+and moves no camera. The finder is the persistent route for the
 same definition, not a second definition.
