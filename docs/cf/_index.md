@@ -58,7 +58,7 @@ sheet, character panel, objective card, project pick, mobile, phone, layout, ove
 | Article | Summary |
 |---------|---------|
 | sheet-below-objective-card.md | On small screens hudTick pins the open sheet below the objective card |
-| phone-stats-compact-during-picks.md | On phones an open decision pick row compacts the stats panel to a meter strip |
+| phone-stats-compact-during-picks.md | On phones an open decision pick row compacts the stats panel to a meter strip; a panel that would sit behind the objective card compacts on collision, or hides until it fits |
 
 ## Thoughts and Temperament
 thought, monologue, axis, label, persona, generation, inference, llm, template
