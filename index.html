@@ -5176,6 +5176,10 @@ function continueGame(){
   resetBeginArm();
   var st = pendingSave; pendingSave = null;
   restoreState(st);
+  /* A save restores its speed, so the lights must follow it: a village
+     saved paused or at 2x used to resume under a lit 1x, reading as a
+     frozen sim at the first and a wrong rate at the second. */
+  setSpeed((G.speed === 0 || G.speed === 2) ? G.speed : 1);
   G.started = true;
   SND.init();
   document.getElementById("startOverlay").classList.remove("open");
