@@ -2370,7 +2370,10 @@ function dieAgent(m){
     }
   }
   var h = householdOf(m);
+  var wid = h ? agent(h.members[0] === m.id ? h.members[1] : h.members[0]) : null;
   if(h) freeHousehold(h);
+  /* A death frees the household claim, but the surviving partner still lives in a dwelling, so the death must be capacity neutral: the survivor takes a solo claim in the same step, the mirror of formHousehold freeing solo claims when a household takes its claim. Without it housingFree rose by one for a home that was never actually free, and the next arrival could be welcomed into it. The household site claim still frees with the household: a solo dwellingSite is only a home position, never a claim. */
+  if(wid && !wid.solo){ wid.solo = true; G.soloHoused = (G.soloHoused || 0) + 1; }
   /* Capture the death site before the graph is cut: the death notice
      carries a camera focus like the other high-stakes toasts. */
   var dx = m.x, dz = m.z;

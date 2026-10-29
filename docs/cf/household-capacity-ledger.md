@@ -18,6 +18,13 @@ held before the members are removed. Children of a household hold no
 claim of their own: they live in their parents' claimed dwelling,
 and when a household departs, its children leave with it, removed
 after the members so each claim is freed exactly once.
+A death frees the household claim, but the surviving partner
+takes a solo claim in the same step, so a death is capacity
+neutral and housingFree does not move: the partner still lives
+in a dwelling, and without the solo claim the next arrival
+could be welcomed into a home that was never actually free.
+The household site claim still frees with the household, since
+a solo dwellingSite is only a home position, never a claim.
 
 Why: separate counters per system drift apart within a season, and
 the village either grows past its roofs or refuses people while
