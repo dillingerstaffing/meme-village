@@ -5226,7 +5226,10 @@ function medicPatientName(){
 }
 function activityText(a){
   if(a.sick) return "Unwell, by the fire";
-  if(a.state === "walk") return a.medicTask ? "Hurrying to " + (medicPatientName() || "help") : "Going to " + (stationW(a.stationId) ? stationW(a.stationId).name : "somewhere");
+  /* Pseudo-stations are jobs, not places in STATION3: a walk to one used
+     to read "Going to somewhere", because stationW returns nothing for
+     build, claim, or road. Name the job the resident is walking to. */
+  if(a.state === "walk") return a.medicTask ? "Hurrying to " + (medicPatientName() || "help") : a.stationId === "road" ? "Going to lay the road" : a.stationId === "claim" ? "Going to stake the claim" : a.stationId === "build" ? "Going to raise the building" : "Going to " + (stationW(a.stationId) ? stationW(a.stationId).name : "somewhere");
   if(a.state === "watch") return "Watching " + (a.watchOf ? agent(a.watchOf).name.split(" ")[0] : "");
   if(a.state === "kneel") return "Treating " + (medicPatientName() || "a patient");
   if(a.state === "sit") return a.stationId === "home" ? "Resting at home" : "Sitting";
@@ -5240,6 +5243,7 @@ function activityText(a){
     if(a.stationId === "school") return "📚 At the school";
     if(a.stationId === "build") return a.carrying ? "🪵 Hauling materials" : "🔨 Raising a building";
     if(a.stationId === "claim") return a.carrying ? "🚩 Hauling claim materials" : "🚩 Staking the claim";
+    if(a.stationId === "road") return a.carrying ? "🛣 Carrying a plank to the road" : "🛣 Laying the road";
     return "Working";
   }
   return "Idle";
@@ -6322,7 +6326,11 @@ function intentIcon(a){
   if(a.state === "sit") return "✚";
   if(a.medicTask || a.state === "kneel") return "✚";
   if(a.state === "watch") return "👀";
-  if(a.state === "walk" || a.state === "act"){ if(a.stationId === "build") return "🔨"; if(a.stationId === "claim") return "🚩"; var st = STATION3[a.stationId]; return st ? st.icon : "•"; }
+  /* The road is a pseudo-station like build and claim, not a STATION3
+     entry, so without its own glyph the fallback bullet is suppressed
+     by overlayModel and a road crew member carries no map marker at
+     all, while build and claim crews carry theirs. */
+  if(a.state === "walk" || a.state === "act"){ if(a.stationId === "build") return "🔨"; if(a.stationId === "claim") return "🚩"; if(a.stationId === "road") return "🛣"; var st = STATION3[a.stationId]; return st ? st.icon : "•"; }
   return "💭";
 }
 function shuffleArr(arr){ for(var i = arr.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)); var t = arr[i]; arr[i] = arr[j]; arr[j] = t; } return arr; }
