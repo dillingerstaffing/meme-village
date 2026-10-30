@@ -21,3 +21,11 @@ village stops being a community the player oversees and becomes a
 gate the player rations. Queue order and odds are legible benefits
 the player can watch working; access is not a benefit, it is the
 baseline.
+
+Existence is not coverage: when Jonah himself is gone (dead or
+departed), there is no medic to send, and no new medic appears.
+The paid Call Out button and the incident Send Jonah action then
+disable with a plain note that there is no medic, callOut refuses
+before any fee check, and no patient is enqueued into a line that
+can never move. A disabled action without its reason would read as
+a broken button; the note is part of the control, not decoration.

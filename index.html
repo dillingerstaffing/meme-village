@@ -144,6 +144,7 @@ canvas{display:block}
 .iopt .il{font-weight:800;font-size:13.5px;display:block;margin-top:3px}
 .iopt .ih{font-size:11px;color:var(--ink2);display:block;margin-top:2px}
 .iopt.blame{border-color:#5c2b26}
+.iopt:disabled{opacity:.5;cursor:not-allowed}
 .iopt .iprev{display:block;margin-top:6px;font-size:12px;line-height:1.5}
 .iopt .iprev .mtick{white-space:nowrap;margin:0 2px}
 .iopt .iprev .mtick i{font-style:normal;opacity:.7;font-size:10px}
@@ -2969,6 +2970,8 @@ function medicFree(){
   var j = agent("jonah");
   return !!(j && !j.sick && !j.medicTask && !G.medicPatient);
 }
+/* No medic at all: Jonah is gone (dead or departed), so the paid Call Out and the incident Send Jonah action have no medic to send. They disable with a plain note instead of charging a fee into a line that can never move, or confirming a dispatch that never happens. Coverage never enters this: a medic who exists serves everyone, member or not. */
+function medicGone(){ return !agent("jonah"); }
 function medicQueued(id){
   if(!G.medicQueue) return false;
   for(var i = 0; i < G.medicQueue.length; i++) if(G.medicQueue[i].id === id) return true;
@@ -3011,6 +3014,7 @@ function ttiQueueWatch(){
 }
 function callOut(a){
   if(!a || a.child || a.tier || !a.sick) return false;
+  if(medicGone()){ showToast("🚑 There is no medic right now, so no call out fee"); return false; }
   /* A Call Out buys the front of the queue once: a patient already in line pays nothing more, and a patient joining a busy line hears that they wait, so a paid tap never goes silent and never charges twice for one place in line */
   if(medicQueued(a.id)){ showToast("🚑 " + a.name.split(" ")[0] + " is already waiting for Jonah, so no new fee"); return false; }
   var fee = TTI.spotFee, cash = a.cash || 0, bank = a.bank || 0;
@@ -3202,7 +3206,8 @@ function openIncident(inc){
   var opts = inc.options.map(function(o, i){
     var prev = modTicks(o.mods);
     var late = o.later ? "<span class='ilater'>\u231B in 2 seasons: " + modTicks(o.later) + "</span>" : "";
-    return "<button class='iopt" + (o.blame ? " blame" : "") + "' data-i='" + i + "'><span class='ii'>" + o.icon + "</span><span class='il'>" + o.label + "</span><span class='ih'>" + o.hint + "</span>" + (prev ? "<span class='iprev'>" + prev + "</span>" : "") + late + "</button>";
+    var noMedic = o.label === "Send Jonah" && medicGone();
+    return "<button class='iopt" + (o.blame ? " blame" : "") + "' data-i='" + i + "'" + (noMedic ? " disabled" : "") + "><span class='ii'>" + o.icon + "</span><span class='il'>" + o.label + "</span><span class='ih'>" + (noMedic ? "No medic right now" : o.hint) + "</span>" + (prev ? "<span class='iprev'>" + prev + "</span>" : "") + late + "</button>";
   }).join("");
   box.innerHTML = "<div class='k'>" + seasonLabel() + " · IN THE VILLAGE</div><h3>" + inc.title + "</h3><p>" + inc.text + "</p><div class='opts'>" + opts + "</div>";
   box.style.display = "block";
@@ -3225,7 +3230,8 @@ function chooseIncident(i){
        (Jonah on his way, a resident heading home), say nothing more, so
        no choice ever double-confirms. Otherwise name the choice taken. */
     var toastBefore = (G.ui && G.ui.toast && Date.now() < G.ui.toast.until ? 1 : 0) + (G.ui && G.ui.queue ? G.ui.queue.length : 0);
-    if(opt.fx) opt.fx();
+    if(opt.label === "Send Jonah" && medicGone()) showToast("✚ There is no medic right now");
+    else if(opt.fx) opt.fx();
     var toastAfter = (G.ui && G.ui.toast && Date.now() < G.ui.toast.until ? 1 : 0) + (G.ui && G.ui.queue ? G.ui.queue.length : 0);
     if(toastAfter === toastBefore) showToast(opt.icon + " " + opt.label + " chosen");
   }
@@ -5432,7 +5438,7 @@ function refreshTray(force){
   html += "<button class='cbtn' data-o='thoughts'" + (!a ? " disabled" : "") + "><span class='i'>💭</span><span class='l'>Thoughts</span></button></div>";
   if(a && !a.child && ((G.banked && a.bank != null) || (a.sick && !a.tier))){
     html += "<div class='cgrp sep'><span class='glab'>Care</span>";
-    if(a.sick && !a.tier) html += "<button class='cbtn' data-o='callout'><span class='i'>🚑</span><span class='l'>Call Out · front of queue · " + TTI.spotFee + "🪙</span></button>";
+    if(a.sick && !a.tier) html += medicGone() ? "<button class='cbtn' data-o='callout' disabled><span class='i'>🚑</span><span class='l'>Call Out · no medic right now</span></button>" : "<button class='cbtn' data-o='callout'><span class='i'>🚑</span><span class='l'>Call Out · front of queue · " + TTI.spotFee + "🪙</span></button>";
     if(G.banked && a.bank != null){
       if(!G.coverArm){
         html += "<button class='cbtn' data-o='cover'><span class='i'>🛡</span><span class='l'>Cover: " + (a.tier && TTI[a.tier] ? TTI[a.tier].name : "None") + "</span></button>";
