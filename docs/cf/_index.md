@@ -63,6 +63,7 @@ sheet, character panel, objective card, project pick, mobile, phone, layout, ove
 | sheet-below-objective-card.md | On small screens hudTick pins the open sheet below the objective card |
 | phone-stats-compact-during-picks.md | On phones an open decision pick row compacts the stats panel to a meter strip; a panel that would sit behind the objective card compacts on collision, or hides until it fits |
 | pick-rows-scroll-on-phones.md | On phones every objective-card pick row caps below the card content and scrolls internally, with wrapping chips, so the commit chip is always reachable |
+| phone-alerts-shed-on-collision.md | On phones the alerts stack sheds lowest priority first when it would cover the objective card, and the shed chips return when space returns |
 
 ## Thoughts and Temperament
 thought, monologue, axis, label, persona, generation, inference, llm, template

@@ -355,68 +355,74 @@
       "hash": "244f102f"
     },
     {
+      "article": "phone-alerts-shed-on-collision.md",
+      "ref_line": 6419,
+      "lines": 14,
+      "hash": "1a0927f2"
+    },
+    {
       "article": "phone-stats-compact-during-picks.md",
-      "ref_line": 6438,
+      "ref_line": 6464,
       "lines": 2,
       "hash": "4448d346"
     },
     {
       "article": "sheet-below-objective-card.md",
-      "ref_line": 6481,
+      "ref_line": 6507,
       "lines": 16,
       "hash": "6b2224dc"
     },
     {
       "article": "desires-travel-the-graph.md",
-      "ref_line": 6578,
+      "ref_line": 6604,
       "lines": 33,
       "hash": "89ae1cb6"
     },
     {
       "article": "coach-teach-line.md",
-      "ref_line": 6668,
+      "ref_line": 6694,
       "lines": 10,
       "hash": "c762b273"
     },
     {
       "article": "idle-finder.md",
-      "ref_line": 6714,
+      "ref_line": 6740,
       "lines": 6,
       "hash": "ce6fdd68"
     },
     {
       "article": "overlay-anchor-budget.md",
-      "ref_line": 6877,
+      "ref_line": 6903,
       "lines": 66,
       "hash": "9a9122e9"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 7198,
+      "ref_line": 7224,
       "lines": 11,
       "hash": "27da632f"
     },
     {
       "article": "pointercancel-never-a-tap.md",
-      "ref_line": 7211,
+      "ref_line": 7237,
       "lines": 4,
       "hash": "3471fc97"
     },
     {
       "article": "camera-rotate-buttons.md",
-      "ref_line": 7246,
+      "ref_line": 7272,
       "lines": 2,
       "hash": "2c372e98"
     },
     {
       "article": "camera-zoom-buttons.md",
-      "ref_line": 7253,
+      "ref_line": 7279,
       "lines": 2,
       "hash": "c38034d2"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 7343,
+      "ref_line": 7369,
       "lines": 4,
       "hash": "ce66959f"
     }

@@ -6405,6 +6405,32 @@ function hudTick(dt){
   var trayEl = document.getElementById("tray");
   if(trayEl){
     var tb = (trayEl.offsetHeight + 12) + "px"; if(alEl.style.bottom !== tb) alEl.style.bottom = tb;
+    /* Phone alerts collision: the alerts stack is bottom-pinned above the
+       tray, so on a short phone a full stack grows up over the objective
+       card and its tappable chips capture taps meant for the card's pick
+       buttons. The stats panel already sheds by measurement; the stack
+       now does the same, display only, re-evaluated every tick so a shed
+       chip returns on its own when the card shortens or the tray closes.
+       Shed order is lowest priority first: the save receipt (status, not
+       a verb), camera bookmark chips, the last-alert chip, the group
+       row, and idle chips last, since idle chips are the time-sensitive
+       verb. A sliver of 12px or less is border and padding, not a chip,
+       so it does not shed, on the same rule as the stats collision. */
+    // CF-REF: phone-alerts-shed-on-collision.md [14]
+    if(window.innerWidth <= 560){
+      var ocAl = document.getElementById("objCard");
+      if(ocAl && alEl){
+        var alKids = alEl.children;
+        for(var alRi = 0; alRi < alKids.length; alRi++){ if(alKids[alRi].style.display === "none") alKids[alRi].style.display = ""; }
+        var alShed = [];
+        for(var alSi = 0; alSi < alKids.length; alSi++){ if(alKids[alSi].tagName === "SPAN") alShed.push(alKids[alSi]); }
+        for(var alCi = 0; alCi < alKids.length; alCi++){ if((" " + alKids[alCi].className + " ").indexOf(" cammark-chip ") >= 0) alShed.push(alKids[alCi]); }
+        for(var alLi = 0; alLi < alKids.length; alLi++){ if((" " + alKids[alLi].className + " ").indexOf(" last-alert-chip ") >= 0) alShed.push(alKids[alLi]); }
+        for(var alGi = 0; alGi < alKids.length; alGi++){ if((" " + alKids[alGi].className + " ").indexOf(" group-row ") >= 0) alShed.push(alKids[alGi]); }
+        for(var alIi = 0; alIi < alKids.length; alIi++){ var alCls = " " + alKids[alIi].className + " "; if(alCls.indexOf(" alert-chip ") >= 0 && alCls.indexOf(" cammark-chip ") < 0 && alCls.indexOf(" last-alert-chip ") < 0 && alCls.indexOf(" group-chip ") < 0) alShed.push(alKids[alIi]); }
+        for(var alHi = 0; alHi < alShed.length; alHi++){ if(ocAl.getBoundingClientRect().bottom - 12 <= alEl.getBoundingClientRect().top) break; alShed[alHi].style.display = "none"; }
+      }
+    }
     /* Desktop minimap: pin its bottom above the tray's real height instead of
        the old 150px constant (the selection-UX tray grew past it, so the
        minimap sat on the INFLUENCE buttons). On phones the media query owns
