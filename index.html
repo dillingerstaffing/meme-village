@@ -6731,6 +6731,19 @@ function overlayModel(a, s){
      forecasts. Same priority and anchor rules as the failing/sick markers
      above; transient bubbles still win while fresh. */
   else if(s.t < (a.spotUntil || 0)) bubble = {icon:"✨", kind:"event", opacity:1};
+  /* A resident working or walking on fumes carries the low-battery mark
+     as a persistent resting state until they rest: the sim acts on
+     fatigue (an order to a tired resident is spent walking them home
+     from the act door), yet a tired walker read exactly like a fresh
+     one, the station glyph alone, with energy visible only as a number
+     in the sheet. The 20 threshold is the template thought's own
+     "running on fumes" line, so the world marker and the sheet thought
+     agree. Sits and kneels are excluded: a sit already reads as rest
+     in the intent slot, and a kneel reads as medicine. Transient,
+     failing, sick, and shield bubbles win above by priority, same
+     anchor rules as the markers above. Selector only: no state, no
+     dispatch, no position change. */
+  else if(!a.child && (a.energy || 0) < 20 && a.state !== "sit" && a.state !== "kneel") bubble = {icon:"🪫", kind:"event", opacity:1};
   if(bubble && !bubble.icon) bubble = null;
   var intent = null;
   var ii = intentIcon(a);
