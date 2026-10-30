@@ -37,6 +37,8 @@ canvas{display:block}
 /* CF-REF: tray-passes-taps.md [2] */
 #alerts{position:fixed;left:10px;bottom:118px;display:flex;flex-direction:column;gap:6px;z-index:29;pointer-events:none}
 #alerts .alert-chip{pointer-events:auto}
+#alerts .group-row{display:flex;gap:6px;pointer-events:none}
+#alerts .group-row .alert-chip{flex:1 1 0;min-width:0;text-align:center}
 #pressure{position:fixed;z-index:11;transform:translate(-50%,-100%);pointer-events:none;background:rgba(80,18,12,.88);color:#ffd9d0;border:1px solid #e86a4b;border-radius:8px;padding:2px 8px;font:700 12px 'Inter',sans-serif;display:none}
 .alert-chip{background:rgba(14,20,16,.9);border:1px solid var(--gold);color:var(--ink);border-radius:8px;padding:7px 11px;font:600 12px 'Inter',sans-serif;cursor:pointer;text-align:left;box-shadow:0 4px 14px rgba(0,0,0,.35)}
 .alert-chip b{color:var(--gold)}
@@ -452,7 +454,7 @@ function curObjective(){ var deck = (G.objectives && G.objectives.length) ? G.ob
 var scene, camera, renderer, sunLight;
 var cam = {target:new THREE.Vector3(0,0,4), yaw:0, pitch:0.94, dist:38, follow:null};
 var G = null;
-// CF-REF: store-single-source.md [103]
+// CF-REF: store-single-source.md [111]
 /* ================= STORE =================
    Single source of truth for all game state.
    Rules:
@@ -521,6 +523,14 @@ var Store = (function(){
        camera pose and appends it; a fifth save drops the oldest, so the ring
        always holds the four most recent views. Camera only, never sim state. */
     "ui/cammark": function(p){ if(p && typeof p.x === "number" && typeof p.z === "number"){ var ms = state.camMarks || (state.camMarks = []); ms.push({x: p.x, z: p.z, yaw: (typeof p.yaw === "number" ? p.yaw : 0), dist: (typeof p.dist === "number" ? p.dist : 38)}); if(ms.length > 4) ms.shift(); } },
+    /* Control groups (spec section 26, docs/cf/control-groups.md):
+       three recall slots, one resident each, through the dispatch
+       door like every other discrete UI event. Set moves the
+       resident out of any slot they already held, so one resident
+       never occupies two slots; clear empties one slot. */
+    // CF-REF: control-groups.md [2]
+    "ui/group/set": function(p){ var s = (typeof p.slot === "number" ? p.slot : -1); if(s < 0 || s > 2) return; var a = p.id ? findA(p.id) : findA(state.selected); if(!a) return; var gs = state.groups; if(!Array.isArray(gs) || gs.length !== 3) gs = state.groups = [null, null, null]; for(var i = 0; i < 3; i++) if(gs[i] === a.id) gs[i] = null; gs[s] = a.id; },
+    "ui/group/clear": function(p){ var s2 = (typeof p.slot === "number" ? p.slot : -1); if(s2 < 0 || s2 > 2) return; var gs2 = state.groups; if(Array.isArray(gs2) && gs2.length === 3) gs2[s2] = null; },
     /* Season-boundary save receipt: the boundary save is acknowledged
        in game by a transient chip, never a toast (the toast queue must
        not grow for routine system work) and never a chronicle line
@@ -1027,7 +1037,7 @@ function newSlice(){
     stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
     objStation:"clinic", objComplete:false, objDone:0, scapegoats:0, delays:[],
     weekWork:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0, build:0}, weekWorkP:{stores:0, harvest:0, green:0, well:0, school:0, mill:0, clinic:0}, fieldWorkers:{},
-    ui:{toast:null, queue:[], sheet:null, muted:false}, mimic:{spread:0, converged:0, doneCopied:0, doneSelf:0, missedCopied:0}, policy:"hearth", difficulty:"standard", medicPatient:null, pendingIncident:null, curIncident:null, alerts:[], lastAlert:null, camMarks:[], savedAt:0, firstOrder:false, chronicle: [], endKind: null, ttiPaid: 0, ttiSavesUsed: 0, medicQueue: [], medicSeq: 0, pings:[]};
+    ui:{toast:null, queue:[], sheet:null, muted:false}, mimic:{spread:0, converged:0, doneCopied:0, doneSelf:0, missedCopied:0}, policy:"hearth", difficulty:"standard", medicPatient:null, pendingIncident:null, curIncident:null, alerts:[], lastAlert:null, camMarks:[], groups:[null, null, null], savedAt:0, firstOrder:false, chronicle: [], endKind: null, ttiPaid: 0, ttiSavesUsed: 0, medicQueue: [], medicSeq: 0, pings:[]};
   g.agents.forEach(function(a){
     a.speedNow = 0; a.slot = null; a.fetch = null; a.fetchT = 0; a.watchCd = 0; a.mimicStation = null;
     a.buildSite = null; a.fetchSite = null;
@@ -1554,7 +1564,7 @@ function householdOf(a){
   return null;
 }
 function householdPartner(a){ var h = householdOf(a); if(!h) return null; return agent(h.members[0] === a.id ? h.members[1] : h.members[0]); }
-// CF-REF: household-capacity-ledger.md [79]
+// CF-REF: household-capacity-ledger.md [80]
 function housingFree(){ return (G.houseCapacity || 0) - (G.households ? G.households.length : 0) - (G.soloHoused || 0); }
 function housingKind(kindId){ var kd = BUILD_KINDS[kindId]; return !!(kd && kd.effect && kd.effect.householdCapacity); }
 function formHousehold(a, b){
@@ -1593,6 +1603,7 @@ function removeAgent(m){
   if(G.incidentOpen && G.curIncident && G.curIncident.patient === m.id){ G.incidentOpen = false; G.incidentDone = true; G.curIncident = null; var ib2 = document.getElementById("incident"); if(ib2) ib2.style.display = "none"; } /* An open patient card lapses when its patient is gone, on the same rule as the parked drain and the season-boundary lapse: the card is about one person, so a death or departure while it stands on used to leave Send Jonah confirming a dispatch that never happened (sendMedic null-guards to a no-op, so chooseIncident's confirmatory toast fired anyway) and the other options confirming for a patient who is gone. incidentDone is true so the drawn row does not re-fire on the next tick, since weekIncident is still set. Non-patient cards are untouched: their options still move meters and order living residents. No new toast: the death or departure toast already announces the loss. */
   if(G.medicQueue) G.medicQueue = G.medicQueue.filter(function(e){ return e.id !== m.id; });
   if(G.alerts) G.alerts = G.alerts.filter(function(x){ return x.id !== m.id; }); /* An idle alert chip is a route to its resident: it selects them and moves the camera to them, so a chip for a resident who is gone inside its 9 second window used to keep rendering, and tapping it set the selection to a dead id, moved no camera, and opened no selection. A lit control with no effect is worse than no chip, and the death or departure toast already announces the loss. */
+  if(Array.isArray(G.groups)) G.groups = G.groups.map(function(gid){ return gid === m.id ? null : gid; }); /* A group chip is a route to its resident on the same rule: a slot holding a gone resident would recall a dead id, so the slot clears at removal and reads empty again. */
   if(G.objTarget === m.id){ if(G.offerAccepted && !G.objComplete){ var lv=null; G.agents.forEach(function(a){ if(!lv || a.vis < lv.vis) lv=a; }); G.objTarget = lv ? lv.id : null; } else G.objTarget = null; } /* A commission target who is gone must not strand the season: the dynModel metric counts followers of G.objTarget, so a dead id scores 0 forever and the card hint falls back to "the least watched" while the metric counts nobody. Re-pick by acceptOffer's own rule, the least watched living resident, so the commission stays winnable; when the commission is not live, clear the pointer. No new toast: the death or departure toast already announces the loss, and the objective card re-reads the live target every render. */
   if(m.solo){ m.solo = false; G.soloHoused = Math.max(0, (G.soloHoused || 0) - 1); }
   if(G.selected === m.id) Store.dispatch("ui/select", {id: null});
@@ -5392,7 +5403,7 @@ function refreshTray(force){
      Idle button face names its count the moment the count changes. */
   var idleList = idleResidents();
   var idleIds = idleList.map(function(x){ return x.id; }).join(",");
-  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.sick ? "S" : "") : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + (G.ui && G.ui.lens ? "L" + G.ui.lens : "l") + "|" + (G.foundArm ? "F" : "") + (G.claimArm ? "C" : "") + (G.lensArm ? "LA" : "") + (G.claimBearing == null ? "" : "b" + G.claimBearing) + (G.claimRing == null ? "" : "r" + G.claimRing) + (G.roadArm ? "R" : "") + (G.roadFrom || "") + (G.roadTo || "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "") + "|" + (G.modelArm ? "MA" : "") + (G.visitArm ? "VA" : "") + (G.coverArm ? "CA" : "") + (G.banked ? "BK" : "") + (a && a.bank != null ? "AC" : "") + (a && a.child ? "K" : "") + (a && a.spotUntil ? Math.ceil(Math.max(0, a.spotUntil - G.t)) : "") + (G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : "") + "|I" + idleIds;
+  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.sick ? "S" : "") : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + (G.ui && G.ui.lens ? "L" + G.ui.lens : "l") + "|" + (G.foundArm ? "F" : "") + (G.claimArm ? "C" : "") + (G.lensArm ? "LA" : "") + (G.claimBearing == null ? "" : "b" + G.claimBearing) + (G.claimRing == null ? "" : "r" + G.claimRing) + (G.roadArm ? "R" : "") + (G.roadFrom || "") + (G.roadTo || "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "") + "|" + (G.modelArm ? "MA" : "") + (G.visitArm ? "VA" : "") + (G.coverArm ? "CA" : "") + (G.banked ? "BK" : "") + (a && a.bank != null ? "AC" : "") + (a && a.child ? "K" : "") + (a && a.spotUntil ? Math.ceil(Math.max(0, a.spotUntil - G.t)) : "") + (G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : "") + "|I" + idleIds + "|GR" + (G.groupArm ? "A" : "") + (Array.isArray(G.groups) ? G.groups.join(",") : "---");
   if(!force && key === trayKey) return;
   trayKey = key;
   var info = document.getElementById("selInfo");
@@ -5428,7 +5439,7 @@ function refreshTray(force){
        untouched here on purpose: its target is a surveyed plot, not
        the selected resident, and a selection change already passes
        under a Found arm, so clearing it would break a live pick. */
-    G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; }
+    G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.groupArm = false; }
   if(a){
     // CF-REF: axis-label-selected-surfaces.md [2]
     var ax = axisOf(a);
@@ -5442,7 +5453,7 @@ function refreshTray(force){
     info.innerHTML = "<div class='rl'>Village</div><div class='nm'>No selection</div><div class='st'>Tap a resident. Tap a building to send them. Drag to look around.</div>";
   }
   var selX = document.getElementById("selX");
-  if(selX) selX.addEventListener("click", function(){ /* Deselect ends a pending map-targeted verb, in the Idle/alert/order ends-arm grammar: the verb belonged to the selection the X clears, so a still-armed verb would eat the next resident tap (a missed-pick answer for Model and Visit, a spotlight for Spotlight, a cancel for Proclaim) instead of selecting, while the gold showed an armed verb with no subject at all. The gold clearing with the deselect is the signal; button-local and pick-row modes keep their own grammar, so Speak For, Cover, Claim, and Road are untouched here. */ G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.foundArm = false; Store.dispatch("ui/select", {id: null}); refreshTray(true); });
+  if(selX) selX.addEventListener("click", function(){ /* Deselect ends a pending map-targeted verb, in the Idle/alert/order ends-arm grammar: the verb belonged to the selection the X clears, so a still-armed verb would eat the next resident tap (a missed-pick answer for Model and Visit, a spotlight for Spotlight, a cancel for Proclaim) instead of selecting, while the gold showed an armed verb with no subject at all. The gold clearing with the deselect is the signal; button-local and pick-row modes keep their own grammar, so Speak For, Cover, Claim, and Road are untouched here. */ G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.foundArm = false; G.groupArm = false; Store.dispatch("ui/select", {id: null}); refreshTray(true); });
   /* CF-REF: highlight-vocabulary.md [51] */
   var speakCdN = G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : 0;
   var html = "<div class='cgrp'><span class='glab'>Send to</span>" + CMDS.map(function(c){
@@ -5491,6 +5502,7 @@ function refreshTray(force){
      stays tappable with no selection, since finding a resident is how
      a selection starts; it carries no lit treatment in any state. */
   html += "<button class='cbtn' data-o='idle'><span class='i'>💤</span><span class='l'>Idle" + (idleList.length ? " · " + idleList.length : "") + "</span></button>";
+  html += "<button class='cbtn" + (G.groupArm ? " armed" : "") + "' data-o='group'" + (!a ? " disabled" : "") + "><span class='i'>👥</span><span class='l'>Groups</span></button>";
   html += "<button class='cbtn" + (G.proclaimArm ? " armed" : "") + "' data-o='proclaim'><span class='i'>📣</span><span class='l'>Proclaim</span></button>";
   html += "<button class='cbtn" + (G.foundArm ? " armed" : "") + "' data-o='found'><span class='i'>🏗</span><span class='l'>Found</span></button>";
   html += "<button class='cbtn" + (G.claimArm ? " armed" : "") + "' data-o='claim'><span class='i'>🚩</span><span class='l'>Claim</span></button>";
@@ -5529,7 +5541,7 @@ function refreshTray(force){
            arm. Button-local and pick-row modes are untouched, as in
            setOrder3: Speak For, Cover, Claim, and Road keep their own
            grammar, so no resident tap can be hijacked by them. */
-        G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.foundArm = false;
+        G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.foundArm = false; G.groupArm = false;
         Store.dispatch("ui/select", {id: idleNext.id}); cam.follow = null; cam.target.x = idleNext.x; cam.target.z = idleNext.z;
         refreshTray(true); return;
       }
@@ -5538,10 +5550,11 @@ function refreshTray(force){
          button itself is the exit from an armed mode instead of forcing
          a commit or a miss. Silent on disarm, matching the siblings;
          the gold treatment clearing is the signal. */
-      if(o === "spot"){ G.armed = !G.armed; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; if(G.armed) showToast("✨ Tap a resident to spotlight them: a 20s shield, then a 45s cooldown"); refreshTray(true); return; }
-      if(o === "model"){ G.modelArm = !G.modelArm; G.armed = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; if(G.modelArm){ var mm0 = (a && a.model) ? agent(a.model) : null; showToast("👁 Tap who " + (a ? a.name.split(" ")[0] : "they") + " should look up to: they copy them until you pick again" + (mm0 ? "; " + a.name.split(" ")[0] + " looks up to " + mm0.name.split(" ")[0] + " now" : "")); } refreshTray(true); return; }
-      if(o === "visit"){ G.visitArm = !G.visitArm; G.armed = false; G.modelArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; if(G.visitArm) showToast("💬 Tap who " + (a ? a.name.split(" ")[0] : "they") + " should visit: they walk over for a chat"); refreshTray(true); return; }
-      if(o === "proclaim"){ G.proclaimArm = !G.proclaimArm; G.armed = false; G.modelArm = false; G.visitArm = false; G.foundArm = false; G.speakArm = false; G.coverArm = false; if(G.proclaimArm){ var pcEarly = !!(G.proclaim && G.proclaim.week === G.week); var pcNm = "the village"; if(pcEarly){ if(G.proclaim.site){ var pcSk = siteById(G.proclaim.site); var pcKd = pcSk ? BUILD_KINDS[pcSk.kind] : null; pcNm = pcKd ? pcKd.title : "the building site"; } else if(G.proclaim.station && STATION3[G.proclaim.station]) pcNm = artName(G.proclaim.station); } showToast("📣 Tap a building, or a building site, to proclaim the village's focus for the season, drawing more residents to work there" + (pcEarly ? "; " + pcNm + " holds the focus now. Shifting the focus early costs " + LIFE.proclaimRecost + " cohesion" : "")); } refreshTray(true); return; }
+      if(o === "group"){ if(!a){ showToast("👥 Select a resident first, then tap Groups"); refreshTray(true); return; } G.groupArm = !G.groupArm; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.claimArm = false; G.roadArm = false; if(G.groupArm) showToast("👥 Tap a group chip to save " + a.name.split(" ")[0] + " to it"); refreshTray(true); return; }
+      if(o === "spot"){ G.armed = !G.armed; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.armed) showToast("✨ Tap a resident to spotlight them: a 20s shield, then a 45s cooldown"); refreshTray(true); return; }
+      if(o === "model"){ G.modelArm = !G.modelArm; G.armed = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.modelArm){ var mm0 = (a && a.model) ? agent(a.model) : null; showToast("👁 Tap who " + (a ? a.name.split(" ")[0] : "they") + " should look up to: they copy them until you pick again" + (mm0 ? "; " + a.name.split(" ")[0] + " looks up to " + mm0.name.split(" ")[0] + " now" : "")); } refreshTray(true); return; }
+      if(o === "visit"){ G.visitArm = !G.visitArm; G.armed = false; G.modelArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.visitArm) showToast("💬 Tap who " + (a ? a.name.split(" ")[0] : "they") + " should visit: they walk over for a chat"); refreshTray(true); return; }
+      if(o === "proclaim"){ G.proclaimArm = !G.proclaimArm; G.armed = false; G.modelArm = false; G.visitArm = false; G.foundArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.proclaimArm){ var pcEarly = !!(G.proclaim && G.proclaim.week === G.week); var pcNm = "the village"; if(pcEarly){ if(G.proclaim.site){ var pcSk = siteById(G.proclaim.site); var pcKd = pcSk ? BUILD_KINDS[pcSk.kind] : null; pcNm = pcKd ? pcKd.title : "the building site"; } else if(G.proclaim.station && STATION3[G.proclaim.station]) pcNm = artName(G.proclaim.station); } showToast("📣 Tap a building, or a building site, to proclaim the village's focus for the season, drawing more residents to work there" + (pcEarly ? "; " + pcNm + " holds the focus now. Shifting the focus early costs " + LIFE.proclaimRecost + " cohesion" : "")); } refreshTray(true); return; }
       if(o === "thoughts"){ if(G.selected) Store.dispatch("ui/sheet", {id:G.selected}); return; }
       if(o === "speak"){
         G.coverArm = false;
@@ -5552,13 +5565,13 @@ function refreshTray(force){
         if((G.blame || 0) < HH.speakBlameMin || (G.speakCd && G.t < G.speakCd)){ speakFor(); refreshTray(true); return; }
         var splan = speakPlan();
         if(splan && !splan.fail){
-          G.speakArm = true;
+          G.speakArm = true; G.groupArm = false;
           var svn = splan.voucher.name.split(" ")[0], stn = splan.target.name.split(" ")[0];
           showToast("🕊 " + svn + " would speak for " + stn + " (" + splan.vf + " followers, trust " + Math.round(G.stats.trust) + ", needs " + HH.speakStrength + "). If the village is not ready, " + svn + " loses standing. Tap the button again to commit.", {ids: [splan.voucher.id, splan.target.id]});
         } else { speakFor(); }
         refreshTray(true); return;
       }
-      if(o === "cover"){ if(a && !a.child && G.banked && a.bank != null){ G.coverArm = true; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.foundArm = false; showToast("🛡 Cover for " + a.name.split(" ")[0] + " is " + (a.tier ? TTI[a.tier].name : "none") + " now. Premiums come out of the bank account each season. Each tier button names what it buys."); } refreshTray(true); return; }
+      if(o === "cover"){ if(a && !a.child && G.banked && a.bank != null){ G.coverArm = true; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.foundArm = false; G.groupArm = false; showToast("🛡 Cover for " + a.name.split(" ")[0] + " is " + (a.tier ? TTI[a.tier].name : "none") + " now. Premiums come out of the bank account each season. Each tier button names what it buys."); } refreshTray(true); return; }
       if(o === "covertier"){ if(a){ var tid2 = b.getAttribute("data-t") || null; G.coverArm = false; if((a.tier || null) !== tid2 && setTier(a, tid2)) showToast("🛡 " + a.name.split(" ")[0] + ": " + (tid2 ? TTI[tid2].name + " cover, " + TTI[tid2].premium + "🪙 a season" : "no cover")); /* Tapping the tier already held used to close the chooser with no word at all: the check-marked button read as a commit that never confirmed, and the player could not tell a tap that landed from one that missed. Answer the standing state instead, in the same-target re-proclaim grammar, and change nothing. */ else if((a.tier || null) === tid2) showToast("🛡 " + a.name.split(" ")[0] + " already has " + (tid2 ? TTI[tid2].name + " cover" : "no cover")); } refreshTray(true); return; }
       if(o === "callout"){ if(a) callOut(a); refreshTray(true); return; }
       if(o === "mute"){ Store.dispatch("ui/mute"); try { if(typeof localStorage !== "undefined") localStorage.setItem("mv_muted", (G.ui && G.ui.muted) ? "1" : "0"); } catch(e){} SND.play("toggle"); refreshTray(true); return; }
@@ -5568,20 +5581,20 @@ function refreshTray(force){
       if(o === "lens"){ G.lensArm = !G.lensArm; refreshTray(true); return; }
       if(o === "story"){ storySoFar(false); return; }
       if(o === "build"){ if(a && !firstSiteOpen()){ showToast("🔨 No building site is open right now. Found a building first, or let the current one finish."); return; } setOrder3("build"); return; }
-      if(o === "found"){ G.foundArm = !G.foundArm; G.foundPlot = null; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; if(G.foundArm){ /* Found next-rung read (spec section 21): the arm toast names the locked kinds behind the next kind-bearing rung, via foundNextRungText, so growth reads ahead of any plot tap. Display only: no state, gate, or cost changes. */ showToast("🏗 Tap a surveyed plot (gold ring) to found a building" + foundNextRungText()); } refreshTray(true); return; }
+      if(o === "found"){ G.foundArm = !G.foundArm; G.foundPlot = null; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.foundArm){ /* Found next-rung read (spec section 21): the arm toast names the locked kinds behind the next kind-bearing rung, via foundNextRungText, so growth reads ahead of any plot tap. Display only: no state, gate, or cost changes. */ showToast("🏗 Tap a surveyed plot (gold ring) to found a building" + foundNextRungText()); } refreshTray(true); return; }
       /* Claim (v4): a Town-tier BUILD verb. Arms the bearing-plus-ring pick
          row below; the gold armed vocabulary matches the other verbs. */
       if(o === "claim"){
         if(!claimUnlocked()){ showToast("🚩 Claims unlock when the village grows into a Town."); refreshTray(true); return; }
         G.claimArm = !G.claimArm; G.claimBearing = null; G.claimRing = null;
-        G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false;
+        G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.groupArm = false;
         if(G.claimArm) showToast((G.claim && !G.claim.staked) ? "🚩 The claim party is still out: recall them, or let them finish" : "🚩 Pick a bearing and a ring: the founding party stakes the claim and carries the materials");
         refreshTray(true); return;
       }
       if(o === "road"){
         if(!roadUnlocked()){ showToast("🛣 Roads unlock when the village grows into a Town."); refreshTray(true); return; }
         G.roadArm = !G.roadArm; G.roadFrom = null; G.roadTo = null;
-        G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.claimArm = false;
+        G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.claimArm = false; G.groupArm = false;
         if(G.roadArm) showToast((G.roadBuild && !G.roadBuild.built) ? "🛣 The road crew is still out: recall them, or let them finish" : "🛣 Tap one station, then another: the crew lays a road between them");
         refreshTray(true); return;
       }
@@ -6348,6 +6361,17 @@ function hudTick(dt){
      even while a focus toast is live, because they return to places the
      player chose, not to the toast's site. */
   if(G.camMarks && G.camMarks.length) G.camMarks.forEach(function(mk, ix){ ahtml += "<button class='alert-chip cammark-chip' onclick='__camMarkFocus(" + ix + ")'>📌 View " + (ix + 1) + " · return</button>"; });
+  /* Control-group chips (spec section 26): the three slots always
+     render beside the camera bookmark chips, including empty slots,
+     because an empty slot needs a tappable target for its first
+     assignment. A chip for a resident who left never renders: the
+     slot is cleared at removal, so a gone occupant reads as empty
+     here only until the next removal pass, never as a name. Chips
+     carry no lit treatment in any state; the gold, when it stands,
+     is on the Groups button alone. */
+  // CF-REF: control-groups.md [2]
+  var gslots = Array.isArray(G.groups) ? G.groups : [null, null, null]; var grow = "";
+  for(var gsi = 0; gsi < 3; gsi++){ var gocc = gslots[gsi] ? agent(gslots[gsi]) : null; grow += "<button class='alert-chip group-chip' onclick='__groupChip(" + gsi + ")'>" + (gsi + 1) + " · " + (gocc ? gocc.name.split(" ")[0] : "empty") + "</button>"; } ahtml += "<div class='group-row'>" + grow + "</div>";
   /* Boundary-save receipt: a transient, non-tappable span in this stack
      while the save is fresh (3s of real time), so the acknowledgement
      survives a backed-up toast queue without spending a slot in it.
@@ -6691,6 +6715,15 @@ window.__lastAlertFocus = function(){ var la = G.lastAlert, f = la && la.focus; 
    a nearby one. A chip only renders while its slot exists, so a missing slot
    here answers loudly instead of jumping nowhere. */
 window.__camMarkFocus = function(ix){ var ms = G.camMarks || []; var m = ms[typeof ix === "number" ? ix : 0]; if(!m){ showToast("No saved view yet"); return; } cam.target.x = Math.max(-62, Math.min(62, m.x)); cam.target.z = Math.max(-48, Math.min(48, m.z)); cam.yaw = m.yaw; cam.dist = m.dist; cam.follow = null; };
+/* Control groups (spec section 26): assign saves the selected
+   resident to a slot through the dispatch door, recall selects
+   the slot's resident and centers the camera once, clearing any
+   follow. A chip tap assigns while the Groups arm stands and
+   recalls otherwise; the keyboard twin is Shift plus digit to
+   assign, digit alone to recall. */
+window.__groupAssign = function(slot){ var a = G.selected ? agent(G.selected) : null; if(!a){ showToast("👥 Select a resident first, then tap Groups"); return false; } Store.dispatch("ui/group/set", {slot: slot, id: a.id}); G.groupArm = false; showToast("👥 Group " + (slot + 1) + ": " + a.name.split(" ")[0]); refreshTray(true); return true; };
+window.__groupRecall = function(slot){ var gr = Array.isArray(G.groups) ? G.groups : [null, null, null]; var id = gr[slot]; if(!id){ showToast("👥 Group " + (slot + 1) + " is empty. Select a resident, tap Groups, then tap this chip."); return false; } var a = agent(id); if(!a){ Store.dispatch("ui/group/clear", {slot: slot}); showToast("👥 That resident is no longer in the village, so group " + (slot + 1) + " is cleared."); refreshTray(true); return false; } Store.dispatch("ui/select", {id: a.id}); cam.follow = null; cam.target.x = a.x; cam.target.z = a.z; refreshTray(true); return true; };
+window.__groupChip = function(slot){ if(G.groupArm) return __groupAssign(slot); return __groupRecall(slot); };
 window.__pickProject = function(i){ pickProject(i); };
 window.__acceptOffer = function(){ acceptOffer(); };
 window.__ignoreOffer = function(){ ignoreOffer(); };
@@ -7167,6 +7200,12 @@ function bindInput(){
   });
   document.addEventListener("keydown", function(e){
     if(e.code === "Space"){ e.preventDefault(); setSpeed(G.speed === 0 ? 1 : 0); }
+    /* Control groups (spec section 26): digit recalls, Shift plus
+       digit assigns the selection. Ctrl plus digit is a browser tab
+       shortcut and cannot be claimed, so Shift carries the assign
+       verb on desktop; the touch twin is the Groups arm plus chip
+       tap. Typing in a text field never triggers either verb. */
+    if((e.key === "1" || e.key === "2" || e.key === "3") && G && G.started && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ var gslot = Number(e.key) - 1; if(e.shiftKey) __groupAssign(gslot); else __groupRecall(gslot); }
     if(e.key === "q" || e.key === "Q") cam.yaw += 0.35;
     if(e.key === "e" || e.key === "E") cam.yaw -= 0.35;
   });
