@@ -228,6 +228,21 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
 @media (max-width:760px){#selInfo{min-width:118px}#objCard{width:206px}.cbtn{min-width:56px;padding:8px 4px 6px}}
 @media (max-width:560px){
   #objCard{width:172px;padding:7px 9px;z-index:11}
+  /* Phone pick rows scroll inside the card: the card has no height cap
+     and the page cannot scroll (html,body overflow hidden), so a long
+     pick row grew past the viewport and its commit chip (Claim Stake,
+     Road Lay) sat below the fold with no gesture to reach it; the
+     cancel chip went with it, so the verb could only be escaped by
+     re-tapping its tray button. The row now caps below the card's
+     content and scrolls on its own, and its chips wrap instead of
+     overflowing the card sideways (a found kind chip's blurb pushed
+     its button ~57px past the card edge). vh fallback before dvh, per
+     the no-dvh fallback rule; pointer-events auto on the row itself
+     so the scroll gesture lands on it (the card stays pass-through
+     everywhere else, and only the row's own buttons captured before). */
+  /* CF-REF: pick-rows-scroll-on-phones.md [2] */
+  #projPick,#offerPick,#foundPick,#claimPick,#roadPick,#lensPick,#arrPick{max-height:calc(100vh - 360px);max-height:calc(100dvh - 360px);overflow-y:auto;pointer-events:auto}
+  #projPick .alert-chip,#offerPick .alert-chip,#foundPick .alert-chip,#claimPick .alert-chip,#roadPick .alert-chip,#lensPick .alert-chip,#arrPick .alert-chip{flex-wrap:wrap;min-width:0}
   /* Phone: the offer card (with its Accept/Ignore and project pick buttons)
      paints above the transient toast pill, which otherwise covers the
      lower pick button's label for its 3.6s life right at the decision
