@@ -1551,7 +1551,7 @@ function householdOf(a){
   return null;
 }
 function householdPartner(a){ var h = householdOf(a); if(!h) return null; return agent(h.members[0] === a.id ? h.members[1] : h.members[0]); }
-// CF-REF: household-capacity-ledger.md [77]
+// CF-REF: household-capacity-ledger.md [79]
 function housingFree(){ return (G.houseCapacity || 0) - (G.households ? G.households.length : 0) - (G.soloHoused || 0); }
 function housingKind(kindId){ var kd = BUILD_KINDS[kindId]; return !!(kd && kd.effect && kd.effect.householdCapacity); }
 function formHousehold(a, b){
@@ -1625,6 +1625,8 @@ function departHousehold(h){
       if(best) f.successionPick = best.id;
     });
   });
+  /* A departure settles a carry the same way death settles one: a site or claim crate carry returns one store through returnStores, every other carry drops with nothing owed, so a carrier who departs mid-haul takes no village store out of the valley with them. The settle runs before any removal, for members and for the children who leave with them. */
+  members.concat(kids).forEach(function(m){ if(m.fetch === "sitecrate-back" || m.fetch === "claimcrate-back") returnStores(1); m.fetch = null; m.carrying = null; });
   freeHousehold(h);
   members.forEach(function(m){ removeAgent(m); });
   kids.forEach(function(m){ removeAgent(m); });
