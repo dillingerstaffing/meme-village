@@ -13,7 +13,11 @@ read what they decided without re-committing it.
   The mark carries by icon and by shape, never by color alone.
 - A station focus marks that station's square; a site focus marks the
   site's plot, while the site is unfinished (a finished site is no
-  longer a focus target, so its mark drops). The abstract home station
+  longer a focus target, so its mark drops). finishSite ends the
+  record with the mark: it nulls G.proclaim when the finished site
+  held it, so the arm toast no longer names the finished kind as the
+  holder and a fresh proclaim in the same week pays no early-shift
+  cost for a focus that already ended. The abstract home station
   never draws: it has no station square to mark.
 - Scale-aware like the event pings: ring radius, line width, glyph size,
   and glyph offset divide by the displayed-width ratio (118/192 on

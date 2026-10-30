@@ -4280,6 +4280,7 @@ function finishSite(site){
   chronicle(kind.title + " finished.");
   checkLevelUp();
   if(!firstSiteOpen()) G.agents.forEach(function(a){ if(a.order === "build") a.order = null; if(a.buildSite === site.id) a.buildSite = null; });
+  if(G.proclaim && G.proclaim.site === site.id) G.proclaim = null; /* A finished site is no longer a focus target: its build advertisement and its minimap mark already end at finish, so the focus record must end with them, or the arm toast would keep naming the finished kind as the holder and a fresh proclaim in the same week would still pay the early-shift cost for a focus that already ended. No new toast: the finish toast already announces the completion. */
 }
 /* Completion effects are data on the kind, applied generically: a new
    effect key is one new line here, never a branch per building. */
