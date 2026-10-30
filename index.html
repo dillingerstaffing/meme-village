@@ -1069,7 +1069,7 @@ function goStation(a, stId){
   a.slot = {x:jx, z:jz};
   goTo(a, jx, jz, stId);
 }
-// CF-REF: driven-work-progress.md [27]
+// CF-REF: driven-work-progress.md [29]
 function wk(a, key, amt){
   if(a.boostUntil && G.t < a.boostUntil) amt *= 2;
   G.weekWork[key] += amt;
@@ -1077,6 +1077,8 @@ function wk(a, key, amt){
   if(key === "build"){
     var sb = a.buildSite ? siteById(a.buildSite) : null;
     if(sb && !sb.done){
+      /* Adjacency (spec section 24): a workshop site within 20 units of the mill accrues its own construction labor 25 percent faster, judged from the live site position at every accrual, never stored; the driven ledgers above keep the unmultiplied amount. */
+      var adj = adjacencyRowFor(sb.kind); if(adj && adj.bonusStat === "labor" && adjacencyApplies(adj, sb.x, sb.z)) amt *= (1 + adj.bonusAmount);
       sb.labor += amt; sb.stageLabor = (sb.stageLabor || 0) + amt; sb.workers[a.id] = a.model || "";
       var sk = BUILD_KINDS[sb.kind];
       if(sk && !sk.project){
@@ -3358,6 +3360,25 @@ function projectTick(){
   (G.sites || []).forEach(function(s){ if(s.projId === pr.id) pSite = s; });
   if(pSite) for(var pi2 = 0; pi2 < 5; pi2++) spawnOrderPing(pSite.x + (pi2 - 2) * 1.7, pSite.z, pi2 * 0.22);
 }
+// CF-REF: claim-adjacency.md [18]
+/* ADJACENCY (spec section 24): founded-kind bonuses from standing next
+   to a station. One row per pair, read by the site labor ledger, the
+   green mediation drain, and the claim pick row preview, so the three
+   can never disagree about a bonus. Distance is world units between
+   the founded site or pending plot and the source station center.
+   The bonus is a rate multiplier (0.25 means 25 percent faster),
+   judged from live positions every time it applies and never stored
+   on the site, so a bonus lives only while the pair stands. A
+   workshop gains labor, a hall gains mediation, one way only: the
+   source station gains nothing from the founded kind. */
+var ADJACENCY = [
+  {kindA:"workshop", kindB:"mill", maxDistance:20, bonusStat:"labor", bonusAmount:0.25},
+  {kindA:"hall", kindB:"green", maxDistance:20, bonusStat:"mediation", bonusAmount:0.25}
+];
+function adjacencyRowFor(kind){ for(var i = 0; i < ADJACENCY.length; i++) if(ADJACENCY[i].kindA === kind) return ADJACENCY[i]; return null; }
+function adjacencyApplies(row, x, z){ var s = STATION3[row.kindB]; return !!s && Math.hypot(x - s.x, z - s.z) <= row.maxDistance; }
+function hallAdjacencyBonus(){ var row = adjacencyRowFor("hall"); if(!row || row.bonusStat !== "mediation") return 0; for(var i = 0; i < (G.sites || []).length; i++){ var s = G.sites[i]; if(s.done && s.kind === "hall" && adjacencyApplies(row, s.x, s.z)) return row.bonusAmount; } return 0; }
+function claimAdjacencyBonuses(ctr){ var out = []; var plots = claimClusterPlots(ctr.x, ctr.z); ADJACENCY.forEach(function(row){ for(var i = 0; i < plots.length; i++) if(adjacencyApplies(row, plots[i].x, plots[i].z)){ out.push(row); break; } }); return out; }
 /* ============ CONSTRUCTION ============
    Building is a general system, not a list of one-off buildings.
    Every buildable kind is a row in BUILD_KINDS: its materials, its
@@ -4582,7 +4603,7 @@ function statDrift(dt){
   else if(s.rivalry < 40) G.blame = Math.max(0, (G.blame || 0) - dt * 0.3);
   var cand = scapegoatCandidate();
   if(cand && (G.blame || 0) >= 60 && cand.stationId === "green" && (cand.state === "act" || cand.state === "sit")){
-    G.blame = Math.max(0, G.blame - dt * (hasPerk("longtable") ? 5 : 3.4));
+    G.blame = Math.max(0, G.blame - dt * (hasPerk("longtable") ? 5 : 3.4) * (1 + hallAdjacencyBonus()));
     if(G.blame < 60 && !G.mediated){ G.mediated = true; applyStatMods({cohesion:3}); showToast("🌿 The village talked it out on the green"); }
   }
   if((G.blame || 0) > 82) G.mediated = false;
@@ -6043,6 +6064,8 @@ function hudTick(dt){
       if(bearSel >= 0 && ringSel >= 0){
         var tc = claimTotals(ringSel);
         var cpBlocked = claimCenterBlocked(claimCenter(bearSel, ringSel));
+        /* Claim adjacency read (spec section 24): a picked claim's three plots are the ground a future founding would stand on, so the row names each bonus that ground would give, with its source station, before the Stake chip commits. A bonus with no plot in range names nothing. */
+        claimAdjacencyBonuses(claimCenter(bearSel, ringSel)).forEach(function(row){ var kd = BUILD_KINDS[row.kindA]; var src = STATION3[row.kindB]; cpHtml += "<span class='pick-lab'>" + (kd ? kd.icon + " " + kd.title : row.kindA) + " on this ground: +" + Math.round(row.bonusAmount * 100) + "% " + row.bonusStat + " near the " + (src ? src.name.toLowerCase().replace(/^the /, "") : row.kindB) + "</span>"; });
         /* Claim payoff read: the Stake chip names the yield beside the
            cost, read from claimClusterPlots, the same rows staking
            appends, so the priced claim states what it buys before the

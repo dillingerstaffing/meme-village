@@ -55,3 +55,12 @@ at Town"; at Town and above it names the unlocked state and the live
 road count against the cap. The row is display only and changes no
 gate, so a refusal toast after a tap can never be the first time the
 player hears about the gate.
+
+The same pick row carries the adjacency read (spec section 24,
+claim-adjacency.md): once a bearing and ring are picked, each
+ADJACENCY row whose source station lies within range of any of the
+claim's three cluster plots is named in the row with its kind,
+percent, stat, and source, before the Stake chip commits. It is
+display only and shares the table and the distance test with the
+ledgers, so the preview and the bonus can never disagree; a bonus
+with no plot in range names nothing.

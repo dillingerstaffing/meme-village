@@ -9,10 +9,10 @@
         "bonusAmount"
       ],
       "fixed": [
-        "workshop:mill:labor",
-        "hall:green:mediation"
+        "workshop:mill:20:labor:0.25",
+        "hall:green:20:mediation:0.25"
       ],
-      "status": "queued"
+      "status": "live"
     },
     "BUILD_KINDS": {
       "keys": [

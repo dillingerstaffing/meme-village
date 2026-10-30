@@ -5,7 +5,11 @@ weekWorkP only when a.driveObj is true, together with the synergy and
 crew-rhythm multipliers and the project part credit. Construction
 labor enters wk() under the build key and returns before the driven
 branch: it fills the site labor ledger in G.sites, never weekWorkP,
-and build work is never credited as driven work. A new way of
+and build work is never credited as driven work. Adjacency is the
+one multiplier inside that ledger: a workshop site within 20 units
+of the mill accrues site labor at 1.25x (spec section 24), applied
+after weekWork and earnPay have taken the unmultiplied amount, so
+the bonus speeds the build without touching any driven total. A new way of
 working enters the driven ledger only by setting driveObj through the
 paths that already do (a player order in setOrder3 and decide(), a
 copied model or a want that decide() resolves), and initiatives always
