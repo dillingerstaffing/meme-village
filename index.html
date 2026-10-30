@@ -2776,6 +2776,8 @@ function prestigeScan(){
 }
 function warnInitiative(c){
   var a = c.a;
+  /* A plan at a station STATION3 does not define (the claim and road pseudo-stations) cannot be warned by name, and a plan standing without its toast fires unwarned, so such a candidate is dropped here instead of standing a plan: the guard sits before initPend is set, never after. */
+  if((c.kind === "shift" || c.kind === "claim") && !STATION3[c.station]) return;
   a.initPend = {kind:c.kind, at:G.t + 6, station:c.station || null, pair:c.pair || null, target:c.target || null};
   a.initWk = G.week;
   setBubble(a, "🔔", 3);
@@ -2853,7 +2855,7 @@ function initiativeScan(){
       G.agents.forEach(function(b){ if(b !== a && b.stationId && (b.state === "act" || b.state === "walk")){ (bySt[b.stationId] = bySt[b.stationId] || []).push(b); } });
       Object.keys(bySt).forEach(function(st){
         var crew = bySt[st];
-        if(crew.length >= 3 && st !== "home" && st !== "green" && st !== "build"){
+        if(crew.length >= 3 && st !== "home" && st !== "green" && st !== "build" && st !== "claim" && st !== "road"){
           var top = null, tf = -1;
           crew.forEach(function(b){ var f = followersOf(b); if(f > tf){ tf = f; top = b; } });
           if(top && a.model === top.id && a.stationId !== st) cands.push({a:a, kind:"claim", w:0.012 + 0.004 * crew.length, station:st, target:top.id});
