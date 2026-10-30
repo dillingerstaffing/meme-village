@@ -1536,7 +1536,7 @@ function householdOf(a){
   return null;
 }
 function householdPartner(a){ var h = householdOf(a); if(!h) return null; return agent(h.members[0] === a.id ? h.members[1] : h.members[0]); }
-// CF-REF: household-capacity-ledger.md [51]
+// CF-REF: household-capacity-ledger.md [77]
 function housingFree(){ return (G.houseCapacity || 0) - (G.households ? G.households.length : 0) - (G.soloHoused || 0); }
 function housingKind(kindId){ var kd = BUILD_KINDS[kindId]; return !!(kd && kd.effect && kd.effect.householdCapacity); }
 function formHousehold(a, b){
@@ -1584,6 +1584,32 @@ function departHousehold(h){
   var names = h.members.map(function(id){ var m = agent(id); return m ? m.name.split(" ")[0] : id; });
   var members = h.members.map(function(id){ return agent(id); }).filter(Boolean);
   var kids = G.agents.filter(function(x){ return x.child && x.parents && (x.parents.indexOf(h.members[0]) >= 0 || x.parents.indexOf(h.members[1]) >= 0); });
+  /* A departure decides succession the same way a death does, before
+     the graph is cut: each adult follower of a departing member who is
+     not departing themselves picks, from the residents they watched
+     most weighted by visibility, the candidate the shadow watch will
+     walk them to. Without it removeAgent nulls the model edge and a
+     high-visibility follower, whom the public-model watch pass skips
+     at vis 60 and above, never re-anchors on its own. Children are
+     skipped, as at a death: a departing household's children leave
+     with it, and a child follower keeps its parent model rule. The
+     two-way pull tension of a death is not repeated here: it is a
+     mourning beat over one death's pulls, and the departure toast
+     already announces the loss. */
+  var depIds = {};
+  members.forEach(function(mm){ depIds[mm.id] = true; });
+  kids.forEach(function(kk){ depIds[kk.id] = true; });
+  members.forEach(function(mm){
+    G.agents.filter(function(b){ return b !== mm && !b.child && !depIds[b.id] && b.model === mm.id; }).forEach(function(f){
+      var best = null, bs = -1;
+      G.agents.forEach(function(c){
+        if(c === mm || c === f || c.child || depIds[c.id]) return;
+        var sc = ((f.watchHist && f.watchHist[c.id]) || 0) * 2 + visEff(c) / 25;
+        if(sc > bs){ bs = sc; best = c; }
+      });
+      if(best) f.successionPick = best.id;
+    });
+  });
   freeHousehold(h);
   members.forEach(function(m){ removeAgent(m); });
   kids.forEach(function(m){ removeAgent(m); });
