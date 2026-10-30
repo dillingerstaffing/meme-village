@@ -4295,7 +4295,7 @@ function siteTick(){
     var s = G.sites[i]; if(s.done) continue;
     var kind = BUILD_KINDS[s.kind];
     if(kind.project){
-      if(G.projDone.indexOf(s.projId) >= 0){ s.done = true; checkLevelUp(); }
+      if(G.projDone.indexOf(s.projId) >= 0){ s.done = true; checkLevelUp(); if(G.proclaim && G.proclaim.site === s.id) G.proclaim = null; /* A project site reaches done through this direct path, never through finishSite, so its finish clear must live here too: the finished site is no longer a focus target, its build advertisement and its minimap mark already end at done, and a focus record left standing would keep naming the finished project as the holder and keep charging the early-shift cost for a focus that already ended. No new toast: the project completion toast already announces the completion. */ }
       updateSiteMesh(s);
     } else {
       var nd = kind.stages[s.stage];

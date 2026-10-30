@@ -17,7 +17,11 @@ read what they decided without re-committing it.
   record with the mark: it nulls G.proclaim when the finished site
   held it, so the arm toast no longer names the finished kind as the
   holder and a fresh proclaim in the same week pays no early-shift
-  cost for a focus that already ended. The abstract home station
+  cost for a focus that already ended. A project site that reaches
+  done through siteTick's direct path ends the record the same way,
+  since its mark drops at done just like a finished site's: siteTick
+  nulls G.proclaim when its site matches, with no new toast, because
+  the project completion toast already announces the completion. The abstract home station
   never draws: it has no station square to mark.
 - Scale-aware like the event pings: ring radius, line width, glyph size,
   and glyph offset divide by the displayed-width ratio (118/192 on
