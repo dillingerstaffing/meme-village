@@ -39,5 +39,9 @@ route to its resident, and a route to someone gone selects nobody
 and moves no camera. A chip for a resident who starts working ends
 at once too, on the same rule: the chip is a live claim that the
 resident is idle, and loafT resets the moment work starts, so the
-render filter keeps only alerts whose resident still loafs past 15. The finder is the persistent route for the
+render filter keeps only alerts whose resident still loafs past 15.
+The flag clears with the timer: alerted resets wherever loafT
+resets (work, sickness, childhood), so a second loaf episode past
+15 in the same season alerts again, and the season boundary still
+clears both as well. The finder is the persistent route for the
 same definition, not a second definition.
