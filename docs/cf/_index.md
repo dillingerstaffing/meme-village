@@ -1,7 +1,7 @@
 # CF-DOC Trigger Index
 
 ## Rendering and Overlays
-overlay, marker, bubble, name tag, hud, camera move, collision, anchor, hide, desire lens, lens mode
+overlay, marker, bubble, name tag, hud, camera move, collision, anchor, hide, desire lens, lens mode, toast, pause
 
 | Article | Summary |
 |---------|---------|
@@ -15,6 +15,7 @@ overlay, marker, bubble, name tag, hud, camera move, collision, anchor, hide, de
 | camera-zoom-buttons.md | The speeds-row zoom buttons step cam.dist by the wheel factor (in 0.9, out 1.1, clamped 15 to 62), never clear a camera follow, and ride the thumb-zone move into the tray on phones, whose buttons narrow by side padding only to fit the pair |
 | follow-edge-scroll.md | Mouse edge scroll stands aside while a camera follow holds: it neither moves the camera nor drops the mode; drag, minimap jump, and selection stay the explicit follow releases |
 | coach-teach-line.md | A gold line joins the loafer coach cone to the destination station coach cone while the first-order teach window holds, and vanishes with the cones at the first order, display only |
+| paused-toast-holds.md | While speed is 0 the live toast's deadline advances with the frame clock, so a pause never loses the message or drains the queue behind it; a skipped toast is never revived |
 
 ## Game Rules and Scoring
 objective, progress, project, parts, work credit, score, driven, order bonus, household, arrival, newcomer, cottage, capacity, speak for, blame, want, desire, model, spread, contagion, origin, coverage, tier, premium, medic, queue, call out, founding, growth, expansion, autonomous, plot

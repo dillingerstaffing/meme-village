@@ -531,6 +531,11 @@ var Store = (function(){
        can move past the ones they have read. Nothing is lost; the queue keeps
        its order. */
     "ui/toastSkip": function(p){ var cur = state.ui && state.ui.toast; if(cur && Date.now() < cur.until) cur.until = 0; },
+    /* Paused toasts hold: while the sim is paused, the live toast's deadline
+       advances with the frame clock, so pausing to read or think never loses
+       the message or drains the queue behind it. Only a live toast moves;
+       a skipped toast (until 0) is never revived. */
+    "ui/toastHold": function(p){ var t = state.ui && state.ui.toast; if(t && Date.now() < t.until) t.until += (p.ms || 0); },
     /* Camera bookmarks: the player-chosen saved views (the SC2 save-location
        grammar, four slots, F5 to F8 on desktop). The save verb reads the live
        camera pose and appends it; a fifth save drops the oldest, so the ring
@@ -7373,6 +7378,11 @@ Store.subscribe(function(){ refreshTray(false); });
 Store.subscribe(renderSheet);
 bindInput();
 refreshTray(true);
+/* Toast-hold clock: real wall time of the last frame that held a toast.
+   Loop bookkeeping only, never sim state: dtR is capped at 50ms for the
+   sim step, so it undercounts elapsed time on slow frames and cannot
+   carry the hold. */
+var _toastHoldLast = 0;
 renderer.setAnimationLoop(function(){
   var dtR = Math.min(0.05, clock.getDelta());
   /* Title screen: a slow idle drift over the live village. Stops the moment
@@ -7386,10 +7396,18 @@ renderer.setAnimationLoop(function(){
   G.agents.forEach(function(a){ animateAgent(a, eff); });
   updateCamera(dtR);
   frameDt = dtR;
+  /* CF-REF: paused-toast-holds.md [8] */
+  /* A paused sim holds its toast: while speed is 0 the live toast's
+     deadline advances by real elapsed time, so pausing to read or think
+     never loses the message or drains the queue behind it. */
+  if(G.speed === 0 && G.ui && G.ui.toast && Date.now() < G.ui.toast.until){
+    var _now = Date.now();
+    if(_toastHoldLast) Store.dispatch("ui/toastHold", {ms: _now - _toastHoldLast});
+    _toastHoldLast = _now;
+  } else _toastHoldLast = 0;
   /* Toast queue promotion: a toast waiting in state.ui.queue takes the slot
      the moment the current toast expires. Wall-clock, like the expiry the
-     renderer checks, so a paused sim still drains the queue. Dispatch, not a
-     renderer write: renderers never commit. */
+     renderer checks. Dispatch, not a renderer write: renderers never commit. */
   if(G.ui && G.ui.queue && G.ui.queue.length){
     var _tc = G.ui.toast;
     if(!_tc || Date.now() >= _tc.until) Store.dispatch("ui/toastNext");
