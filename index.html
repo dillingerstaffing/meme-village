@@ -5991,7 +5991,7 @@ function hudTick(dt){
   if(accepted){
     document.getElementById("objK").textContent = "COMMISSION · " + seasonName().toUpperCase() + (G.objComplete ? " · ✓ DONE" : "");
     document.getElementById("objT").textContent = o.icon + " " + (o.titleDyn ? o.titleDyn() : o.title);
-    document.getElementById("objHint").textContent = o.hintDyn ? o.hintDyn() : o.hint;
+    document.getElementById("objHint").textContent = G.objComplete ? "Done. A new offer comes with the next season." : (o.hintDyn ? o.hintDyn() : o.hint);
     document.getElementById("objPct").textContent = pct + "% · 👥" + countHands(G.objStation);
   } else if(G.offer){
     document.getElementById("objK").textContent = "OFFER · " + seasonName().toUpperCase();
