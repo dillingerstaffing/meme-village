@@ -30,6 +30,14 @@ are on screen before the irreversible step.
 - The latch clears when contentment rises to 30 or blame falls below
   60, so a second approach forecasts again; while the latch holds,
   no repeat toast fires.
+- After the departure itself, the announcement toast carries the
+  same return grammar as a death notice: departHousehold captures
+  the vacated dwelling before any removal (the household's claimed
+  site, else the first member's home) and passes it as a coordinate
+  focus with a loss ping, so the toast renders a view chip while
+  live and a last-alert chip after it expires, and the minimap
+  flashes at the site. A focus on the departing ids would resolve
+  to nothing, since the subjects are removed before the toast.
 
 Why: the blame forecast already proved this grammar in the same
 tick (name the target and the two real interventions before the

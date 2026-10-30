@@ -1577,7 +1577,7 @@ function householdOf(a){
   return null;
 }
 function householdPartner(a){ var h = householdOf(a); if(!h) return null; return agent(h.members[0] === a.id ? h.members[1] : h.members[0]); }
-// CF-REF: household-capacity-ledger.md [80]
+// CF-REF: household-capacity-ledger.md [88]
 function housingFree(){ return (G.houseCapacity || 0) - (G.households ? G.households.length : 0) - (G.soloHoused || 0); }
 function housingKind(kindId){ var kd = BUILD_KINDS[kindId]; return !!(kd && kd.effect && kd.effect.householdCapacity); }
 function formHousehold(a, b){
@@ -1625,6 +1625,14 @@ function removeAgent(m){
 function departHousehold(h){
   var names = h.members.map(function(id){ var m = agent(id); return m ? m.name.split(" ")[0] : id; });
   var members = h.members.map(function(id){ return agent(id); }).filter(Boolean);
+  /* Capture the departure site before the graph is cut, on the death
+     notice's rule: the vacated dwelling is where the loss reads, so the
+     toast carries a camera focus there and a loss ping, instead of a
+     plain text announcement with no site to return to. A household
+     with no claimed site falls back to the first member's home. */
+  var depSite = h.site ? siteById(h.site) : null;
+  var depX = depSite ? depSite.x : (members[0] ? (members[0].home ? members[0].home[0] : members[0].x) : 0);
+  var depZ = depSite ? depSite.z : (members[0] ? (members[0].home ? members[0].home[1] : members[0].z) : 0);
   var kids = G.agents.filter(function(x){ return x.child && x.parents && (x.parents.indexOf(h.members[0]) >= 0 || x.parents.indexOf(h.members[1]) >= 0); });
   /* A departure decides succession the same way a death does, before
      the graph is cut: each adult follower of a departing member who is
@@ -1658,7 +1666,8 @@ function departHousehold(h){
   members.forEach(function(m){ removeAgent(m); });
   kids.forEach(function(m){ removeAgent(m); });
   G.departed = (G.departed || 0) + members.length + kids.length;
-  showToast("🚶 " + names.join(" and ") + " have left the valley. The village drove them out.");
+  showToast("🚶 " + names.join(" and ") + " have left the valley. The village drove them out.", {x: depX, z: depZ});
+  Store.dispatch("ui/ping", {x: depX, z: depZ, kind: "death"}); /* The loss ping reuses the death kind, so no new ping kind is invented and the ping map stays untouched. */
   SND.play("blame");
 }
 function bondTick(dt){
