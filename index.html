@@ -3509,7 +3509,7 @@ function foundSite(plotIx, kindId){
   Store.commit();
   return site;
 }
-// CF-REF: recall-in-flight.md [52]
+// CF-REF: recall-in-flight.md [53]
 /* RECALL (founded site, spec section 11): an unfinished founded site
    can be called off, the same way as a claim or road, but the refund
    differs because a founded site has already built: only the current
@@ -3555,6 +3555,7 @@ function cancelFoundSite(site){
   if(site.plot >= 0 && plotMeshes[site.plot]) plotMeshes[site.plot].visible = true;
   G.sites = G.sites.filter(function(x){ return x.id !== site.id; });
   if(G.buildPref === site.id) G.buildPref = null;
+  if(G.proclaim && G.proclaim.site === site.id) G.proclaim = null; /* A called-off site cannot keep holding the season focus: the focus record would keep naming a site that no longer exists, the arm toast would keep saying it holds the focus, and a fresh proclaim in the same week would still pay the early-shift cost for a focus that is already gone. No new toast: the recall toast already announces the call. */
   returnStores(site.matsIn.stores || 0);
   if(!firstSiteOpen()) G.agents.forEach(function(a){ if(a.order === "build") a.order = null; });
   showToast(kind.icon + " " + kind.title + " called off: the builders walk home" + (back ? ", 📦" + back + " stores back." : "."));

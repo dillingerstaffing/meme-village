@@ -54,7 +54,10 @@ kind locked its plot until the site finished, with no way back.
   and fetchSite pointer to the site, releases builders stationed at
   the site to idle, removes the site mesh, restores the plot ring,
   drops the site from G.sites, clears buildPref when it pointed at
-  the site, and clears Build orders when no site remains open, so a
+  the site, clears the season focus when the site held it (G.proclaim
+  nulls when its site matches, so a fresh proclaim in the same week
+  pays no early-shift cost for a focus that is already gone), and
+  clears Build orders when no site remains open, so a
   new founding can start on the freed plot at once. The release
   cancels the social intent on the same rule as the claim and road
   releases: visitId, pendingWatch, and a stale watchOf clear beside
