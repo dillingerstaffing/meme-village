@@ -36,5 +36,8 @@ still loafing a minute later, or a third loafer, had no route back
 to the player at all. A chip for a resident who leaves the village
 ends at once rather than standing out its 9 seconds: a chip is a
 route to its resident, and a route to someone gone selects nobody
-and moves no camera. The finder is the persistent route for the
+and moves no camera. A chip for a resident who starts working ends
+at once too, on the same rule: the chip is a live claim that the
+resident is idle, and loafT resets the moment work starts, so the
+render filter keeps only alerts whose resident still loafs past 15. The finder is the persistent route for the
 same definition, not a second definition.

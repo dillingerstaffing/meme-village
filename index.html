@@ -6271,7 +6271,13 @@ function hudTick(dt){
   if(popLbl) popLbl.textContent = "👥 " + popN + " of " + POP_CAP + " villagers";
   var popSv = document.getElementById("sv-pop");
   if(popSv) popSv.textContent = popN + "/" + POP_CAP;
-  G.alerts = G.alerts.filter(function(x){ return G.t - x.at < 9; });
+  /* An idle chip is a live claim, not a record: it ends the frame its
+     resident stops loafing, beside its 9 second expiry and the removal
+     filter, because loafT resets the moment work starts, so a chip
+     that stood out its 9 seconds after an order kept saying idle
+     about a resident already working at a station. */
+  // CF-REF: idle-finder.md [1]
+  G.alerts = G.alerts.filter(function(x){ var a = agent(x.id); return G.t - x.at < 9 && a && (a.loafT || 0) > 15; });
   var alEl = document.getElementById("alerts");
   var ahtml = G.alerts.slice(-2).map(function(x){ return "<button class='alert-chip' onclick='__pickAlert(\"" + x.id + "\")'>⚠ <b>" + x.name + "</b> is idle · tap to direct</button>"; }).join("");
   /* Last-alert return: the most recent displayed focus toast survives its
