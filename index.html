@@ -5532,7 +5532,7 @@ function refreshTray(force){
      a selection starts; it carries no lit treatment in any state. */
   html += "<button class='cbtn' data-o='idle' title='Idle (I key)'><span class='i'>💤</span><span class='l'>Idle" + (idleList.length ? " · " + idleList.length : "") + "</span></button>";
   html += "<button class='cbtn" + (G.groupArm ? " armed" : "") + "' data-o='group' title='Groups (1, 2, 3 keys recall a slot; Shift plus a digit assigns the selected resident)'" + (!a ? " disabled" : "") + "><span class='i'>👥</span><span class='l'>Groups</span></button>";
-  html += "<button class='cbtn" + (G.proclaimArm ? " armed" : "") + "' data-o='proclaim'><span class='i'>📣</span><span class='l'>Proclaim</span></button>";
+  html += "<button class='cbtn" + (G.proclaimArm ? " armed" : "") + "' data-o='proclaim' title='Proclaim (B key)'><span class='i'>📣</span><span class='l'>Proclaim</span></button>";
   html += "<button class='cbtn" + (G.foundArm ? " armed" : "") + "' data-o='found'><span class='i'>🏗</span><span class='l'>Found</span></button>";
   html += "<button class='cbtn" + (G.claimArm ? " armed" : "") + "' data-o='claim' title='Claim (C key)'><span class='i'>🚩</span><span class='l'>Claim</span></button>";
   html += "<button class='cbtn" + (G.roadArm ? " armed" : "") + "' data-o='road'><span class='i'>🛣</span><span class='l'>Road</span></button>";
@@ -7385,6 +7385,21 @@ function bindInput(){
        hide the decision it needs. */
     /* CF-REF: keyboard-c-claim.md [1] */
     if((e.key === "c" || e.key === "C") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ if(!claimUnlocked()){ showToast("🚩 Claims unlock when the village grows into a Town."); refreshTray(true); } else { G.claimArm = !G.claimArm; G.claimBearing = null; G.claimRing = null; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.groupArm = false; if(G.claimArm) showToast((G.claim && !G.claim.staked) ? "🚩 The claim party is still out: recall them, or let them finish" : "🚩 Pick a bearing and a ring: the founding party stakes the claim and carries the materials"); refreshTray(true); } }
+    /* B proclaim arm: the keyboard twin of the tray Proclaim button,
+       so a desktop player need not reach for the mouse to arm the
+       season-focus verb. P is taken (pause, the Sims twin), so B
+       stands for Broadcast: proclaiming the village focus broadcasts
+       it to the residents, drawing more of them to work there. It
+       runs exactly the button's verb: toggle proclaimArm, clear the
+       button's own armed-verb clear list (including Found), and
+       toast on arming, with the early-focus wording when the focus
+       was set this week. It needs no selection, like the button,
+       which is never disabled. It is guarded like a panel key: only
+       once started, never while over or an incident panel is open,
+       never with a modifier, never while typing, because an armed
+       verb over a modal decision would hide the decision it needs. */
+    /* CF-REF: keyboard-b-proclaim.md [1] */
+    if((e.key === "b" || e.key === "B") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ G.proclaimArm = !G.proclaimArm; G.armed = false; G.modelArm = false; G.visitArm = false; G.foundArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.proclaimArm){ var pbEarly = !!(G.proclaim && G.proclaim.week === G.week); var pbNm = "the village"; if(pbEarly){ if(G.proclaim.site){ var pbSk = siteById(G.proclaim.site); var pbKd = pbSk ? BUILD_KINDS[pbSk.kind] : null; pbNm = pbKd ? pbKd.title : "the building site"; } else if(G.proclaim.station && STATION3[G.proclaim.station]) pbNm = artName(G.proclaim.station); } showToast("📣 Tap a building, or a building site, to proclaim the village's focus for the season, drawing more residents to work there" + (pbEarly ? "; " + pbNm + " holds the focus now. Shifting the focus early costs " + LIFE.proclaimRecost + " cohesion" : "")); } refreshTray(true); }
     /* Escape closes a panel, the keyboard twin of the sheet close
        button and the Story panel X: the topmost panel first, so an
        open Story overlay closes before the sheet behind it. An
