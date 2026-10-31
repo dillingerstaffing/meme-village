@@ -409,38 +409,44 @@
       "hash": "3471fc97"
     },
     {
+      "article": "keyboard-escape-close.md",
+      "ref_line": 7273,
+      "lines": 5,
+      "hash": "6edb933c"
+    },
+    {
       "article": "camera-key-pan.md",
-      "ref_line": 7279,
+      "ref_line": 7292,
       "lines": 9,
       "hash": "efb11f60"
     },
     {
       "article": "camera-key-zoom.md",
-      "ref_line": 7293,
+      "ref_line": 7306,
       "lines": 4,
       "hash": "aa847be7"
     },
     {
       "article": "camera-rotate-buttons.md",
-      "ref_line": 7311,
+      "ref_line": 7324,
       "lines": 2,
       "hash": "2c372e98"
     },
     {
       "article": "camera-zoom-buttons.md",
-      "ref_line": 7318,
+      "ref_line": 7331,
       "lines": 2,
       "hash": "c38034d2"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 7408,
+      "ref_line": 7421,
       "lines": 4,
       "hash": "ce66959f"
     },
     {
       "article": "paused-toast-holds.md",
-      "ref_line": 7433,
+      "ref_line": 7446,
       "lines": 8,
       "hash": "6df5975d"
     }

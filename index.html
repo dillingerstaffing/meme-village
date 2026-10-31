@@ -7263,6 +7263,19 @@ function bindInput(){
   });
   document.addEventListener("keydown", function(e){
     if(e.code === "Space"){ e.preventDefault(); setSpeed(G.speed === 0 ? 1 : 0); }
+    /* Escape closes a panel, the keyboard twin of the sheet close
+       button and the Story panel X: the topmost panel first, so an
+       open Story overlay closes before the sheet behind it. An
+       incident panel is never closed this way, it needs a choice,
+       and a modifier or typing never triggers it. Closing the sheet
+       keeps the selection, exactly like the sheet close button, so
+       Escape never deselects. */
+    /* CF-REF: keyboard-escape-close.md [5] */
+    if(e.key === "Escape" && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){
+      var escOv = document.getElementById("endOverlay");
+      if(escOv && escOv.classList.contains("open")){ window.__closeStory(); }
+      else if(G.ui && G.ui.sheet){ Store.dispatch("ui/sheet", {id:null}); }
+    }
     /* Control groups (spec section 26): digit recalls, Shift plus
        digit assigns the selection. Ctrl plus digit is a browser tab
        shortcut and cannot be claimed, so Shift carries the assign
