@@ -5534,7 +5534,7 @@ function refreshTray(force){
   html += "<button class='cbtn" + (G.groupArm ? " armed" : "") + "' data-o='group' title='Groups (1, 2, 3 keys recall a slot; Shift plus a digit assigns the selected resident)'" + (!a ? " disabled" : "") + "><span class='i'>👥</span><span class='l'>Groups</span></button>";
   html += "<button class='cbtn" + (G.proclaimArm ? " armed" : "") + "' data-o='proclaim'><span class='i'>📣</span><span class='l'>Proclaim</span></button>";
   html += "<button class='cbtn" + (G.foundArm ? " armed" : "") + "' data-o='found'><span class='i'>🏗</span><span class='l'>Found</span></button>";
-  html += "<button class='cbtn" + (G.claimArm ? " armed" : "") + "' data-o='claim'><span class='i'>🚩</span><span class='l'>Claim</span></button>";
+  html += "<button class='cbtn" + (G.claimArm ? " armed" : "") + "' data-o='claim' title='Claim (C key)'><span class='i'>🚩</span><span class='l'>Claim</span></button>";
   html += "<button class='cbtn" + (G.roadArm ? " armed" : "") + "' data-o='road'><span class='i'>🛣</span><span class='l'>Road</span></button>";
   html += "<button class='cbtn' data-o='story' title='Story (J key)'><span class='i'>📖</span><span class='l'>Story</span></button>";
   html += "<button class='cbtn' data-o='mute' title='Sound (M key)'><span class='i'>" + (G.ui && G.ui.muted ? "🔇" : "🔊") + "</span><span class='l'>" + (G.ui && G.ui.muted ? "Muted" : "Sound") + "</span></button>"; /* Sound's face names its state beside the icon swap, in the Follow face grammar. Display only. */
@@ -7369,6 +7369,22 @@ function bindInput(){
        would hide the decision it needs. */
     /* CF-REF: keyboard-j-story.md [1] */
     if((e.key === "j" || e.key === "J") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ storySoFar(false); }
+    /* C claim arm: the keyboard twin of the tray Claim button, so a
+       desktop player need not reach for the mouse to open the
+       bearing-plus-ring pick row. C is the button's own initial, in
+       the naming grammar of L for Lens, T for Thoughts, I for Idle,
+       M for Sound, and F for Follow, and no other key claims C. It
+       runs exactly the button's verb, including the Town gate: below
+       Town it explains the unlock instead of arming, and at Town it
+       toggles claimArm, clears the bearing and ring picks and the
+       button's own armed-verb clear list, and toasts on arming. It
+       needs no selection, like the button, which is never disabled.
+       It is guarded like a panel key: only once started, never while
+       over or an incident panel is open, never with a modifier, never
+       while typing, because a pick row over a modal decision would
+       hide the decision it needs. */
+    /* CF-REF: keyboard-c-claim.md [1] */
+    if((e.key === "c" || e.key === "C") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ if(!claimUnlocked()){ showToast("🚩 Claims unlock when the village grows into a Town."); refreshTray(true); } else { G.claimArm = !G.claimArm; G.claimBearing = null; G.claimRing = null; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.groupArm = false; if(G.claimArm) showToast((G.claim && !G.claim.staked) ? "🚩 The claim party is still out: recall them, or let them finish" : "🚩 Pick a bearing and a ring: the founding party stakes the claim and carries the materials"); refreshTray(true); } }
     /* Escape closes a panel, the keyboard twin of the sheet close
        button and the Story panel X: the topmost panel first, so an
        open Story overlay closes before the sheet behind it. An
