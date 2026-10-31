@@ -5493,7 +5493,7 @@ function refreshTray(force){
   html += "<button class='cbtn" + (a && a.order === "build" ? " on" : "") + "' data-o='build'" + (!a ? " disabled" : "") + "><span class='i'>🔨</span><span class='l'>Build</span></button></div>";
   html += "<div class='cgrp sep'><span class='glab'>Influence</span>";
   html += "<button class='cbtn" + (G.armed ? " armed" : "") + (spotFresh ? " rdyflash" : "") + "' data-o='spot'" + (!a || spotOnCd ? " disabled" : "") + "><span class='i'>✨</span><span class='l'>Spotlight" + (spotOnCd ? " · " + spotCdN + "s" : "") + "</span></button>";
-  html += "<button class='cbtn" + (G.modelArm ? " armed" : "") + "' data-o='model'" + (!a ? " disabled" : "") + "><span class='i'>👁</span><span class='l'>Model</span></button>";
+  html += "<button class='cbtn" + (G.modelArm ? " armed" : "") + "' data-o='model' title='Model (O key)'" + (!a ? " disabled" : "") + "><span class='i'>👁</span><span class='l'>Model</span></button>";
   html += "<button class='cbtn" + (G.visitArm ? " armed" : "") + "' data-o='visit' title='Visit (V key)'" + (!a ? " disabled" : "") + "><span class='i'>💬</span><span class='l'>Visit</span></button>";
   html += "<button class='cbtn" + (G.speakArm ? " armed" : "") + "' data-o='speak'><span class='i'>🕊</span><span class='l'>Speak For" + (speakCdN ? " · " + speakCdN + "s" : "") + "</span></button>";
   html += "<button class='cbtn' data-o='thoughts' title='Thoughts (T key)'" + (!a ? " disabled" : "") + "><span class='i'>💭</span><span class='l'>Thoughts</span></button></div>";
@@ -7445,6 +7445,21 @@ function bindInput(){
        modal decision would hide the decision it needs. */
     /* CF-REF: keyboard-v-visit.md [1] */
     if((e.key === "v" || e.key === "V") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) && G.selected){ G.visitArm = !G.visitArm; G.armed = false; G.modelArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.visitArm){ var vvA = agent(G.selected); showToast("💬 Tap who " + (vvA ? vvA.name.split(" ")[0] : "they") + " should visit: they walk over for a chat"); } refreshTray(true); }
+    /* O model: the keyboard twin of the tray Model button, the second
+       resident-targeted armed verb to gain a key. Model's initial M
+       is the Sound mute key, so O, the button's second letter,
+       stands for it; O is claimed by no other key. It runs exactly
+       the button's verb: toggle modelArm, clear the button's own
+       armed-verb clear list (the generic arm flag, Visit, Proclaim,
+       Speak, Cover, Groups), and toast on arming with the tap-who
+       wording naming the selected resident, plus the current model
+       when one stands. It needs a selection, like the button, which
+       is disabled with none. Guarded like a panel key: only once
+       started, never while over or an incident panel is open, never
+       with a modifier, never while typing, because an armed verb
+       over a modal decision would hide the decision it needs. */
+    /* CF-REF: keyboard-o-model.md [1] */
+    if((e.key === "o" || e.key === "O") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) && G.selected){ G.modelArm = !G.modelArm; G.armed = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.modelArm){ var moA = agent(G.selected); var mo0 = (moA && moA.model) ? agent(moA.model) : null; showToast("👁 Tap who " + (moA ? moA.name.split(" ")[0] : "they") + " should look up to: they copy them until you pick again" + (mo0 ? "; " + moA.name.split(" ")[0] + " looks up to " + mo0.name.split(" ")[0] + " now" : "")); } refreshTray(true); }
     /* Escape closes a panel, the keyboard twin of the sheet close
        button and the Story panel X: the topmost panel first, so an
        open Story overlay closes before the sheet behind it. An
