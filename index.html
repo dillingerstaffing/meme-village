@@ -5499,7 +5499,7 @@ function refreshTray(force){
   html += "<button class='cbtn' data-o='thoughts' title='Thoughts (T key)'" + (!a ? " disabled" : "") + "><span class='i'>💭</span><span class='l'>Thoughts</span></button></div>";
   if(a && !a.child && ((G.banked && a.bank != null) || (a.sick && !a.tier))){
     html += "<div class='cgrp sep'><span class='glab'>Care</span>";
-    if(a.sick && !a.tier) html += medicGone() ? "<button class='cbtn' data-o='callout' disabled><span class='i'>🚑</span><span class='l'>Call Out · no medic right now</span></button>" : "<button class='cbtn' data-o='callout'><span class='i'>🚑</span><span class='l'>Call Out · front of queue · " + TTI.spotFee + "🪙</span></button>";
+    if(a.sick && !a.tier) html += medicGone() ? "<button class='cbtn' data-o='callout' disabled><span class='i'>🚑</span><span class='l'>Call Out · no medic right now</span></button>" : "<button class='cbtn' data-o='callout' title='Call Out (Shift+O key)'><span class='i'>🚑</span><span class='l'>Call Out · front of queue · " + TTI.spotFee + "🪙</span></button>";
     if(G.banked && a.bank != null){
       if(!G.coverArm){
         html += "<button class='cbtn' data-o='cover' title='Cover (Shift+C key)'><span class='i'>🛡</span><span class='l'>Cover: " + (a.tier && TTI[a.tier] ? TTI[a.tier].name : "None") + "</span></button>";
@@ -7462,7 +7462,7 @@ function bindInput(){
        with a modifier, never while typing, because an armed verb
        over a modal decision would hide the decision it needs. */
     /* CF-REF: keyboard-o-model.md [1] */
-    if((e.key === "o" || e.key === "O") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) && G.selected){ G.modelArm = !G.modelArm; G.armed = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.modelArm){ var moA = agent(G.selected); var mo0 = (moA && moA.model) ? agent(moA.model) : null; showToast("👁 Tap who " + (moA ? moA.name.split(" ")[0] : "they") + " should look up to: they copy them until you pick again" + (mo0 ? "; " + moA.name.split(" ")[0] + " looks up to " + mo0.name.split(" ")[0] + " now" : "")); } refreshTray(true); }
+    if((e.key === "o" || e.key === "O") && !e.shiftKey && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) && G.selected){ G.modelArm = !G.modelArm; G.armed = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.modelArm){ var moA = agent(G.selected); var mo0 = (moA && moA.model) ? agent(moA.model) : null; showToast("👁 Tap who " + (moA ? moA.name.split(" ")[0] : "they") + " should look up to: they copy them until you pick again" + (mo0 ? "; " + moA.name.split(" ")[0] + " looks up to " + mo0.name.split(" ")[0] + " now" : "")); } refreshTray(true); }
     /* G spotlight: the keyboard twin of the tray Spotlight button, the third
        resident-targeted armed verb to gain a key, after Visit and Model.
        Spotlight's initial S pans the camera down in WASD, P is the pause
@@ -7546,6 +7546,29 @@ function bindInput(){
        key, so it never opens a chooser over an incident panel. */
     /* CF-REF: keyboard-shiftc-cover.md [1] */
     if((e.key === "c" || e.key === "C") && e.shiftKey && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) && G.selected){ var scA = agent(G.selected); if(scA && !scA.child && G.banked && scA.bank != null){ if(G.coverArm){ G.coverArm = false; } else { G.coverArm = true; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.foundArm = false; G.groupArm = false; showToast("🛡 Cover for " + scA.name.split(" ")[0] + " is " + (scA.tier ? TTI[scA.tier].name : "none") + " now. Premiums come out of the bank account each season. Each tier button names what it buys."); } refreshTray(true); } }
+    /* Shift+O call out: the keyboard twin of the tray Call Out button,
+       the second modifier chord in the tray grammar, after Shift+C.
+       Every letter in Call Out is already taken (C claims Claim, A
+       pans, L is Lens, O is Model, U is Build, T is Thoughts), so no
+       bare letter can name it, and a chord is deliberate here beyond
+       alphabet exhaustion: the verb spends the spot fee, so it must
+       never fire on a stray single keypress. O is the Out half of the
+       button's name, and Shift names the second verb on O, in the
+       game's own control-group grammar (Shift plus a digit assigns,
+       the digit alone recalls) and in StarCraft II, where Shift plus a
+       number adds to a group while Ctrl plus a number creates it. The
+       plain O handler therefore stands aside while Shift is held, so
+       the two chords can never both fire. The key runs exactly the
+       button's verb (callOut on the selected resident, then a tray
+       refresh) with the button's own answers, and it clears no arm:
+       Call Out commits at once, it is not an arm waiting for a target.
+       It needs a selection, like the button, which renders only for
+       the selected resident; for a healthy, tiered, or child selection
+       callOut itself refuses silently, exactly as an absent button
+       does. It is guarded like a panel key, so it never spends behind
+       an incident panel. */
+    /* CF-REF: keyboard-shifto-callout.md [1] */
+    if((e.key === "o" || e.key === "O") && e.shiftKey && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) && G.selected){ var soA = agent(G.selected); if(soA) callOut(soA); refreshTray(true); }
     /* Escape closes a panel, the keyboard twin of the sheet close
        button and the Story panel X: the topmost panel first, so an
        open Story overlay closes before the sheet behind it. An

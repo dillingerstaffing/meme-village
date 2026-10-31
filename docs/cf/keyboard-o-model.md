@@ -12,6 +12,10 @@ stands for it; O is claimed by no other key, so no mnemonic
 compromise beyond the second letter is needed. It is the second
 resident-targeted armed verb to gain a key, after Visit.
 
+Shift plus O is not Model: it is the Call Out chord (see
+keyboard-shifto-callout.md), so the plain O key stands aside while
+Shift is held, exactly as a digit stands aside for its Shift assign.
+
 O carries the button's whole verb, not just its toggle: it clears
 the button's own armed-verb clear list (the generic arm flag,
 Visit, Proclaim, Speak, Cover, Groups) and toasts on arming with

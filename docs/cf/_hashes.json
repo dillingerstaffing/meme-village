@@ -310,7 +310,7 @@
       "article": "highlight-vocabulary.md",
       "ref_line": 5486,
       "lines": 51,
-      "hash": "670f38ae"
+      "hash": "6a7dd932"
     },
     {
       "article": "minimap-canvas-tap.md",
@@ -490,7 +490,7 @@
       "article": "keyboard-o-model.md",
       "ref_line": 7464,
       "lines": 1,
-      "hash": "4cd765e0"
+      "hash": "afc1f3ab"
     },
     {
       "article": "keyboard-g-spotlight.md",
@@ -517,62 +517,68 @@
       "hash": "da8c2dd8"
     },
     {
+      "article": "keyboard-shifto-callout.md",
+      "ref_line": 7570,
+      "lines": 1,
+      "hash": "594eabc1"
+    },
+    {
       "article": "keyboard-escape-close.md",
-      "ref_line": 7556,
+      "ref_line": 7579,
       "lines": 5,
       "hash": "6edb933c"
     },
     {
       "article": "camera-key-rotate.md",
-      "ref_line": 7578,
+      "ref_line": 7601,
       "lines": 3,
       "hash": "e531be86"
     },
     {
       "article": "camera-key-pan.md",
-      "ref_line": 7587,
+      "ref_line": 7610,
       "lines": 9,
       "hash": "efb11f60"
     },
     {
       "article": "camera-key-zoom.md",
-      "ref_line": 7601,
+      "ref_line": 7624,
       "lines": 4,
       "hash": "aa847be7"
     },
     {
       "article": "camera-key-follow.md",
-      "ref_line": 7610,
+      "ref_line": 7633,
       "lines": 4,
       "hash": "ee9904ca"
     },
     {
       "article": "camera-key-reset.md",
-      "ref_line": 7619,
+      "ref_line": 7642,
       "lines": 3,
       "hash": "61098559"
     },
     {
       "article": "camera-rotate-buttons.md",
-      "ref_line": 7636,
+      "ref_line": 7659,
       "lines": 2,
       "hash": "2c372e98"
     },
     {
       "article": "camera-zoom-buttons.md",
-      "ref_line": 7643,
+      "ref_line": 7666,
       "lines": 2,
       "hash": "c38034d2"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 7733,
+      "ref_line": 7756,
       "lines": 4,
       "hash": "ce66959f"
     },
     {
       "article": "paused-toast-holds.md",
-      "ref_line": 7758,
+      "ref_line": 7781,
       "lines": 8,
       "hash": "6df5975d"
     }
