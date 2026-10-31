@@ -73,6 +73,7 @@ tap, drag, scroll, touch, pointer, gesture, tray, alerts, minimap, button, click
 | keyboard-h-road.md | H is the keyboard twin of the tray Road button: same Town-gated roadArm toggle with the button's clear list and arming toast, guarded like a panel key, so it never arms over an incident panel, and it needs no selection |
 | keyboard-v-visit.md | V is the keyboard twin of the tray Visit button: same visitArm toggle with the button's clear list and arming toast, guarded like a panel key, so it never arms over an incident panel, and it needs a selection like the button |
 | keyboard-o-model.md | O is the keyboard twin of the tray Model button: same modelArm toggle with the button's clear list and arming toast, guarded like a panel key, so it never arms over an incident panel, and it needs a selection like the button; M is the Sound mute key, so O is the button's second letter |
+| keyboard-g-spotlight.md | G is the keyboard twin of the tray Spotlight button: same generic armed toggle with the button's clear list and arming toast, guarded like a panel key, so it never arms over an incident panel, and it needs a selection and a cooled-down spotlight like the button; S pans, P pauses, O/T/L/I are taken, so G is the button's first free letter |
 | minimap-canvas-tap.md | Minimap jump is detected in endPointer at canvas level, never on the element |
 | pointercancel-never-a-tap.md | pointercancel only resets pointer state; only pointerup can become a tap |
 
