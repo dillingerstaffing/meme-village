@@ -60,6 +60,7 @@ tap, drag, scroll, touch, pointer, gesture, tray, alerts, minimap, button, click
 | control-groups.md | Three recall slots, one resident each: Groups arm plus chip tap assigns, chip tap or digit recalls and centers, a gone resident clears the slot |
 | keyboard-escape-close.md | Escape closes the topmost closable panel first (Story overlay, then sheet), never an incident panel, never a deselect |
 | keyboard-space-pause.md | Space toggles speed 0 and 1 only once started, never while over, never with a modifier, never while typing, but stays live during an incident panel as the thinking tool |
+| keyboard-p-pause.md | P is the Sims twin of Space: same toggle, same guard, same incident exception, so the canonical pause key never meets silence |
 | minimap-canvas-tap.md | Minimap jump is detected in endPointer at canvas level, never on the element |
 | pointercancel-never-a-tap.md | pointercancel only resets pointer state; only pointerup can become a tap |
 
