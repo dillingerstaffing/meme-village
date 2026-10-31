@@ -396,7 +396,7 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
     <button class="sbtn" id="rotR" type="button" title="Rotate view right (E)">↻</button>
     <button class="sbtn" id="zoomIn" type="button" title="Zoom in (wheel up, + key)">+</button>
     <button class="sbtn" id="zoomOut" type="button" title="Zoom out (wheel down, - key)">-</button>
-    <button class="sbtn" id="markBtn" type="button" title="Save this view">📌</button>
+    <button class="sbtn" id="markBtn" type="button" title="Save this view (X key)">📌</button>
   </div>
 </div>
 <div class="hud" id="toast"></div>
@@ -537,7 +537,8 @@ var Store = (function(){
        a skipped toast (until 0) is never revived. */
     "ui/toastHold": function(p){ var t = state.ui && state.ui.toast; if(t && Date.now() < t.until) t.until += (p.ms || 0); },
     /* Camera bookmarks: the player-chosen saved views (the SC2 save-location
-       grammar, four slots, F5 to F8 on desktop). The save verb reads the live
+       grammar, four slots, adapted to the browser: F5 reloads a page, so X
+       saves and the return chips recall). The save verb reads the live
        camera pose and appends it; a fifth save drops the oldest, so the ring
        always holds the four most recent views. Camera only, never sim state. */
     "ui/cammark": function(p){ if(p && typeof p.x === "number" && typeof p.z === "number"){ var ms = state.camMarks || (state.camMarks = []); ms.push({x: p.x, z: p.z, yaw: (typeof p.yaw === "number" ? p.yaw : 0), dist: (typeof p.dist === "number" ? p.dist : 38)}); if(ms.length > 4) ms.shift(); } },
@@ -6762,6 +6763,8 @@ window.__lastAlertFocus = function(){ var la = G.lastAlert, f = la && la.focus; 
    a nearby one. A chip only renders while its slot exists, so a missing slot
    here answers loudly instead of jumping nowhere. */
 window.__camMarkFocus = function(ix){ var ms = G.camMarks || []; var m = ms[typeof ix === "number" ? ix : 0]; if(!m){ showToast("No saved view yet"); return; } cam.target.x = Math.max(-62, Math.min(62, m.x)); cam.target.z = Math.max(-48, Math.min(48, m.z)); cam.yaw = m.yaw; cam.dist = m.dist; cam.follow = null; };
+/* Camera bookmark save, shared by the pin button and the X key so the two can never disagree: one call appends the live pose through ui/cammark, toasts the slot just saved (or the drop on overflow), and refreshes the tray. Camera only, never sim state. */
+window.__saveCamMark = function(){ var before = (G.camMarks || []).length; Store.dispatch("ui/cammark", {x: cam.target.x, z: cam.target.z, yaw: cam.yaw, dist: cam.dist}); var n = (G.camMarks || []).length; showToast(before >= 4 ? "📌 View 4 saved, oldest view replaced: tap its chip to return" : "📌 View " + n + " saved: tap its chip to return"); refreshTray(true); };
 /* Control groups (spec section 26): assign saves the selected
    resident to a slot through the dispatch door, recall selects
    the slot's resident and centers the camera once, clearing any
@@ -7643,6 +7646,9 @@ function bindInput(){
     if((e.key === "r" || e.key === "R" || e.key === "Home") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){
       e.preventDefault(); cam.target.set(0, 0, 4); cam.yaw = 0; cam.dist = 38; cam.follow = null; refreshTray(true);
     }
+    /* Camera key mark: X is the keyboard twin of the pin button, so a desktop player need not reach for the mouse to mark a spot. X marks the spot, and X is the one free letter: A, S, D, and W pan, Q and E rotate, R resets, F follows, and every other letter is a tray or speed key. It runs the shared __saveCamMark verb, exactly the button's verb, so the key and the button can never disagree. It needs no selection and never changes one, like the reset button, and it clears no arm, because saving a view is camera only, never sim state. Guarded like every other camera key: only once started, never while over or an incident panel is open, never with a modifier, never while typing. */
+    /* CF-REF: keyboard-x-mark.md [1] */
+    if((e.key === "x" || e.key === "X") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ __saveCamMark(); }
   });
 }
 function setSpeed(n){
@@ -7666,12 +7672,8 @@ document.getElementById("rotR").addEventListener("click", function(){ cam.yaw -=
 /* CF-REF: camera-zoom-buttons.md [2] */
 document.getElementById("zoomIn").addEventListener("click", function(){ cam.dist = Math.max(15, Math.min(62, cam.dist * 0.9)); });
 document.getElementById("zoomOut").addEventListener("click", function(){ cam.dist = Math.max(15, Math.min(62, cam.dist * 1.1)); });
-/* Camera bookmark save: one tap appends the current pose through the
-   ui/cammark dispatch (the button sits inside #speeds, so on phones it
-   rides the thumb-zone move into the tray with the reset button). The
-   toast names the slot just saved, and on overflow it names the drop,
-   so the save is never silent and the ring's size is never a surprise. */
-document.getElementById("markBtn").addEventListener("click", function(){ var before = (G.camMarks || []).length; Store.dispatch("ui/cammark", {x: cam.target.x, z: cam.target.z, yaw: cam.yaw, dist: cam.dist}); var n = (G.camMarks || []).length; showToast(before >= 4 ? "📌 View 4 saved, oldest view replaced: tap its chip to return" : "📌 View " + n + " saved: tap its chip to return"); refreshTray(true); });
+/* Camera bookmark save button: one tap runs the shared __saveCamMark verb (the button sits inside #speeds, so on phones it rides the thumb-zone move into the tray with the reset button). The toast names the slot just saved, and on overflow it names the drop, so the save is never silent and the ring's size is never a surprise. The X key runs the same verb. */
+document.getElementById("markBtn").addEventListener("click", function(){ __saveCamMark(); });
 /* Thumb-zone rule (mobile): pause/speed/camera are the highest-urgency controls, so on small screens they move out of the top-right corner and into the bottom tray, where a thumb reaches without shifting grip. Pure CSS moves nothing across parents, so the reparenting happens here; CSS lays it out as the tray's own right-aligned row. */
 function placeSpeeds(){
   var sp = document.getElementById("speeds"), tray = document.getElementById("tray"), tr = document.getElementById("topRight");
