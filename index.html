@@ -7271,6 +7271,21 @@ function bindInput(){
     if((e.key === "1" || e.key === "2" || e.key === "3") && G && G.started && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ var gslot = Number(e.key) - 1; if(e.shiftKey) __groupAssign(gslot); else __groupRecall(gslot); }
     if(e.key === "q" || e.key === "Q") cam.yaw += 0.35;
     if(e.key === "e" || e.key === "E") cam.yaw -= 0.35;
+    /* Camera key pan: arrow keys and WASD move the view, the keyboard
+       twin of drag panning, so a desktop player need not reach for the
+       mouse to look around. One press steps cam.dist * 0.12 along the
+       yaw-relative axes, clamped to the camera bounds, and clears a
+       camera follow like a drag does, instead of fighting it. */
+    /* CF-REF: camera-key-pan.md [9] */
+    if(G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){
+      var pk = (e.key === "ArrowUp" || e.key === "w" || e.key === "W") ? "up" : (e.key === "ArrowDown" || e.key === "s" || e.key === "S") ? "down" : (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") ? "left" : (e.key === "ArrowRight" || e.key === "d" || e.key === "D") ? "right" : null;
+      if(pk){ e.preventDefault(); var ps = cam.dist * 0.12, fx = -Math.sin(cam.yaw), fz = -Math.cos(cam.yaw), rx = Math.cos(cam.yaw), rz = -Math.sin(cam.yaw);
+        if(pk === "up"){ cam.target.x += fx * ps; cam.target.z += fz * ps; }
+        else if(pk === "down"){ cam.target.x -= fx * ps; cam.target.z -= fz * ps; }
+        else if(pk === "left"){ cam.target.x -= rx * ps; cam.target.z -= rz * ps; }
+        else { cam.target.x += rx * ps; cam.target.z += rz * ps; }
+        cam.target.x = Math.max(-62, Math.min(62, cam.target.x)); cam.target.z = Math.max(-48, Math.min(48, cam.target.z)); cam.follow = null; }
+    }
   });
 }
 function setSpeed(n){

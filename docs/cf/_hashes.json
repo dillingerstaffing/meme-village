@@ -284,151 +284,157 @@
     },
     {
       "article": "desires-travel-the-graph.md",
-      "ref_line": 4944,
+      "ref_line": 4946,
       "lines": 19,
       "hash": "23d42fdb"
     },
     {
       "article": "chronicle-and-saves.md",
-      "ref_line": 5117,
+      "ref_line": 5119,
       "lines": 143,
       "hash": "14f58f1a"
     },
     {
       "article": "follow-edge-scroll.md",
-      "ref_line": 5356,
+      "ref_line": 5358,
       "lines": 1,
       "hash": "294ed892"
     },
     {
       "article": "axis-label-selected-surfaces.md",
-      "ref_line": 5471,
+      "ref_line": 5473,
       "lines": 2,
       "hash": "6caa504a"
     },
     {
       "article": "highlight-vocabulary.md",
-      "ref_line": 5484,
+      "ref_line": 5486,
       "lines": 51,
       "hash": "c2b96131"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 5778,
+      "ref_line": 5780,
       "lines": 39,
       "hash": "d5a4f014"
     },
     {
       "article": "claim-minimap.md",
-      "ref_line": 5844,
+      "ref_line": 5846,
       "lines": 12,
       "hash": "bb41812d"
     },
     {
       "article": "rivalry-drift.md",
-      "ref_line": 5892,
+      "ref_line": 5894,
       "lines": 8,
       "hash": "2a88a8fe"
     },
     {
       "article": "desire-lens.md",
-      "ref_line": 5910,
+      "ref_line": 5912,
       "lines": 31,
       "hash": "a56463cc"
     },
     {
       "article": "proclaim-minimap.md",
-      "ref_line": 5967,
+      "ref_line": 5969,
       "lines": 12,
       "hash": "8dd93f23"
     },
     {
       "article": "idle-finder.md",
-      "ref_line": 6372,
+      "ref_line": 6382,
       "lines": 1,
       "hash": "c15e1718"
     },
     {
       "article": "control-groups.md",
-      "ref_line": 6399,
+      "ref_line": 6409,
       "lines": 2,
       "hash": "244f102f"
     },
     {
       "article": "phone-alerts-shed-on-collision.md",
-      "ref_line": 6424,
+      "ref_line": 6434,
       "lines": 14,
       "hash": "1a0927f2"
     },
     {
       "article": "phone-stats-compact-during-picks.md",
-      "ref_line": 6469,
+      "ref_line": 6479,
       "lines": 2,
       "hash": "4448d346"
     },
     {
       "article": "sheet-below-objective-card.md",
-      "ref_line": 6512,
+      "ref_line": 6522,
       "lines": 16,
       "hash": "6b2224dc"
     },
     {
       "article": "desires-travel-the-graph.md",
-      "ref_line": 6609,
+      "ref_line": 6619,
       "lines": 33,
       "hash": "89ae1cb6"
     },
     {
       "article": "coach-teach-line.md",
-      "ref_line": 6699,
+      "ref_line": 6709,
       "lines": 10,
       "hash": "c762b273"
     },
     {
       "article": "idle-finder.md",
-      "ref_line": 6745,
+      "ref_line": 6755,
       "lines": 6,
       "hash": "ce6fdd68"
     },
     {
       "article": "overlay-anchor-budget.md",
-      "ref_line": 6908,
+      "ref_line": 6918,
       "lines": 66,
       "hash": "9a9122e9"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 7229,
+      "ref_line": 7239,
       "lines": 11,
       "hash": "27da632f"
     },
     {
       "article": "pointercancel-never-a-tap.md",
-      "ref_line": 7242,
+      "ref_line": 7252,
       "lines": 4,
       "hash": "3471fc97"
     },
     {
+      "article": "camera-key-pan.md",
+      "ref_line": 7279,
+      "lines": 9,
+      "hash": "efb11f60"
+    },
+    {
       "article": "camera-rotate-buttons.md",
-      "ref_line": 7277,
+      "ref_line": 7302,
       "lines": 2,
       "hash": "2c372e98"
     },
     {
       "article": "camera-zoom-buttons.md",
-      "ref_line": 7284,
+      "ref_line": 7309,
       "lines": 2,
       "hash": "c38034d2"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 7374,
+      "ref_line": 7399,
       "lines": 4,
       "hash": "ce66959f"
     },
     {
       "article": "paused-toast-holds.md",
-      "ref_line": 7399,
+      "ref_line": 7424,
       "lines": 8,
       "hash": "6df5975d"
     }
