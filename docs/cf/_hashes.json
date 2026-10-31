@@ -409,62 +409,68 @@
       "hash": "3471fc97"
     },
     {
+      "article": "keyboard-space-pause.md",
+      "ref_line": 7276,
+      "lines": 1,
+      "hash": "72f09793"
+    },
+    {
       "article": "keyboard-escape-close.md",
-      "ref_line": 7273,
+      "ref_line": 7285,
       "lines": 5,
       "hash": "6edb933c"
     },
     {
       "article": "camera-key-rotate.md",
-      "ref_line": 7291,
+      "ref_line": 7307,
       "lines": 3,
       "hash": "e531be86"
     },
     {
       "article": "camera-key-pan.md",
-      "ref_line": 7300,
+      "ref_line": 7316,
       "lines": 9,
       "hash": "efb11f60"
     },
     {
       "article": "camera-key-zoom.md",
-      "ref_line": 7314,
+      "ref_line": 7330,
       "lines": 4,
       "hash": "aa847be7"
     },
     {
       "article": "camera-key-follow.md",
-      "ref_line": 7323,
+      "ref_line": 7339,
       "lines": 4,
       "hash": "ee9904ca"
     },
     {
       "article": "camera-key-reset.md",
-      "ref_line": 7332,
+      "ref_line": 7348,
       "lines": 3,
       "hash": "61098559"
     },
     {
       "article": "camera-rotate-buttons.md",
-      "ref_line": 7349,
+      "ref_line": 7365,
       "lines": 2,
       "hash": "2c372e98"
     },
     {
       "article": "camera-zoom-buttons.md",
-      "ref_line": 7356,
+      "ref_line": 7372,
       "lines": 2,
       "hash": "c38034d2"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 7446,
+      "ref_line": 7462,
       "lines": 4,
       "hash": "ce66959f"
     },
     {
       "article": "paused-toast-holds.md",
-      "ref_line": 7471,
+      "ref_line": 7487,
       "lines": 8,
       "hash": "6df5975d"
     }

@@ -7262,7 +7262,19 @@ function bindInput(){
     if(p.agent){ Store.dispatch("ui/select", {id: p.agent}); cam.follow = (cam.follow === p.agent) ? null : p.agent; refreshTray(true); }
   });
   document.addEventListener("keydown", function(e){
-    if(e.code === "Space"){ e.preventDefault(); setSpeed(G.speed === 0 ? 1 : 0); }
+    /* Space pause: the keyboard twin of the speed buttons, toggling
+       speed 0 and 1 (from 2x it pauses, like the old bare line).
+       Guarded like every other key except one deliberate exception:
+       only once started, never while over, never with a Ctrl, Meta,
+       or Alt modifier, never while typing, but STILL live while an
+       incident panel stands, because pausing is the thinking tool
+       and freezing the sim behind a decision disturbs nothing, unlike
+       a camera or selection key; the panel still needs its choice.
+       Before this guard, Space on the title screen flipped speed to
+       0 and beginGame never reset it, so the village started paused
+       with no explanation. */
+    /* CF-REF: keyboard-space-pause.md [1] */
+    if(e.code === "Space" && G && G.started && !G.over && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ e.preventDefault(); setSpeed(G.speed === 0 ? 1 : 0); }
     /* Escape closes a panel, the keyboard twin of the sheet close
        button and the Story panel X: the topmost panel first, so an
        open Story overlay closes before the sheet behind it. An
