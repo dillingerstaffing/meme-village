@@ -4862,8 +4862,10 @@ function endWeek(){
        scarcity drift target, game-spec section 2) must be forecast while the
        player can still act, not only announced on arrival. Fires once per
        autumn at the boundary, only when stores are low enough that winter
-       will actually bite. Display only, zero sim change. */
-    if(!G.over && (G.stores || 0) < 40) showToast("\u2744 Winter comes next season: scarcity will climb. Fill the storehouse while you can.");
+       will actually bite. It names the Fields as the answering work, in
+       the failing-toast grammar: a warning names its counter-move.
+       Display only, zero sim change. */
+    if(!G.over && (G.stores || 0) < 40) showToast("\u2744 Winter comes next season: scarcity will climb. Work the Fields while you can.");
   }
   if(seasonOfYear() === 4) winterDeaths();
   if(seasonOfYear() === 1){
@@ -4875,7 +4877,7 @@ function endWeek(){
   }
   drawOffer();
   SND.play("week");
-  if(isWinter()) setTimeout(function(){ if(!G.over) showToast("❄ Winter: scarcity climbs faster. Keep the storehouse full."); }, 1200);
+  if(isWinter()) setTimeout(function(){ if(!G.over) showToast("❄ Winter: scarcity climbs faster. Work the Fields to keep the storehouse full."); }, 1200);
   arrivalCheck();
   /* Stage X: the village raises one building of its own at the
      boundary, after arrivals and departures have resolved. */
