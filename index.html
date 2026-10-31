@@ -5490,7 +5490,7 @@ function refreshTray(force){
     var wnt = a && a.want && a.want.station === c.id;
     return "<button class='cbtn" + (on ? " on" : "") + "' data-o='" + c.id + "'" + (!a ? " disabled" : "") + "><span class='i'>" + c.icon + "</span><span class='l'>" + c.label + "</span>" + (wnt ? "<span class='wb'>💭</span>" : "") + "</button>";
   }).join("");
-  html += "<button class='cbtn" + (a && a.order === "build" ? " on" : "") + "' data-o='build'" + (!a ? " disabled" : "") + "><span class='i'>🔨</span><span class='l'>Build</span></button></div>";
+  html += "<button class='cbtn" + (a && a.order === "build" ? " on" : "") + "' data-o='build' title='Build (U key)'" + (!a ? " disabled" : "") + "><span class='i'>🔨</span><span class='l'>Build</span></button></div>";
   html += "<div class='cgrp sep'><span class='glab'>Influence</span>";
   html += "<button class='cbtn" + (G.armed ? " armed" : "") + (spotFresh ? " rdyflash" : "") + "' data-o='spot' title='Spotlight (G key)'" + (!a || spotOnCd ? " disabled" : "") + "><span class='i'>✨</span><span class='l'>Spotlight" + (spotOnCd ? " · " + spotCdN + "s" : "") + "</span></button>";
   html += "<button class='cbtn" + (G.modelArm ? " armed" : "") + "' data-o='model' title='Model (O key)'" + (!a ? " disabled" : "") + "><span class='i'>👁</span><span class='l'>Model</span></button>";
@@ -7479,6 +7479,22 @@ function bindInput(){
        needs. */
     /* CF-REF: keyboard-g-spotlight.md [1] */
     if((e.key === "g" || e.key === "G") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) && G.selected && G.spotCd <= G.t){ G.armed = !G.armed; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.armed) showToast("✨ Tap a resident to spotlight them: a 20s shield, then a 45s cooldown"); refreshTray(true); }
+    /* U build: the keyboard twin of the tray Build button, so a desktop
+       player need not reach for the mouse to send the selected resident
+       to the open building site. Build's initial B arms the Proclaim
+       verb, so U, the button's second letter, stands for it, in the
+       second-letter grammar of O for Model (M is the Sound mute key);
+       U is claimed by no other key. It runs exactly the button's verb:
+       with a site open it calls setOrder3("build"), which carries the
+       sick, child, and standing-order answers itself, and with no site
+       open it toasts the no-site wording instead of ordering. It needs
+       a selection, like the button, which is disabled with none.
+       Guarded like a panel key: only once started, never while over
+       or an incident panel is open, never with a modifier, never
+       while typing, because an order behind a modal decision would
+       hide the decision it needs. */
+    /* CF-REF: keyboard-u-build.md [1] */
+    if((e.key === "u" || e.key === "U") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) && G.selected){ var ubA = agent(G.selected); if(ubA && !firstSiteOpen()){ showToast("🔨 No building site is open right now. Found a building first, or let the current one finish."); } else { setOrder3("build"); } }
     /* Escape closes a panel, the keyboard twin of the sheet close
        button and the Story panel X: the topmost panel first, so an
        open Story overlay closes before the sheet behind it. An
