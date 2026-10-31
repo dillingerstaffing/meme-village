@@ -288,9 +288,9 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
   #tray{flex-wrap:wrap}
   #tray #speeds{flex-basis:100%;justify-content:flex-end;gap:3px}
   /* Phone: the speeds row carries nine buttons once zoom joins it, so
-     the tray row narrows its buttons (side padding only, height and
-     font unchanged) to keep the whole row inside the tray at 390 and
-     375 without shrinking any tap height. */
+     its two-row grid layout lives in the tray-grammar block below:
+     nine 44px buttons cannot fit one 374px row, and narrowing them
+     below the thumb target was the old compromise. */
   #tray .sbtn{padding:10px 10px;font-size:13px}
   #selInfo{min-width:102px;max-width:118px}
   #selInfo .st{display:none}
@@ -334,6 +334,21 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
   .cgrp{gap:5px}
   .cgrp.sep{border-left:none;padding-left:0;border-top:1px solid var(--line);padding-top:8px}
   #tray #speeds{order:3;flex-basis:auto;flex:none}
+  /* Phone speeds row meets the 44px thumb target: nine buttons at 44px
+     need 396px plus gaps, more than the 374px tray inner width at 390
+     (359px at 375), so one row can only fit by shrinking buttons below
+     the target (measured: zoom-out 26px wide, every button 40px tall).
+     The row is therefore a five-column grid in two rows (five plus
+     four), each button at least 44px tall and a full grid cell wide,
+     so every speeds button is a thumb target, not a padding tweak.
+     The collapsed tray cap rises with it: padding plus two 44px rows
+     plus the row gap is 103px, so the 60px cap would clip the second
+     row. hudTick already re-pins the stats panel and the alerts stack
+     from the tray's measured height, so the taller tray pushes nothing
+     over the card. Desktop keeps the single flex row. */
+  #tray #speeds{display:grid;grid-template-columns:repeat(5,1fr);gap:3px}
+  #tray #speeds .sbtn{min-height:44px;padding:10px 4px}
+  #tray:not(.selopen){max-height:110px}
   #selInfo .selX{display:block;position:absolute;top:0;right:0;width:30px;height:30px;background:#131a23;border:1px solid var(--line);color:var(--ink);border-radius:8px;font-size:13px;cursor:pointer;padding:0}
 }
 @media (max-width:560px) and (prefers-reduced-motion: reduce){

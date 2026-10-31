@@ -16,6 +16,11 @@ resident at the new distance instead of dropping them. The button
 titles name the wheel directions they mirror.
 
 On phones the tray speeds row carries nine buttons once zoom joins
-it, so the tray row narrows its buttons by side padding only: height
-and font are unchanged, and the whole row still fits the tray at 390
-and 375 with no button overlapping another.
+it, and nine 44px buttons cannot fit one tray row (396px plus gaps
+against 374px inner width at 390, 359px at 375), so the row is a
+five-column grid in two rows (five plus four), each button at least
+44px tall and a full grid cell wide, and the collapsed tray cap rises
+to 110px so the second row is never clipped. The whole row still fits
+the tray at 390 and 375 with no button overlapping another, and the
+stats panel and alerts stack re-pin from the tray's measured height,
+so the taller tray covers nothing.
