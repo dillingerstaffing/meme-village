@@ -65,6 +65,7 @@ tap, drag, scroll, touch, pointer, gesture, tray, alerts, minimap, button, click
 | keyboard-m-mute.md | M is the keyboard twin of the tray Sound button: same verb, same guard, same incident exception as the pause keys, so the canonical mute key never meets silence |
 | keyboard-i-idle.md | I is the keyboard twin of the tray Idle button: same shared verb, guarded like a selection key, so it never cycles the selection behind an incident panel |
 | keyboard-t-thoughts.md | T is the keyboard twin of the tray Thoughts button: same sheet-open verb, guarded like a panel key, so it never opens a sheet over an incident panel or with no selection |
+| keyboard-l-lens.md | L is the keyboard twin of the tray Lens button: same lensArm toggle, guarded like a panel key, so it never arms the pick row over an incident panel, and it needs no selection |
 | minimap-canvas-tap.md | Minimap jump is detected in endPointer at canvas level, never on the element |
 | pointercancel-never-a-tap.md | pointercancel only resets pointer state; only pointerup can become a tap |
 

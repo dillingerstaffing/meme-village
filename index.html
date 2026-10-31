@@ -5538,7 +5538,7 @@ function refreshTray(force){
   html += "<button class='cbtn" + (G.roadArm ? " armed" : "") + "' data-o='road'><span class='i'>🛣</span><span class='l'>Road</span></button>";
   html += "<button class='cbtn' data-o='story'><span class='i'>📖</span><span class='l'>Story</span></button>";
   html += "<button class='cbtn' data-o='mute' title='Sound (M key)'><span class='i'>" + (G.ui && G.ui.muted ? "🔇" : "🔊") + "</span><span class='l'>" + (G.ui && G.ui.muted ? "Muted" : "Sound") + "</span></button>"; /* Sound's face names its state beside the icon swap, in the Follow face grammar. Display only. */
-  html += "<button class='cbtn' data-o='lens'><span class='i'>" + ((G.ui && G.ui.lens === "desire") ? "👁" : (G.ui && G.ui.lens ? "⚔" : "🗺")) + "</span><span class='l'>" + ((G.ui && G.ui.lens === "desire") ? "Desire" : (G.ui && G.ui.lens ? "Tension" : "Lens")) + "</span></button></div>";
+  html += "<button class='cbtn' data-o='lens' title='Lens (L key)'><span class='i'>" + ((G.ui && G.ui.lens === "desire") ? "👁" : (G.ui && G.ui.lens ? "⚔" : "🗺")) + "</span><span class='l'>" + ((G.ui && G.ui.lens === "desire") ? "Desire" : (G.ui && G.ui.lens ? "Tension" : "Lens")) + "</span></button></div>";
   var cmds = document.getElementById("cmds");
   cmds.innerHTML = html;
   cmds.querySelectorAll(".cbtn").forEach(function(b){
@@ -7340,6 +7340,20 @@ function bindInput(){
        modal decision would hide the decision it needs. */
     /* CF-REF: keyboard-t-thoughts.md [1] */
     if((e.key === "t" || e.key === "T") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) && G.selected){ Store.dispatch("ui/sheet", {id:G.selected}); }
+    /* L lens chooser: the keyboard twin of the tray Lens button, so a
+       desktop player need not reach for the mouse to open the view
+       layer chooser. L is the button's own initial, in the naming
+       grammar of T for Thoughts, I for Idle, M for Sound, and F for
+       Follow. It runs exactly the button's verb (toggle lensArm,
+       refresh the tray, which renders the pick row) and needs no
+       selection, like the button, which is never disabled. It is
+       guarded like a panel key, not like the display-only pause and
+       mute keys: only once started, never while over or an incident
+       panel is open, never with a modifier, never while typing,
+       because a pick row over a modal decision would hide the
+       decision it needs. */
+    /* CF-REF: keyboard-l-lens.md [1] */
+    if((e.key === "l" || e.key === "L") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ G.lensArm = !G.lensArm; refreshTray(true); }
     /* Escape closes a panel, the keyboard twin of the sheet close
        button and the Story panel X: the topmost panel first, so an
        open Story overlay closes before the sheet behind it. An
