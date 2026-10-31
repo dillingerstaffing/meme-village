@@ -70,6 +70,7 @@ tap, drag, scroll, touch, pointer, gesture, tray, alerts, minimap, button, click
 | keyboard-c-claim.md | C is the keyboard twin of the tray Claim button: same Town-gated claimArm toggle, guarded like a panel key, so it never arms the pick row over an incident panel, and it needs no selection |
 | keyboard-b-proclaim.md | B is the keyboard twin of the tray Proclaim button: same proclaimArm toggle with the button's clear list and arming toast, guarded like a panel key, so it never arms over an incident panel, and it needs no selection |
 | keyboard-n-found.md | N is the keyboard twin of the tray Found button: same foundArm toggle with the button's clear list and arming toast, guarded like a panel key, so it never arms over an incident panel, and it needs no selection |
+| keyboard-h-road.md | H is the keyboard twin of the tray Road button: same Town-gated roadArm toggle with the button's clear list and arming toast, guarded like a panel key, so it never arms over an incident panel, and it needs no selection |
 | minimap-canvas-tap.md | Minimap jump is detected in endPointer at canvas level, never on the element |
 | pointercancel-never-a-tap.md | pointercancel only resets pointer state; only pointerup can become a tap |
 

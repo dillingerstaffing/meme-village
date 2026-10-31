@@ -5535,7 +5535,7 @@ function refreshTray(force){
   html += "<button class='cbtn" + (G.proclaimArm ? " armed" : "") + "' data-o='proclaim' title='Proclaim (B key)'><span class='i'>📣</span><span class='l'>Proclaim</span></button>";
   html += "<button class='cbtn" + (G.foundArm ? " armed" : "") + "' data-o='found' title='Found (N key)'><span class='i'>🏗</span><span class='l'>Found</span></button>";
   html += "<button class='cbtn" + (G.claimArm ? " armed" : "") + "' data-o='claim' title='Claim (C key)'><span class='i'>🚩</span><span class='l'>Claim</span></button>";
-  html += "<button class='cbtn" + (G.roadArm ? " armed" : "") + "' data-o='road'><span class='i'>🛣</span><span class='l'>Road</span></button>";
+  html += "<button class='cbtn" + (G.roadArm ? " armed" : "") + "' data-o='road' title='Road (H key)'><span class='i'>🛣</span><span class='l'>Road</span></button>";
   html += "<button class='cbtn' data-o='story' title='Story (J key)'><span class='i'>📖</span><span class='l'>Story</span></button>";
   html += "<button class='cbtn' data-o='mute' title='Sound (M key)'><span class='i'>" + (G.ui && G.ui.muted ? "🔇" : "🔊") + "</span><span class='l'>" + (G.ui && G.ui.muted ? "Muted" : "Sound") + "</span></button>"; /* Sound's face names its state beside the icon swap, in the Follow face grammar. Display only. */
   html += "<button class='cbtn' data-o='lens' title='Lens (L key)'><span class='i'>" + ((G.ui && G.ui.lens === "desire") ? "👁" : (G.ui && G.ui.lens ? "⚔" : "🗺")) + "</span><span class='l'>" + ((G.ui && G.ui.lens === "desire") ? "Desire" : (G.ui && G.ui.lens ? "Tension" : "Lens")) + "</span></button></div>";
@@ -7414,6 +7414,22 @@ function bindInput(){
        needs no selection, like the button, which is never disabled. */
     /* CF-REF: keyboard-n-found.md [1] */
     if((e.key === "n" || e.key === "N") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ G.foundArm = !G.foundArm; G.foundPlot = null; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.foundArm){ showToast("🏗 Tap a surveyed plot (gold ring) to found a building" + foundNextRungText()); } refreshTray(true); }
+    /* H road: the keyboard twin of the tray Road button, the
+       Town-tier CONNECT verb. R is taken (camera reset, with Home
+       as its twin), so H stands for Highway: the road network
+       between stations. Guarded like a panel key, not like the
+       display-only pause and mute keys: only once started, never
+       while over, never while an incident panel stands, never with
+       a Ctrl, Meta, or Alt modifier, never while typing. It needs
+       no selection, like the button, which is never disabled.
+       Below Town it explains the Town unlock instead of arming,
+       exactly like the button; at Town it runs exactly the button's
+       verb (toggle roadArm, clear the two station picks, clear the
+       button's own armed-verb clear list, toast on arming with the
+       crew-out wording when a road is under way, else the
+       tap-two-stations wording). */
+    /* CF-REF: keyboard-h-road.md [1] */
+    if((e.key === "h" || e.key === "H") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ if(!roadUnlocked()){ showToast("🛣 Roads unlock when the village grows into a Town."); refreshTray(true); } else { G.roadArm = !G.roadArm; G.roadFrom = null; G.roadTo = null; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.claimArm = false; G.groupArm = false; if(G.roadArm) showToast((G.roadBuild && !G.roadBuild.built) ? "🛣 The road crew is still out: recall them, or let them finish" : "🛣 Tap one station, then another: the crew lays a road between them"); refreshTray(true); } }
     /* Escape closes a panel, the keyboard twin of the sheet close
        button and the Story panel X: the topmost panel first, so an
        open Story overlay closes before the sheet behind it. An
