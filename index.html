@@ -388,7 +388,7 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
   <span class="chip">📦 Stores <b id="storesN">0</b> &nbsp; 👀 Copied <b id="copiedN">0</b></span>
   <span class="chip" id="coinChip">🪙 <b id="coinsN">0</b></span>
   <div id="speeds">
-    <button class="sbtn" id="sp0" type="button" title="Pause (Space or P key)">❚❚</button>
+    <button class="sbtn" id="sp0" type="button" title="Pause (Space, P, or 0 key)">❚❚</button>
     <button class="sbtn on" id="sp1" type="button">1x</button>
     <button class="sbtn" id="sp2" type="button">2x</button>
     <button class="sbtn" id="camBtn" type="button" title="Reset camera (R or Home key). WASD or arrow keys pan the view">🎥</button>
@@ -7285,6 +7285,17 @@ function bindInput(){
        for the canonical pause key got silence. */
     /* CF-REF: keyboard-p-pause.md [1] */
     if((e.key === "p" || e.key === "P") && G && G.started && !G.over && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ setSpeed(G.speed === 0 ? 1 : 0); }
+    /* 0 pause: the Sims twin of P and Space, toggling speed 0 and 1
+       (from 2x it pauses, like Space). Guarded exactly like Space
+       and P, including the same deliberate incident exception: only
+       once started, never while over, never with a Ctrl, Meta, or
+       Alt modifier, never while typing, but STILL live while an
+       incident panel stands, because pausing is the thinking tool.
+       Before this line, 0 did nothing at all, so a Sims player
+       reaching for the other canonical pause key got silence. The
+       digit is free: group slots are 1, 2, and 3 only. */
+    /* CF-REF: keyboard-0-pause.md [1] */
+    if(e.key === "0" && G && G.started && !G.over && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ setSpeed(G.speed === 0 ? 1 : 0); }
     /* Escape closes a panel, the keyboard twin of the sheet close
        button and the Story panel X: the topmost panel first, so an
        open Story overlay closes before the sheet behind it. An
