@@ -310,185 +310,191 @@
       "article": "highlight-vocabulary.md",
       "ref_line": 5486,
       "lines": 51,
-      "hash": "6c7152d8"
+      "hash": "8a24aa18"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 5780,
+      "ref_line": 5764,
       "lines": 39,
       "hash": "d5a4f014"
     },
     {
       "article": "claim-minimap.md",
-      "ref_line": 5846,
+      "ref_line": 5830,
       "lines": 12,
       "hash": "bb41812d"
     },
     {
       "article": "rivalry-drift.md",
-      "ref_line": 5894,
+      "ref_line": 5878,
       "lines": 8,
       "hash": "2a88a8fe"
     },
     {
       "article": "desire-lens.md",
-      "ref_line": 5912,
+      "ref_line": 5896,
       "lines": 31,
       "hash": "a56463cc"
     },
     {
       "article": "proclaim-minimap.md",
-      "ref_line": 5969,
+      "ref_line": 5953,
       "lines": 12,
       "hash": "8dd93f23"
     },
     {
       "article": "idle-finder.md",
-      "ref_line": 6382,
+      "ref_line": 6366,
       "lines": 1,
       "hash": "c15e1718"
     },
     {
       "article": "control-groups.md",
-      "ref_line": 6409,
+      "ref_line": 6393,
       "lines": 2,
       "hash": "a54bcfa7"
     },
     {
       "article": "phone-alerts-shed-on-collision.md",
-      "ref_line": 6434,
+      "ref_line": 6418,
       "lines": 14,
       "hash": "1a0927f2"
     },
     {
       "article": "phone-stats-compact-during-picks.md",
-      "ref_line": 6479,
+      "ref_line": 6463,
       "lines": 2,
       "hash": "4448d346"
     },
     {
       "article": "sheet-below-objective-card.md",
-      "ref_line": 6522,
+      "ref_line": 6506,
       "lines": 16,
       "hash": "6b2224dc"
     },
     {
       "article": "desires-travel-the-graph.md",
-      "ref_line": 6619,
+      "ref_line": 6603,
       "lines": 33,
       "hash": "89ae1cb6"
     },
     {
       "article": "coach-teach-line.md",
-      "ref_line": 6709,
+      "ref_line": 6693,
       "lines": 10,
       "hash": "c762b273"
     },
     {
       "article": "idle-finder.md",
-      "ref_line": 6755,
+      "ref_line": 6739,
       "lines": 6,
       "hash": "ce6fdd68"
     },
     {
       "article": "overlay-anchor-budget.md",
-      "ref_line": 6918,
+      "ref_line": 6922,
       "lines": 66,
       "hash": "9a9122e9"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 7239,
+      "ref_line": 7243,
       "lines": 11,
       "hash": "27da632f"
     },
     {
       "article": "pointercancel-never-a-tap.md",
-      "ref_line": 7252,
+      "ref_line": 7256,
       "lines": 4,
       "hash": "3471fc97"
     },
     {
       "article": "keyboard-space-pause.md",
-      "ref_line": 7276,
+      "ref_line": 7280,
       "lines": 1,
       "hash": "72f09793"
     },
     {
       "article": "keyboard-p-pause.md",
-      "ref_line": 7286,
+      "ref_line": 7290,
       "lines": 1,
       "hash": "27e58082"
     },
     {
       "article": "keyboard-0-pause.md",
-      "ref_line": 7297,
+      "ref_line": 7301,
       "lines": 1,
       "hash": "d107aa16"
     },
     {
       "article": "keyboard-m-mute.md",
-      "ref_line": 7309,
+      "ref_line": 7313,
       "lines": 1,
       "hash": "e50981cd"
     },
     {
+      "article": "keyboard-i-idle.md",
+      "ref_line": 7327,
+      "lines": 1,
+      "hash": "0919d9e5"
+    },
+    {
       "article": "keyboard-escape-close.md",
-      "ref_line": 7318,
+      "ref_line": 7336,
       "lines": 5,
       "hash": "6edb933c"
     },
     {
       "article": "camera-key-rotate.md",
-      "ref_line": 7340,
+      "ref_line": 7358,
       "lines": 3,
       "hash": "e531be86"
     },
     {
       "article": "camera-key-pan.md",
-      "ref_line": 7349,
+      "ref_line": 7367,
       "lines": 9,
       "hash": "efb11f60"
     },
     {
       "article": "camera-key-zoom.md",
-      "ref_line": 7363,
+      "ref_line": 7381,
       "lines": 4,
       "hash": "aa847be7"
     },
     {
       "article": "camera-key-follow.md",
-      "ref_line": 7372,
+      "ref_line": 7390,
       "lines": 4,
       "hash": "ee9904ca"
     },
     {
       "article": "camera-key-reset.md",
-      "ref_line": 7381,
+      "ref_line": 7399,
       "lines": 3,
       "hash": "61098559"
     },
     {
       "article": "camera-rotate-buttons.md",
-      "ref_line": 7398,
+      "ref_line": 7416,
       "lines": 2,
       "hash": "2c372e98"
     },
     {
       "article": "camera-zoom-buttons.md",
-      "ref_line": 7405,
+      "ref_line": 7423,
       "lines": 2,
       "hash": "c38034d2"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 7495,
+      "ref_line": 7513,
       "lines": 4,
       "hash": "ce66959f"
     },
     {
       "article": "paused-toast-holds.md",
-      "ref_line": 7520,
+      "ref_line": 7538,
       "lines": 8,
       "hash": "6df5975d"
     }

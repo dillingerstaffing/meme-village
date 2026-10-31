@@ -63,6 +63,7 @@ tap, drag, scroll, touch, pointer, gesture, tray, alerts, minimap, button, click
 | keyboard-p-pause.md | P is the Sims twin of Space: same toggle, same guard, same incident exception, so the canonical pause key never meets silence |
 | keyboard-0-pause.md | 0 is the Sims twin of P and Space: same toggle, same guard, same incident exception; group slots are 1, 2, and 3 only, so 0 claims no group verb |
 | keyboard-m-mute.md | M is the keyboard twin of the tray Sound button: same verb, same guard, same incident exception as the pause keys, so the canonical mute key never meets silence |
+| keyboard-i-idle.md | I is the keyboard twin of the tray Idle button: same shared verb, guarded like a selection key, so it never cycles the selection behind an incident panel |
 | minimap-canvas-tap.md | Minimap jump is detected in endPointer at canvas level, never on the element |
 | pointercancel-never-a-tap.md | pointercancel only resets pointer state; only pointerup can become a tap |
 

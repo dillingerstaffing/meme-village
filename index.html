@@ -5530,7 +5530,7 @@ function refreshTray(force){
   /* Idle finder: navigation in the Village cluster, beside Follow. It
      stays tappable with no selection, since finding a resident is how
      a selection starts; it carries no lit treatment in any state. */
-  html += "<button class='cbtn' data-o='idle'><span class='i'>💤</span><span class='l'>Idle" + (idleList.length ? " · " + idleList.length : "") + "</span></button>";
+  html += "<button class='cbtn' data-o='idle' title='Idle (I key)'><span class='i'>💤</span><span class='l'>Idle" + (idleList.length ? " · " + idleList.length : "") + "</span></button>";
   html += "<button class='cbtn" + (G.groupArm ? " armed" : "") + "' data-o='group' title='Groups (1, 2, 3 keys recall a slot; Shift plus a digit assigns the selected resident)'" + (!a ? " disabled" : "") + "><span class='i'>👥</span><span class='l'>Groups</span></button>";
   html += "<button class='cbtn" + (G.proclaimArm ? " armed" : "") + "' data-o='proclaim'><span class='i'>📣</span><span class='l'>Proclaim</span></button>";
   html += "<button class='cbtn" + (G.foundArm ? " armed" : "") + "' data-o='found'><span class='i'>🏗</span><span class='l'>Found</span></button>";
@@ -5552,28 +5552,12 @@ function refreshTray(force){
          selection is not a loafer), moves the camera to them, and
          issues no order and selects no group. With no loafer the tap
          answers aloud instead of going silent. */
-      if(o === "idle"){
-        var idleNow = idleResidents();
-        if(!idleNow.length){ showToast("💤 Everyone is busy right now"); refreshTray(true); return; }
-        var idleIx = -1;
-        for(var ii = 0; ii < idleNow.length; ii++) if(idleNow[ii].id === G.selected) idleIx = ii;
-        var idleNext = idleNow[(idleIx + 1) % idleNow.length];
-        /* Idle changes the selection, and a pending map-targeted verb
-           belongs to its subject: the arm toast named the resident the
-           verb would act for, and tapAt commits it for G.selected. If
-           the verb survived the navigation it would act for the loafer
-           instead, under the same gold, with the player reasonably
-           believing they are back in plain selection mode. End the
-           five map-targeted arms here, in the order-ends-arm grammar;
-           the gold clearing beside the new selection is the signal, and
-           a tap with no loafer changes no selection, so it changes no
-           arm. Button-local and pick-row modes are untouched, as in
-           setOrder3: Speak For, Cover, Claim, and Road keep their own
-           grammar, so no resident tap can be hijacked by them. */
-        G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.foundArm = false; G.groupArm = false;
-        Store.dispatch("ui/select", {id: idleNext.id}); cam.follow = null; cam.target.x = idleNext.x; cam.target.z = idleNext.z;
-        refreshTray(true); return;
-      }
+      /* Idle finder: the shared __cycleIdle verb, so the button and
+         the I key run exactly the same cycle, arm ending included.
+         Button-local and pick-row modes are untouched, as in
+         setOrder3: Speak For, Cover, Claim, and Road keep their own
+         grammar, so no resident tap can be hijacked by them. */
+      if(o === "idle"){ __cycleIdle(); return; }
       /* Armed-verb toggle: re-tapping the gold button leaves the mode,
          mirroring the Proclaim, Found, Claim, and Road toggles, so the
          button itself is the exit from an armed mode instead of forcing
@@ -6787,6 +6771,26 @@ window.__camMarkFocus = function(ix){ var ms = G.camMarks || []; var m = ms[type
 window.__groupAssign = function(slot){ var a = G.selected ? agent(G.selected) : null; if(!a){ showToast("👥 Select a resident first, then tap Groups"); return false; } Store.dispatch("ui/group/set", {slot: slot, id: a.id}); G.groupArm = false; showToast("👥 Group " + (slot + 1) + ": " + a.name.split(" ")[0]); refreshTray(true); return true; };
 window.__groupRecall = function(slot){ var gr = Array.isArray(G.groups) ? G.groups : [null, null, null]; var id = gr[slot]; if(!id){ showToast("👥 Group " + (slot + 1) + " is empty. Select a resident, tap Groups, then tap this chip."); return false; } var a = agent(id); if(!a){ Store.dispatch("ui/group/clear", {slot: slot}); showToast("👥 That resident is no longer in the village, so group " + (slot + 1) + " is cleared."); refreshTray(true); return false; } Store.dispatch("ui/select", {id: a.id}); cam.follow = null; cam.target.x = a.x; cam.target.z = a.z; refreshTray(true); return true; };
 window.__groupChip = function(slot){ if(G.groupArm) return __groupAssign(slot); return __groupRecall(slot); };
+/* Idle finder, shared by the tray button and the I key so the two can
+   never disagree: cycle one loafer at a time, navigation only. The
+   list is computed fresh on every call; the call selects the next
+   loafer after the current selection (or the first, when the
+   selection is not a loafer), moves the camera to them, and issues
+   no order and selects no group. With no loafer the call answers
+   aloud instead of going silent. A call that finds a loafer ends
+   the five map-targeted arms, in the order-ends-arm grammar, because
+   the verb belonged to the selection the call replaces; a call with
+   no loafer changes no selection, so it changes no arm. */
+window.__cycleIdle = function(){
+  var idleNow = idleResidents();
+  if(!idleNow.length){ showToast("💤 Everyone is busy right now"); refreshTray(true); return false; }
+  var idleIx = -1;
+  for(var ii = 0; ii < idleNow.length; ii++) if(idleNow[ii].id === G.selected) idleIx = ii;
+  var idleNext = idleNow[(idleIx + 1) % idleNow.length];
+  G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.foundArm = false; G.groupArm = false;
+  Store.dispatch("ui/select", {id: idleNext.id}); cam.follow = null; cam.target.x = idleNext.x; cam.target.z = idleNext.z;
+  refreshTray(true); return true;
+};
 window.__pickProject = function(i){ pickProject(i); };
 window.__acceptOffer = function(){ acceptOffer(); };
 window.__ignoreOffer = function(){ ignoreOffer(); };
@@ -7308,6 +7312,20 @@ function bindInput(){
        key. */
     /* CF-REF: keyboard-m-mute.md [1] */
     if((e.key === "m" || e.key === "M") && G && G.started && !G.over && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ Store.dispatch("ui/mute"); try { if(typeof localStorage !== "undefined") localStorage.setItem("mv_muted", (G.ui && G.ui.muted) ? "1" : "0"); } catch(muteErr){} SND.play("toggle"); refreshTray(true); }
+    /* I idle finder: the keyboard twin of the tray Idle button, so a
+       desktop player need not reach for the mouse to find the next
+       loafer. StarCraft II gives Select Idle Worker its own key
+       (F1: select, again centers), and Meme Village's button already
+       selects plus centers in one tap; F1 is the browser help key and
+       cannot be claimed, so I is the mnemonic, named on the button
+       title like every other key. It runs exactly the button's verb
+       through the shared __cycleIdle, and it is guarded like a
+       selection key, not like the display-only pause and mute keys:
+       only once started, never while over or an incident panel is
+       open, never with a modifier, never while typing, because
+       cycling changes the selection behind a modal decision. */
+    /* CF-REF: keyboard-i-idle.md [1] */
+    if((e.key === "i" || e.key === "I") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ __cycleIdle(); }
     /* Escape closes a panel, the keyboard twin of the sheet close
        button and the Story panel X: the topmost panel first, so an
        open Story overlay closes before the sheet behind it. An
