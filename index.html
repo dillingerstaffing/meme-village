@@ -5533,7 +5533,7 @@ function refreshTray(force){
   html += "<button class='cbtn' data-o='idle' title='Idle (I key)'><span class='i'>💤</span><span class='l'>Idle" + (idleList.length ? " · " + idleList.length : "") + "</span></button>";
   html += "<button class='cbtn" + (G.groupArm ? " armed" : "") + "' data-o='group' title='Groups (1, 2, 3 keys recall a slot; Shift plus a digit assigns the selected resident)'" + (!a ? " disabled" : "") + "><span class='i'>👥</span><span class='l'>Groups</span></button>";
   html += "<button class='cbtn" + (G.proclaimArm ? " armed" : "") + "' data-o='proclaim' title='Proclaim (B key)'><span class='i'>📣</span><span class='l'>Proclaim</span></button>";
-  html += "<button class='cbtn" + (G.foundArm ? " armed" : "") + "' data-o='found'><span class='i'>🏗</span><span class='l'>Found</span></button>";
+  html += "<button class='cbtn" + (G.foundArm ? " armed" : "") + "' data-o='found' title='Found (N key)'><span class='i'>🏗</span><span class='l'>Found</span></button>";
   html += "<button class='cbtn" + (G.claimArm ? " armed" : "") + "' data-o='claim' title='Claim (C key)'><span class='i'>🚩</span><span class='l'>Claim</span></button>";
   html += "<button class='cbtn" + (G.roadArm ? " armed" : "") + "' data-o='road'><span class='i'>🛣</span><span class='l'>Road</span></button>";
   html += "<button class='cbtn' data-o='story' title='Story (J key)'><span class='i'>📖</span><span class='l'>Story</span></button>";
@@ -7400,6 +7400,20 @@ function bindInput(){
        verb over a modal decision would hide the decision it needs. */
     /* CF-REF: keyboard-b-proclaim.md [1] */
     if((e.key === "b" || e.key === "B") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ G.proclaimArm = !G.proclaimArm; G.armed = false; G.modelArm = false; G.visitArm = false; G.foundArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.proclaimArm){ var pbEarly = !!(G.proclaim && G.proclaim.week === G.week); var pbNm = "the village"; if(pbEarly){ if(G.proclaim.site){ var pbSk = siteById(G.proclaim.site); var pbKd = pbSk ? BUILD_KINDS[pbSk.kind] : null; pbNm = pbKd ? pbKd.title : "the building site"; } else if(G.proclaim.station && STATION3[G.proclaim.station]) pbNm = artName(G.proclaim.station); } showToast("📣 Tap a building, or a building site, to proclaim the village's focus for the season, drawing more residents to work there" + (pbEarly ? "; " + pbNm + " holds the focus now. Shifting the focus early costs " + LIFE.proclaimRecost + " cohesion" : "")); } refreshTray(true); }
+    /* N found: the keyboard twin of the tray Found button, so a
+       desktop player need not reach for the mouse to arm the
+       building verb. F is taken (Follow), so N stands for New:
+       founding starts a new building on a surveyed plot. N runs
+       exactly the button's verb: toggle foundArm, clear foundPlot,
+       clear the button's own clear list (Proclaim, Speak, Cover,
+       Groups), and toast the surveyed-plot wording on arming, with
+       the next-rung read. Guarded like a panel key: only once
+       started, never while over or an incident panel is open, never
+       with a modifier, never while typing, because an armed verb
+       over a modal decision would hide the decision it needs. It
+       needs no selection, like the button, which is never disabled. */
+    /* CF-REF: keyboard-n-found.md [1] */
+    if((e.key === "n" || e.key === "N") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ G.foundArm = !G.foundArm; G.foundPlot = null; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.foundArm){ showToast("🏗 Tap a surveyed plot (gold ring) to found a building" + foundNextRungText()); } refreshTray(true); }
     /* Escape closes a panel, the keyboard twin of the sheet close
        button and the Story panel X: the topmost panel first, so an
        open Story overlay closes before the sheet behind it. An
