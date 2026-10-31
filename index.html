@@ -5502,7 +5502,7 @@ function refreshTray(force){
     if(a.sick && !a.tier) html += medicGone() ? "<button class='cbtn' data-o='callout' disabled><span class='i'>🚑</span><span class='l'>Call Out · no medic right now</span></button>" : "<button class='cbtn' data-o='callout'><span class='i'>🚑</span><span class='l'>Call Out · front of queue · " + TTI.spotFee + "🪙</span></button>";
     if(G.banked && a.bank != null){
       if(!G.coverArm){
-        html += "<button class='cbtn' data-o='cover'><span class='i'>🛡</span><span class='l'>Cover: " + (a.tier && TTI[a.tier] ? TTI[a.tier].name : "None") + "</span></button>";
+        html += "<button class='cbtn' data-o='cover' title='Cover (Shift+C key)'><span class='i'>🛡</span><span class='l'>Cover: " + (a.tier && TTI[a.tier] ? TTI[a.tier].name : "None") + "</span></button>";
       } else {
         html += [null, "silver", "executive", "platinum"].map(function(tid){
           var cur = (a.tier || null) === tid;
@@ -7380,11 +7380,14 @@ function bindInput(){
        button's own armed-verb clear list, and toasts on arming. It
        needs no selection, like the button, which is never disabled.
        It is guarded like a panel key: only once started, never while
-       over or an incident panel is open, never with a modifier, never
-       while typing, because a pick row over a modal decision would
-       hide the decision it needs. */
+       over or an incident panel is open, never with Shift, Ctrl, Meta,
+       or Alt held, never while typing, because a pick row over a modal
+       decision would hide the decision it needs. Shift plus C is not
+       Claim: it is the Cover chord, so the plain Claim key stands
+       aside while Shift is held, exactly as a digit stands aside for
+       its Shift assign. */
     /* CF-REF: keyboard-c-claim.md [1] */
-    if((e.key === "c" || e.key === "C") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ if(!claimUnlocked()){ showToast("🚩 Claims unlock when the village grows into a Town."); refreshTray(true); } else { G.claimArm = !G.claimArm; G.claimBearing = null; G.claimRing = null; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.groupArm = false; if(G.claimArm) showToast((G.claim && !G.claim.staked) ? "🚩 The claim party is still out: recall them, or let them finish" : "🚩 Pick a bearing and a ring: the founding party stakes the claim and carries the materials"); refreshTray(true); } }
+    if((e.key === "c" || e.key === "C") && !e.shiftKey && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ if(!claimUnlocked()){ showToast("🚩 Claims unlock when the village grows into a Town."); refreshTray(true); } else { G.claimArm = !G.claimArm; G.claimBearing = null; G.claimRing = null; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.groupArm = false; if(G.claimArm) showToast((G.claim && !G.claim.staked) ? "🚩 The claim party is still out: recall them, or let them finish" : "🚩 Pick a bearing and a ring: the founding party stakes the claim and carries the materials"); refreshTray(true); } }
     /* B proclaim arm: the keyboard twin of the tray Proclaim button,
        so a desktop player need not reach for the mouse to arm the
        season-focus verb. P is taken (pause, the Sims twin), so B
@@ -7523,6 +7526,26 @@ function bindInput(){
        second press commits. */
     /* CF-REF: keyboard-k-speak.md [1] */
     if((e.key === "k" || e.key === "K") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ G.coverArm = false; if(G.speakArm){ G.speakArm = false; speakFor(); refreshTray(true); } else if((G.blame || 0) < HH.speakBlameMin || (G.speakCd && G.t < G.speakCd)){ speakFor(); refreshTray(true); } else { var kplan = speakPlan(); if(kplan && !kplan.fail){ G.speakArm = true; G.groupArm = false; var ksvn = kplan.voucher.name.split(" ")[0], kstn = kplan.target.name.split(" ")[0]; showToast("🕊 " + ksvn + " would speak for " + kstn + " (" + kplan.vf + " followers, trust " + Math.round(G.stats.trust) + ", needs " + HH.speakStrength + "). If the village is not ready, " + ksvn + " loses standing. Tap the button again to commit.", {ids: [kplan.voucher.id, kplan.target.id]}); } else { speakFor(); } refreshTray(true); } }
+    /* Shift+C cover chooser: the keyboard twin of the tray Cover
+       button, the first modifier chord in the tray grammar. Every
+       letter in Cover is already taken (C claims Claim, O is Model,
+       V is Visit, E rotates right, R resets the camera), so no bare
+       letter can name Cover, and before this chord Shift+C misfired
+       into Claim, because the Claim handler accepted capital C with
+       Shift held. Shift names the second verb on a key here, in the
+       game's own control-group grammar (Shift plus a digit assigns,
+       the digit alone recalls) and in StarCraft II, where Shift plus
+       a number adds to a group while Ctrl plus a number creates it.
+       It runs exactly the button's verb: for a banked adult with a
+       bank account it opens the tier chooser with the button's own
+       arm toast and clear list, and since the button itself
+       disappears while the chooser stands, a second Shift+C closes
+       the chooser again, in the Lens toggle grammar, changing no
+       tier. It needs a selection, like the button, which renders
+       only for the selected resident, and it is guarded like a panel
+       key, so it never opens a chooser over an incident panel. */
+    /* CF-REF: keyboard-shiftc-cover.md [1] */
+    if((e.key === "c" || e.key === "C") && e.shiftKey && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) && G.selected){ var scA = agent(G.selected); if(scA && !scA.child && G.banked && scA.bank != null){ if(G.coverArm){ G.coverArm = false; } else { G.coverArm = true; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.foundArm = false; G.groupArm = false; showToast("🛡 Cover for " + scA.name.split(" ")[0] + " is " + (scA.tier ? TTI[scA.tier].name : "none") + " now. Premiums come out of the bank account each season. Each tier button names what it buys."); } refreshTray(true); } }
     /* Escape closes a panel, the keyboard twin of the sheet close
        button and the Story panel X: the topmost panel first, so an
        open Story overlay closes before the sheet behind it. An

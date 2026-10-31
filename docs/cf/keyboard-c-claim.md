@@ -10,6 +10,10 @@ of L for Lens, T for Thoughts, I for Idle, M for Sound, and F for
 Follow, and the Claim button's title names it ("Claim (C key)"),
 so a desktop player can learn C exists from the button itself.
 
+Shift plus C is not Claim: it is the Cover chord (see
+keyboard-shiftc-cover.md), so the plain C key stands aside while
+Shift is held, exactly as a digit stands aside for its Shift assign.
+
 C carries the button's Town gate, not just its toggle: below Town
 it explains the unlock ("Claims unlock when the village grows into
 a Town") instead of arming, and at Town it toggles claimArm, clears
@@ -20,7 +24,8 @@ recall wording when a claim party is already out.
 C is guarded like a panel key, not like the display-only pause and
 mute keys: it fires only once the game has started, never while
 the game is over, never while an incident panel stands, never with
-Ctrl, Meta, or Alt held, and never while typing in a text field.
+Shift, Ctrl, Meta, or Alt held, and never while typing in a text
+field.
 A pick row over a modal decision would hide the decision it needs,
 so the incident guard is intentional, not an omission. Do not add
 an incident exception here without re-arguing that panel rule: the
