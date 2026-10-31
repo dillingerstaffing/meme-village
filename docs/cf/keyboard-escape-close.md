@@ -18,3 +18,12 @@ nothing while one stands. The verb is guarded like the other keyboard
 verbs: it fires only once the game has started, never while the game
 is over, never with Ctrl, Meta, or Alt held, and never while typing
 in a text field.
+
+The close buttons name the key, so a desktop player can discover it
+without a guide: the sheet header X and foot Close carry titles
+naming Escape, following the naming grammar the other keyboard verbs
+already use (Follow names F, the camera button names R/Home and
+WASD/arrows, the pause button names Space, P, and 0). The Story X
+names Escape only on a live panel; on the final panel, where Escape
+is blocked because the game is over, its title is plain Close, so
+no button ever promises a key that does nothing.

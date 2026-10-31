@@ -653,7 +653,7 @@ function renderSheet(s){
   var ax2 = axisOf(a);
   var h = "<div class='sh-head'><div class='sh-chip' style='background:" + shirt + "'><div class='sh-hair' style='background:" + hair + "'></div><div class='sh-letter'>" + a.name.charAt(0) + "</div></div>"
     + "<div><div class='sh-name'>" + a.name + "</div><div class='sh-role'>" + a.role + (ax2 ? " · " + ax2.icon + " " + ax2.label : "") + "</div></div>"
-    + "<button class='sh-x' type='button' aria-label='Close'>✕</button></div>";
+    + "<button class='sh-x' type='button' aria-label='Close' title='Close (Escape key)'>✕</button></div>";
   h += "<div class='sh-needs'>" + NEED_DEFS.map(function(d){ var nv = Math.round(needVal(a, d.id)); return "<div class='sh-need'><span class='nl'>" + d.label + "</span><div class='sh-bar'><i style='width:" + nv + "%'></i></div><span class='nv'>" + nv + "</span></div>"; }).join("") + "</div>";
   var went = [];
   if(a.workHist) Object.keys(a.workHist).forEach(function(k){ if(a.workHist[k] > 0) went.push(k); });
@@ -690,8 +690,8 @@ function renderSheet(s){
   } else {
     h += "<div class='sh-empty'>Nothing yet.</div>";
   }
-  /* A second close at the foot of the sheet, where the thumb already is after reading: on the phone the sheet is a bottom sheet, so the header close sits near the top of the screen, a reach zone, while the tray deselect sits under the sheet. Same dispatch as the header close, same surface, no new state. */
-  h += "<button class='sh-close' type='button' aria-label='Close sheet'>Close</button>";
+  /* A second close at the foot of the sheet, where the thumb already is after reading: on the phone the sheet is a bottom sheet, so the header close sits near the top of the screen, a reach zone, while the tray deselect sits under the sheet. Same dispatch as the header close, same surface, no new state. Both closes name the Escape key in their titles, like the other keyboard verbs name their keys, so a desktop player can discover Escape without a guide. */
+  h += "<button class='sh-close' type='button' aria-label='Close sheet' title='Close sheet (Escape key)'>Close</button>";
   el.innerHTML = h;
   el.style.display = "block";
   var x = el.querySelector(".sh-x");
@@ -5068,7 +5068,7 @@ function storySoFar(auto, final){
     if(remLines.length) remHtml = "<div class='chronicle'><h3>REMEMBERED</h3>" + remLines.join("") + "</div>";
   }
   var html = "<div class='story-head'><div class='kick2'>" + kick + "</div>"
-    + "<button type='button' class='story-x' onclick='__closeStory()' aria-label='Close'>\u2715</button></div>"
+    + "<button type='button' class='story-x' onclick='__closeStory()' aria-label='Close' title='" + (final ? "Close" : "Close (Escape key)") + "'>\u2715</button></div>"
     + "<div class='story-body'><h2>" + v.ending + "</h2>"
     + "<p style='color:var(--ink2)'>" + sub + v.epi + "</p>"
     + "<p style='color:var(--ink2)'>Village #" + G.seed + " · watched: " + (G.seasonModels || []).join(", ") + "</p>"
