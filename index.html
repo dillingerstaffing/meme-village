@@ -5531,7 +5531,7 @@ function refreshTray(force){
      stays tappable with no selection, since finding a resident is how
      a selection starts; it carries no lit treatment in any state. */
   html += "<button class='cbtn' data-o='idle'><span class='i'>💤</span><span class='l'>Idle" + (idleList.length ? " · " + idleList.length : "") + "</span></button>";
-  html += "<button class='cbtn" + (G.groupArm ? " armed" : "") + "' data-o='group'" + (!a ? " disabled" : "") + "><span class='i'>👥</span><span class='l'>Groups</span></button>";
+  html += "<button class='cbtn" + (G.groupArm ? " armed" : "") + "' data-o='group' title='Groups (1, 2, 3 keys recall a slot; Shift plus a digit assigns the selected resident)'" + (!a ? " disabled" : "") + "><span class='i'>👥</span><span class='l'>Groups</span></button>";
   html += "<button class='cbtn" + (G.proclaimArm ? " armed" : "") + "' data-o='proclaim'><span class='i'>📣</span><span class='l'>Proclaim</span></button>";
   html += "<button class='cbtn" + (G.foundArm ? " armed" : "") + "' data-o='found'><span class='i'>🏗</span><span class='l'>Found</span></button>";
   html += "<button class='cbtn" + (G.claimArm ? " armed" : "") + "' data-o='claim'><span class='i'>🚩</span><span class='l'>Claim</span></button>";
@@ -6408,7 +6408,7 @@ function hudTick(dt){
      is on the Groups button alone. */
   // CF-REF: control-groups.md [2]
   var gslots = Array.isArray(G.groups) ? G.groups : [null, null, null]; var grow = "";
-  for(var gsi = 0; gsi < 3; gsi++){ var gocc = gslots[gsi] ? agent(gslots[gsi]) : null; grow += "<button class='alert-chip group-chip' onclick='__groupChip(" + gsi + ")'>" + (gsi + 1) + " · " + (gocc ? gocc.name.split(" ")[0] : "empty") + "</button>"; } ahtml += "<div class='group-row'>" + grow + "</div>";
+  for(var gsi = 0; gsi < 3; gsi++){ var gocc = gslots[gsi] ? agent(gslots[gsi]) : null; var gtitle = gocc ? "Recall " + gocc.name.split(" ")[0] + " (" + (gsi + 1) + " key; Shift+" + (gsi + 1) + " assigns the selected resident)" : "Group " + (gsi + 1) + " is empty (Shift+" + (gsi + 1) + " assigns the selected resident)"; grow += "<button class='alert-chip group-chip' title='" + gtitle + "' onclick='__groupChip(" + gsi + ")'>" + (gsi + 1) + " · " + (gocc ? gocc.name.split(" ")[0] : "empty") + "</button>"; } ahtml += "<div class='group-row'>" + grow + "</div>";
   /* Boundary-save receipt: a transient, non-tappable span in this stack
      while the save is fresh (3s of real time), so the acknowledgement
      survives a backed-up toast queue without spending a slot in it.

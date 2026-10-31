@@ -40,3 +40,10 @@ Invariants:
   A legacy save without the field reads as three empty slots, and
   the first assignment writes the array, after which saves persist
   it like any other state field.
+- Titles name the keys, in the game's established naming grammar for
+  keyboard verbs: the Groups button names the digit recall and the
+  Shift plus digit assign, an occupied chip names its own digit
+  recall and its Shift plus digit assign, and an empty chip names
+  its Shift plus digit assign. Titles only, no visible text change,
+  so the chip row's layout and the one-highlight vocabulary are
+  untouched; guarded by pwtest_keygroupname.py.
