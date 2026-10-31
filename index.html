@@ -5496,7 +5496,7 @@ function refreshTray(force){
   html += "<button class='cbtn" + (G.modelArm ? " armed" : "") + "' data-o='model'" + (!a ? " disabled" : "") + "><span class='i'>👁</span><span class='l'>Model</span></button>";
   html += "<button class='cbtn" + (G.visitArm ? " armed" : "") + "' data-o='visit'" + (!a ? " disabled" : "") + "><span class='i'>💬</span><span class='l'>Visit</span></button>";
   html += "<button class='cbtn" + (G.speakArm ? " armed" : "") + "' data-o='speak'><span class='i'>🕊</span><span class='l'>Speak For" + (speakCdN ? " · " + speakCdN + "s" : "") + "</span></button>";
-  html += "<button class='cbtn' data-o='thoughts'" + (!a ? " disabled" : "") + "><span class='i'>💭</span><span class='l'>Thoughts</span></button></div>";
+  html += "<button class='cbtn' data-o='thoughts' title='Thoughts (T key)'" + (!a ? " disabled" : "") + "><span class='i'>💭</span><span class='l'>Thoughts</span></button></div>";
   if(a && !a.child && ((G.banked && a.bank != null) || (a.sick && !a.tier))){
     html += "<div class='cgrp sep'><span class='glab'>Care</span>";
     if(a.sick && !a.tier) html += medicGone() ? "<button class='cbtn' data-o='callout' disabled><span class='i'>🚑</span><span class='l'>Call Out · no medic right now</span></button>" : "<button class='cbtn' data-o='callout'><span class='i'>🚑</span><span class='l'>Call Out · front of queue · " + TTI.spotFee + "🪙</span></button>";
@@ -7326,6 +7326,20 @@ function bindInput(){
        cycling changes the selection behind a modal decision. */
     /* CF-REF: keyboard-i-idle.md [1] */
     if((e.key === "i" || e.key === "I") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ __cycleIdle(); }
+    /* T thoughts sheet: the keyboard twin of the tray Thoughts button,
+       so a desktop player need not reach for the mouse to read the
+       selected resident's sheet, the only surface that renders
+       thoughts. T is the button's own initial, in the naming grammar
+       of I for Idle, M for Sound, and F for Follow. It runs exactly
+       the button's verb (dispatch ui/sheet for the selected
+       resident, nothing when nothing is selected, like the disabled
+       button) and is guarded like a panel key, not like the
+       display-only pause and mute keys: only once started, never
+       while over or an incident panel is open, never with a
+       modifier, never while typing, because opening a sheet over a
+       modal decision would hide the decision it needs. */
+    /* CF-REF: keyboard-t-thoughts.md [1] */
+    if((e.key === "t" || e.key === "T") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) && G.selected){ Store.dispatch("ui/sheet", {id:G.selected}); }
     /* Escape closes a panel, the keyboard twin of the sheet close
        button and the Story panel X: the topmost panel first, so an
        open Story overlay closes before the sheet behind it. An
