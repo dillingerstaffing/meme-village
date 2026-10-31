@@ -29,6 +29,12 @@ Invariants:
   follow. Recall of an empty slot answers how to fill it and
   changes nothing. Groups mutate selection and camera only, never
   sim state: no order, model edge, want, meter, or store changes.
+- The digit keys carry the same guard as every other keyboard
+  verb: only once started, never while over or an incident panel
+  is open, never with a Ctrl, Meta, or Alt modifier, never while
+  typing. An incident panel is a modal decision, so a digit behind
+  it moves no selection, rewrites no slot, and jumps no camera
+  behind the panel.
 - State is G.groups, an array of three resident ids or null, read
   through Store.dispatch actions (ui/group/set, ui/group/clear).
   A legacy save without the field reads as three empty slots, and

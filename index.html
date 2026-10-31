@@ -7280,8 +7280,12 @@ function bindInput(){
        digit assigns the selection. Ctrl plus digit is a browser tab
        shortcut and cannot be claimed, so Shift carries the assign
        verb on desktop; the touch twin is the Groups arm plus chip
-       tap. Typing in a text field never triggers either verb. */
-    if((e.key === "1" || e.key === "2" || e.key === "3") && G && G.started && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ var gslot = Number(e.key) - 1; if(e.shiftKey) __groupAssign(gslot); else __groupRecall(gslot); }
+       tap. Guarded like every other key: only once started, never
+       while over or an incident panel is open, never with a Ctrl,
+       Meta, or Alt modifier, never while typing. An incident panel
+       is a modal decision, so a digit behind it must not move the
+       selection, rewrite a slot, or jump the camera behind it. */
+    if((e.key === "1" || e.key === "2" || e.key === "3") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ var gslot = Number(e.key) - 1; if(e.shiftKey) __groupAssign(gslot); else __groupRecall(gslot); }
     /* Camera key rotate: Q and E step cam.yaw by exactly the button
        step, guarded like every other camera key: only once started,
        never while over or an incident panel is open, never with a
