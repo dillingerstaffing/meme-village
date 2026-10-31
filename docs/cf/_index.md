@@ -16,6 +16,7 @@ overlay, marker, bubble, name tag, hud, camera move, collision, anchor, hide, de
 | camera-key-pan.md | Arrow keys and WASD pan the view one dist step per press along the yaw-relative axes, clamped to the camera bounds, clearing a camera follow like a drag |
 | camera-key-zoom.md | Plus and equals zoom in, minus and underscore zoom out, stepping cam.dist by the wheel factor (in 0.9, out 1.1, clamped 15 to 62), never clearing a camera follow |
 | camera-key-follow.md | F toggles cam.follow on the selected resident, exactly the Follow button's verb, doing nothing with no selection and never changing the selection |
+| camera-key-reset.md | R or Home runs exactly the camera button's reset verb (target 0,0,4, yaw 0, dist 38, follow cleared), needing no selection and never changing one |
 | follow-edge-scroll.md | Mouse edge scroll stands aside while a camera follow holds: it neither moves the camera nor drops the mode; drag, minimap jump, and selection stay the explicit follow releases |
 | coach-teach-line.md | A gold line joins the loafer coach cone to the destination station coach cone while the first-order teach window holds, and vanishes with the cones at the first order, display only |
 | paused-toast-holds.md | While speed is 0 the live toast's deadline advances with the frame clock, so a pause never loses the message or drains the queue behind it; a skipped toast is never revived |

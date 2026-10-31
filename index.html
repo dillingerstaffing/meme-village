@@ -391,7 +391,7 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
     <button class="sbtn" id="sp0" type="button">❚❚</button>
     <button class="sbtn on" id="sp1" type="button">1x</button>
     <button class="sbtn" id="sp2" type="button">2x</button>
-    <button class="sbtn" id="camBtn" type="button" title="Reset camera. WASD or arrow keys pan the view">🎥</button>
+    <button class="sbtn" id="camBtn" type="button" title="Reset camera (R or Home key). WASD or arrow keys pan the view">🎥</button>
     <button class="sbtn" id="rotL" type="button" title="Rotate view left (Q)">↺</button>
     <button class="sbtn" id="rotR" type="button" title="Rotate view right (E)">↻</button>
     <button class="sbtn" id="zoomIn" type="button" title="Zoom in (wheel up, + key)">+</button>
@@ -7316,6 +7316,14 @@ function bindInput(){
     if((e.key === "f" || e.key === "F") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) && G.selected){
       cam.follow = (cam.follow === G.selected) ? null : G.selected;
       refreshTray(true);
+    }
+    /* Camera key reset: the keyboard twin of the camera button, so a
+       desktop player need not reach for the mouse to get home after
+       wandering. R or Home runs exactly the button's verb, and like
+       the button it needs no selection and never changes one. */
+    /* CF-REF: camera-key-reset.md [3] */
+    if((e.key === "r" || e.key === "R" || e.key === "Home") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){
+      e.preventDefault(); cam.target.set(0, 0, 4); cam.yaw = 0; cam.dist = 38; cam.follow = null; refreshTray(true);
     }
   });
 }

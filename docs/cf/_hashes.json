@@ -433,26 +433,32 @@
       "hash": "ee9904ca"
     },
     {
+      "article": "camera-key-reset.md",
+      "ref_line": 7324,
+      "lines": 3,
+      "hash": "61098559"
+    },
+    {
       "article": "camera-rotate-buttons.md",
-      "ref_line": 7333,
+      "ref_line": 7341,
       "lines": 2,
       "hash": "2c372e98"
     },
     {
       "article": "camera-zoom-buttons.md",
-      "ref_line": 7340,
+      "ref_line": 7348,
       "lines": 2,
       "hash": "c38034d2"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 7430,
+      "ref_line": 7438,
       "lines": 4,
       "hash": "ce66959f"
     },
     {
       "article": "paused-toast-holds.md",
-      "ref_line": 7455,
+      "ref_line": 7463,
       "lines": 8,
       "hash": "6df5975d"
     }
