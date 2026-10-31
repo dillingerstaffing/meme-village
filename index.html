@@ -6233,7 +6233,15 @@ function hudTick(dt){
   if(wsEl.textContent !== wtop) wsEl.textContent = wtop;
   var eligHands = 0;
   G.agents.forEach(function(a){ if(a.driveObj && a.stationId === G.objStation && (a.state === "act" || a.state === "walk")) eligHands++; });
-  document.getElementById("objCard").classList.toggle("urgent", accepted && G.started && !G.over && !G.objComplete && G.weekTime > 30 && eligHands === 0);
+  /* Urgent means behind the season clock, not merely without driven
+     hands: two commissions progress with no driven hands by design
+     (peakGreen counts any gathering on the green, calmT counts calm
+     time while rivalry stays low), so a pulse on hands alone cried
+     wolf at 83 percent. The pulse now also requires the metric to
+     trail the clock (percent below weekTime over WEEK_LEN times 100),
+     so an ahead-of-pace season stays calm and a stalled one still
+     pulses. Guarded by pwtest_urgentpace.py. */
+  document.getElementById("objCard").classList.toggle("urgent", accepted && G.started && !G.over && !G.objComplete && G.weekTime > 30 && eligHands === 0 && pct < G.weekTime / WEEK_LEN * 100);
   drawMinimap();
   /* The season chip is built from spans so the phone layout can stack it
      into two lines after the season (single line on desktop). Diff-guarded
