@@ -5537,7 +5537,7 @@ function refreshTray(force){
   html += "<button class='cbtn" + (G.claimArm ? " armed" : "") + "' data-o='claim'><span class='i'>🚩</span><span class='l'>Claim</span></button>";
   html += "<button class='cbtn" + (G.roadArm ? " armed" : "") + "' data-o='road'><span class='i'>🛣</span><span class='l'>Road</span></button>";
   html += "<button class='cbtn' data-o='story'><span class='i'>📖</span><span class='l'>Story</span></button>";
-  html += "<button class='cbtn' data-o='mute'><span class='i'>" + (G.ui && G.ui.muted ? "🔇" : "🔊") + "</span><span class='l'>" + (G.ui && G.ui.muted ? "Muted" : "Sound") + "</span></button>"; /* Sound's face names its state beside the icon swap, in the Follow face grammar. Display only. */
+  html += "<button class='cbtn' data-o='mute' title='Sound (M key)'><span class='i'>" + (G.ui && G.ui.muted ? "🔇" : "🔊") + "</span><span class='l'>" + (G.ui && G.ui.muted ? "Muted" : "Sound") + "</span></button>"; /* Sound's face names its state beside the icon swap, in the Follow face grammar. Display only. */
   html += "<button class='cbtn' data-o='lens'><span class='i'>" + ((G.ui && G.ui.lens === "desire") ? "👁" : (G.ui && G.ui.lens ? "⚔" : "🗺")) + "</span><span class='l'>" + ((G.ui && G.ui.lens === "desire") ? "Desire" : (G.ui && G.ui.lens ? "Tension" : "Lens")) + "</span></button></div>";
   var cmds = document.getElementById("cmds");
   cmds.innerHTML = html;
@@ -7296,6 +7296,18 @@ function bindInput(){
        digit is free: group slots are 1, 2, and 3 only. */
     /* CF-REF: keyboard-0-pause.md [1] */
     if(e.key === "0" && G && G.started && !G.over && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ setSpeed(G.speed === 0 ? 1 : 0); }
+    /* M mute: the keyboard twin of the tray Sound button, so a desktop
+       player need not reach for the mouse to silence the game. M is
+       the most common mute toggle across programs, and the button
+       already exists, but M did nothing at all. It runs exactly the
+       button's verb (dispatch ui/mute, persist mv_muted, play the
+       toggle blip, refresh the tray) and is guarded like the pause
+       keys, including the same deliberate incident exception: muting
+       is display only and disturbs no sim state, so it stays live
+       while an incident panel stands, unlike a camera or selection
+       key. */
+    /* CF-REF: keyboard-m-mute.md [1] */
+    if((e.key === "m" || e.key === "M") && G && G.started && !G.over && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ Store.dispatch("ui/mute"); try { if(typeof localStorage !== "undefined") localStorage.setItem("mv_muted", (G.ui && G.ui.muted) ? "1" : "0"); } catch(muteErr){} SND.play("toggle"); refreshTray(true); }
     /* Escape closes a panel, the keyboard twin of the sheet close
        button and the Story panel X: the topmost panel first, so an
        open Story overlay closes before the sheet behind it. An
