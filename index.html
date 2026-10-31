@@ -299,6 +299,14 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
   .cbtn .i{font-size:17px}
 }
 @media (max-width:560px){#alerts{bottom:216px}}
+/* Phone alerts-stack chips meet the 44px thumb target: the stack chips
+   (group recall, idle, last-alert, camera bookmarks) were 33px tall from
+   the shared .alert-chip padding, below the 44px minimum the game's own
+   pick-row chips already meet and below Apple's 44pt thumb standard.
+   Phone-only, so the desktop stack keeps its height; the shed rule in
+   hudTick re-measures every tick, so a taller stack sheds sooner in
+   crowded states rather than covering the card. */
+@media (max-width:560px){#alerts .alert-chip{min-height:44px}}
 #vignette{position:fixed;inset:0;pointer-events:none;z-index:5;background:radial-gradient(ellipse at center,transparent 56%,rgba(16,22,14,.42) 100%)}
 /* CF-REF: minimap-canvas-tap.md [1] */
 #minimap{position:fixed;right:10px;bottom:150px;width:192px;height:144px;z-index:11;pointer-events:none;background:#22301f;border:1px solid var(--line);border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.35)}

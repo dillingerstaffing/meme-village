@@ -24,3 +24,11 @@ not shed, on the same rule as the stats collision: shedding for a few
 pixels of alert-height wobble would flicker chips away at the decision
 moment. On wider screens the rule does not run: the column has room,
 and the stack never reaches the card.
+
+Phone chip height: on screens 560px and under the stack's chips carry
+min-height 44px, the thumb target the game's pick-row chips already
+meet. The stack chips were 33px tall from the shared .alert-chip
+padding, below that standard. The height is phone-only, so the desktop
+stack is unchanged, and it interacts with the shed rule only through
+measurement: a taller stack reaches the card's bottom edge sooner, so
+it sheds sooner in crowded states, never later.
