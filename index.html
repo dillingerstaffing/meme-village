@@ -394,8 +394,8 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
     <button class="sbtn" id="camBtn" type="button" title="Reset camera. WASD or arrow keys pan the view">🎥</button>
     <button class="sbtn" id="rotL" type="button" title="Rotate view left (Q)">↺</button>
     <button class="sbtn" id="rotR" type="button" title="Rotate view right (E)">↻</button>
-    <button class="sbtn" id="zoomIn" type="button" title="Zoom in (wheel up)">+</button>
-    <button class="sbtn" id="zoomOut" type="button" title="Zoom out (wheel down)">-</button>
+    <button class="sbtn" id="zoomIn" type="button" title="Zoom in (wheel up, + key)">+</button>
+    <button class="sbtn" id="zoomOut" type="button" title="Zoom out (wheel down, - key)">-</button>
     <button class="sbtn" id="markBtn" type="button" title="Save this view">📌</button>
   </div>
 </div>
@@ -7285,6 +7285,15 @@ function bindInput(){
         else if(pk === "left"){ cam.target.x -= rx * ps; cam.target.z -= rz * ps; }
         else { cam.target.x += rx * ps; cam.target.z += rz * ps; }
         cam.target.x = Math.max(-62, Math.min(62, cam.target.x)); cam.target.z = Math.max(-48, Math.min(48, cam.target.z)); cam.follow = null; }
+    }
+    /* Camera key zoom: the keyboard twin of the zoom buttons and the
+       wheel, so a desktop player need not reach for the mouse to zoom.
+       Plus and equals zoom in, minus and underscore zoom out, stepping
+       cam.dist by exactly the wheel factor, never clearing a follow. */
+    /* CF-REF: camera-key-zoom.md [4] */
+    if(G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){
+      if(e.key === "+" || e.key === "=") cam.dist = Math.max(15, Math.min(62, cam.dist * 0.9));
+      else if(e.key === "-" || e.key === "_") cam.dist = Math.max(15, Math.min(62, cam.dist * 1.1));
     }
   });
 }
