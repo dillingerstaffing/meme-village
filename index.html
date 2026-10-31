@@ -5494,7 +5494,7 @@ function refreshTray(force){
   html += "<div class='cgrp sep'><span class='glab'>Influence</span>";
   html += "<button class='cbtn" + (G.armed ? " armed" : "") + (spotFresh ? " rdyflash" : "") + "' data-o='spot'" + (!a || spotOnCd ? " disabled" : "") + "><span class='i'>✨</span><span class='l'>Spotlight" + (spotOnCd ? " · " + spotCdN + "s" : "") + "</span></button>";
   html += "<button class='cbtn" + (G.modelArm ? " armed" : "") + "' data-o='model'" + (!a ? " disabled" : "") + "><span class='i'>👁</span><span class='l'>Model</span></button>";
-  html += "<button class='cbtn" + (G.visitArm ? " armed" : "") + "' data-o='visit'" + (!a ? " disabled" : "") + "><span class='i'>💬</span><span class='l'>Visit</span></button>";
+  html += "<button class='cbtn" + (G.visitArm ? " armed" : "") + "' data-o='visit' title='Visit (V key)'" + (!a ? " disabled" : "") + "><span class='i'>💬</span><span class='l'>Visit</span></button>";
   html += "<button class='cbtn" + (G.speakArm ? " armed" : "") + "' data-o='speak'><span class='i'>🕊</span><span class='l'>Speak For" + (speakCdN ? " · " + speakCdN + "s" : "") + "</span></button>";
   html += "<button class='cbtn' data-o='thoughts' title='Thoughts (T key)'" + (!a ? " disabled" : "") + "><span class='i'>💭</span><span class='l'>Thoughts</span></button></div>";
   if(a && !a.child && ((G.banked && a.bank != null) || (a.sick && !a.tier))){
@@ -7430,6 +7430,21 @@ function bindInput(){
        tap-two-stations wording). */
     /* CF-REF: keyboard-h-road.md [1] */
     if((e.key === "h" || e.key === "H") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ if(!roadUnlocked()){ showToast("🛣 Roads unlock when the village grows into a Town."); refreshTray(true); } else { G.roadArm = !G.roadArm; G.roadFrom = null; G.roadTo = null; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.claimArm = false; G.groupArm = false; if(G.roadArm) showToast((G.roadBuild && !G.roadBuild.built) ? "🛣 The road crew is still out: recall them, or let them finish" : "🛣 Tap one station, then another: the crew lays a road between them"); refreshTray(true); } }
+    /* V visit: the keyboard twin of the tray Visit button, the first
+       resident-targeted armed verb to gain a key (Model's initial M
+       is the Sound mute key, so Model waits for its own letter).
+       V is the button's own initial, claimed by no other key. It
+       runs exactly the button's verb: toggle visitArm, clear the
+       button's own armed-verb clear list (the generic arm flag,
+       Model, Proclaim, Speak, Cover, Groups), and toast on arming
+       with the tap-who wording naming the selected resident. It
+       needs a selection, like the button, which is disabled with
+       none. Guarded like a panel key: only once started, never
+       while over or an incident panel is open, never with a
+       modifier, never while typing, because an armed verb over a
+       modal decision would hide the decision it needs. */
+    /* CF-REF: keyboard-v-visit.md [1] */
+    if((e.key === "v" || e.key === "V") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) && G.selected){ G.visitArm = !G.visitArm; G.armed = false; G.modelArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.visitArm){ var vvA = agent(G.selected); showToast("💬 Tap who " + (vvA ? vvA.name.split(" ")[0] : "they") + " should visit: they walk over for a chat"); } refreshTray(true); }
     /* Escape closes a panel, the keyboard twin of the sheet close
        button and the Story panel X: the topmost panel first, so an
        open Story overlay closes before the sheet behind it. An
