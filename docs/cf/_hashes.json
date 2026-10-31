@@ -310,7 +310,7 @@
       "article": "highlight-vocabulary.md",
       "ref_line": 5486,
       "lines": 51,
-      "hash": "c2b96131"
+      "hash": "34876f8b"
     },
     {
       "article": "minimap-canvas-tap.md",
@@ -427,26 +427,32 @@
       "hash": "aa847be7"
     },
     {
+      "article": "camera-key-follow.md",
+      "ref_line": 7315,
+      "lines": 4,
+      "hash": "ee9904ca"
+    },
+    {
       "article": "camera-rotate-buttons.md",
-      "ref_line": 7324,
+      "ref_line": 7333,
       "lines": 2,
       "hash": "2c372e98"
     },
     {
       "article": "camera-zoom-buttons.md",
-      "ref_line": 7331,
+      "ref_line": 7340,
       "lines": 2,
       "hash": "c38034d2"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 7421,
+      "ref_line": 7430,
       "lines": 4,
       "hash": "ce66959f"
     },
     {
       "article": "paused-toast-holds.md",
-      "ref_line": 7446,
+      "ref_line": 7455,
       "lines": 8,
       "hash": "6df5975d"
     }

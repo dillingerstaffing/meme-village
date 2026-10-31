@@ -5526,7 +5526,7 @@ function refreshTray(force){
     html += "</div>";
   }
   html += "<div class='cgrp sep'><span class='glab'>Village</span>";
-  html += "<button class='cbtn" + (a && cam.follow === a.id ? " cam" : "") + "' data-o='follow'" + (!a ? " disabled" : "") + "><span class='i'>🎥</span><span class='l'>" + (a && cam.follow === a.id ? "Following" : "Follow") + "</span></button>"; /* Follow's face names its state beside the dashed treatment, in the Cover/Lens/Spotlight stateful-face grammar. Display only. */
+  html += "<button class='cbtn" + (a && cam.follow === a.id ? " cam" : "") + "' data-o='follow' title='Follow (F key)'" + (!a ? " disabled" : "") + "><span class='i'>🎥</span><span class='l'>" + (a && cam.follow === a.id ? "Following" : "Follow") + "</span></button>"; /* Follow's face names its state beside the dashed treatment, in the Cover/Lens/Spotlight stateful-face grammar. Display only. */
   /* Idle finder: navigation in the Village cluster, beside Follow. It
      stays tappable with no selection, since finding a resident is how
      a selection starts; it carries no lit treatment in any state. */
@@ -7307,6 +7307,15 @@ function bindInput(){
     if(G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){
       if(e.key === "+" || e.key === "=") cam.dist = Math.max(15, Math.min(62, cam.dist * 0.9));
       else if(e.key === "-" || e.key === "_") cam.dist = Math.max(15, Math.min(62, cam.dist * 1.1));
+    }
+    /* Camera key follow: the keyboard twin of the tray Follow button,
+       so a desktop player need not reach for the mouse to follow the
+       selected resident. F toggles exactly the button's verb, and with
+       no selection it does nothing, like the disabled button. */
+    /* CF-REF: camera-key-follow.md [4] */
+    if((e.key === "f" || e.key === "F") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) && G.selected){
+      cam.follow = (cam.follow === G.selected) ? null : G.selected;
+      refreshTray(true);
     }
   });
 }
