@@ -18,10 +18,12 @@ Build's initial B arms the Proclaim verb, so U, the button's second
 letter, stands for it, in the second-letter grammar of O for Model
 (M is the Sound mute key); U is claimed by no other key, so no
 mnemonic compromise beyond that letter is needed. U closes the
-queued "Build still unkeyed" item: the button-local Speak For
-commit and the Cover chooser keep their own grammar and carry no
-key, and the station order buttons in the Send-to group remain
-mouse and tap only. The Build button's title
+queued "Build still unkeyed" item: the Cover chooser keeps its own
+grammar and carries no key, and the station order buttons in the
+Send-to group remain mouse and tap only. Speak For kept its two-tap
+grammar when it gained its own K twin (see keyboard-k-speak.md),
+which preserves the arm-then-commit order rather than flattening
+it. The Build button's title
 names it ("Build (U key)"), so a desktop player can learn U exists
 from the button itself, in the StarCraft II command-hotkey grammar:
 the hotkey shown on the button, not only in a tooltip.
@@ -35,5 +37,5 @@ hide the decision it needs, so the incident guard is intentional,
 not an omission. Do not add an incident exception here without
 re-arguing that panel rule: the guard is intentionally identical
 to the camera, group, idle, lens, story, thoughts, claim, proclaim,
-found, road, visit, model, and spotlight keys, not to Space, P, 0,
-or M.
+found, road, visit, model, spotlight, and speak keys, not to Space,
+P, 0, or M.

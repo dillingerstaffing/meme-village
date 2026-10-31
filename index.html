@@ -5495,7 +5495,7 @@ function refreshTray(force){
   html += "<button class='cbtn" + (G.armed ? " armed" : "") + (spotFresh ? " rdyflash" : "") + "' data-o='spot' title='Spotlight (G key)'" + (!a || spotOnCd ? " disabled" : "") + "><span class='i'>✨</span><span class='l'>Spotlight" + (spotOnCd ? " · " + spotCdN + "s" : "") + "</span></button>";
   html += "<button class='cbtn" + (G.modelArm ? " armed" : "") + "' data-o='model' title='Model (O key)'" + (!a ? " disabled" : "") + "><span class='i'>👁</span><span class='l'>Model</span></button>";
   html += "<button class='cbtn" + (G.visitArm ? " armed" : "") + "' data-o='visit' title='Visit (V key)'" + (!a ? " disabled" : "") + "><span class='i'>💬</span><span class='l'>Visit</span></button>";
-  html += "<button class='cbtn" + (G.speakArm ? " armed" : "") + "' data-o='speak'><span class='i'>🕊</span><span class='l'>Speak For" + (speakCdN ? " · " + speakCdN + "s" : "") + "</span></button>";
+  html += "<button class='cbtn" + (G.speakArm ? " armed" : "") + "' data-o='speak' title='Speak For (K key)'><span class='i'>🕊</span><span class='l'>Speak For" + (speakCdN ? " · " + speakCdN + "s" : "") + "</span></button>";
   html += "<button class='cbtn' data-o='thoughts' title='Thoughts (T key)'" + (!a ? " disabled" : "") + "><span class='i'>💭</span><span class='l'>Thoughts</span></button></div>";
   if(a && !a.child && ((G.banked && a.bank != null) || (a.sick && !a.tier))){
     html += "<div class='cgrp sep'><span class='glab'>Care</span>";
@@ -7495,6 +7495,34 @@ function bindInput(){
        hide the decision it needs. */
     /* CF-REF: keyboard-u-build.md [1] */
     if((e.key === "u" || e.key === "U") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) && G.selected){ var ubA = agent(G.selected); if(ubA && !firstSiteOpen()){ showToast("🔨 No building site is open right now. Found a building first, or let the current one finish."); } else { setOrder3("build"); } }
+    /* K speak for: the keyboard twin of the tray Speak For button, the
+       fourth resident-targeted Influence verb to gain a key, after
+       Visit, Model, and Spotlight, and the one with a two-tap grammar
+       instead of a plain arm: a first press with a valid plan arms
+       speak and telegraphs the plan (voucher, target, followers,
+       trust, threshold), a second press commits through speakFor, and
+       a gated press teaches the reason through speakFor instead of
+       arming. Speak's letters are all taken except K: S pans the
+       camera down in WASD, P pauses, E rotates right, A pans left,
+       so K, the only free letter, stands for it, claimed by no other
+       key. It runs exactly the button's verb, in the button's order:
+       coverArm clears first, an armed press clears the arm and
+       commits, a gated press teaches, a valid plan arms and clears
+       the Groups arm with the button's own telegraph toast, and a
+       planless press teaches through speakFor. It needs no selection,
+       like the button, which is never disabled: speakPlan prefers a
+       marked selected resident but falls back to the scapegoat
+       candidate, so K defends with nobody selected exactly as the
+       button does. It clears no other arm, like the button, which
+       clears only Cover and, on arming, Groups. Guarded like a panel
+       key: only once started, never while over or an incident panel
+       is open, never with a modifier, never while typing, because a
+       defense behind a modal decision would hide the decision it
+       needs. The telegraph toast keeps the button's wording, so the
+       key path and the button path cannot disagree about what the
+       second press commits. */
+    /* CF-REF: keyboard-k-speak.md [1] */
+    if((e.key === "k" || e.key === "K") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ G.coverArm = false; if(G.speakArm){ G.speakArm = false; speakFor(); refreshTray(true); } else if((G.blame || 0) < HH.speakBlameMin || (G.speakCd && G.t < G.speakCd)){ speakFor(); refreshTray(true); } else { var kplan = speakPlan(); if(kplan && !kplan.fail){ G.speakArm = true; G.groupArm = false; var ksvn = kplan.voucher.name.split(" ")[0], kstn = kplan.target.name.split(" ")[0]; showToast("🕊 " + ksvn + " would speak for " + kstn + " (" + kplan.vf + " followers, trust " + Math.round(G.stats.trust) + ", needs " + HH.speakStrength + "). If the village is not ready, " + ksvn + " loses standing. Tap the button again to commit.", {ids: [kplan.voucher.id, kplan.target.id]}); } else { speakFor(); } refreshTray(true); } }
     /* Escape closes a panel, the keyboard twin of the sheet close
        button and the Story panel X: the topmost panel first, so an
        open Story overlay closes before the sheet behind it. An
