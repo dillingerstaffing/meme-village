@@ -565,26 +565,32 @@
       "hash": "01173d48"
     },
     {
+      "article": "keyboard-comma-period-speed.md",
+      "ref_line": 7653,
+      "lines": 2,
+      "hash": "c48ee2d5"
+    },
+    {
       "article": "camera-rotate-buttons.md",
-      "ref_line": 7665,
+      "ref_line": 7669,
       "lines": 2,
       "hash": "2c372e98"
     },
     {
       "article": "camera-zoom-buttons.md",
-      "ref_line": 7672,
+      "ref_line": 7676,
       "lines": 2,
       "hash": "c38034d2"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 7758,
+      "ref_line": 7762,
       "lines": 4,
       "hash": "ce66959f"
     },
     {
       "article": "paused-toast-holds.md",
-      "ref_line": 7783,
+      "ref_line": 7787,
       "lines": 8,
       "hash": "6df5975d"
     }

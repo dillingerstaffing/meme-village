@@ -389,8 +389,8 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
   <span class="chip" id="coinChip">🪙 <b id="coinsN">0</b></span>
   <div id="speeds">
     <button class="sbtn" id="sp0" type="button" title="Pause (Space, P, or 0 key)">❚❚</button>
-    <button class="sbtn on" id="sp1" type="button">1x</button>
-    <button class="sbtn" id="sp2" type="button">2x</button>
+    <button class="sbtn on" id="sp1" type="button" title="Normal speed (, key)">1x</button>
+    <button class="sbtn" id="sp2" type="button" title="Fast speed (. key)">2x</button>
     <button class="sbtn" id="camBtn" type="button" title="Reset camera (R or Home key). WASD or arrow keys pan the view">🎥</button>
     <button class="sbtn" id="rotL" type="button" title="Rotate view left (Q)">↺</button>
     <button class="sbtn" id="rotR" type="button" title="Rotate view right (E)">↻</button>
@@ -7649,6 +7649,10 @@ function bindInput(){
     /* Camera key mark: X is the keyboard twin of the pin button, so a desktop player need not reach for the mouse to mark a spot. X marks the spot, and X is the one free letter: A, S, D, and W pan, Q and E rotate, R resets, F follows, and every other letter is a tray or speed key. It runs the shared __saveCamMark verb, exactly the button's verb, so the key and the button can never disagree. It needs no selection and never changes one, like the reset button, and it clears no arm, because saving a view is camera only, never sim state. Guarded like every other camera key: only once started, never while over or an incident panel is open, never with a modifier, never while typing. */
     /* CF-REF: keyboard-x-mark.md [1] */
     if((e.key === "x" || e.key === "X") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ __saveCamMark(); }
+    /* Speed keys: comma and period are the keyboard twins of the 1x and 2x buttons, so a desktop player need not reach for the mouse to change pace. The Sims names 1, 2, and 3 for regular, fast, and ultra speed, but 1, 2, and 3 recall control group slots here, and 0 already pauses, so the direct digits are taken. Comma sits left of period as 1x sits left of 2x, and the shifted forms (< and >) do the same, so the pair reads as slower and faster in button order. Each key runs exactly the button's verb, setSpeed with the button's rate, so the key and the button can never disagree. They need no selection, like the pause keys, and they clear no arm, because changing pace is sim rate only, never a sim order. Guarded like a panel key: only once started, never while over or an incident panel is open, never with a modifier, never while typing. */
+    /* CF-REF: keyboard-comma-period-speed.md [2] */
+    if((e.key === "," || e.key === "<") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ setSpeed(1); }
+    if((e.key === "." || e.key === ">") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ setSpeed(2); }
   });
 }
 function setSpeed(n){
