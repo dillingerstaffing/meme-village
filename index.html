@@ -650,8 +650,10 @@ var Store = (function(){
       /* First-need minimap introduction (2026-10-23): the first high-stakes
          ping teaches the alert channel itself, exactly once per save. The
          ping is the affordance, so the toast only names the verb; it queues
-         behind the alert's own toast through the normal door. Display only. */
-      if(!state.coachPing){ state.coachPing = true; showToast("🗺 Trouble flashes on the minimap in the corner. Tap a ping to jump the camera there."); } },
+         behind the alert's own toast through the normal door. A win ping
+         never teaches: a payoff flashing gold is not trouble, so the flag
+         stays clear until a trouble ping arrives. Display only. */
+      if(!state.coachPing && String(p.kind || "feud") !== "win"){ state.coachPing = true; showToast("🗺 Trouble flashes on the minimap in the corner. Tap a ping to jump the camera there."); } },
     "thought/set": function(p){ var a = findA(p.id); if(a){ var nt = String(p.text || ""); if(!validThought(nt)) return; var cause = p.cause || "ambient"; var isNew = !a.thought || a.thought.text !== nt; a.thought = {text:nt, at:state.t, wk:state.week, cause:cause, why:p.why || "", cat:p.cat || "", source:"template"}; if(isNew && cause !== "start") a.thoughtFx = state.t + 2.5; if(a.thoughtLog){ for(var di = a.thoughtLog.length - 1; di >= 0; di--) if(a.thoughtLog[di].text === nt) a.thoughtLog.splice(di, 1); a.thoughtLog.push(a.thought); if(a.thoughtLog.length > 8) a.thoughtLog.shift(); } } }
   };
   function commit(){
@@ -3507,6 +3509,13 @@ function projectTick(){
      the objective completion grammar scaled up for the bigger achievement.
      Display only; the perk, the chronicle, and every ledger are untouched. */
   if(pSite) for(var pi2 = 0; pi2 < 5; pi2++) spawnOrderPing(pSite.x + (pi2 - 2) * 1.7, pSite.z, pi2 * 0.22);
+  /* Project completion pings the strategic channel, in the feud warn
+     grammar: the minimap flashes at the built site for 4 sim-seconds,
+     so a player watching the map, or returning after the toast expires,
+     still sees where the payoff landed. Kind win, not warn: the ring
+     reads gold for a payoff, never the trouble amber, and a win ping
+     never teaches the trouble toast. No site, no ping. Display only. */
+  if(pSite) Store.dispatch("ui/ping", {x: pSite.x, z: pSite.z, kind: "win"});
 }
 // CF-REF: claim-adjacency.md [18]
 /* ADJACENCY (spec section 24): founded-kind bonuses from standing next
@@ -6071,11 +6080,13 @@ function drawMinimap(){
     c.fillText("model->follower, thick = copied", 4, 20);
   }
   /* Minimap event pings: high-stakes alerts (feud warn/erupt, blame turn,
-     death) ping the strategic channel at the event site, the SC2 grammar
-     of a flash where the trouble is. Expanding ring plus a center dot, so
-     shape and color both carry the read, never color alone. 4 sim-seconds,
+     death) and the project payoff ping the strategic channel at the event
+     site, the SC2 grammar of a flash where the trouble is, and where the
+     payoff landed. Expanding ring plus a center dot, so shape and color
+     both carry the read, never color alone. Win reads bright gold against
+     the trouble amber, so a payoff never reads as trouble. 4 sim-seconds,
      then gone; display only, drawn from state, never committed. */
-  var PINGC = {warn:"#e8b34b", feud:"#e86a3c", blame:"#b48ce8", death:"#9aa0a6"};
+  var PINGC = {warn:"#e8b34b", feud:"#e86a3c", blame:"#b48ce8", death:"#9aa0a6", win:"#ffd75e"};
   var pgs = G.pings || [], pgi, pgg, pga, pcol, mmScale = (typeof window === "undefined" || window.innerWidth > 560) ? 1 : 118 / 192;
   for(pgi = 0; pgi < pgs.length; pgi++){
     pgg = pgs[pgi]; pga = G.t - pgg.t;
