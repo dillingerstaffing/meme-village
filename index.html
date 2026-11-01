@@ -5745,7 +5745,7 @@ function setOrder3(orderId){
   /* A re-tap of the standing order answers the same way (it changes
      nothing, so it says so) instead of going silent: the button is
      already lit teal, so silence reads as a dead tap. */
-  if(orderId !== "auto" && a.order === orderId){ if(orderId === "build") showToast("🔨 " + a.name.split(" ")[0] + " is already on the build"); else showToast(STATION3[orderId].icon + " " + a.name.split(" ")[0] + " already has your order at " + STATION3[orderId].name); refreshTray(true); return; }
+  if(orderId !== "auto" && a.order === orderId){ if(orderId === "build") showToast("🔨 " + a.name.split(" ")[0] + " is already on the build", null, true); else showToast(STATION3[orderId].icon + " " + a.name.split(" ")[0] + " already has your order at " + STATION3[orderId].name, null, true); refreshTray(true); return; }
   G.firstOrder = true;
   /* A committed order ends a pending map-targeted verb. Every map tap
      already resolves such a verb (a resident tap commits it, a miss

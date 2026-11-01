@@ -39,3 +39,13 @@ re-arguing that panel rule: the guard is intentionally identical
 to the camera, group, idle, lens, story, thoughts, claim, proclaim,
 found, road, visit, model, spotlight, and speak keys, not to Space,
 P, 0, or M.
+
+Re-tapping the standing build order jumps the toast queue, on the
+direct-reply rule the sick, child, group, forecast, and locked-verb
+answers already follow: the Build button is already lit teal, so a
+queued "is already on the build" behind a live unrelated toast would
+read as a dead tap, and the displaced toast waits at the head of the
+queue instead of being erased. The tray Build button's re-tap and
+every station order's re-tap jump on the same rule, through the
+shared setOrder3 re-tap branch. Guarded by pwtest_orderretap.py in
+this goal's hidden_files.
