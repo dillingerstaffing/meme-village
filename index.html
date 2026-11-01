@@ -7232,12 +7232,12 @@ function tapAt(cx, cy, smart){
     else if(p.plot !== undefined && p.plot !== null){
       var ps2 = plotSite(p.plot);
       if(ps2 && !ps2.done) proclaimAt(ps2.station || null, ps2.id);
-      else if(ps2) showToast("🏗 That building already stands finished");
-      else showToast("📣 Nothing stands there yet to proclaim");
+      else if(ps2) showToast("🏗 That building already stands finished", null, true);
+      else showToast("📣 Nothing stands there yet to proclaim", null, true);
     }
     /* Tapping empty ground with Proclaim armed used to disarm silently.
        Say the mode ended. Display only. */
-    else showToast("📣 Proclaim cancelled");
+    else showToast("📣 Proclaim cancelled", null, true);
     refreshTray(true); return;
   }
   if(G.armed){
