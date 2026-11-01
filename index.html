@@ -324,6 +324,15 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
    compact 34px close; the header is a flex row with a 46px chip, so
    a 44px button changes no layout. */
 @media (max-width:560px){#sheet .sh-x{width:44px;height:44px}}
+/* Phone title segments meet the 44px thumb target: the season and
+   posting segments are the first controls a phone player touches, and
+   they measured 43px tall from the title overlay padding, one pixel
+   below the target every in-play button already meets. Phone-only, so
+   the desktop title keeps its compact segments; the global border-box
+   rule makes min-height land exactly 44px, and the one pixel changes
+   no row layout. Tapping a segment still moves the gold .on state and
+   rewrites the choice line naming its consequence, unchanged. */
+@media (max-width:560px){#startOverlay .segbtn{min-height:44px}}
 #vignette{position:fixed;inset:0;pointer-events:none;z-index:5;background:radial-gradient(ellipse at center,transparent 56%,rgba(16,22,14,.42) 100%)}
 /* CF-REF: minimap-canvas-tap.md [1] */
 #minimap{position:fixed;right:10px;bottom:150px;width:192px;height:144px;z-index:11;pointer-events:none;background:#22301f;border:1px solid var(--line);border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.35)}
