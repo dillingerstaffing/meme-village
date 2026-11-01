@@ -15,6 +15,16 @@ over the Clinic.", station named when known). A re-eruption refreshes
 the record: floor back to the residue, a new ledger entry, a new
 chronicle line.
 
+Spread thresholds. The warn at 50 and the eruption at 70 are
+properties of the pair's value, not of the door that wrote it:
+feudThresholds runs for the direct pair and, inside the same
+addTension call, for each household-spread pair, at the discounted
+amount. A spread pair crossing 50 warns and a spread pair crossing
+70 erupts, settles to the residue, and writes the same drift
+record, ledger entry, chronicle line, and blame step as a direct
+pair. The spread itself never chains: an erupted or warned spread
+pair writes no further spread.
+
 Drift. While a drift is active the pair's tension decays at
 MIM.driftDecay (0.12) per second instead of 0.5, except on the green,
 which always cools at 2.4 (the household-partner discount still

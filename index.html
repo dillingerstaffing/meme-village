@@ -2587,10 +2587,12 @@ function chronicle(text){
   while(G.chronicle.length > CHRONICLE_CAP) G.chronicle.shift();
 }
 function chronicleStamp(e){ return "Year " + e.yr + " · " + e.sn; }
-function addTension(a, b, amt){
-  if(!a || !b || a === b) return;
+/* Feud thresholds, shared by the direct pair and the household spread:
+   a pair's warn at 50 and eruption at 70 fire from the pair's value
+   alone, never from which door wrote it, so a spread crossing cannot
+   slip past the telegraph the direct pair promises. */
+function feudThresholds(a, b){
   var k = pairKey(a.id, b.id);
-  G.pairs[k] = Math.min(100, (G.pairs[k] || 0) + amt);
   if(G.pairs[k] >= 50 && G.pairs[k] < 70 && (!G.feudWarn[k] || G.t > G.feudWarn[k])){
     G.feudWarn[k] = G.t + WEEK_LEN;
     var warnShared = (a.model && a.model === b.model) ? agent(a.model) : null;
@@ -2600,12 +2602,7 @@ function addTension(a, b, amt){
     SND.play("warn");
     noteEvent(a, "rivalry", b.id); noteEvent(b, "rivalry", a.id);
   }
-  /* RIVALRY DRIFT (v4 sim step 3, spec section 4). The eruption ignites a
-     drift record on the pair: the convergence-tension ignition with an
-     auditable record. The heat leaves a residue (the pair settles to the
-     drift residue, not a clean reset), G.drifts holds the live floor, and
-     G.driftLog keeps the ignition ledger. The chronicle names the cause.
-     CF-REF: rivalry-drift.md [21] */
+  /* CF-REF: rivalry-drift.md [21] */
   if(G.pairs[k] >= 70 && (!G.feudCd[k] || G.t > G.feudCd[k])){
     G.feudCd[k] = G.t + WEEK_LEN;
     G.pairs[k] = MIM.driftResidue;
@@ -2627,11 +2624,19 @@ function addTension(a, b, amt){
     noteEvent(a, "rivalry", b.id); noteEvent(b, "rivalry", a.id);
     chronicle(a.name + " and " + b.name + " fell into a feud" + (over && STATION3[over] ? " over the " + STATION3[over].name + "." : "."));
   }
+}
+function addTension(a, b, amt){
+  if(!a || !b || a === b) return;
+  var k = pairKey(a.id, b.id);
+  G.pairs[k] = Math.min(100, (G.pairs[k] || 0) + amt);
+  feudThresholds(a, b);
   /* Household spread: a member's grudge against an outsider reaches
-     their partner at a discount, written raw so it cannot chain. */
+     their partner at a discount, written raw so it cannot chain, but
+     through the same thresholds, so a spread crossing warns or erupts
+     exactly like a direct one. */
   var pa = householdPartner(a), pb = householdPartner(b);
-  if(pa && pa !== b){ var ka = pairKey(pa.id, b.id); G.pairs[ka] = Math.min(100, (G.pairs[ka] || 0) + amt * HH.spreadDiscount); }
-  if(pb && pb !== a){ var kb = pairKey(a.id, pb.id); G.pairs[kb] = Math.min(100, (G.pairs[kb] || 0) + amt * HH.spreadDiscount); }
+  if(pa && pa !== b){ var ka = pairKey(pa.id, b.id); G.pairs[ka] = Math.min(100, (G.pairs[ka] || 0) + amt * HH.spreadDiscount); feudThresholds(pa, b); }
+  if(pb && pb !== a){ var kb = pairKey(a.id, pb.id); G.pairs[kb] = Math.min(100, (G.pairs[kb] || 0) + amt * HH.spreadDiscount); feudThresholds(pb, a); }
 }
 function scapegoatScore(a){
   var sc = (a.blamed || 0) * 14 + (62 - a.morale);
