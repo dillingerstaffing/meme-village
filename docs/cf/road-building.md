@@ -10,7 +10,12 @@ confirm. Ends are picked in the tray pick row, or by tapping stations
 on the map while Road is armed: a map tap while armed picks the From
 end, then the To end, and never orders the selected resident (the
 station branch used to fall through to an order, leaving Road armed
-with no end picked). The priced Lay confirm stays in the pick row;
+with no end picked). A map tap on a plot while Road is armed answers
+at once that roads join two village stations, never plots, and
+commits nothing: it neither orders a build nor picks an end, and the
+arm, From, and To stand (the plot branch used to fall through to a
+build order with a resident selected, leaving Road armed with no end
+picked). The priced Lay confirm stays in the pick row;
 map taps pick ends only, they never lay. The route is shown before anything commits too: once both
 ends are picked, syncRoadPreview() (called from hudTick's road-pick
 row, the per-frame HUD render, so every pick change re-syncs it)

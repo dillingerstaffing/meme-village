@@ -7283,6 +7283,16 @@ function tapAt(cx, cy, smart){
   }
   if(p.plot !== undefined && p.plot !== null){
     var ps = plotSite(p.plot);
+    /* Road armed intercepts its own plot taps, on the grammar of the
+       station branch below: the arm toast promises "Tap one station,
+       then another", so a plot tap while Road is armed must neither
+       order a build nor answer about the plot. Before this intercept
+       the tap fell through: with a resident selected it committed a
+       build order through setOrder3 (which clears only the five
+       map-targeted arms, never Road), leaving Road armed with no end
+       picked, and without one it queued the surveyed-plot guidance.
+       Answer at once, keep the arm, the ends, and the selection. */
+    if(G.roadArm){ showToast("🛣 Roads join two village stations, never plots", null, true); refreshTray(true); return; }
     if(G.foundArm){
       G.foundArm = false;
       if(!ps){ G.foundPlot = p.plot; showToast("🏗 Choose what rises on this plot"); }
