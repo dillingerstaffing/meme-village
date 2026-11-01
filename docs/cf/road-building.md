@@ -15,7 +15,13 @@ at once that roads join two village stations, never plots, and
 commits nothing: it neither orders a build nor picks an end, and the
 arm, From, and To stand (the plot branch used to fall through to a
 build order with a resident selected, leaving Road armed with no end
-picked). The priced Lay confirm stays in the pick row;
+picked). A smart (right-click) visit on a resident while Road is
+armed answers the same way, that roads join two village stations,
+never residents, and commits nothing: the smart visit is an order,
+not a selection, so the left-tap rule that resident taps keep
+selecting does not cover it, and before this intercept the
+right-click committed a visit with no toast at all, leaving Road
+armed. The priced Lay confirm stays in the pick row;
 map taps pick ends only, they never lay. The route is shown before anything commits too: once both
 ends are picked, syncRoadPreview() (called from hudTick's road-pick
 row, the per-frame HUD render, so every pick change re-syncs it)

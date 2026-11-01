@@ -80,3 +80,11 @@ bearing and a ring, never stations, committing nothing, neither
 a station order nor a station answer, with the arm, the picks,
 and the selection standing, on the same grammar as the plot
 intercept.
+
+A smart (right-click) visit on a resident while Claim is armed
+answers the same way, that claims stake a bearing and a ring,
+never residents, and commits nothing: the smart visit is an order,
+not a selection, so the left-tap rule that resident taps keep
+selecting does not cover it, and before this intercept the
+right-click committed a visit with no toast at all, leaving Claim
+armed.

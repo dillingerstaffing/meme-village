@@ -7257,6 +7257,20 @@ function tapAt(cx, cy, smart){
     return;
   }
   if(p.agent){
+    /* A smart (right-click) visit while a god's-eye verb is armed used to
+       commit a visit through the smart branch below, leaving the arm
+       standing and answering nothing: the smart visit is an order, not
+       a selection, so the left-tap rule that resident taps keep
+       selecting does not cover it, and the armed verb's toast promises
+       a map target, never a resident. Answer at once, keep the arm,
+       the picks, the selection, and the visit untouched. The self tap
+       keeps its selection behavior: the smart branch only fires for a
+       different resident, so only that case intercepts here. */
+    if(smart && G.selected && G.selected !== p.agent){
+      if(G.roadArm){ showToast("🛣 Roads join two village stations, never residents", null, true); refreshTray(true); return; }
+      if(G.claimArm){ showToast("🚩 Claims stake a bearing and a ring, never residents", null, true); refreshTray(true); return; }
+      if(G.foundArm){ showToast("🏗 Found raises buildings on surveyed plots, never residents", null, true); refreshTray(true); return; }
+    }
     if(smart && G.selected && G.selected !== p.agent){
       var me = agent(G.selected), them = agent(p.agent);
       /* The tray Visit arm answers instead of promising a visit the sim
