@@ -21,3 +21,12 @@ The key is guarded like key pan and key zoom: it fires only once the
 game has started, never while the game is over or an incident panel is
 open, never with Ctrl, Meta, or Alt held, and never while typing in a
 text field. The Follow button title names the key it mirrors.
+
+The double-tap owns the double-click: a fast double-tap in tapAt
+toggles follow and stamps the pair in G.lastDblTap, and the canvas
+dblclick handler defers when it names the same resident within 600ms,
+because tapAt already toggled follow and already selected. A slower
+double-click past the 380ms tap window leaves no fresh stamp, so the
+dblclick handler still owns that case, and a double-click ending on a
+different resident is unaffected, since the stamp id must match. The
+handler never changes the selection beyond what tapAt already selected.

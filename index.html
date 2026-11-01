@@ -7274,7 +7274,7 @@ function tapAt(cx, cy, smart){
        deselect, the double-click follow, the alert chip, and the Idle
        finder, so every path that changes the selection moves the
        sheet with it or closes it on deselect. */
-    if(G.lastTap && G.lastTap.id === p.agent && nowMs - G.lastTap.ms < 380){ cam.follow = (cam.follow === p.agent) ? null : p.agent; G.lastTap = null; Store.dispatch("ui/select", {id: p.agent}); SND.play("tap"); refreshTray(true); return; }
+    if(G.lastTap && G.lastTap.id === p.agent && nowMs - G.lastTap.ms < 380){ cam.follow = (cam.follow === p.agent) ? null : p.agent; G.lastTap = null; G.lastDblTap = {id: p.agent, ms: nowMs}; Store.dispatch("ui/select", {id: p.agent}); SND.play("tap"); refreshTray(true); return; }
     G.lastTap = {id: p.agent, ms: nowMs};
     Store.dispatch("ui/select", {id: p.agent});
     SND.play("tap");
@@ -7446,9 +7446,11 @@ function bindInput(){
   });
   el.addEventListener("wheel", function(e){ e.preventDefault(); cam.dist = Math.max(15, Math.min(62, cam.dist * (e.deltaY > 0 ? 1.1 : 0.9))); }, {passive:false});
   el.addEventListener("contextmenu", function(e){ e.preventDefault(); tapAt(e.clientX, e.clientY, true); });
+  /* CF-REF: camera-key-follow.md [6] */
   el.addEventListener("dblclick", function(e){
     if(minimapJump(e.clientX, e.clientY)) return;
     var p = pickAt(e.clientX, e.clientY);
+    if(p.agent && G.lastDblTap && G.lastDblTap.id === p.agent && Date.now() - G.lastDblTap.ms < 600) return;
     if(p.agent){ Store.dispatch("ui/select", {id: p.agent}); cam.follow = (cam.follow === p.agent) ? null : p.agent; refreshTray(true); }
   });
   document.addEventListener("keydown", function(e){
