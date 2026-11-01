@@ -6866,7 +6866,14 @@ window.__saveCamMark = function(){ var before = (G.camMarks || []).length; Store
    recalls otherwise; the keyboard twin is Shift plus digit to
    assign, digit alone to recall. */
 window.__groupAssign = function(slot){ var a = G.selected ? agent(G.selected) : null; if(!a){ showToast("👥 Select a resident first, then tap Groups"); return false; } Store.dispatch("ui/group/set", {slot: slot, id: a.id}); G.groupArm = false; showToast("👥 Group " + (slot + 1) + ": " + a.name.split(" ")[0]); refreshTray(true); return true; };
-window.__groupRecall = function(slot){ var gr = Array.isArray(G.groups) ? G.groups : [null, null, null]; var id = gr[slot]; if(!id){ showToast("👥 Group " + (slot + 1) + " is empty. Select a resident, tap Groups, then tap this chip."); return false; } var a = agent(id); if(!a){ Store.dispatch("ui/group/clear", {slot: slot}); showToast("👥 That resident is no longer in the village, so group " + (slot + 1) + " is cleared."); refreshTray(true); return false; } Store.dispatch("ui/select", {id: a.id}); cam.follow = null; cam.target.x = a.x; cam.target.z = a.z; refreshTray(true); return true; };
+/* A recall answer jumps the toast queue, on the direct-reply rule the
+   live toast view answer and the sick/child order answers already
+   follow: a recall that changes nothing (empty slot, gone resident)
+   has no other visible effect, so a queued answer reads as a dead
+   chip tap, and the displaced toast waits at the head of the queue
+   instead of being erased. A successful recall toasts nothing, so
+   its selection and camera center are untouched by this. */
+window.__groupRecall = function(slot){ var gr = Array.isArray(G.groups) ? G.groups : [null, null, null]; var id = gr[slot]; if(!id){ showToast("👥 Group " + (slot + 1) + " is empty. Select a resident, tap Groups, then tap this chip.", null, true); return false; } var a = agent(id); if(!a){ Store.dispatch("ui/group/clear", {slot: slot}); showToast("👥 That resident is no longer in the village, so group " + (slot + 1) + " is cleared.", null, true); refreshTray(true); return false; } Store.dispatch("ui/select", {id: a.id}); cam.follow = null; cam.target.x = a.x; cam.target.z = a.z; refreshTray(true); return true; };
 window.__groupChip = function(slot){ if(G.groupArm) return __groupAssign(slot); return __groupRecall(slot); };
 /* Idle finder, shared by the tray button and the I key so the two can
    never disagree: cycle one loafer at a time, navigation only. The

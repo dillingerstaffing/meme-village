@@ -27,7 +27,11 @@ Invariants:
   slot and answers, changing nothing else.
 - Recall never follows: it centers once and clears any camera
   follow. Recall of an empty slot answers how to fill it and
-  changes nothing. Groups mutate selection and camera only, never
+  changes nothing. Both recall answers jump the toast queue, on
+  the direct-reply rule: a recall that changes nothing has no
+  other visible effect, so a queued answer reads as a dead chip
+  tap, and the displaced toast waits at the head of the queue.
+  Groups mutate selection and camera only, never
   sim state: no order, model edge, want, meter, or store changes.
 - The digit keys carry the same guard as every other keyboard
   verb: only once started, never while over or an incident panel
