@@ -7286,7 +7286,15 @@ function tapAt(cx, cy, smart){
     if(G.foundArm){
       G.foundArm = false;
       if(!ps){ G.foundPlot = p.plot; showToast("🏗 Choose what rises on this plot"); }
-      else showToast("🏗 That plot already holds the " + BUILD_KINDS[ps.kind].title);
+      /* A Found-armed tap on an occupied plot answers at once, on the
+         direct-reply rule the other pick answers already follow: the
+         arm clears and no kind chooser opens, so the toast is the
+         tap's only confirmation of why nothing was founded, and
+         queued behind a live toast it reads as a silent disarm. The
+         empty-plot branch keeps its queue behavior: its tap opens
+         the kind chooser in the tray, so the toast is never the
+         tap's only feedback. */
+      else showToast("🏗 That plot already holds the " + BUILD_KINDS[ps.kind].title, null, true);
       refreshTray(true); return;
     }
     if(ps){
