@@ -7360,11 +7360,12 @@ function bindInput(){
       pinchD = nd; pinchA = na;
     }
   });
-  // CF-REF: minimap-canvas-tap.md [11]
+  // CF-REF: minimap-canvas-tap.md [12]
   function endPointer(e){
     var wasDrag = dragged;
     var d0 = downAt;
     pointers.delete(e.pointerId);
+    if(e.button === 2){ if(pointers.size === 0){ downAt = null; dragged = false; } return; } /* A right-button release is not a left tap: the contextmenu handler below is the sole right-click path, so the pointerup must not first select, order, or deselect through tapAt(false). */
     if(pointers.size === 0){
       if(!wasDrag && d0){
         if(minimapJump(d0.x, d0.y)) announceArmedStill(); else tapAt(e.clientX, e.clientY, false);
