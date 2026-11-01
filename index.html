@@ -316,6 +316,14 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
    compact skip; the taller pill still sits in the free top-right slot
    the phone toast rule already reserves. */
 @media (max-width:560px){#toast .toast-skip{min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center;padding:0}}
+/* Phone close buttons meet the 44px thumb target: the sheet header
+   close is sticky and is the sheet's immediate dismissal path, while
+   the foot Close sits below the whole journal, so a player checking a
+   thought and closing at once must land on the header button, not
+   scroll to the foot. Phone-only, so the desktop sheet keeps its
+   compact 34px close; the header is a flex row with a 46px chip, so
+   a 44px button changes no layout. */
+@media (max-width:560px){#sheet .sh-x{width:44px;height:44px}}
 #vignette{position:fixed;inset:0;pointer-events:none;z-index:5;background:radial-gradient(ellipse at center,transparent 56%,rgba(16,22,14,.42) 100%)}
 /* CF-REF: minimap-canvas-tap.md [1] */
 #minimap{position:fixed;right:10px;bottom:150px;width:192px;height:144px;z-index:11;pointer-events:none;background:#22301f;border:1px solid var(--line);border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.35)}
@@ -334,7 +342,7 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
   #tray{flex-direction:column;flex-wrap:nowrap;align-items:stretch;gap:6px;padding:6px 8px;max-height:56vh;max-height:56dvh;max-height:56%;overflow:hidden;transition:max-height .3s ease}
   #tray:not(.selopen){max-height:60px}
   #tray:not(.selopen) #selInfo, #tray:not(.selopen) #cmds{display:none}
-  #selInfo{order:1;min-width:0;max-width:none;position:relative;padding-right:38px}
+  #selInfo{order:1;min-width:0;max-width:none;position:relative;padding-right:52px}
   #cmds{order:2;flex:1 1 auto;min-height:0;overflow-y:auto;align-content:flex-start}
   /* Five Influence buttons must still fit one phone row: with Visit the
      row missed by a few px, Thoughts wrapped, and the commands overflowed
@@ -358,7 +366,13 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
   #tray #speeds{display:grid;grid-template-columns:repeat(5,1fr);gap:3px}
   #tray #speeds .sbtn{min-height:44px;padding:10px 4px}
   #tray:not(.selopen){max-height:110px}
-  #selInfo .selX{display:block;position:absolute;top:0;right:0;width:30px;height:30px;background:#131a23;border:1px solid var(--line);color:var(--ink);border-radius:8px;font-size:13px;cursor:pointer;padding:0}
+  /* Phone tray deselect meets the 44px thumb target: the X is the
+     only reliable deselect and arm-cancel on a phone (a ground tap
+     keeps the selection and keeps an armed verb armed, measured this
+     run), so it must be a thumb target itself, not a 30px corner
+     button. The info block's right padding grows with it, 38px to
+     52px, so the 44px button still clears the name text. */
+  #selInfo .selX{display:block;position:absolute;top:0;right:0;width:44px;height:44px;background:#131a23;border:1px solid var(--line);color:var(--ink);border-radius:8px;font-size:13px;cursor:pointer;padding:0}
 }
 @media (max-width:560px) and (prefers-reduced-motion: reduce){
   #tray{transition:none}
