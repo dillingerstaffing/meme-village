@@ -4495,7 +4495,7 @@ function finishSite(site){
   updateSiteMesh(site);
   applySiteEffect(site);
   recomputeWealth();
-  showToast(kind.icon + " " + kind.title + " finished. " + (kind.blurb || ""));
+  showToast(kind.icon + " " + kind.title + " finished. " + (kind.blurb || ""), {x: site.x, z: site.z});
   SND.play("objwin");
   chronicle(kind.title + " finished.");
   checkLevelUp();
