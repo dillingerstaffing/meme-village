@@ -5857,13 +5857,13 @@ function foundNextRungText(){
   return fnKinds.length ? "; next at " + fnLvNm + ": " + fnKinds.join(", ") : "";
 }
 function announceArmedStill(){
-  if(G.armed) showToast("✨ Spotlight still armed, tap a resident to use it: a 20s shield, then a 45s cooldown");
-  else if(G.modelArm){ var ma = G.selected ? agent(G.selected) : null; var mm1 = (ma && ma.model) ? agent(ma.model) : null; showToast("👁 Model still armed, tap who " + (ma ? ma.name.split(" ")[0] : "they") + " should look up to: they copy them until you pick again" + (mm1 ? "; " + ma.name.split(" ")[0] + " looks up to " + mm1.name.split(" ")[0] + " now" : "")); }
-  else if(G.visitArm){ var va = G.selected ? agent(G.selected) : null; showToast("💬 Visit still armed, tap who " + (va ? va.name.split(" ")[0] : "they") + " should visit: they walk over for a chat"); }
-  else if(G.proclaimArm){ var paEarly = !!(G.proclaim && G.proclaim.week === G.week); var paNm = "the village"; if(paEarly){ if(G.proclaim.site){ var paSk = siteById(G.proclaim.site); var paKd = paSk ? BUILD_KINDS[paSk.kind] : null; paNm = paKd ? paKd.title : "the building site"; } else if(G.proclaim.station && STATION3[G.proclaim.station]) paNm = artName(G.proclaim.station); } showToast("📣 Proclaim still armed, tap a building or building site, drawing more residents to work there" + (paEarly ? "; " + paNm + " holds the focus now" : "")); }
-  else if(G.foundArm) showToast("🏗 Found still armed, tap a surveyed plot to found a building" + foundNextRungText());
-  else if(G.claimArm) showToast((G.claim && !G.claim.staked) ? "🚩 Claim still armed, the claim party is still out: recall them, or let them finish" : "🚩 Claim still armed, pick a bearing and a ring: three surveyed plots join the village");
-  else if(G.roadArm) showToast((G.roadBuild && !G.roadBuild.built) ? "🛣 Road still armed, the road crew is still out: recall them, or let them finish" : "🛣 Road still armed, tap two stations: walkers " + CONNECT_ROAD.walkMult.toFixed(1) + "x faster");
+  if(G.armed) showToast("✨ Spotlight still armed, tap a resident to use it: a 20s shield, then a 45s cooldown", null, true);
+  else if(G.modelArm){ var ma = G.selected ? agent(G.selected) : null; var mm1 = (ma && ma.model) ? agent(ma.model) : null; showToast("👁 Model still armed, tap who " + (ma ? ma.name.split(" ")[0] : "they") + " should look up to: they copy them until you pick again" + (mm1 ? "; " + ma.name.split(" ")[0] + " looks up to " + mm1.name.split(" ")[0] + " now" : ""), null, true); }
+  else if(G.visitArm){ var va = G.selected ? agent(G.selected) : null; showToast("💬 Visit still armed, tap who " + (va ? va.name.split(" ")[0] : "they") + " should visit: they walk over for a chat", null, true); }
+  else if(G.proclaimArm){ var paEarly = !!(G.proclaim && G.proclaim.week === G.week); var paNm = "the village"; if(paEarly){ if(G.proclaim.site){ var paSk = siteById(G.proclaim.site); var paKd = paSk ? BUILD_KINDS[paSk.kind] : null; paNm = paKd ? paKd.title : "the building site"; } else if(G.proclaim.station && STATION3[G.proclaim.station]) paNm = artName(G.proclaim.station); } showToast("📣 Proclaim still armed, tap a building or building site, drawing more residents to work there" + (paEarly ? "; " + paNm + " holds the focus now" : ""), null, true); }
+  else if(G.foundArm) showToast("🏗 Found still armed, tap a surveyed plot to found a building" + foundNextRungText(), null, true);
+  else if(G.claimArm) showToast((G.claim && !G.claim.staked) ? "🚩 Claim still armed, the claim party is still out: recall them, or let them finish" : "🚩 Claim still armed, pick a bearing and a ring: three surveyed plots join the village", null, true);
+  else if(G.roadArm) showToast((G.roadBuild && !G.roadBuild.built) ? "🛣 Road still armed, the road crew is still out: recall them, or let them finish" : "🛣 Road still armed, tap two stations: walkers " + CONNECT_ROAD.walkMult.toFixed(1) + "x faster", null, true);
   /* Speak For was the one armed verb this reminder never covered: a
      minimap tap with Speak armed jumped the camera and said nothing,
      while every sibling re-announced its effect. The reminder reads
@@ -5873,7 +5873,7 @@ function announceArmedStill(){
      stands, the generic still-armed wording still says the mode, and
      the next button tap commits or explains, as Speak always does.
      Display only: the arm, the plan, and the cooldown are untouched. */
-  else if(G.speakArm){ var sp = speakPlan(); if(sp && !sp.fail) showToast("🕊 Speak still armed, " + sp.voucher.name.split(" ")[0] + " would speak for " + sp.target.name.split(" ")[0] + " (" + sp.vf + " followers, trust " + Math.round(G.stats.trust) + ", needs " + HH.speakStrength + "). Tap the button again to commit."); else showToast("🕊 Speak still armed, tap the button again to commit."); }
+  else if(G.speakArm){ var sp = speakPlan(); if(sp && !sp.fail) showToast("🕊 Speak still armed, " + sp.voucher.name.split(" ")[0] + " would speak for " + sp.target.name.split(" ")[0] + " (" + sp.vf + " followers, trust " + Math.round(G.stats.trust) + ", needs " + HH.speakStrength + "). Tap the button again to commit.", null, true); else showToast("🕊 Speak still armed, tap the button again to commit.", null, true); }
 }
 var hudAcc = 0;
 var mmCtx = null;
