@@ -2440,9 +2440,13 @@ function telegraphFailing(){
          toast names the counter-move the winter roll supports, in the
          frail-forecast grammar: a fulfilled want pays morale +9, and
          morale below 50 feeds the winter death roll, so wants met
-         before winter are the lever the player still holds. */
+         before winter are the lever the player still holds. The toast
+         jumps the toast queue, on the initiative telegraph's rule: a
+         warning for an irreversible loss must not wait behind an
+         unrelated message, and the displaced toast goes to the head
+         of the queue, so nothing is erased. */
       noteEvent(a, "failing", "");
-      showToast("🤒 " + a.name.split(" ")[0] + " is failing. The village walks slower around them now. Keep their wants met while you can.", {ids: [a.id]});
+      showToast("🤒 " + a.name.split(" ")[0] + " is failing. The village walks slower around them now. Keep their wants met while you can.", {ids: [a.id]}, true);
       SND.play("warn");
     }
   });
@@ -4932,7 +4936,12 @@ function endWeek(){
        the autumn roll is a fresh roll. */
     var frail = null, frailRisk = -1;
     G.agents.forEach(function(a){ if(a.failing || arcOf(a).id !== "elder") return; var r = elderRisk(a); if(r > frailRisk){ frailRisk = r; frail = a; } });
-    if(frail) showToast("🍂 Autumn nears, and " + frail.name.split(" ")[0] + " is the village's frailest elder. Keep their wants met while you can.");
+    /* The frail forecast jumps the toast queue, on the initiative
+       telegraph's rule, like the failing telegraph it precedes: a
+       warning for an irreversible loss must not wait behind an
+       unrelated message, and the displaced toast goes to the head
+       of the queue, so nothing is erased. */
+    if(frail) showToast("🍂 Autumn nears, and " + frail.name.split(" ")[0] + " is the village's frailest elder. Keep their wants met while you can.", null, true);
   }
   if(seasonOfYear() === 3){
     telegraphFailing();
