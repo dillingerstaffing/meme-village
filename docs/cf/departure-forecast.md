@@ -27,6 +27,14 @@ are on screen before the irreversible step.
   at the household midpoint, and the warn sound. It removes nobody,
   departs nobody, writes no chronicle line, and never forces or
   blocks a departure.
+- The forecast toast jumps the toast queue, on the initiative
+  telegraph's rule: a warning for an irreversible loss must not wait
+  behind an unrelated message, since a queued forecast can sit out
+  its whole intervention window, and a full queue drops it outright
+  while its latch stays set, so it never re-fires. The displaced
+  toast goes to the head of the queue, so nothing is erased. The
+  blame forecast in the same tick jumps on the same rule, since
+  expulsion at 100 is the same shape of irreversible loss.
 - The latch clears when contentment rises to 30 or blame falls below
   60, so a second approach forecasts again; while the latch holds,
   no repeat toast fires.

@@ -4719,11 +4719,15 @@ function statDrift(dt){
      meter row only helps a player who happens to be watching it, so a
      one-per-climb warning names the target and the two real interventions
      (Speak For, or send them to the green) before the irreversible
-     expulsion at 100. Display plus dispatch only. */
+     expulsion at 100. The toast jumps the toast queue, on the
+     initiative telegraph's rule: a warning for an irreversible loss
+     must not wait behind an unrelated message, and the displaced
+     toast goes to the head of the queue, so nothing is erased.
+     Display plus dispatch only. */
   if(G.started && !G.over && cand && (G.blame || 0) >= 75 && !G.blameWarn){
     G.blameWarn = true;
     setBubble(cand, "🌩", 2.5);
-    showToast("🌩 The village is turning on " + cand.name.split(" ")[0] + ". Speak for them, or send them to the green.", {ids:[cand.id]});
+    showToast("🌩 The village is turning on " + cand.name.split(" ")[0] + ". Speak for them, or send them to the green.", {ids:[cand.id]}, true);
     Store.dispatch("ui/ping", {x:cand.x, z:cand.z, kind:"warn"});
     SND.play("warn");
     noteEvent(cand, "rivalry", "");
@@ -4735,7 +4739,11 @@ function statDrift(dt){
      30, blame at 60 or more), a one-per-approach warning names the
      household arrivalCheck would take and the two real interventions
      (Speak For, or send them to the green) before the 50 percent
-     boundary roll. Display plus dispatch only.
+     boundary roll. The toast jumps the toast queue, on the
+     initiative telegraph's rule: a warning for an irreversible loss
+     must not wait behind an unrelated message, and the displaced
+     toast goes to the head of the queue, so nothing is erased.
+     Display plus dispatch only.
      CF-REF: departure-forecast.md [14] */
   if(G.started && !G.over && !G.departWarn && contentment() < HH.departContentment && (G.blame || 0) >= HH.departBlame){
     var dh = lowestMoraleHousehold();
@@ -4744,7 +4752,7 @@ function statDrift(dt){
       if(m0 && m1){
         G.departWarn = true;
         setBubble(m0, "🚶", 2.5); setBubble(m1, "🚶", 2.5);
-        showToast("🚶 " + m0.name.split(" ")[0] + " and " + m1.name.split(" ")[0] + " may leave the valley. Speak for them, or send them to the green.", {ids:[m0.id, m1.id]});
+        showToast("🚶 " + m0.name.split(" ")[0] + " and " + m1.name.split(" ")[0] + " may leave the valley. Speak for them, or send them to the green.", {ids:[m0.id, m1.id]}, true);
         Store.dispatch("ui/ping", {x:(m0.x + m1.x) / 2, z:(m0.z + m1.z) / 2, kind:"warn"});
         SND.play("warn");
       }
