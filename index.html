@@ -1928,8 +1928,8 @@ function speakPlan(){
 }
 function speakFor(){
   if(!G.started || G.over) return false;
-  if((G.blame || 0) < HH.speakBlameMin){ showToast("🕊 Blame is not heavy enough to need a voice yet"); return false; }
-  if(G.speakCd && G.t < G.speakCd){ showToast("🕊 The village has heard a defense too recently"); return false; }
+  if((G.blame || 0) < HH.speakBlameMin){ showToast("🕊 Blame is not heavy enough to need a voice yet", null, true); return false; }
+  if(G.speakCd && G.t < G.speakCd){ showToast("🕊 The village has heard a defense too recently", null, true); return false; }
   var plan = speakPlan();
   if(!plan || plan.fail === "target"){ showToast("🕊 No one is marked enough to speak for"); return false; }
   if(plan.fail === "voucher"){ showToast("🕊 No one has the standing to speak for " + plan.target.name.split(" ")[0]); return false; }
