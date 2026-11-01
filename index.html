@@ -4708,12 +4708,19 @@ function objectiveTick(){
   if(o && o.metric() >= 100){
     G.objComplete = true; G.objDone++; applyStatMods(OBJ_COMPLETE_BONUS);
     /* The moment-of-completion toast names the bonus just paid on non-project commissions, the same numbers the card promised and the season-end toast repeats; project toasts stay plain, their payoff is the perk. */
-    showToast("✓ Objective complete: " + o.title + (o.project ? "" : " · +" + OBJ_COMPLETE_BONUS.trust + " trust and +" + OBJ_COMPLETE_BONUS.cohesion + " cohesion paid"));
-    SND.play("objwin");
+    /* The completion toast carries the objective station's focus, in the
+       project completion grammar: the station center is computed before
+       the toast, not after it for the celebration pings, so a view chip
+       rides the live toast and the last-alert chip keeps the return
+       after the toast expires, for a player looking elsewhere when the
+       season's payoff lands. No station, no focus, and the toast stays
+       plain as before. */
     var st = STATION3[o.station];
+    var cx = st ? st.x : 0, cz = st ? st.z : 0, wi = 0, sx = 0, sz = 0;
+    if(st && st.work && st.work.length){ for(wi = 0; wi < st.work.length; wi++){ sx += st.work[wi][0]; sz += st.work[wi][1]; } cx = sx / st.work.length; cz = sz / st.work.length; }
+    showToast("✓ Objective complete: " + o.title + (o.project ? "" : " · +" + OBJ_COMPLETE_BONUS.trust + " trust and +" + OBJ_COMPLETE_BONUS.cohesion + " cohesion paid"), st ? {x: cx, z: cz} : null);
+    SND.play("objwin");
     if(st){
-      var cx = st.x, cz = st.z, wi = 0, sx = 0, sz = 0;
-      if(st.work && st.work.length){ for(wi = 0; wi < st.work.length; wi++){ sx += st.work[wi][0]; sz += st.work[wi][1]; } cx = sx / st.work.length; cz = sz / st.work.length; }
       for(var ri = 0; ri < 3; ri++) spawnOrderPing(cx + (ri - 1) * 1.7, cz, ri * 0.22);
     }
     var oc = document.getElementById("objCard");
