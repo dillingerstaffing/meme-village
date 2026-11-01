@@ -2601,7 +2601,7 @@ function proclaimAt(stationId, siteId){
      nothing. A different target in the same week still shifts, and
      still costs 4 cohesion, unchanged below. */
   if(early && G.proclaim.station === (stationId || null) && G.proclaim.site === (siteId || null)){
-    showToast("📣 " + nm + " already holds the village's focus this season");
+    showToast("📣 " + nm + " already holds the village's focus this season", null, true);
     refreshTray(true);
     return false;
   }
