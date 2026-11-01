@@ -33,7 +33,10 @@ verb and the pick row closes with it. Before the commit, the Lay chip names the 
 for such a pair (no priced Lay chip offered), in the blocked-Claim
 grammar, so the player sees the refusal before committing; the chip
 stays tappable, so tapping it still refuses loudly rather than
-going silent. The village keeps at most
+going silent. The refusal jumps the toast queue (2026-11-01 loop run,
+guarded by pwtest_pickcommitjump.py): the failed lay disarms the verb
+and closes the pick row, so a queued refusal would read as a dead tap
+while an unrelated toast holds the slot. The village keeps at most
 CONNECT_ROAD.maxRoads roads, and the cap reads before any lay: the
 stats panel claim row (claimLbl, rendered by renderHud after the
 growth row) names the live road count against the cap once Town is

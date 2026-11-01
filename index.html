@@ -3921,14 +3921,14 @@ function claimCenterBlocked(ctr){
 }
 function stakeClaim(bearingIx, ringIx){
   if(!G.started || G.over) return null;
-  if(!claimUnlocked()){ showToast("🚩 Claims unlock when the village grows into a Town."); return null; }
-  if(G.claim && !G.claim.staked){ showToast("🚩 The claim party is still out staking the last claim."); return null; }
+  if(!claimUnlocked()){ showToast("🚩 Claims unlock when the village grows into a Town.", null, true); return null; }
+  if(G.claim && !G.claim.staked){ showToast("🚩 The claim party is still out staking the last claim.", null, true); return null; }
   var h = foundingHousehold();
-  if(!h){ showToast("🚩 No household stands ready to lead a claim."); return null; }
+  if(!h){ showToast("🚩 No household stands ready to lead a claim.", null, true); return null; }
   var hn = householdSurname(h), ctr = claimCenter(bearingIx, ringIx);
   /* No double-claiming: ground already claimed or surveyed within 10 units
      refuses the stake, the way Civ refuses a city on settled ground. */
-  if(claimCenterBlocked(ctr)){ showToast("🚩 That ground is already claimed or surveyed. Tap Claim again and pick another bearing or ring."); return null; }
+  if(claimCenterBlocked(ctr)){ showToast("🚩 That ground is already claimed or surveyed. Tap Claim again and pick another bearing or ring.", null, true); return null; }
   var cl = {id: "claim" + (++G.claimSeq), bearingIx: bearingIx, ringIx: ringIx, x: ctr.x, z: ctr.z,
     cost: claimTotals(ringIx), matsIn: {stores: 0, planks: 0}, party: [], household: null, staked: false};
   G.claim = cl;
@@ -4080,22 +4080,22 @@ function goRoad(a, r){
 }
 function layRoad(stA, stB){
   if(!G.started || G.over) return null;
-  if(!roadUnlocked()){ showToast("🛣 Roads unlock when the village grows into a Town."); return null; }
+  if(!roadUnlocked()){ showToast("🛣 Roads unlock when the village grows into a Town.", null, true); return null; }
   if(!STATION3[stA] || !STATION3[stB] || stA === stB || stA === "home" || stB === "home") return null;
   /* No double-building: a pair already joined by a road refuses the lay,
      the way Civ refuses a city on settled ground. */
   for(var i = 0; i < (G.roads || []).length; i++){
     var r0 = G.roads[i];
     if((r0.stA === stA && r0.stB === stB) || (r0.stA === stB && r0.stB === stA)){
-      showToast("🛣 " + STATION3[stA].name + " and " + STATION3[stB].name + " are already joined by a road. Tap Road again and pick two stations not yet joined.");
+      showToast("🛣 " + STATION3[stA].name + " and " + STATION3[stB].name + " are already joined by a road. Tap Road again and pick two stations not yet joined.", null, true);
       return null;
     }
   }
   if((G.roads || []).length >= CONNECT_ROAD.maxRoads){
-    showToast("🛣 The village keeps at most " + CONNECT_ROAD.maxRoads + " roads; every one must earn its keep.");
+    showToast("🛣 The village keeps at most " + CONNECT_ROAD.maxRoads + " roads; every one must earn its keep.", null, true);
     return null;
   }
-  if(G.roadBuild && !G.roadBuild.built){ showToast("🛣 The road crew is still laying the last road."); return null; }
+  if(G.roadBuild && !G.roadBuild.built){ showToast("🛣 The road crew is still laying the last road.", null, true); return null; }
   var c = roadCost(stA, stB);
   var r = {id: "road" + (++G.roadSeq), stA: stA, stB: stB,
     x1: STATION3[stA].x, z1: STATION3[stA].z, x2: STATION3[stB].x, z2: STATION3[stB].z,
@@ -4106,7 +4106,7 @@ function layRoad(stA, stB){
   if(!party.length){
     G.roadBuild = null;
     G.roads = G.roads.filter(function(x){ return x.id !== r.id; });
-    showToast("🛣 No household stands ready to lay a road.");
+    showToast("🛣 No household stands ready to lay a road.", null, true);
     return null;
   }
   buildRoadMesh(r);
