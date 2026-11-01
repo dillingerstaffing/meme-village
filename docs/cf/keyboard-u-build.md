@@ -12,7 +12,9 @@ carry settle, all inside the shared order path rather than a second
 copy. With no site open, U toasts the button's no-site wording
 ("No building site is open right now. Found a building first, or let
 the current one finish.") instead of ordering, exactly as the button
-does.
+does. The no-site answer jumps the toast queue, on the direct-reply
+rule: it is the press's only feedback, and queued behind a live toast
+it would read as a dead key or a dead tap.
 
 Build's initial B arms the Proclaim verb, so U, the button's second
 letter, stands for it, in the second-letter grammar of O for Model
