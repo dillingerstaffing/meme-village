@@ -64,3 +64,11 @@ percent, stat, and source, before the Stake chip commits. It is
 display only and shares the table and the distance test with the
 ledgers, so the preview and the bonus can never disagree; a bonus
 with no plot in range names nothing.
+
+A plot tap while Claim is armed is not a claim input at all: the
+plot branch intercepts it before the Found branch and answers at
+once that claims stake a bearing and a ring, never plots, committing
+nothing, neither a build order nor a plot answer, with the arm, the
+picks, and the selection standing. The pick row is the verb's only
+input surface, so a map tap must never silently commit another
+verb behind it.
