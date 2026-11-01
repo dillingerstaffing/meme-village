@@ -7366,6 +7366,19 @@ function tapAt(cx, cy, smart){
        the station no-selection guidance, the wrong verb's answer.
        Answer at once, keep the arm, the picks, and the selection. */
     if(G.claimArm){ showToast("🚩 Claims stake a bearing and a ring, never stations", null, true); refreshTray(true); return; }
+    /* Found armed intercepts its own station taps, on the grammar of
+       the plot and Claim intercepts above: the arm toast promises
+       "Tap a surveyed plot (gold ring) to found a building", so a
+       station tap while Found is armed must neither order the
+       selected resident nor answer about the station. Before this
+       intercept the tap fell through: with a resident selected it
+       committed a station order through setOrder3 (which clears
+       foundArm on commit and shows no order toast for a new order),
+       silently disarming Found behind the player's back, and
+       without one it answered the station no-selection guidance,
+       the wrong verb's answer. Answer at once, keep the arm, the
+       plot pick, and the selection. */
+    if(G.foundArm){ showToast("🏗 Found raises buildings on surveyed plots, never stations", null, true); refreshTray(true); return; }
     if(G.selected){ setOrder3(p.station); }
     else if(G.started && !G.over){ showToast("👆 Tap a resident first, then tap the " + stationW(p.station).name.toLowerCase(), null, true); }
     else showToast(stationW(p.station).icon + " " + stationW(p.station).name);
