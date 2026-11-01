@@ -2880,7 +2880,7 @@ function prestigeScan(){
 }
 function warnInitiative(c){
   var a = c.a;
-  /* A plan at a station STATION3 does not define (the claim and road pseudo-stations) cannot be warned by name, and a plan standing without its toast fires unwarned, so such a candidate is dropped here instead of standing a plan: the guard sits before initPend is set, never after. */
+  /* A plan at a station STATION3 does not define (the claim and road pseudo-stations) cannot be warned by name, and a plan standing without its toast fires unwarned, so such a candidate is dropped here instead of standing a plan: the guard sits before initPend is set, never after. The telegraph toast jumps: the plan fires 6 sim seconds after it is telegraphed, and a toast lasts 3.6 wall seconds, so a telegraph queued behind one live toast would show with most of its window gone (at 2x, none left). A jump toast shows at once and the toast it displaces goes to the head of the queue, so nothing is erased. */
   if((c.kind === "shift" || c.kind === "claim") && !STATION3[c.station]) return;
   a.initPend = {kind:c.kind, at:G.t + 6, station:c.station || null, pair:c.pair || null, target:c.target || null};
   a.initWk = G.week;
@@ -2890,7 +2890,7 @@ function warnInitiative(c){
   if(c.kind === "mediate"){ var ids = c.pair.split("|"); var other = agent(ids[0] === a.id ? ids[1] : ids[0]); msg = "🔔 " + nm + " is about to lead " + (other ? other.name.split(" ")[0] : "a rival") + " to the green to cool a feud. Order " + nm + " elsewhere to stop it."; }
   if(c.kind === "claim"){ var t = agent(c.target); msg = "🔔 " + nm + " is about to claim a work spot at the " + STATION3[c.station].name + ", drawn by " + (t ? t.name.split(" ")[0] : "a model") + ". Order " + nm + " elsewhere to stop it."; }
   if(c.kind === "refuse"){ msg = "🔔 " + nm + ", worn down by blame, is about to refuse and go home. Order " + nm + " elsewhere to stop it."; }
-  if(msg) showToast(msg);
+  if(msg) showToast(msg, null, true);
   noteEvent(a, "initiative", c.kind);
 }
 function fireInitiative(a, p){
