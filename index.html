@@ -307,6 +307,15 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
    hudTick re-measures every tick, so a taller stack sheds sooner in
    crowded states rather than covering the card. */
 @media (max-width:560px){#alerts .alert-chip{min-height:44px}}
+/* Phone toast skip meets the 44px thumb target: the pill itself passes
+   taps through to the canvas (only the skip button captures, per the
+   tray-passes-taps rule), so the old 26x22 skip button was the one
+   phone control a thumb could miss straight onto the canvas behind,
+   selecting or deselecting whatever lay under the pill, instead of
+   advancing the message. Phone-only, so the desktop pill keeps its
+   compact skip; the taller pill still sits in the free top-right slot
+   the phone toast rule already reserves. */
+@media (max-width:560px){#toast .toast-skip{min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center;padding:0}}
 #vignette{position:fixed;inset:0;pointer-events:none;z-index:5;background:radial-gradient(ellipse at center,transparent 56%,rgba(16,22,14,.42) 100%)}
 /* CF-REF: minimap-canvas-tap.md [1] */
 #minimap{position:fixed;right:10px;bottom:150px;width:192px;height:144px;z-index:11;pointer-events:none;background:#22301f;border:1px solid var(--line);border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.35)}

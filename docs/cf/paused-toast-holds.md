@@ -21,6 +21,15 @@ toast the player skipped (until 0) is never revived, and a toast that
 arrives during the pause queues behind the held one under the usual
 ui/toast rule instead of overwriting it.
 
+On phones the skip button meets the 44px thumb target. The pill itself
+passes taps through to the canvas and only the skip button captures, so
+a skip button smaller than a thumb turns a near miss into a canvas tap
+behind the pill, selecting or deselecting whatever lies under it,
+instead of advancing the message. The phone rule gives .toast-skip a
+44px square hit area; the desktop pill keeps its compact skip, and the
+taller phone pill still sits in the free top-right slot the phone toast
+rule reserves, so no persistent read is covered.
+
 The hold is a loop dispatch, never a renderer write: renderers only
 read until to decide whether the pill shows. The speed buttons and the
 Space key are the only ways to enter pause, and both go through
