@@ -56,7 +56,7 @@ tap, drag, scroll, touch, pointer, gesture, tray, alerts, minimap, button, click
 |---------|---------|
 | tray-passes-taps.md | Overlay containers are pointer-events none; only their buttons capture |
 | highlight-vocabulary.md | Each tray treatment means one thing: teal is the current order, gold is the one armed verb, status is chips never lit buttons |
-| idle-finder.md | The Idle button cycles one loafer at a time, orders nothing, and never carries a lit treatment |
+| idle-finder.md | The Idle button cycles one loafer at a time, orders nothing, and never carries a lit treatment; the no-loafer answer jumps the toast queue |
 | control-groups.md | Three recall slots, one resident each: Groups arm plus chip tap assigns, chip tap or digit recalls and centers, a gone resident clears the slot |
 | keyboard-escape-close.md | Escape closes the topmost closable panel first (Story overlay, then sheet), never an incident panel, never a deselect |
 | keyboard-space-pause.md | Space toggles speed 0 and 1 only once started, never while over, never with a modifier, never while typing, but stays live during an incident panel as the thinking tool |

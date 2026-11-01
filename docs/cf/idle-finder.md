@@ -10,7 +10,9 @@ buttons, or taps Idle again for the next loafer. Tapping with no
 loafer answers "Everyone is busy right now" instead of going silent
 or greying out, and the button face names the loafer count while
 any exist, so the player reads whether there is anyone to find
-before tapping.
+before tapping. The no-loafer answer jumps the toast queue: the call
+changes no selection, no camera move, and no arm, so it is the tap's
+only feedback, and a queued answer would read as a dead tap.
 
 The button carries no lit treatment in any state: never .on,
 .armed, or .cam. It is navigation, like Follow, not an order, not

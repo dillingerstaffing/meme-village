@@ -6903,7 +6903,7 @@ window.__groupChip = function(slot){ if(G.groupArm) return __groupAssign(slot); 
    no loafer changes no selection, so it changes no arm. */
 window.__cycleIdle = function(){
   var idleNow = idleResidents();
-  if(!idleNow.length){ showToast("💤 Everyone is busy right now"); refreshTray(true); return false; }
+  if(!idleNow.length){ /* The no-loafer answer jumps the toast queue, on the direct-reply rule the group-recall answers already follow: the call changes no selection, no camera move, and no arm, so a queued answer reads as a dead tap, and the displaced toast waits at the head of the queue instead of being erased. */ showToast("💤 Everyone is busy right now", null, true); refreshTray(true); return false; }
   var idleIx = -1;
   for(var ii = 0; ii < idleNow.length; ii++) if(idleNow[ii].id === G.selected) idleIx = ii;
   var idleNext = idleNow[(idleIx + 1) % idleNow.length];
