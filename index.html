@@ -7354,6 +7354,18 @@ function tapAt(cx, cy, smart){
       else { G.roadTo = p.station; var rc = roadCost(G.roadFrom, p.station); showToast("🛣 To " + stationW(p.station).name + " · 🪵" + rc.planks + " planks: tap Lay in the tray to confirm"); }
       refreshTray(true); return;
     }
+    /* Claim armed intercepts its own station taps, on the grammar of
+       the plot intercept above: the arm toast promises "Pick a bearing
+       and a ring", and the pick row carries the bearing and ring
+       chips, so a station tap while Claim is armed must neither order
+       the selected resident nor answer about the station. Before this
+       intercept the tap fell through: with a resident selected it
+       committed a station order through setOrder3 (which clears only
+       the five map-targeted arms, never Claim), leaving Claim armed
+       with no bearing or ring committed, and without one it answered
+       the station no-selection guidance, the wrong verb's answer.
+       Answer at once, keep the arm, the picks, and the selection. */
+    if(G.claimArm){ showToast("🚩 Claims stake a bearing and a ring, never stations", null, true); refreshTray(true); return; }
     if(G.selected){ setOrder3(p.station); }
     else if(G.started && !G.over){ showToast("👆 Tap a resident first, then tap the " + stationW(p.station).name.toLowerCase(), null, true); }
     else showToast(stationW(p.station).icon + " " + stationW(p.station).name);

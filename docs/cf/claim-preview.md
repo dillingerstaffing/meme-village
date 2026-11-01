@@ -72,3 +72,11 @@ nothing, neither a build order nor a plot answer, with the arm, the
 picks, and the selection standing. The pick row is the verb's only
 input surface, so a map tap must never silently commit another
 verb behind it.
+
+A station tap while Claim is armed is not a claim input either:
+the station branch intercepts it after the Road intercept and
+before the order branch and answers at once that claims stake a
+bearing and a ring, never stations, committing nothing, neither
+a station order nor a station answer, with the arm, the picks,
+and the selection standing, on the same grammar as the plot
+intercept.
