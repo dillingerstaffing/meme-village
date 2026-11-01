@@ -31,3 +31,11 @@ so the incident guard is intentional, not an omission. Do not add
 an incident exception here without re-arguing that panel rule: the
 guard is intentionally identical to the camera, group, idle, lens,
 story, and thoughts keys, not to Space, P, 0, or M.
+
+Below Town, the unlock explanation jumps the toast queue, on the
+direct-reply rule the group answers already follow: the press arms
+nothing and opens no pick row, so a queued answer would read as a
+dead key, and the displaced toast waits at the head of the queue
+instead of being erased. The tray Claim button's locked answer jumps
+on the same rule. Guarded by pwtest_claimroadlock.py in this goal's
+hidden_files.

@@ -5709,14 +5709,14 @@ function refreshTray(force){
       /* Claim (v4): a Town-tier BUILD verb. Arms the bearing-plus-ring pick
          row below; the gold armed vocabulary matches the other verbs. */
       if(o === "claim"){
-        if(!claimUnlocked()){ showToast("🚩 Claims unlock when the village grows into a Town."); refreshTray(true); return; }
+        if(!claimUnlocked()){ showToast("🚩 Claims unlock when the village grows into a Town.", null, true); refreshTray(true); return; }
         G.claimArm = !G.claimArm; G.claimBearing = null; G.claimRing = null;
         G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.groupArm = false;
         if(G.claimArm) showToast((G.claim && !G.claim.staked) ? "🚩 The claim party is still out: recall them, or let them finish" : "🚩 Pick a bearing and a ring: the founding party stakes the claim and carries the materials");
         refreshTray(true); return;
       }
       if(o === "road"){
-        if(!roadUnlocked()){ showToast("🛣 Roads unlock when the village grows into a Town."); refreshTray(true); return; }
+        if(!roadUnlocked()){ showToast("🛣 Roads unlock when the village grows into a Town.", null, true); refreshTray(true); return; }
         G.roadArm = !G.roadArm; G.roadFrom = null; G.roadTo = null;
         G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.claimArm = false; G.groupArm = false;
         if(G.roadArm) showToast((G.roadBuild && !G.roadBuild.built) ? "🛣 The road crew is still out: recall them, or let them finish" : "🛣 Tap one station, then another: the crew lays a road between them");
@@ -7507,7 +7507,7 @@ function bindInput(){
        aside while Shift is held, exactly as a digit stands aside for
        its Shift assign. */
     /* CF-REF: keyboard-c-claim.md [1] */
-    if((e.key === "c" || e.key === "C") && !e.shiftKey && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ if(!claimUnlocked()){ showToast("🚩 Claims unlock when the village grows into a Town."); refreshTray(true); } else { G.claimArm = !G.claimArm; G.claimBearing = null; G.claimRing = null; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.groupArm = false; if(G.claimArm) showToast((G.claim && !G.claim.staked) ? "🚩 The claim party is still out: recall them, or let them finish" : "🚩 Pick a bearing and a ring: the founding party stakes the claim and carries the materials"); refreshTray(true); } }
+    if((e.key === "c" || e.key === "C") && !e.shiftKey && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ if(!claimUnlocked()){ showToast("🚩 Claims unlock when the village grows into a Town.", null, true); refreshTray(true); } else { G.claimArm = !G.claimArm; G.claimBearing = null; G.claimRing = null; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.groupArm = false; if(G.claimArm) showToast((G.claim && !G.claim.staked) ? "🚩 The claim party is still out: recall them, or let them finish" : "🚩 Pick a bearing and a ring: the founding party stakes the claim and carries the materials"); refreshTray(true); } }
     /* B proclaim arm: the keyboard twin of the tray Proclaim button,
        so a desktop player need not reach for the mouse to arm the
        season-focus verb. P is taken (pause, the Sims twin), so B
@@ -7552,7 +7552,7 @@ function bindInput(){
        crew-out wording when a road is under way, else the
        tap-two-stations wording). */
     /* CF-REF: keyboard-h-road.md [1] */
-    if((e.key === "h" || e.key === "H") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ if(!roadUnlocked()){ showToast("🛣 Roads unlock when the village grows into a Town."); refreshTray(true); } else { G.roadArm = !G.roadArm; G.roadFrom = null; G.roadTo = null; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.claimArm = false; G.groupArm = false; if(G.roadArm) showToast((G.roadBuild && !G.roadBuild.built) ? "🛣 The road crew is still out: recall them, or let them finish" : "🛣 Tap one station, then another: the crew lays a road between them"); refreshTray(true); } }
+    if((e.key === "h" || e.key === "H") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ if(!roadUnlocked()){ showToast("🛣 Roads unlock when the village grows into a Town.", null, true); refreshTray(true); } else { G.roadArm = !G.roadArm; G.roadFrom = null; G.roadTo = null; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.claimArm = false; G.groupArm = false; if(G.roadArm) showToast((G.roadBuild && !G.roadBuild.built) ? "🛣 The road crew is still out: recall them, or let them finish" : "🛣 Tap one station, then another: the crew lays a road between them"); refreshTray(true); } }
     /* V visit: the keyboard twin of the tray Visit button, the first
        resident-targeted armed verb to gain a key (Model's initial M
        is the Sound mute key, so Model waits for its own letter).
