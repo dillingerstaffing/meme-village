@@ -7155,16 +7155,13 @@ var raycaster = new THREE.Raycaster();
 function pickAt(cx, cy){
   var nd = new THREE.Vector2((cx / window.innerWidth) * 2 - 1, -(cy / window.innerHeight) * 2 + 1);
   raycaster.setFromCamera(nd, camera);
-  var aHits = [], sHits = [];
-  G.agents.forEach(function(a){ aHits.push(a.hit); });
-  Object.keys(STATION3).forEach(function(id){ if(STATION3[id].hitMesh) sHits.push(STATION3[id].hitMesh); });
-  var fa = raycaster.intersectObjects(aHits, false);
-  if(fa.length) return {agent: fa[0].object.userData.agentId};
-  /* The resident's own placed overlay box (cached by renderOverlay) is a
-     tap target too: the name/bubble stack is the most prominent affordance
-     on screen and it sits at the head anchor, 50-70px above the torso
-     fallback below, so taps on it were falling through silently. The box is
-     a JS cache of the placed position, never a DOM read. */
+  /* The resident's own placed overlay box (cached by renderOverlay) is
+     checked BEFORE the 3D body raycast: the name/bubble stack is drawn
+     above the 3D world, so a tap on it is a tap on its owner even when
+     another resident's body cylinder projects under the box. Checking
+     the raycast first selected the body resident instead, which read as
+     the tap landing on the wrong person. The box is a JS cache of the
+     placed position, never a DOM read. */
   var bo = null, boD = 1e9;
   G.agents.forEach(function(a){
     var b = a._ovlBox; if(!b) return;
@@ -7173,6 +7170,11 @@ function pickAt(cx, cy){
     if(d < boD){ boD = d; bo = a.id; }
   });
   if(bo) return {agent: bo};
+  var aHits = [], sHits = [];
+  G.agents.forEach(function(a){ aHits.push(a.hit); });
+  Object.keys(STATION3).forEach(function(id){ if(STATION3[id].hitMesh) sHits.push(STATION3[id].hitMesh); });
+  var fa = raycaster.intersectObjects(aHits, false);
+  if(fa.length) return {agent: fa[0].object.userData.agentId};
   var best = null, bestD = 40;
   G.agents.forEach(function(a){
     var v = new THREE.Vector3(a.x, 1.1, a.z).project(camera);
