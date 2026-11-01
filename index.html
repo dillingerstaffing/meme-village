@@ -7306,11 +7306,11 @@ function tapAt(cx, cy, smart){
        the tray pick row: map taps pick ends only, they never lay. */
     if(G.roadArm){
       if(!roadUnlocked()){ showToast("🛣 Roads unlock when the village grows into a Town."); refreshTray(true); return; }
-      if(G.roadBuild && !G.roadBuild.built){ showToast("🛣 The road crew is still out: recall them, or let them finish"); refreshTray(true); return; }
+      if(G.roadBuild && !G.roadBuild.built){ showToast("🛣 The road crew is still out: recall them, or let them finish", null, true); refreshTray(true); return; }
       if(p.station === "home"){ showToast("🛣 Roads join two village stations, never home"); refreshTray(true); return; }
       if(!G.roadFrom){ G.roadFrom = p.station; G.roadTo = null; showToast("🛣 From " + stationW(p.station).name + ": tap another station for the far end"); }
-      else if(G.roadTo){ showToast("🛣 Both ends picked: tap Lay in the tray to lay the road"); }
-      else if(p.station === G.roadFrom){ showToast("🛣 " + stationW(p.station).name + " is already the From end: tap a different station"); }
+      else if(G.roadTo){ showToast("🛣 Both ends picked: tap Lay in the tray to lay the road", null, true); }
+      else if(p.station === G.roadFrom){ showToast("🛣 " + stationW(p.station).name + " is already the From end: tap a different station", null, true); }
       else { G.roadTo = p.station; var rc = roadCost(G.roadFrom, p.station); showToast("🛣 To " + stationW(p.station).name + " · 🪵" + rc.planks + " planks: tap Lay in the tray to confirm"); }
       refreshTray(true); return;
     }
