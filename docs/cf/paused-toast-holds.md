@@ -28,7 +28,13 @@ behind the pill, selecting or deselecting whatever lies under it,
 instead of advancing the message. The phone rule gives .toast-skip a
 44px square hit area; the desktop pill keeps its compact skip, and the
 taller phone pill still sits in the free top-right slot the phone toast
-rule reserves, so no persistent read is covered.
+rule reserves, so no persistent read is covered. The focus toast's view
+chip meets the same target on phones: it is one button carrying the
+whole message, and at one text line tall a thumb aiming at the message
+could miss onto the canvas behind the pill instead of jumping the
+camera, so the phone rule gives .toast-chip a 44px tall hit area, and
+the pill height does not change because the skip button already stands
+44px tall beside it.
 
 The hold is a loop dispatch, never a renderer write: renderers only
 read until to decide whether the pill shows. The speed buttons and the

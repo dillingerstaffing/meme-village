@@ -316,6 +316,15 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
    compact skip; the taller pill still sits in the free top-right slot
    the phone toast rule already reserves. */
 @media (max-width:560px){#toast .toast-skip{min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center;padding:0}}
+/* Phone toast view chip meets the 44px thumb target: the focus toast
+   is one button carrying the whole message plus the view affordance,
+   and it used to measure one text line tall (18px), so a thumb aiming
+   at the message could miss straight onto the canvas behind the pill,
+   selecting or deselecting whatever lay under it, instead of jumping
+   the camera. Phone-only, so the desktop pill keeps its compact chip;
+   the pill already stands 44px tall on the skip button, so the taller
+   chip changes no pill height. */
+@media (max-width:560px){#toast .toast-chip{display:inline-flex;align-items:center;min-height:44px}}
 /* Phone close buttons meet the 44px thumb target: the sheet header
    close is sticky and is the sheet's immediate dismissal path, while
    the foot Close sits below the whole journal, so a player checking a
