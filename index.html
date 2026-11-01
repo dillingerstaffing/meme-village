@@ -403,10 +403,26 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
    On short viewports only, the sheet caps at 40% instead: its button
    grids already scroll inside the cap, so every verb stays reachable,
    and hudTick re-pins the alerts and the stats from the tray's
-   measured height, so no script change is owed. Taller phones keep
-   the 56% sheet. vh fallback before dvh, per the no-dvh rule. */
+   measured height, so no script change is owed. Taller phones size
+   the sheet to the full default grid under the 72% tall-phone rule
+   below. vh fallback before dvh, per the no-dvh rule. */
 @media (max-width:560px) and (max-height:700px){
   #tray{max-height:40vh;max-height:40dvh;max-height:40%}
+}
+/* Tall phones (701px tall and up): the 56% sheet is one verb row
+   short of the default grid (measured at 390x844: the grid needs
+   514px, the cap gives 473px; at 375px the Influence group wraps to
+   a second row and the grid needs 573px), so the Village cluster's
+   last row showed only its icon tops with its labels cut at the
+   scroll fold, and a tap at a cut button's center landed on the
+   speeds button painted underneath it (Claim's center hit Pause).
+   The sheet now caps at 72%, which fits the default grid whole at
+   both widths with room for a taller info block; longer transient
+   states (an open Cover chooser, a sick resident's chips) still
+   scroll inside the cap, and short phones keep the 40% cap above.
+   vh fallback before dvh, per the no-dvh rule. */
+@media (max-width:560px) and (min-height:701px){
+  #tray{max-height:72vh;max-height:72dvh;max-height:72%}
 }
 </style>
 </head>
