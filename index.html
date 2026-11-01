@@ -3493,13 +3493,19 @@ function projectTick(){
   if(pr.cost && G.stores >= pr.cost) G.stores -= pr.cost;
   G.perks.push(pr.id);
   chronicle((def ? def.title : pr.id) + " was completed.");
-  showToast("🏗 Project complete: " + (def ? def.title : pr.id) + ". " + (def ? def.perkText : ""));
+  var pSite = null;
+  (G.sites || []).forEach(function(s){ if(s.projId === pr.id) pSite = s; });
+  /* The completion toast carries the built site's focus, in the claim
+     staked grammar: a view chip rides the live toast, and the last-alert
+     chip keeps the return after the toast expires, so a player looking
+     elsewhere when the village's biggest permanent payoff lands can
+     still jump the camera to the site it came from. No site, no focus,
+     and the toast stays plain as before. */
+  showToast("🏗 Project complete: " + (def ? def.title : pr.id) + ". " + (def ? def.perkText : ""), pSite ? {x: pSite.x, z: pSite.z} : null);
   SND.play("objwin");
   /* Project celebration juice: five staggered gold pings at the built site,
      the objective completion grammar scaled up for the bigger achievement.
      Display only; the perk, the chronicle, and every ledger are untouched. */
-  var pSite = null;
-  (G.sites || []).forEach(function(s){ if(s.projId === pr.id) pSite = s; });
   if(pSite) for(var pi2 = 0; pi2 < 5; pi2++) spawnOrderPing(pSite.x + (pi2 - 2) * 1.7, pSite.z, pi2 * 0.22);
 }
 // CF-REF: claim-adjacency.md [18]
