@@ -6865,7 +6865,7 @@ window.__saveCamMark = function(){ var before = (G.camMarks || []).length; Store
    follow. A chip tap assigns while the Groups arm stands and
    recalls otherwise; the keyboard twin is Shift plus digit to
    assign, digit alone to recall. */
-window.__groupAssign = function(slot){ var a = G.selected ? agent(G.selected) : null; if(!a){ showToast("👥 Select a resident first, then tap Groups"); return false; } Store.dispatch("ui/group/set", {slot: slot, id: a.id}); G.groupArm = false; showToast("👥 Group " + (slot + 1) + ": " + a.name.split(" ")[0]); refreshTray(true); return true; };
+window.__groupAssign = function(slot){ var a = G.selected ? agent(G.selected) : null; if(!a){ showToast("👥 Select a resident first, then tap Groups", null, true); return false; } /* The no-selection answer jumps the toast queue, on the direct-reply rule the recall answers already follow: the keyboard assign bypasses the tray button (disabled with no selection), so Shift plus a digit with nothing selected is a keypress whose only feedback is this answer, and queued behind a live toast it reads as a dead key. The successful assign is untouched: its toast names the occupant and the chip row visibly changes, so it is never the tap's only feedback. */ Store.dispatch("ui/group/set", {slot: slot, id: a.id}); G.groupArm = false; showToast("👥 Group " + (slot + 1) + ": " + a.name.split(" ")[0]); refreshTray(true); return true; };
 /* A recall answer jumps the toast queue, on the direct-reply rule the
    live toast view answer and the sick/child order answers already
    follow: a recall that changes nothing (empty slot, gone resident)

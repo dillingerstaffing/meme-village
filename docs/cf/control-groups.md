@@ -33,6 +33,12 @@ Invariants:
   tap, and the displaced toast waits at the head of the queue.
   Groups mutate selection and camera only, never
   sim state: no order, model edge, want, meter, or store changes.
+- The keyboard assign bypasses the tray button, so Shift plus a
+  digit with nothing selected answers that no resident is selected,
+  and that answer jumps the toast queue on the same direct-reply
+  rule: the keypress changes nothing visible, so a queued answer
+  reads as a dead key. The successful assign is untouched: its
+  toast names the occupant and the chip row visibly changes.
 - The digit keys carry the same guard as every other keyboard
   verb: only once started, never while over or an incident panel
   is open, never with a Ctrl, Meta, or Alt modifier, never while
