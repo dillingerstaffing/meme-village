@@ -709,7 +709,7 @@ function renderSheet(s){
   var whSig = 0; if(a.workHist) for(var wkk in a.workHist) whSig += a.workHist[wkk];
   var cvk = convergenceRecords(a);
   var convSig = cvk.drifts.map(function(r){ return r.name + ":" + r.tension + ":" + r.yr + ":" + r.sn; }).join(",") + "|" + cvk.conv.map(function(r){ return r.station + ":" + r.names.join(","); }).join(",");
-  var key = a.id + "|" + (a.thought ? a.thought.at + ":" + a.thought.text : "none") + "|" + log.length + "|" + NEED_DEFS.map(function(d){ return Math.round(needVal(a, d.id)); }).join(":") + ":" + whSig + "|" + (householdOf(a) ? householdOf(a).id : "") + "|" + Math.round(a.age || 34) + arcOf(a).id + "|" + Math.floor(a.cash || 0) + ":" + (a.bank == null ? "x" : Math.floor(a.bank)) + "|" + (a.tier || "") + "|" + (prestigeFlipUnlocked() ? (prestigeFlipped(a) ? "E" : "A") : "L") + followersOf(a) + "|" + convSig;
+  var key = a.id + "|" + (a.thought ? a.thought.at + ":" + a.thought.text : "none") + "|" + log.length + "|" + NEED_DEFS.map(function(d){ return Math.round(needVal(a, d.id)); }).join(":") + ":" + whSig + "|" + (householdOf(a) ? householdOf(a).id : "") + "|" + Math.round(a.age || 34) + arcOf(a).id + "|" + Math.floor(a.cash || 0) + ":" + (a.bank == null ? "x" : Math.floor(a.bank)) + "|" + (a.tier || "") + "|" + (prestigeFlipUnlocked() ? (prestigeFlipped(a) ? "E" : "A") : "L") + followersOf(a) + "|" + convSig + "|" + activityText(a);
   if(key === sheetKey && el.style.display !== "none") return;
   sheetKey = key;
   var shirt = "#" + ("000000" + (a.shirt || 0).toString(16)).slice(-6);
@@ -719,6 +719,14 @@ function renderSheet(s){
   var h = "<div class='sh-head'><div class='sh-chip' style='background:" + shirt + "'><div class='sh-hair' style='background:" + hair + "'></div><div class='sh-letter'>" + a.name.charAt(0) + "</div></div>"
     + "<div><div class='sh-name'>" + a.name + "</div><div class='sh-role'>" + a.role + (ax2 ? " · " + ax2.icon + " " + ax2.label : "") + "</div></div>"
     + "<button class='sh-x' type='button' aria-label='Close' title='Close (Escape key)'>✕</button></div>";
+  /* Current activity first, before the needs: the tray's activity line is
+     hidden on phones, so without this the sheet is the only reading surface
+     and it never said what the resident is doing right now. activityText is
+     the same pure read the tray uses, so the two surfaces cannot disagree,
+     and the sheet key carries it so the line re-renders on every change.
+     Display only, no new state, no trait or cause wording: the line names
+     the current act and nothing else. */
+  h += "<div class='sh-work'>Now: " + activityText(a) + "</div>";
   h += "<div class='sh-needs'>" + NEED_DEFS.map(function(d){ var nv = Math.round(needVal(a, d.id)); return "<div class='sh-need'><span class='nl'>" + d.label + "</span><div class='sh-bar'><i style='width:" + nv + "%'></i></div><span class='nv'>" + nv + "</span></div>"; }).join("") + "</div>";
   var went = [];
   if(a.workHist) Object.keys(a.workHist).forEach(function(k){ if(a.workHist[k] > 0) went.push(k); });
