@@ -7299,9 +7299,16 @@ function tapAt(cx, cy, smart){
     }
     if(ps){
       if(G.selected){ G.buildPref = ps.id; setOrder3("build"); }
-      else showToast(siteStatusText(ps));
+      /* A plot tap with no resident selected answers at once, on the
+         direct-reply rule the station no-selection answer already
+         follows: no order is given, no selection is made, and the
+         status or guidance toast is the tap's only feedback, so
+         queued behind a live toast it reads as a dead tap. The
+         with-selection branch is untouched: its tap commits a
+         build order, so its toast is never the tap's only feedback. */
+      else showToast(siteStatusText(ps), null, true);
     }
-    else showToast("🏗 A surveyed plot. Tap Found in the tray, then tap the plot to raise a building.");
+    else showToast("🏗 A surveyed plot. Tap Found in the tray, then tap the plot to raise a building.", null, true);
     return;
   }
   if(p.station){
