@@ -5100,7 +5100,7 @@ function stepSim(dt){
     if(rhHands.length >= 3 && rhBestN >= 1 && rhBest){
       G.pushWeek = G.week; G.pushUntil = G.t + 12;
       var rst = STATION3[G.objStation];
-      showToast("🎵 " + rhBest.name.split(" ")[0] + "'s crew finds its rhythm at the " + (rst ? rst.name : "objective") + ": driven work counts double for 12 seconds");
+      showToast("🎵 " + rhBest.name.split(" ")[0] + "'s crew finds its rhythm at the " + (rst ? rst.name : "objective") + ": driven work counts double for 12 seconds", rst ? {x: rst.x, z: rst.z} : null); /* Focus only, no ping: a rhythm window is a bonus in progress, like a copy, and the win ping stays reserved for completions. The station focus lets the player jump the camera to the crew before the 12 seconds run out. */
     }
   }
   var gNow = 0; G.agents.forEach(function(a){ if(a.stationId === "green" && (a.state === "act" || a.state === "sit" || a.state === "watch")) gNow++; });
