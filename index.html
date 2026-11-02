@@ -5036,8 +5036,11 @@ function endWeek(){
        autumn at the boundary, only when stores are low enough that winter
        will actually bite. It names the Fields as the answering work, in
        the failing-toast grammar: a warning names its counter-move.
-       Display only, zero sim change. */
-    if(!G.over && (G.stores || 0) < 40) showToast("\u2744 Winter comes next season: scarcity will climb. Work the Fields while you can.");
+       The forecast carries the Fields focus and a warn ping, in the
+       crowd-pressure grammar: the counter-move starts at the Fields.
+       It still does not jump the queue: a season-scale forecast, not
+       a named resident's final warning. Display only, zero sim change. */
+    if(!G.over && (G.stores || 0) < 40){ showToast("\u2744 Winter comes next season: scarcity will climb. Work the Fields while you can.", {x: STATION3.fields.x, z: STATION3.fields.z}); Store.dispatch("ui/ping", {x: STATION3.fields.x, z: STATION3.fields.z, kind: "warn"}); }
   }
   if(seasonOfYear() === 4) winterDeaths();
   if(seasonOfYear() === 1){
