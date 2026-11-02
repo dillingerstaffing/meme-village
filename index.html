@@ -1896,7 +1896,7 @@ function arrivalChoice(welcome){
   G.arrival = null;
   if(welcome){
     var made = arr.defs.map(function(d){ return spawnNewcomer(d); });
-    showToast("🤝 The village welcomes " + arr.names.join(" and ") + ". They will find a model by watching.");
+    showToast("🤝 The village welcomes " + arr.names.join(" and ") + ". They will find a model by watching.", {ids: made.map(function(a){ return a.id; })}); /* Focus only, no ping: welcoming starts the newcomers' walk in, like founding starts work, and the win ping stays reserved for completions. The ids resolve live, so the view chip follows them from the south edge to their homes. */
     made.forEach(function(a){ refreshThought(a, "start"); });
     SND.play("objwin");
     chronicle(arr.defs.map(function(d){ return d.name; }).join(" and ") + " welcomed into the village.");
