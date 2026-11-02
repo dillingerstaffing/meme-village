@@ -4732,6 +4732,14 @@ function objectiveTick(){
     if(st){
       for(var ri = 0; ri < 3; ri++) spawnOrderPing(cx + (ri - 1) * 1.7, cz, ri * 0.22);
     }
+    /* Objective completion pings the strategic channel, in the project
+       completion grammar: the minimap flashes gold at the station work
+       centroid for 4 sim-seconds, so a player watching the map, or
+       returning after the toast expires, still sees where the payoff
+       landed. Kind win, not warn: the ring reads gold for a payoff,
+       never the trouble amber, and a win ping never teaches the
+       trouble toast. No station, no ping. Display only. */
+    if(st) Store.dispatch("ui/ping", {x: cx, z: cz, kind: "win"});
     var oc = document.getElementById("objCard");
     if(oc){ oc.classList.add("won"); G.delays.push({at:G.t + 2.6, fn:function(){ var c2 = document.getElementById("objCard"); if(c2) c2.classList.remove("won"); }}); }
   }
