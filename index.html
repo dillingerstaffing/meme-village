@@ -2360,7 +2360,13 @@ function tierUp(st){
   applyTierMesh(st);
   recomputeWealth();
   var sn = STATION3[st];
-  showToast((sn ? sn.icon + " " : "") + "The " + (sn ? sn.name : st) + " has grown to tier " + G.tiers[st] + ", opening a new work spot and drawing more residents to work here.");
+  showToast((sn ? sn.icon + " " : "") + "The " + (sn ? sn.name : st) + " has grown to tier " + G.tiers[st] + ", opening a new work spot and drawing more residents to work here.", sn ? {x: sn.x, z: sn.z} : null);
+  /* Tier growth is a permanent payoff at a known station, in the
+     project, objective, claim, and road completion grammar: the toast
+     carries the station focus and the minimap flashes win gold there,
+     so a player looking elsewhere can still jump the camera to the
+     grown station after the toast expires. Display only. */
+  if(sn) Store.dispatch("ui/ping", {x: sn.x, z: sn.z, kind: "win"});
   SND.play("objwin");
   chronicle((sn && sn.name.indexOf("The ") === 0 ? sn.name : "The " + (sn ? sn.name : st)) + " reached tier " + G.tiers[st] + ".");
   checkLevelUp();
