@@ -1462,7 +1462,7 @@ function stepAgents(dt){
             }
           }
           setBubble(a, DISPO3[a.disp].icon, 2.6); spawnPulse(m, a);
-          showToast("👀 " + a.name.split(" ")[0] + " copied " + m.name.split(" ")[0] + ": " + DISPO3[a.disp].icon + " " + a.disp);
+          showToast("👀 " + a.name.split(" ")[0] + " copied " + m.name.split(" ")[0] + ": " + DISPO3[a.disp].icon + " " + a.disp, {ids: [a.id, m.id]}); /* Focus only, no ping: copying is a change in progress, like gaining a model, and the win ping stays reserved for completions. The ids resolve live, so the view chip follows the pair. */
           refreshTray();
         }
         a.watchOf = null;
