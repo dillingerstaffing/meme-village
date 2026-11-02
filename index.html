@@ -3981,6 +3981,14 @@ function checkClaimStaked(c){
     if(a.claimParty){ a.claimParty = null; if(a.stationId === "claim" && !a.fetch){ a.state = "idle"; a.decideT = 0.2; a.visitId = null; a.pendingWatch = null; a.watchOf = null; } }
   });
   showToast("🚩 Claim staked: three surveyed plots join the village.", {x: c.x, z: c.z});
+  /* Claim staking pings the strategic channel, in the project and
+     objective completion grammar: the minimap flashes gold at the claim
+     center for 4 sim-seconds, so a player watching the map, or returning
+     after the toast expires, still sees where the new ground landed.
+     Kind win, not warn: the ring reads gold for a payoff, never the
+     trouble amber, and a win ping never teaches the trouble toast.
+     Display only. */
+  Store.dispatch("ui/ping", {x: c.x, z: c.z, kind: "win"});
   SND.play("objwin");
   chronicle("Claim staked " + CLAIM_BEARINGS[((c.bearingIx % 8) + 8) % 8].name + ", " + CLAIM_RING_NAME[Math.max(0, Math.min(2, c.ringIx))] + ": three new surveyed plots.");
   G.claim = null;
