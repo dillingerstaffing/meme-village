@@ -3738,7 +3738,7 @@ function foundSite(plotIx, kindId){
   G.sites.push(site);
   buildSiteMesh(site);
   if(plotMeshes[plotIx]) plotMeshes[plotIx].visible = false;
-  showToast(kind.icon + " Founded: " + kind.title + ". The village will raise it.");
+  showToast(kind.icon + " Founded: " + kind.title + ". The village will raise it.", {x: plot.x, z: plot.z}); /* Focus only, no ping: founding starts work, and the win ping stays reserved for completions. */
   SND.play("order");
   chronicle(kind.title + " founded.");
   Store.commit();
