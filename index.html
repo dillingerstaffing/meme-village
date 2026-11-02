@@ -7193,6 +7193,19 @@ function renderOverlay(s){
     a._ovlBox = {x:x, y:y, hw:hw, hh:hh};
     boxes.push({x:x, y:y, hw:hw, hh:hh});
   });
+  // CF-REF: tap-grace.md [12]
+  /* Tap grace ring: every placed box also snapshots into its agent's
+     recent-box ring, so pickAt can still answer a tap aimed at a name
+     that jumped or vanished a moment before the tap landed. This pass
+     is display neutral: placement, the anchor budget, and hiding above
+     are untouched, and only boxes placed this frame enter the ring. */
+  var _grNow = performance.now();
+  placed.forEach(function(a){
+    if(!a._ovlBox) return;
+    var nr = a._ovlRecent || (a._ovlRecent = []);
+    nr.push({x:a._ovlBox.x, y:a._ovlBox.y, hw:a._ovlBox.hw, hh:a._ovlBox.hh, t:_grNow});
+    while(nr.length && (_grNow - nr[0].t > 800 || nr[0].t > _grNow)) nr.shift();
+  });
   var press = {}, pressSt = null, pressN = 3;
   s.agents.forEach(function(a2){ if(!a2.order && (a2.state === "act" || a2.state === "walk") && a2.stationId && a2.stationId !== "green" && a2.stationId !== "home" && a2.stationId !== "build") press[a2.stationId] = (press[a2.stationId] || 0) + 1; });
   Object.keys(press).forEach(function(k){ if(press[k] > pressN){ pressN = press[k]; pressSt = k; } });
@@ -7257,6 +7270,27 @@ function pickAt(cx, cy){
     if(d < boD){ boD = d; bo = a.id; }
   });
   if(bo) return {agent: bo};
+  // CF-REF: tap-grace.md [20]
+  /* Tap grace: a box that jumped (a de-overlap sidestep teleports a
+     box up to ~77px in one frame) or vanished (a bubble expiring hides
+     it outright) between the player's aim and the tap still answers
+     for 800ms, so a tap on a name that was there a moment ago selects
+     its owner instead of the ground, plot, or station under the point.
+     Current boxes win first (above), so a resident who moved onto the
+     point is never stolen by a stale box, and entries stamped ahead of
+     the clock (a restored save's timestamps) never answer. */
+  var _grPt = performance.now(), bo2 = null, bo2D = 1e9;
+  G.agents.forEach(function(a){
+    var nr = a._ovlRecent; if(!nr) return;
+    for(var ri = 0; ri < nr.length; ri++){
+      var rb = nr[ri], dt = _grPt - rb.t;
+      if(dt < 0 || dt > 800) continue;
+      if(cx < rb.x - rb.hw - 6 || cx > rb.x + rb.hw + 6 || cy < rb.y - rb.hh - 6 || cy > rb.y + 6) continue;
+      var d = Math.hypot(cx - rb.x, cy - (rb.y - rb.hh / 2));
+      if(d < bo2D){ bo2D = d; bo2 = a.id; }
+    }
+  });
+  if(bo2) return {agent: bo2};
   var aHits = [], sHits = [];
   G.agents.forEach(function(a){ aHits.push(a.hit); });
   Object.keys(STATION3).forEach(function(id){ if(STATION3[id].hitMesh) sHits.push(STATION3[id].hitMesh); });

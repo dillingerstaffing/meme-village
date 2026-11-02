@@ -55,6 +55,7 @@ tap, drag, scroll, touch, pointer, gesture, tray, alerts, minimap, button, click
 | Article | Summary |
 |---------|---------|
 | tray-passes-taps.md | Overlay containers are pointer-events none; only their buttons capture |
+| tap-grace.md | A tap selects its owner through the current overlay box, then any box that owner held within the last 800ms, before the body raycast, so a name that jumped or vanished mid-aim still answers |
 | highlight-vocabulary.md | Each tray treatment means one thing: teal is the current order, gold is the one armed verb, status is chips never lit buttons |
 | idle-finder.md | The Idle button cycles one loafer at a time, orders nothing, and never carries a lit treatment; the no-loafer answer jumps the toast queue |
 | control-groups.md | Three recall slots, one resident each: Groups arm plus chip tap assigns, chip tap or digit recalls and centers, a gone resident clears the slot |
