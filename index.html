@@ -4039,7 +4039,7 @@ function cancelClaim(){
   Store.commit();
   return true;
 }
-// CF-REF: road-building.md [199]
+// CF-REF: road-building.md [207]
 /* CONNECT roads (v4 sim step 3, spec section 23): built segments between
    stations that shorten walk times. The player arms the Road tray verb
    (Town tier, the same gate as CLAIM), taps two different stations, and
@@ -4155,6 +4155,13 @@ function checkRoadBuilt(r){
   });
   var mid = roadMid(r);
   showToast("🛣 The road is built: walkers move faster between " + STATION3[r.stA].name + " and " + STATION3[r.stB].name + ".", {x: mid.x, z: mid.z});
+  /* Road completion pings the strategic channel, in the claim staking
+     and project completion grammar: the minimap flashes gold at the road
+     midpoint for 4 sim-seconds, so a player watching the map, or returning
+     after the toast expires, still sees where the payoff landed. Kind win,
+     not warn: the ring reads gold for a payoff, never the trouble amber,
+     and a win ping never teaches the trouble toast. Display only. */
+  Store.dispatch("ui/ping", {x: mid.x, z: mid.z, kind: "win"});
   SND.play("objwin");
   chronicle("Road finished: " + STATION3[r.stA].name + " to " + STATION3[r.stB].name + ".");
   if(G.roadBuild === r) G.roadBuild = null;
