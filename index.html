@@ -2108,17 +2108,17 @@ function setTier(a, tierId){
 // CF-REF: membership-never-gates-the-medic.md [15]
 function premiumSweep(){
   if(!G.banked) return {paid:0, members:0, enrolled:[]};
-  var lapsed = 0, paid = 0, members = 0, enrolled = [];
+  var lapsed = 0, paid = 0, members = 0, enrolled = [], lapsedIds = [], lapsedNames = [];
   G.agents.forEach(function(a){
     if(a.child) return;
     if(a.tier && TTI[a.tier]){
       var prem = TTI[a.tier].premium;
       if(a.bank != null && a.bank >= prem){ a.bank -= prem; G.ttiPaid = (G.ttiPaid || 0) + prem; paid += prem; members++; }
-      else { a.tier = null; lapsed++; }
+      else { a.tier = null; lapsed++; lapsedIds.push(a.id); lapsedNames.push(a.name.split(" ")[0]); }
     }
     else if(!a.tier && a.bank != null && a.bank >= TTI.selfEnrollBank){ a.tier = "silver"; enrolled.push(a.name.split(" ")[0]); }
   });
-  if(lapsed > 0) showToast("🛡 Coverage lapsed for " + lapsed + (lapsed === 1 ? " resident" : " residents") + " (unpaid). Cover can sign them up again.");
+  if(lapsed > 0) showToast("🛡 Coverage lapsed for " + lapsedNames.join(", ") + " (unpaid). Cover can sign them up again.", {ids: lapsedIds}); /* The ids focus resolves live at click time; lapsed residents move, so no static ping. */
   return {paid:paid, members:members, enrolled:enrolled};
 }
 /* ================= CHILDREN AND INHERITANCE (Stage 7) =================
