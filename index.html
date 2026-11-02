@@ -4526,6 +4526,14 @@ function finishSite(site){
   applySiteEffect(site);
   recomputeWealth();
   showToast(kind.icon + " " + kind.title + " finished. " + (kind.blurb || ""), {x: site.x, z: site.z});
+  /* A finished building pings the strategic channel, in the project,
+     objective, claim, road, and station tier completion grammar: the
+     minimap flashes gold at the finished site for 4 sim-seconds, so a
+     player watching the map, or returning after the toast expires,
+     still sees where the payoff landed. Kind win, not warn: the ring
+     reads gold for a payoff, never the trouble amber, and a win ping
+     never teaches the trouble toast. Display only. */
+  Store.dispatch("ui/ping", {x: site.x, z: site.z, kind: "win"});
   SND.play("objwin");
   chronicle(kind.title + " finished.");
   checkLevelUp();
