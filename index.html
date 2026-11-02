@@ -1446,7 +1446,7 @@ function stepAgents(dt){
         var m = agent(a.watchOf);
         a.state = "idle"; a.decideT = 0.2; a.watchCd = 25;
         if(m){ if(!a.watchHist) a.watchHist = {}; a.watchHist[m.id] = (a.watchHist[m.id] || 0) + 1; }
-        if(m && !a.model){ a.model = m.id; a.modelCd = 0; a.successionPick = null; if(a.newcomer) showToast("👁 " + a.name.split(" ")[0] + " has found a model: " + m.name.split(" ")[0]); }
+        if(m && !a.model){ a.model = m.id; a.modelCd = 0; a.successionPick = null; if(a.newcomer) showToast("👁 " + a.name.split(" ")[0] + " has found a model: " + m.name.split(" ")[0], {ids: [a.id, m.id]}); /* Focus only, no ping: gaining a model is a start, like founding and welcoming, and the win ping stays reserved for completions. The ids resolve live, so the view chip follows the new pair. */ }
         if(m && m.disp !== a.disp){
           a.disp = m.disp; G.copied++; a.vis = Math.min(100, a.vis + 8);
           a.mimicStation = (m.state === "act") ? m.stationId : null; a.mimicFrom = m.name.split(" ")[0];
