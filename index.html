@@ -4970,8 +4970,12 @@ function endWeek(){
        the same forecast-before-the-boundary grammar as the departure
        forecast and the winter scarcity toast. No state, no chronicle
        line; the child stays a child until the next spring, so this
-       fires exactly once in normal play. */
-    if(a.child && a.age === KIDS.matureAge - 1) showToast("🌱 " + a.name.split(" ")[0] + " will come of age next year."); });
+       fires exactly once in normal play. It carries the child's focus,
+       in the frail forecast's grammar: a warning that names one resident
+       must also let the player jump to them, or the view chip and the
+       last-alert return both stay silent. Focus only, no queue jump and
+       no ping: a season-scale forecast, not a final warning. */
+    if(a.child && a.age === KIDS.matureAge - 1) showToast("🌱 " + a.name.split(" ")[0] + " will come of age next year.", {ids: [a.id]}); });
   /* Stage 7 lifecycle, on the same spring boundary: children who
      have reached the maturation age grow up first, then established
      households roll for a young one, so a newborn is never aged or
