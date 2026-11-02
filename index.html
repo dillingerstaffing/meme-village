@@ -4516,7 +4516,7 @@ function advanceSite(site){
   if(site.stage >= kind.stages.length){ finishSite(site); return; }
   updateSiteMesh(site);
   if(site.stage === kind.stages.length - 1) chronicle(kind.title + ": " + kind.stages[site.stage].name.toLowerCase() + " rising.");
-  showToast("🏗 " + kind.title + ": " + kind.stages[site.stage].name.toLowerCase() + " rising");
+  showToast("🏗 " + kind.title + ": " + kind.stages[site.stage].name.toLowerCase() + " rising", {x: site.x, z: site.z}); /* Focus only, no ping: a stage rise is progress, not a completion, and the win ping stays reserved for completions. */
   SND.play("order");
 }
 function finishSite(site){
