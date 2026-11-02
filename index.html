@@ -727,7 +727,7 @@ function renderSheet(s){
   var whSig = 0; if(a.workHist) for(var wkk in a.workHist) whSig += a.workHist[wkk];
   var cvk = convergenceRecords(a);
   var convSig = cvk.drifts.map(function(r){ return r.name + ":" + r.tension + ":" + r.yr + ":" + r.sn; }).join(",") + "|" + cvk.conv.map(function(r){ return r.station + ":" + r.names.join(","); }).join(",");
-  var key = a.id + "|" + (a.thought ? a.thought.at + ":" + a.thought.text : "none") + "|" + log.length + "|" + NEED_DEFS.map(function(d){ return Math.round(needVal(a, d.id)); }).join(":") + ":" + whSig + "|" + (householdOf(a) ? householdOf(a).id : "") + "|" + Math.round(a.age || 34) + arcOf(a).id + "|" + Math.floor(a.cash || 0) + ":" + (a.bank == null ? "x" : Math.floor(a.bank)) + "|" + (a.tier || "") + "|" + (prestigeFlipUnlocked() ? (prestigeFlipped(a) ? "E" : "A") : "L") + followersOf(a) + "|" + convSig + "|" + activityText(a);
+  var key = a.id + "|" + (a.thought ? a.thought.at + ":" + a.thought.text : "none") + "|" + log.length + "|" + NEED_DEFS.map(function(d){ return Math.round(needVal(a, d.id)); }).join(":") + ":" + whSig + "|" + (householdOf(a) ? householdOf(a).id : "") + "|" + Math.round(a.age || 34) + arcOf(a).id + "|" + Math.floor(a.cash || 0) + ":" + (a.bank == null ? "x" : Math.floor(a.bank)) + "|" + (a.tier || "") + (a.coverLapsed ? "L" : "") + "|" + (prestigeFlipUnlocked() ? (prestigeFlipped(a) ? "E" : "A") : "L") + followersOf(a) + "|" + convSig + "|" + activityText(a);
   if(key === sheetKey && el.style.display !== "none") return;
   sheetKey = key;
   var shirt = "#" + ("000000" + (a.shirt || 0).toString(16)).slice(-6);
@@ -757,7 +757,7 @@ function renderSheet(s){
   if(a.parents && a.parentNames && a.parentNames.length) h += "<div class='sh-work'>🧒 Child of " + a.parentNames.join(" and ") + "</div>";
   h += "<div class='sh-work'>Age " + Math.round(a.age || 34) + " · " + arcOf(a).label + "</div>";
   h += "<div class='sh-work'>🪙 Cash on hand: " + Math.floor(a.cash || 0) + " tokens" + (a.bank != null ? " · Bank account: " + Math.floor(a.bank) + " tokens" : "") + "</div>";
-  if(a.tier && TTI[a.tier]) h += "<div class='sh-work'>🛡 Coverage: " + TTI[a.tier].name + "</div>";
+  if(a.tier && TTI[a.tier]) h += "<div class='sh-work'>🛡 Coverage: " + TTI[a.tier].name + "</div>"; else if(a.coverLapsed) h += "<div class='sh-work'>🛡 Coverage: lapsed (unpaid)</div>";
   /* CF-REF: model-prestige-flip.md [1] */
   h += "<div class='sh-work'>👀 " + prestigeStanding(a) + "</div>";
   /* CF-REF: rivalry-drift.md [9] */
@@ -2102,7 +2102,7 @@ var TTI = {
 function setTier(a, tierId){
   if(!a || a.child) return false;
   if(tierId !== null && !TTI[tierId]) return false;
-  a.tier = tierId;
+  a.tier = tierId; a.coverLapsed = false;
   return true;
 }
 // CF-REF: membership-never-gates-the-medic.md [15]
@@ -2114,9 +2114,9 @@ function premiumSweep(){
     if(a.tier && TTI[a.tier]){
       var prem = TTI[a.tier].premium;
       if(a.bank != null && a.bank >= prem){ a.bank -= prem; G.ttiPaid = (G.ttiPaid || 0) + prem; paid += prem; members++; }
-      else { a.tier = null; lapsed++; lapsedIds.push(a.id); lapsedNames.push(a.name.split(" ")[0]); }
+      else { a.tier = null; a.coverLapsed = true; lapsed++; lapsedIds.push(a.id); lapsedNames.push(a.name.split(" ")[0]); }
     }
-    else if(!a.tier && a.bank != null && a.bank >= TTI.selfEnrollBank){ a.tier = "silver"; enrolled.push(a.name.split(" ")[0]); }
+    else if(!a.tier && a.bank != null && a.bank >= TTI.selfEnrollBank){ a.tier = "silver"; a.coverLapsed = false; enrolled.push(a.name.split(" ")[0]); }
   });
   if(lapsed > 0) showToast("🛡 Coverage lapsed for " + lapsedNames.join(", ") + " (unpaid). Cover can sign them up again.", {ids: lapsedIds}); /* The ids focus resolves live at click time; lapsed residents move, so no static ping. */
   return {paid:paid, members:members, enrolled:enrolled};
@@ -5628,7 +5628,7 @@ function refreshTray(force){
      a follower gained through another resident's edge leaves the
      old count, until some unrelated key component happens to move. */
   var folN = 0; if(a) G.agents.forEach(function(b2){ if(b2.model === a.id) folN++; });
-  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.sick ? "S" : "") + Math.round(a.energy) + "/" + Math.round(a.morale) + "/" + Math.round(a.vis) + (a.model || "") + "F" + folN : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + (G.ui && G.ui.lens ? "L" + G.ui.lens : "l") + "|" + (G.foundArm ? "F" : "") + (G.foundPlot == null ? "" : "FP" + G.foundPlot) + (G.claimArm ? "C" : "") + (G.lensArm ? "LA" : "") + (G.claimBearing == null ? "" : "b" + G.claimBearing) + (G.claimRing == null ? "" : "r" + G.claimRing) + (G.roadArm ? "R" : "") + (G.roadFrom || "") + (G.roadTo || "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "") + "|" + (G.modelArm ? "MA" : "") + (G.visitArm ? "VA" : "") + (G.coverArm ? "CA" : "") + (G.banked ? "BK" : "") + (medicGone() ? "MG" : "") + (a && a.bank != null ? "AC" : "") + (a && a.child ? "K" : "") + (a && a.spotUntil ? Math.ceil(Math.max(0, a.spotUntil - G.t)) : "") + (G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : "") + "|I" + idleIds + "|GR" + (G.groupArm ? "A" : "") + (Array.isArray(G.groups) ? G.groups.join(",") : "---");
+  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.coverLapsed ? "L" : "") + (a.sick ? "S" : "") + Math.round(a.energy) + "/" + Math.round(a.morale) + "/" + Math.round(a.vis) + (a.model || "") + "F" + folN : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + (G.ui && G.ui.lens ? "L" + G.ui.lens : "l") + "|" + (G.foundArm ? "F" : "") + (G.foundPlot == null ? "" : "FP" + G.foundPlot) + (G.claimArm ? "C" : "") + (G.lensArm ? "LA" : "") + (G.claimBearing == null ? "" : "b" + G.claimBearing) + (G.claimRing == null ? "" : "r" + G.claimRing) + (G.roadArm ? "R" : "") + (G.roadFrom || "") + (G.roadTo || "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "") + "|" + (G.modelArm ? "MA" : "") + (G.visitArm ? "VA" : "") + (G.coverArm ? "CA" : "") + (G.banked ? "BK" : "") + (medicGone() ? "MG" : "") + (a && a.bank != null ? "AC" : "") + (a && a.child ? "K" : "") + (a && a.spotUntil ? Math.ceil(Math.max(0, a.spotUntil - G.t)) : "") + (G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : "") + "|I" + idleIds + "|GR" + (G.groupArm ? "A" : "") + (Array.isArray(G.groups) ? G.groups.join(",") : "---");
   if(!force && key === trayKey) return;
   trayKey = key;
   var info = document.getElementById("selInfo");
@@ -5672,7 +5672,7 @@ function refreshTray(force){
       + "<div class='nm'>" + (a.vis >= 60 ? "🔥 " : "") + a.name + "</div>"
       + "<div class='st'>" + activityText(a) + " · ⚡" + Math.round(a.energy) + " ♥" + Math.round(a.morale) + " 👀" + Math.round(a.vis) + "</div>"
       + "<div class='st'>" + (a.reason ? a.reason + " · " : "") + watchLine(a) + "</div>"
-      + (function(){ var ch = []; if(a.sick) ch.push("🚑 Sick"); if(a.child) ch.push("🧒 Child"); if(a.tier && TTI[a.tier]) ch.push(TTI[a.tier].glyph + " " + TTI[a.tier].name + " cover"); if(a.spotUntil && a.spotUntil > G.t) ch.push("✨ Watched"); return ch.length ? "<div class='chips'>" + ch.map(function(c2){ return "<span class='chip2'>" + c2 + "</span>"; }).join("") + "</div>" : ""; })()
+      + (function(){ var ch = []; if(a.sick) ch.push("🚑 Sick"); if(a.child) ch.push("🧒 Child"); if(a.tier && TTI[a.tier]) ch.push(TTI[a.tier].glyph + " " + TTI[a.tier].name + " cover"); else if(a.coverLapsed) ch.push("🛡 Cover lapsed"); if(a.spotUntil && a.spotUntil > G.t) ch.push("✨ Watched"); return ch.length ? "<div class='chips'>" + ch.map(function(c2){ return "<span class='chip2'>" + c2 + "</span>"; }).join("") + "</div>" : ""; })()
       + "<button class='selX' id='selX' type='button' aria-label='Close'>✕</button>";
   } else {
     info.innerHTML = "<div class='rl'>Village</div><div class='nm'>No selection</div><div class='st'>Tap a resident. Tap a building to send them. Drag, WASD, or arrows to look around.</div>";
