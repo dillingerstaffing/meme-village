@@ -5021,8 +5021,12 @@ function endWeek(){
        telegraph's rule, like the failing telegraph it precedes: a
        warning for an irreversible loss must not wait behind an
        unrelated message, and the displaced toast goes to the head
-       of the queue, so nothing is erased. */
-    if(frail) showToast("🍂 Autumn nears, and " + frail.name.split(" ")[0] + " is the village's frailest elder. Keep their wants met while you can.", null, true);
+       of the queue, so nothing is erased. It carries the elder's
+       focus, in the failing toast's grammar: a warning that names
+       one resident and tells the player to look after them must
+       also let the player jump to them, or the view chip and the
+       last-alert return both stay silent. */
+    if(frail) showToast("🍂 Autumn nears, and " + frail.name.split(" ")[0] + " is the village's frailest elder. Keep their wants met while you can.", {ids: [frail.id]}, true);
   }
   if(seasonOfYear() === 3){
     telegraphFailing();
