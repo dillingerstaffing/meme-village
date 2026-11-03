@@ -169,6 +169,9 @@ canvas{display:block}
 .story-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex:none;padding:10px 10px 10px 20px;border-bottom:1px solid var(--line)}
 .story-x{flex:none;width:44px;height:44px;border-radius:8px;border:1px solid var(--line);background:#0c1219;color:var(--ink);font-size:17px;line-height:1;cursor:pointer;padding:0}
 .story-x:hover{border-color:var(--gold);color:var(--gold)}
+.story-head-btns{display:flex;gap:8px;flex:none}
+.story-pause{flex:none;width:44px;height:44px;border-radius:8px;border:1px solid var(--line);background:#0c1219;color:var(--ink);font-size:15px;line-height:1;cursor:pointer;padding:0}
+.story-pause:hover{border-color:var(--gold);color:var(--gold)}
 .story-body{overflow-y:auto;min-height:0;padding:4px 24px 20px}
 .story-body h2{margin:10px 0 8px}
 .ledger{display:grid;grid-template-columns:1fr 1fr;column-gap:28px;margin-top:4px}
@@ -5303,9 +5306,22 @@ function storySoFar(auto, final){
     }
     if(remLines.length) remHtml = "<div class='chronicle'><h3>REMEMBERED</h3>" + remLines.join("") + "</div>";
   }
+  /* The Story header carries its own pause toggle, on the sheet pause
+     rule: the manual panel covers the tray pause at both sizes (a bottom
+     sheet over the tray on phones, a full-screen modal backdrop over the
+     top-right speeds row on desktop), so the tray pause cannot be tapped
+     while reading the chronicle. The button runs the tray pause verb,
+     setSpeed toggled between 0 and 1, and never closes the panel. The
+     final panel omits it: the game is over there, so a pause verb would
+     be a dead control. The glyph is set from live speed at render and
+     kept in sync by setSpeed itself, so a keyboard pause while the panel
+     stands open flips it without re-rendering the panel and losing the
+     body's scroll place. */
+  var storyPauseBtn = final ? "" : "<button type='button' id='storyPauseBtn' class='story-pause' onclick='setSpeed(G.speed===0?1:0)' aria-label='" + (G.speed === 0 ? "Resume" : "Pause") + "' title='" + (G.speed === 0 ? "Resume (Space key)" : "Pause (Space key)") + "'>" + (G.speed === 0 ? "▶" : "❚❚") + "</button>";
   var html = "<div class='story-head'><div class='kick2'>" + kick + "</div>"
+    + "<div class='story-head-btns'>" + storyPauseBtn
     + "<button type='button' class='story-x' onclick='__closeStory()' aria-label='Close' title='" + (final ? "Close" : "Close (Escape key)") + "'>\u2715</button></div>"
-    + "<div class='story-body'><h2>" + v.ending + "</h2>"
+    + "</div><div class='story-body'><h2>" + v.ending + "</h2>"
     + "<p style='color:var(--ink2)'>" + sub + v.epi + "</p>"
     + "<p style='color:var(--ink2)'>Village #" + G.seed + " · watched: " + (G.seasonModels || []).join(", ") + "</p>"
     + remHtml
@@ -8138,6 +8154,15 @@ function bindInput(){
 function setSpeed(n){
   G.speed = n;
   [0, 1, 2].forEach(function(s){ document.getElementById("sp" + s).classList.toggle("on", s === n); });
+  /* The Story header pause button, when it stands, is the same verb's
+     second face: setSpeed already lights the tray pause button, so it
+     lights this one too, glyph and labels from the new speed. Every
+     pause path runs through setSpeed (tray buttons, sheet and story
+     header buttons, Space, P, 0, comma, period), so a keyboard pause
+     while the Story panel stands open flips its glyph with no panel
+     re-render and no lost scroll place. */
+  var stp = document.getElementById("storyPauseBtn");
+  if(stp){ stp.textContent = (n === 0 ? "▶" : "❚❚"); stp.setAttribute("aria-label", n === 0 ? "Resume" : "Pause"); stp.setAttribute("title", n === 0 ? "Resume (Space key)" : "Pause (Space key)"); }
 }
 document.getElementById("sp0").addEventListener("click", function(){ setSpeed(0); });
 document.getElementById("sp1").addEventListener("click", function(){ setSpeed(1); });
