@@ -390,6 +390,15 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
   #tray #speeds{display:grid;grid-template-columns:repeat(5,1fr);gap:3px}
   #tray #speeds .sbtn{min-height:44px;padding:10px 4px}
   #tray:not(.selopen){max-height:110px}
+  /* Phone long-pick tray collapse: while a long pick row (project,
+     found, claim, road) stands open in the objective card, the tray
+     drops its info block and command rows and keeps only the speeds
+     row, at the same 110px cap as the unselected tray, so the card
+     cannot paint over commands. hudTick toggles the class; the row
+     itself carries the commit and the cancel chip, so no exit is
+     lost, and the speeds row stays reachable throughout. */
+  #tray.pickopen{max-height:110px}
+  #tray.pickopen #selInfo, #tray.pickopen #cmds{display:none}
   /* Phone tray deselect meets the 44px thumb target: the X is the
      only reliable deselect and arm-cancel on a phone (a ground tap
      keeps the selection and keeps an armed verb armed, measured this
@@ -6716,6 +6725,46 @@ function hudTick(dt){
           var hideStats = stTop < cardB - 12;
           if(stEl.style.visibility !== (hideStats ? "hidden" : "")) stEl.style.visibility = hideStats ? "hidden" : "";
         }
+        /* Phone long-pick vs tray (2026-11-03): a long pick row
+           (project, found, claim, road) inside the objective card
+           grows the card down the left column, and a selected
+           resident's tray rises to 56vh or more, so the card (z 11,
+           opaque) painted over the tray's whole left command column,
+           including the arming button itself and the speeds row,
+           while the pick stood open (measured at 390x844: card
+           bottom 791 against a tray top of 332, with the left column
+           fully covered). Short rows (offer Accept/Ignore, arrival
+           chips, lens modes) never reach the tray, so they keep the
+           tray as-is. While a long row is open, the tray collapses
+           to its speeds-only height through the pickopen class above
+           (the row itself carries the commit and the cancel chip, so
+           no exit is lost), and the row's own cap is tightened by
+           measurement so the card bottom, site line included, clears
+           the collapsed tray top by 8px; the row still scrolls
+           internally for the chips below the cap. Display only: no
+           state, no dispatch, and every write is diff-guarded. */
+        var longPick = ["projPick","foundPick","claimPick","roadPick"].some(function(pid){ var pe = document.getElementById(pid); return pe && pe.style.display !== "none"; });
+        if(trayEl && trayEl.classList.contains("pickopen") !== longPick) trayEl.classList.toggle("pickopen", longPick);
+        ["projPick","foundPick","claimPick","roadPick"].forEach(function(pid){
+          var pe = document.getElementById(pid); if(!pe) return;
+          if(!longPick){ if(pe.style.maxHeight) pe.style.maxHeight = ""; return; }
+          var ocEl3 = document.getElementById("objCard"); if(!ocEl3) return;
+          /* The collapsed tray top is analytic, not measured: the
+             tray's height animates over 300ms when the class toggles,
+             and hudTick runs on dispatch, not every frame, so a
+             measured top on the arming dispatch still reads the
+             expanded tray and the cap would never converge until the
+             next dispatch. The collapsed tray is capped at 110px by
+             the rule above (speeds grid plus padding measures about
+             103px), so its top sits at or below viewport height
+             minus 110px; using that bound keeps the cap right on the
+             arming dispatch itself, with a few px to spare. */
+          var rowR = pe.getBoundingClientRect(), cardR = ocEl3.getBoundingClientRect();
+          var belowRow = cardR.bottom - rowR.bottom;
+          var allowRow = Math.floor((window.innerHeight - 110) - 8 - rowR.top - belowRow);
+          if(allowRow >= pe.scrollHeight - 1){ if(pe.style.maxHeight) pe.style.maxHeight = ""; }
+          else { var wantRow = Math.max(88, allowRow) + "px"; if(pe.style.maxHeight !== wantRow) pe.style.maxHeight = wantRow; }
+        });
       } else {
         /* Desktop: anchor the stats panel below the objective card's real
            bottom instead of the fixed 146px CSS constant. The offer card grows
@@ -6728,6 +6777,11 @@ function hudTick(dt){
         if(stEl.style.top !== stTop) stEl.style.top = stTop;
         if(stEl.style.bottom) stEl.style.bottom = "";
         if(stEl.classList.contains("compact")) stEl.classList.remove("compact");
+        /* Desktop never collapses the tray for a pick row: clear the
+           phone-only class and any measured row cap on leaving phone
+           width, so neither survives a resize into desktop. */
+        if(trayEl && trayEl.classList.contains("pickopen")) trayEl.classList.remove("pickopen");
+        ["projPick","foundPick","claimPick","roadPick"].forEach(function(pid){ var pe = document.getElementById(pid); if(pe && pe.style.maxHeight) pe.style.maxHeight = ""; });
       }
     }
   }

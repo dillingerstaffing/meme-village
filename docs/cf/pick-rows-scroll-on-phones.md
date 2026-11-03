@@ -37,3 +37,27 @@ last chip fully visible at scroll bottom, and the Claim Stake and
 Road Lay chips landing their commits from real clicks. The probe
 failed pre-fix on exactly the below-fold commit chips and the found
 chip's sideways overflow, and passes post-fix at both sizes.
+
+Long-pick tray collapse (2026-11-03): the cap above assumed the
+unselected tray, but a selected resident's tray rises to 56 percent
+of the viewport height or more, so a long pick row (project, found,
+claim, road) grew the objective card down the left column until the
+card, which paints above the tray, covered the tray's whole left
+command column, including the arming button itself and the speeds
+row, while the pick stood open (measured at 390x844: card bottom 791
+against a tray top of 332). Short rows (offer Accept/Ignore, arrival
+chips, lens modes) never reach the tray and keep it as-is. While a
+long row is open, hudTick collapses the tray to its speeds-only
+height through a pickopen class (the row itself carries the commit
+and the cancel chip, so no exit is lost), and tightens that row's cap
+by measurement so the card bottom, site line included, clears the
+collapsed tray top by 8px; the cap is computed from the collapsed
+tray's analytic top (viewport height minus the 110px collapsed cap),
+not a measured top, because the tray's height animates over 300ms
+and hudTick runs on dispatch rather than every frame, so a measured
+top on the arming dispatch would still read the expanded tray. The
+row still scrolls internally for the chips below the tightened cap.
+Guarded by pwtest_pickrowtray.py in the goal's hidden_files at 390
+and 375 (plus a 1440 control proving the class never applies on
+desktop): the probe fails pre-fix on exactly the collapse, clearance,
+and speeds-clear legs, and passes post-fix at both phone sizes.
