@@ -103,7 +103,10 @@ the half-laid road (mesh removed, record dropped) rather than leaving a
 permanent surveyed line. Both season-boundary toasts carry a camera
 focus at the road midpoint, with no minimap ping: the abandonment
 toast points at where the road was, so the player can re-lay it, and
-the new-crew toast points at where the new crew walks.
+the new-crew toast points at where the new crew walks. The player's
+own road recall toast carries the same midpoint focus, focus only
+with no minimap ping, so the vacated line stays returnable after
+the call.
 
 Why: the transport ladder must be visible on the map itself. A road
 that only changed a number would be superstition; a road the player

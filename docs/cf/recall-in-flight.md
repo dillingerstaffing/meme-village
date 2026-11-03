@@ -34,7 +34,11 @@ kind locked its plot until the site finished, with no way back.
   intent on the same rule as the claim release.
 - Both recalls toast and chronicle as the player's own call ("called
   off", never "scattered" or "abandoned", which are the season
-  boundary's words for a crew that died or departed). Both add no
+  boundary's words for a crew that died or departed). Both recall
+  toasts carry a camera focus, focus only with no minimap ping: the
+  claim toast points at the claim center and the road toast at the
+  road midpoint, so the view chip and the last-alert return resolve
+  to ground the player can stake or lay on again. Both add no
   graph edge and write no wk() ledger: the recall withdraws the party
   or crew the imitation graph recruited (spec section 23), and
   returns only material already carried, never ground, since no plot
@@ -63,8 +67,11 @@ kind locked its plot until the site finished, with no way back.
   releases: visitId, pendingWatch, and a stale watchOf clear beside
   the idle, or arrive() fires the stale leg at the released
   builder's next station instead of the work there. It toasts and
-  chronicles as the player's own call, adds no graph edge, and writes
-  no wk() ledger, the same as the claim and road recalls.
+  chronicles as the player's own call, and its toast carries a
+  camera focus at the site point, focus only with no minimap ping,
+  so the view chip and the last-alert return resolve to the freed
+  plot. It adds no graph edge, and writes no wk() ledger, the same
+  as the claim and road recalls.
 - The recall row is a pick row, so on phones it compacts the stats
   panel like every other pick row; arming another verb clears the
   recall row without recalling, the same as any draft cancel.

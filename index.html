@@ -3849,7 +3849,7 @@ function cancelFoundSite(site){
   if(G.proclaim && G.proclaim.site === site.id) G.proclaim = null; /* A called-off site cannot keep holding the season focus: the focus record would keep naming a site that no longer exists, the arm toast would keep saying it holds the focus, and a fresh proclaim in the same week would still pay the early-shift cost for a focus that is already gone. No new toast: the recall toast already announces the call. */
   returnStores(site.matsIn.stores || 0);
   if(!firstSiteOpen()) G.agents.forEach(function(a){ if(a.order === "build") a.order = null; });
-  showToast(kind.icon + " " + kind.title + " called off: the builders walk home" + (back ? ", 📦" + back + " stores back." : "."));
+  showToast(kind.icon + " " + kind.title + " called off: the builders walk home" + (back ? ", 📦" + back + " stores back." : "."), {x: site.x, z: site.z}); /* Focus only, no ping: a recall is the player's own call, not a completion or a warning, and the snapshot point is the freed plot, so the view chip and the last-alert return resolve to ground the player can found on again. */
   chronicle(kind.title + " called off; the builders walked home" + (back ? " with 📦" + back + " stores returned." : "."));
   Store.commit();
   return true;
@@ -4096,7 +4096,7 @@ function cancelClaim(){
   if(c.group){ scene.remove(c.group); c.group = null; }
   returnStores(c.matsIn.stores || 0);
   G.claim = null;
-  showToast("🚩 Claim called off: the party walks home" + (back ? ", 📦" + back + " stores back." : "."));
+  showToast("🚩 Claim called off: the party walks home" + (back ? ", 📦" + back + " stores back." : "."), {x: c.x, z: c.z}); /* Focus only, no ping: a recall is the player's own call, not a completion or a warning, and the snapshot point is the claim center, so the view chip and the last-alert return resolve to ground the player can stake on again. */
   chronicle("A claim was called off; the party walked home" + (back ? " with 📦" + back + " stores returned." : "."));
   Store.commit();
   return true;
@@ -4249,7 +4249,7 @@ function cancelRoad(){
   if(r.group){ scene.remove(r.group); r.group = null; }
   G.roads = G.roads.filter(function(x){ return x.id !== r.id; });
   G.roadBuild = null;
-  showToast("🛣 Road called off: the crew walks home.");
+  showToast("🛣 Road called off: the crew walks home.", roadMid(r)); /* Focus only, no ping: a recall is the player's own call, not a completion or a warning, and the midpoint is the surveyed line, so the view chip and the last-alert return resolve to ground the player can lay on again. */
   chronicle("A road was called off; the crew walked home.");
   Store.commit();
   return true;
