@@ -5120,7 +5120,7 @@ function endWeek(){
   }
   drawOffer();
   SND.play("week");
-  if(isWinter()) setTimeout(function(){ if(!G.over) showToast("❄ Winter: scarcity climbs faster. Work the Fields to keep the storehouse full."); }, 1200);
+  if(isWinter()) setTimeout(function(){ if(!G.over) showToast("❄ Winter: scarcity climbs faster. Work the Fields to keep the storehouse full.", {x: STATION3.fields.x, z: STATION3.fields.z}); }, 1200); /* Arrival focus only, no ping: the autumn forecast already pinged this same counter-move, so the arrival is a report, not a fresh warning. */
   arrivalCheck();
   /* Stage X: the village raises one building of its own at the
      boundary, after arrivals and departures have resolved. */
