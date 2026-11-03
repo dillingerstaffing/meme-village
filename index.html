@@ -747,7 +747,7 @@ function renderSheet(s){
   var whSig = 0; if(a.workHist) for(var wkk in a.workHist) whSig += a.workHist[wkk];
   var cvk = convergenceRecords(a);
   var convSig = cvk.drifts.map(function(r){ return r.name + ":" + r.tension + ":" + r.yr + ":" + r.sn; }).join(",") + "|" + cvk.conv.map(function(r){ return r.station + ":" + r.names.join(","); }).join(",");
-  var key = a.id + "|" + (a.thought ? a.thought.at + ":" + a.thought.text : "none") + "|" + log.length + "|" + NEED_DEFS.map(function(d){ return Math.round(needVal(a, d.id)); }).join(":") + ":" + whSig + "|" + (householdOf(a) ? householdOf(a).id : "") + "|" + (a.model || "") + "|" + Math.round(a.age || 34) + arcOf(a).id + "|" + Math.floor(a.cash || 0) + ":" + (a.bank == null ? "x" : Math.floor(a.bank)) + "|" + (a.tier || "") + (a.coverLapsed ? "L" : "") + "|" + (prestigeFlipUnlocked() ? (prestigeFlipped(a) ? "E" : "A") : "L") + followersOf(a) + "|" + convSig + "|" + activityText(a);
+  var key = a.id + "|" + (a.thought ? a.thought.at + ":" + a.thought.text : "none") + "|" + log.length + "|" + NEED_DEFS.map(function(d){ return Math.round(needVal(a, d.id)); }).join(":") + ":" + whSig + "|" + (householdOf(a) ? householdOf(a).id : "") + "|" + (a.model || "") + "|" + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + "|" + Math.round(a.age || 34) + arcOf(a).id + "|" + Math.floor(a.cash || 0) + ":" + (a.bank == null ? "x" : Math.floor(a.bank)) + "|" + (a.tier || "") + (a.coverLapsed ? "L" : "") + "|" + (prestigeFlipUnlocked() ? (prestigeFlipped(a) ? "E" : "A") : "L") + followersOf(a) + "|" + convSig + "|" + activityText(a);
   if(key === sheetKey && el.style.display !== "none") return;
   sheetKey = key;
   var shirt = "#" + ("000000" + (a.shirt || 0).toString(16)).slice(-6);
@@ -777,6 +777,15 @@ function renderSheet(s){
   if(a.parents && a.parentNames && a.parentNames.length) h += "<div class='sh-work'>🧒 Child of " + a.parentNames.join(" and ") + "</div>";
   var mdl = a.model ? agent(a.model) : null;
   if(mdl) h += "<div class='sh-work'>👁 Looks up to " + mdl.name.split(" ")[0] + "</div>";
+  /* The sheet carries the same want line as the tray, in the tray's own
+     form (station, plus the origin first name when the want was copied):
+     on phones the sheet is a bottom sheet over the tray, so while it
+     stands open the tray's want line is covered and the reader would
+     otherwise see no want unless the current thought happened to be
+     about it. A fact line only, no trait or cause wording, beside the
+     model line it completes into the triangle. */
+  var wfrom = (a.want && a.want.from) ? agent(a.want.from) : null;
+  if(a.want && STATION3[a.want.station]) h += "<div class='sh-work'>💭 Wants " + artName(a.want.station) + (wfrom ? " · from " + wfrom.name.split(" ")[0] : "") + "</div>";
   h += "<div class='sh-work'>Age " + Math.round(a.age || 34) + " · " + arcOf(a).label + "</div>";
   h += "<div class='sh-work'>🪙 Cash on hand: " + Math.floor(a.cash || 0) + " tokens" + (a.bank != null ? " · Bank account: " + Math.floor(a.bank) + " tokens" : "") + "</div>";
   if(a.tier && TTI[a.tier]) h += "<div class='sh-work'>🛡 Coverage: " + TTI[a.tier].name + "</div>"; else if(a.coverLapsed) h += "<div class='sh-work'>🛡 Coverage: lapsed (unpaid)</div>";
