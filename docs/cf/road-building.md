@@ -100,7 +100,10 @@ an in-flight road keeps its carried planks, the crew's roadCrew flags
 survive on the agents, and G.roadBuild re-points at the restored road
 record. The season boundary re-recruits a scattered crew or abandons
 the half-laid road (mesh removed, record dropped) rather than leaving a
-permanent surveyed line.
+permanent surveyed line. Both season-boundary toasts carry a camera
+focus at the road midpoint, with no minimap ping: the abandonment
+toast points at where the road was, so the player can re-lay it, and
+the new-crew toast points at where the new crew walks.
 
 Why: the transport ladder must be visible on the map itself. A road
 that only changed a number would be superstition; a road the player
