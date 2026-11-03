@@ -481,6 +481,7 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
   <div class="srow" id="claimRow"><span class="sl" id="claimLbl" style="width:auto">Claims</span></div>
   <div class="srow" id="homeRow"><span class="sl" id="homeLbl" style="width:auto">Homes</span></div>
   <div class="srow" id="popRow"><span class="sl" id="popLbl" style="width:auto">Villagers</span></div>
+  <div class="srow" id="soilRow"><span class="sl" id="soilLbl" style="width:auto">Soil</span></div>
   <div class="srow" id="blameRow" style="display:none"><span class="sl" id="blameLbl">🌩 Blame</span><span class="sb"><i id="blameBar" style="background:#e85a3c"></i></span><b id="blameVal">0</b></div>
   <div id="statsStrip"><span>⚒<b id="sv-prod">0</b></span><span>♥<b id="sv-trust">0</b></span><span>🌳<b id="sv-coh">0</b></span><span>⚔<b id="sv-riv">0</b></span><span>🌾<b id="sv-scar">0</b></span><span>🕊<b id="sv-aut">0</b></span><span>🌱<b id="sv-cont">0</b></span><span>🏠<b id="sv-home">0</b></span><span>👥<b id="sv-pop">0</b></span><span id="svBlameWrap" style="display:none">🌩<b id="sv-blame">0</b></span></div>
 </div>
@@ -6654,6 +6655,18 @@ function hudTick(dt){
   if(popLbl) popLbl.textContent = "👥 " + popN + " of " + POP_CAP + " villagers";
   var popSv = document.getElementById("sv-pop");
   if(popSv) popSv.textContent = popN + "/" + POP_CAP;
+  /* Soil read: the depletion clock's stage names itself where the other
+     village reads live, instead of only in the boundary toast after it
+     worsens and in the field tint, whose browns and crop heights are
+     easy to miss at a glance. The stage name is the toast's own word
+     (rich, tired, exhausted), from G.soilStage, so the row, the toast,
+     and the tint can never disagree; a tired or exhausted row is the
+     prompt to rest the fields a season before yields fall further.
+     Display only: the row renders G.soilStage and changes no gate,
+     ledger, graph edge, want, or tension. Guarded element write keeps
+     the node harness working with its stubbed document. */
+  var soilLbl = document.getElementById("soilLbl");
+  if(soilLbl) soilLbl.textContent = "🌱 Soil " + (["rich", "tired", "exhausted"][G.soilStage || 0] || "worn");
   /* An idle chip is a live claim, not a record: it ends the frame its
      resident stops loafing, beside its 9 second expiry and the removal
      filter, because loafT resets the moment work starts, so a chip
