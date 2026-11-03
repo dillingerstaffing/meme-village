@@ -29,3 +29,13 @@ the same rule against opaque chrome: it clears the minimap and the offer
 card within the same 110px sideways budget measured from its clamped
 station anchor, or hides for the frame, never rendering clipped under
 either panel.
+
+Resident overlays follow the same rule against the minimap specifically:
+the minimap is opaque (z-index 11 over the overlays at 9), so a marker
+under it is invisible, not merely overlapping. Placement shifts a
+minimap-overlapping box left of the minimap within the same 110px
+sideways budget (selected resident exempt, as with the west-edge
+nudge); a de-overlap sidestep candidate that would land under the
+minimap is skipped; and a final guard after lifting and clamping
+re-shifts or hides for the frame. Like the HUD nudge, minimap
+clearance stands down while the camera moves.

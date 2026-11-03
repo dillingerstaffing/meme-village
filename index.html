@@ -7138,7 +7138,7 @@ function renderOverlay(s){
     if(m.bubble) a.bubbleEl.style.opacity = m.bubble.kind === "want" ? m.bubble.opacity.toFixed(2) : "1";
     placed.push(a);
   });
-  // CF-REF: overlay-anchor-budget.md [66]
+  // CF-REF: overlay-anchor-budget.md [102]
   // Anchor discipline: an overlay belongs to its resident, and position
   // is identity. A marker may shift only within a small budget (LIFT_MAX
   // up, DX_MAX sideways; the screen clamps and a short HUD nudge count
@@ -7168,6 +7168,20 @@ function renderOverlay(s){
     }
     return null;
   }
+  var mmEl = document.getElementById("minimap");
+  var mmRect = null;
+  if(mmEl && typeof mmEl.getBoundingClientRect === "function"){ var _mr = mmEl.getBoundingClientRect(); if(_mr.width >= 4 && _mr.height >= 4) mmRect = _mr; }
+  function ovlHitsMm(x, y, hw, hh){
+    if(!mmRect) return false;
+    return x + hw > mmRect.left && x - hw < mmRect.right && y > mmRect.top && y - hh < mmRect.bottom;
+  }
+  function ovlMmShift(y, hw, hh, m, a){
+    var cx = mmRect.left - 6 - hw;
+    if(cx < hw + 4) return null;
+    if(Math.abs(cx - m.x) > DX_MAX && s.selected !== a.id) return null;
+    if(hud && y > hud.top - 40 && y - hh < hud.bottom + 12 && cx - hw < hud.right + 6) return null;
+    return cx;
+  }
   placed.forEach(function(a){
     var el = a.ovlEl, m = a._ovlModel;
     var hw = (el.offsetWidth || 46) / 2, hh = el.offsetHeight || 56;
@@ -7178,6 +7192,18 @@ function renderOverlay(s){
       if(hx - m.x <= DX_MAX || s.selected === a.id) x = hx;
       else { el.style.display = "none"; a._ovlSig = ""; a._ovlBox = null; return; }
     }
+    /* Minimap clearance, same discipline as the left-HUD nudge and the
+       pressure bubble: the minimap is opaque chrome (z-index 11 over
+       the overlays at 9), so a marker under it is invisible, not
+       merely overlapping. Shift left of it within the sideways budget
+       (selected resident exempt, as with the HUD nudge); past the
+       budget hide for the frame rather than rendering under chrome.
+       Like the HUD nudge, this stands down while the camera moves. */
+    if(!camMoving && mmRect && ovlHitsMm(x, y, hw, hh)){
+      var mx = ovlMmShift(y, hw, hh, m, a);
+      if(mx !== null) x = mx;
+      else { el.style.display = "none"; a._ovlSig = ""; a._ovlBox = null; return; }
+    }
     var hit = camMoving ? null : ovlHit(x, y, hw, hh);
     if(hit){
       var cands = [hit.x - hit.hw - hw - 6, hit.x + hit.hw + hw + 6];
@@ -7186,6 +7212,7 @@ function renderOverlay(s){
         var cx = Math.max(hw + 4, Math.min(window.innerWidth - hw - 4, cands[ci]));
         if(Math.abs(cx - m.x) > DX_MAX) continue;
         if(hud && y > hud.top - 40 && y - hh < hud.bottom + 12 && cx - hw < hud.right + 6) continue;
+        if(mmRect && ovlHitsMm(cx, y, hw, hh)) continue;
         if(!ovlHit(cx, y, hw, hh)){ x = cx; sided = true; break; }
       }
       if(!sided){
@@ -7201,6 +7228,15 @@ function renderOverlay(s){
     }
     if(y < 0){ el.style.display = "none"; a._ovlSig = ""; a._ovlBox = null; return; }
     if(y - hh < 4) y = hh + 4;
+    /* Final minimap guard: a lift or top clamp above can land a box
+       under the minimap after the pre-pass ran. A left shift that
+       collides with an already placed box is no placement at all, so
+       that case hides for the frame like a past-budget shift. */
+    if(!camMoving && mmRect && ovlHitsMm(x, y, hw, hh)){
+      var mx2 = ovlMmShift(y, hw, hh, m, a);
+      if(mx2 !== null && !ovlHit(mx2, y, hw, hh)) x = mx2;
+      else { el.style.display = "none"; a._ovlSig = ""; a._ovlBox = null; return; }
+    }
     el.style.left = x + "px"; el.style.top = y + "px";
     a._ovlBox = {x:x, y:y, hw:hw, hh:hh};
     boxes.push({x:x, y:y, hw:hw, hh:hh});
