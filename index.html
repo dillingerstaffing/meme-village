@@ -102,6 +102,9 @@ canvas{display:block}
 #sheet .sh-role{font-size:10.5px;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;font-weight:700;margin-top:1px}
 #sheet .sh-x{margin-left:auto;background:#131a23;border:1px solid var(--line);color:var(--ink);border-radius:8px;width:34px;height:34px;font-size:15px;cursor:pointer;flex:none}
 #sheet .sh-x:hover{border-color:var(--gold)}
+#sheet .sh-pause{background:#131a23;border:1px solid var(--line);color:var(--ink);border-radius:8px;width:34px;height:34px;font-size:15px;cursor:pointer;flex:none}
+#sheet .sh-pause:hover{border-color:var(--gold)}
+
 #sheet .sh-close{display:block;width:100%;margin:18px 0 4px;padding:12px;background:#131a23;border:1px solid var(--gold);color:var(--ink);border-radius:8px;font-size:15px;font-weight:700;cursor:pointer}
 #sheet .sh-quote{font-size:17px;line-height:1.45;margin-top:16px}
 #sheet .sh-needs{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
@@ -332,7 +335,7 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
    scroll to the foot. Phone-only, so the desktop sheet keeps its
    compact 34px close; the header is a flex row with a 46px chip, so
    a 44px button changes no layout. */
-@media (max-width:560px){#sheet .sh-x{width:44px;height:44px}}
+@media (max-width:560px){#sheet .sh-x{width:44px;height:44px}#sheet .sh-pause{width:44px;height:44px}}
 /* Phone title segments meet the 44px thumb target: the season and
    posting segments are the first controls a phone player touches, and
    they measured 43px tall from the title overlay padding, one pixel
@@ -747,7 +750,7 @@ function renderSheet(s){
   var whSig = 0; if(a.workHist) for(var wkk in a.workHist) whSig += a.workHist[wkk];
   var cvk = convergenceRecords(a);
   var convSig = cvk.drifts.map(function(r){ return r.name + ":" + r.tension + ":" + r.yr + ":" + r.sn; }).join(",") + "|" + cvk.conv.map(function(r){ return r.station + ":" + r.names.join(","); }).join(",");
-  var key = a.id + "|" + (a.thought ? a.thought.at + ":" + a.thought.text : "none") + "|" + log.length + "|" + NEED_DEFS.map(function(d){ return Math.round(needVal(a, d.id)); }).join(":") + ":" + whSig + "|" + (householdOf(a) ? householdOf(a).id : "") + "|" + (a.model || "") + "|" + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + "|" + Math.round(a.age || 34) + arcOf(a).id + "|" + Math.floor(a.cash || 0) + ":" + (a.bank == null ? "x" : Math.floor(a.bank)) + "|" + (a.tier || "") + (a.coverLapsed ? "L" : "") + "|" + (prestigeFlipUnlocked() ? (prestigeFlipped(a) ? "E" : "A") : "L") + followersOf(a) + "|" + convSig + "|" + activityText(a);
+  var key = a.id + "|" + (s.speed || 0) + "|" + (a.thought ? a.thought.at + ":" + a.thought.text : "none") + "|" + log.length + "|" + NEED_DEFS.map(function(d){ return Math.round(needVal(a, d.id)); }).join(":") + ":" + whSig + "|" + (householdOf(a) ? householdOf(a).id : "") + "|" + (a.model || "") + "|" + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + "|" + Math.round(a.age || 34) + arcOf(a).id + "|" + Math.floor(a.cash || 0) + ":" + (a.bank == null ? "x" : Math.floor(a.bank)) + "|" + (a.tier || "") + (a.coverLapsed ? "L" : "") + "|" + (prestigeFlipUnlocked() ? (prestigeFlipped(a) ? "E" : "A") : "L") + followersOf(a) + "|" + convSig + "|" + activityText(a);
   if(key === sheetKey && el.style.display !== "none") return;
   sheetKey = key;
   var shirt = "#" + ("000000" + (a.shirt || 0).toString(16)).slice(-6);
@@ -756,7 +759,7 @@ function renderSheet(s){
   var ax2 = axisOf(a);
   var h = "<div class='sh-head'><div class='sh-chip' style='background:" + shirt + "'><div class='sh-hair' style='background:" + hair + "'></div><div class='sh-letter'>" + a.name.charAt(0) + "</div></div>"
     + "<div><div class='sh-name'>" + a.name + "</div><div class='sh-role'>" + a.role + (ax2 ? " · " + ax2.icon + " " + ax2.label : "") + "</div></div>"
-    + "<button class='sh-x' type='button' aria-label='Close' title='Close (Escape key)'>✕</button></div>";
+    + "<button class='sh-pause' type='button' aria-label='" + (s.speed === 0 ? "Resume" : "Pause") + "' title='" + (s.speed === 0 ? "Resume (Space key)" : "Pause (Space key)") + "'>" + (s.speed === 0 ? "▶" : "❚❚") + "</button><button class='sh-x' type='button' aria-label='Close' title='Close (Escape key)'>✕</button></div>";
   /* Current activity first, before the needs: the tray's activity line is
      hidden on phones, so without this the sheet is the only reading surface
      and it never said what the resident is doing right now. activityText is
@@ -818,6 +821,18 @@ function renderSheet(s){
   el.style.display = "block";
   var x = el.querySelector(".sh-x");
   if(x) x.addEventListener("click", function(){ Store.dispatch("ui/sheet", {id:null}); });
+  /* The sheet's own pause toggle: the sheet sits at z20 over the speeds
+     row at both sizes (a bottom sheet over the tray on phones, a side
+     panel over the top-right speeds row on desktop), so the tray pause
+     button cannot be tapped while reading. The header therefore carries
+     the tray pause button's exact verb, setSpeed toggled between 0 and
+     1, with the sheet key carrying speed so the glyph flips on the next
+     commit even while paused (commit runs every frame). Phones need it
+     most (no keyboard pause keys there), but the cover holds on
+     desktop too, so the button shows at every size. Display only, no
+     new state, no sim change. */
+  var sp = el.querySelector(".sh-pause");
+  if(sp) sp.addEventListener("click", function(){ setSpeed(G.speed === 0 ? 1 : 0); });
   var fc = el.querySelector(".sh-close");
   if(fc) fc.addEventListener("click", function(){ Store.dispatch("ui/sheet", {id:null}); });
 }
