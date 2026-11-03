@@ -14,3 +14,5 @@ for Q, right -0.35 for E, under exactly that same guard. The step and
 the follow rule do not change: rotation orbits a followed resident,
 it never clears a camera follow, and the rotate buttons are untouched
 by this guard, which covers the keys only.
+
+Shared guard (2026-11-03): while a Story panel stands open, the shared keydown guard returns before this verb, so it never acts behind the chronicle; Escape, the pause keys, the speed keys, and M stay live. See story-panel-key-guard.md.

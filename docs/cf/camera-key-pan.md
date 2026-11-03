@@ -18,3 +18,5 @@ The pan is guarded like the other keyboard verbs: it fires only once
 the game has started, never while the game is over or an incident panel
 is open, never with Ctrl, Meta, or Alt held, and never while typing in
 a text field.
+
+Shared guard (2026-11-03): while a Story panel stands open, the shared keydown guard returns before this verb, so it never acts behind the chronicle; Escape, the pause keys, the speed keys, and M stay live. See story-panel-key-guard.md.

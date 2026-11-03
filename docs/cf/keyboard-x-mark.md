@@ -43,3 +43,5 @@ browser adaptation is X to save and the return chips to recall.
 Do not add an F5 handler without re-arguing the reload conflict:
 a save key that reloads the page on a missed preventDefault loses
 the village it was meant to mark.
+
+Shared guard (2026-11-03): while a Story panel stands open, the shared keydown guard returns before this verb, so it never acts behind the chronicle; Escape, the pause keys, the speed keys, and M stay live. See story-panel-key-guard.md.

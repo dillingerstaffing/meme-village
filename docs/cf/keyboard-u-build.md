@@ -51,3 +51,5 @@ queue instead of being erased. The tray Build button's re-tap and
 every station order's re-tap jump on the same rule, through the
 shared setOrder3 re-tap branch. Guarded by pwtest_orderretap.py in
 this goal's hidden_files.
+
+Shared guard (2026-11-03): while a Story panel stands open, the shared keydown guard returns before this verb, so it never acts behind the chronicle; Escape, the pause keys, the speed keys, and M stay live. See story-panel-key-guard.md.

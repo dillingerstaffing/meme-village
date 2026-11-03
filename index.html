@@ -7765,6 +7765,22 @@ function bindInput(){
     if(p.agent){ Store.dispatch("ui/select", {id: p.agent}); cam.follow = (cam.follow === p.agent) ? null : p.agent; refreshTray(true); }
   });
   document.addEventListener("keydown", function(e){
+    /* Story-panel key guard: while a Story panel stands open, the
+       chronicle is a modal reading surface (the overlay sits above
+       the tray and above the toast pill, so nothing behind it can be
+       seen), and the tap path already blocks the tray behind it. The
+       keyboard path must match, or a key would silently arm a verb,
+       open a sheet under the panel, re-render the chronicle and lose
+       the body's scroll place, or move the camera behind the panel,
+       with no visible effect until the panel closes. So this guard
+       returns before every other verb while the story overlay stands
+       open, except the exit and the thinking tools: Escape closes the
+       panel, Space, P, and 0 pause, comma and period change speed,
+       and M mutes. The final panel is not covered: the game is over
+       there, and every verb already requires a live game. Typing in
+       a text field is never blocked: the panel carries no field, and
+       a field elsewhere keeps its keys. */
+    if(G && G.started && !G.over && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) && (function(){ var ov = document.getElementById("endOverlay"); return !!(ov && ov.classList.contains("open") && ov.classList.contains("story")); })() && !(e.code === "Space" || e.key === "Escape" || e.key === "p" || e.key === "P" || e.key === "0" || e.key === "," || e.key === "." || e.key === "<" || e.key === ">" || e.key === "m" || e.key === "M")) return;
     /* Space pause: the keyboard twin of the speed buttons, toggling
        speed 0 and 1 (from 2x it pauses, like the old bare line).
        Guarded like every other key except one deliberate exception:

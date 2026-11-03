@@ -45,3 +45,5 @@ Cover button's title names it ("Cover (Shift+C key)"), so a desktop
 player can learn Shift+C exists from the button itself, in the
 StarCraft II command-hotkey grammar: the hotkey shown on the button,
 not only in a tooltip.
+
+Shared guard (2026-11-03): while a Story panel stands open, the shared keydown guard returns before this verb, so it never acts behind the chronicle; Escape, the pause keys, the speed keys, and M stay live. See story-panel-key-guard.md.

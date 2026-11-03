@@ -50,3 +50,5 @@ The Call Out button's title names it ("Call Out (Shift+O key)"), so
 a desktop player can learn Shift+O exists from the button itself,
 in the StarCraft II command-hotkey grammar: the hotkey shown on the
 button, not only in a tooltip.
+
+Shared guard (2026-11-03): while a Story panel stands open, the shared keydown guard returns before this verb, so it never acts behind the chronicle; Escape, the pause keys, the speed keys, and M stay live. See story-panel-key-guard.md.

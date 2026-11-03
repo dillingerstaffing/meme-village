@@ -24,3 +24,5 @@ needs, so the incident guard is intentional, not an omission. Do not
 add an incident exception here without re-arguing that panel rule:
 the guard is intentionally identical to the camera, group, idle,
 lens, story, thoughts, and claim keys, not to Space, P, 0, or M.
+
+Shared guard (2026-11-03): while a Story panel stands open, the shared keydown guard returns before this verb, so it never acts behind the chronicle; Escape, the pause keys, the speed keys, and M stay live. See story-panel-key-guard.md.

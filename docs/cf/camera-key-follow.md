@@ -30,3 +30,5 @@ double-click past the 380ms tap window leaves no fresh stamp, so the
 dblclick handler still owns that case, and a double-click ending on a
 different resident is unaffected, since the stamp id must match. The
 handler never changes the selection beyond what tapAt already selected.
+
+Shared guard (2026-11-03): while a Story panel stands open, the shared keydown guard returns before this verb, so it never acts behind the chronicle; Escape, the pause keys, the speed keys, and M stay live. See story-panel-key-guard.md.

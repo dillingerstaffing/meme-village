@@ -39,3 +39,5 @@ dead key, and the displaced toast waits at the head of the queue
 instead of being erased. The tray Claim button's locked answer jumps
 on the same rule. Guarded by pwtest_claimroadlock.py in this goal's
 hidden_files.
+
+Shared guard (2026-11-03): while a Story panel stands open, the shared keydown guard returns before this verb, so it never acts behind the chronicle; Escape, the pause keys, the speed keys, and M stay live. See story-panel-key-guard.md.
