@@ -6861,7 +6861,7 @@ function hudTick(dt){
       }
     }
   }
-  // CF-REF: sheet-below-objective-card.md [16]
+  // CF-REF: sheet-below-objective-card.md [19]
   /* Phone character sheet: start it below the objective card. The sheet is
      z-above the card, and at 86% height it covered the card's project pick
      buttons entirely, so the choice read as flaky and the sheet ate every
@@ -6870,7 +6870,10 @@ function hudTick(dt){
   if(shEl2){
     if(window.innerWidth <= 720 && shEl2.style.display === "block"){
       var ocEl = document.getElementById("objCard");
-      var sTop = ((ocEl ? ocEl.offsetHeight : 150) + 20) + "px";
+      var sTopN = (ocEl ? ocEl.offsetHeight : 150) + 20;
+      /* Phone minimap floor: at 560px and under the minimap sits top-anchored at 202px, and a sheet top inside its strip covered its bottom edge, swallowing taps there, so the minimap's south strip read as dead while the sheet stood. Above 560px the minimap is bottom-anchored and the sheet covers that corner by design, so the floor applies only here. */
+      if(window.innerWidth <= 560){ var mmEl2 = document.getElementById("minimap"); if(mmEl2){ var mmB = Math.ceil(mmEl2.getBoundingClientRect().bottom); if(mmB + 8 > sTopN) sTopN = mmB + 8; } }
+      var sTop = sTopN + "px";
       if(shEl2.style.top !== sTop) shEl2.style.top = sTop;
       if(shEl2.style.height !== "auto") shEl2.style.height = "auto";
     } else {
