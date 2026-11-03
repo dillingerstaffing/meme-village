@@ -58,7 +58,11 @@ section omits itself when there are no records, and it never explains
 or moralizes: facts and numbers only. The feud warning names its lever (separate them or cool them on the
 green), and the eruption toast now carries the same lever sentence,
 because ordering either member and the green still cool the pair
-after eruption. The drift is never a verb or a button;
+after eruption. Both the warning and the eruption toast jump the
+toast queue, like a direct reply: the warn and feud sounds and the
+minimap ping already fire at once, and the text must answer at the
+same moment, with the displaced toast kept at the head of the queue.
+The drift is never a verb or a button;
 scapegoating stays emergent and nonconscious.
 
 Mimetic cause. The drift record is written at the moment converging
