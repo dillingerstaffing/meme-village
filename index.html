@@ -4786,7 +4786,11 @@ function acceptOffer(){
   if(objRing && st){ objRing.position.set(st.x, 1.2, st.z); objRing.visible = true; }
   if(pipGroup && st){ pipGroup.position.set(st.x, 0, st.z); pipGroup.visible = true; }
   if(o.dynModel){ var lv = null; G.agents.forEach(function(a){ if(!lv || a.vis < lv.vis) lv = a; }); G.objTarget = lv ? lv.id : null; }
-  showToast("📜 Commission accepted: " + (o.titleDyn ? o.titleDyn() : o.title));
+  /* The accept toast carries the objective station work centroid as its focus, in the completion toast grammar: accepting commits a season of work at that station, so a view chip rides the live toast and the last-alert chip keeps the return after the toast expires, for a player whose camera sits elsewhere when they tap Accept in the card. Focus only, no minimap ping: accepting starts work, and the win ping stays reserved for completions. A project row stays plain: its work site does not exist until the project pick, and the pick toast already carries the site focus. No station, no focus, and the toast stays plain as before. */
+  var accSt = o.project ? null : STATION3[o.station];
+  var accCx = 0, accCz = 0, accWi = 0, accSx = 0, accSz = 0;
+  if(accSt){ accCx = accSt.x; accCz = accSt.z; if(accSt.work && accSt.work.length){ for(accWi = 0; accWi < accSt.work.length; accWi++){ accSx += accSt.work[accWi][0]; accSz += accSt.work[accWi][1]; } accCx = accSx / accSt.work.length; accCz = accSz / accSt.work.length; } }
+  showToast("📜 Commission accepted: " + (o.titleDyn ? o.titleDyn() : o.title), accSt ? {x: accCx, z: accCz} : null);
   Store.commit();
 }
 function ignoreOffer(){
