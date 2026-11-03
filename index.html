@@ -553,7 +553,7 @@ function curObjective(){ var deck = (G.objectives && G.objectives.length) ? G.ob
 var scene, camera, renderer, sunLight;
 var cam = {target:new THREE.Vector3(0,0,4), yaw:0, pitch:0.94, dist:38, follow:null};
 var G = null;
-// CF-REF: store-single-source.md [111]
+// CF-REF: store-single-source.md [116]
 /* ================= STORE =================
    Single source of truth for all game state.
    Rules:
@@ -628,6 +628,11 @@ var Store = (function(){
        camera pose and appends it; a fifth save drops the oldest, so the ring
        always holds the four most recent views. Camera only, never sim state. */
     "ui/cammark": function(p){ if(p && typeof p.x === "number" && typeof p.z === "number"){ var ms = state.camMarks || (state.camMarks = []); ms.push({x: p.x, z: p.z, yaw: (typeof p.yaw === "number" ? p.yaw : 0), dist: (typeof p.dist === "number" ? p.dist : 38)}); if(ms.length > 4) ms.shift(); } },
+    /* Retire the retained last-alert return: a chip whose focus has no
+       living resident and no site point answers loudly once, then clears,
+       so it never keeps answering the same dead return on every tap. The
+       answer toast itself carries no focus, so it never re-sets this. */
+    "ui/lastAlertClear": function(p){ state.lastAlert = null; },
     /* Control groups (spec section 26, docs/cf/control-groups.md):
        three recall slots, one resident each, through the dispatch
        door like every other discrete UI event. Set moves the
@@ -6978,8 +6983,11 @@ window.__toastSkip = function(){ Store.dispatch("ui/toastSkip"); SND.play("tap")
    using the same centroid and clamp math as __toastFocus, but reading
    G.lastAlert instead of the live toast, since the live toast is gone by
    the time this chip shows. A focus that resolves to nothing (its
-   residents are gone) answers loudly instead of moving nowhere. */
-window.__lastAlertFocus = function(){ var la = G.lastAlert, f = la && la.focus; if(!f) return; var x = 0, z = 0, n = 0; if(f.ids) f.ids.forEach(function(id){ var a = agent(id); if(a){ x += a.x; z += a.z; n++; } }); else if(f.x !== undefined){ x = f.x; z = f.z; n = 1; } if(n){ cam.target.x = Math.max(-62, Math.min(62, x / n)); cam.target.z = Math.max(-48, Math.min(48, z / n)); cam.follow = null; } else showToast("No site to return to", null, true); /* The answer is a direct reply to the player's tap, so it jumps: without the jump flag it queued behind a live unrelated toast and the tap read as dead, the same rule __toastFocus already follows. */ };
+   residents are gone) answers loudly instead of moving nowhere, and
+   then retires the chip through ui/lastAlertClear: a return that can
+   never resolve again must not keep answering the same dead tap, on
+   the idle-chip rule that a route to a gone resident stops rendering. */
+window.__lastAlertFocus = function(){ var la = G.lastAlert, f = la && la.focus; if(!f) return; var x = 0, z = 0, n = 0; if(f.ids) f.ids.forEach(function(id){ var a = agent(id); if(a){ x += a.x; z += a.z; n++; } }); else if(f.x !== undefined){ x = f.x; z = f.z; n = 1; } if(n){ cam.target.x = Math.max(-62, Math.min(62, x / n)); cam.target.z = Math.max(-48, Math.min(48, z / n)); cam.follow = null; } else { showToast("No site to return to", null, true); Store.dispatch("ui/lastAlertClear"); } /* The answer is a direct reply to the player's tap, so it jumps: without the jump flag it queued behind a live unrelated toast and the tap read as dead, the same rule __toastFocus already follows. */ };
 /* Camera bookmark return: restore the slot's saved pose exactly (target, yaw,
    distance) and clear follow, so the returned view is the saved view, not
    a nearby one. A chip only renders while its slot exists, so a missing slot
