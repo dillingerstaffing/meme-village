@@ -6580,12 +6580,16 @@ function hudTick(dt){
   /* Last-alert return: the most recent displayed focus toast survives its
      own expiry as one chip in this stack, so the camera can still return
      to that event's site after the toast and its minimap ping are gone.
-     While a focus toast is live, its view chip is the return affordance,
-     so this chip hides and exactly one return affordance shows at a time.
-     The chip carries alert-chip so the container's pointer-events rule
-     keeps it tappable, like the idle chips. */
-  var liveFocus = G.ui && G.ui.toast && Date.now() < G.ui.toast.until && G.ui.toast.focus && (G.ui.toast.focus.ids || G.ui.toast.focus.x !== undefined);
-  if(G.lastAlert && !liveFocus) ahtml += "<button class='alert-chip last-alert-chip' onclick='__lastAlertFocus()'>⌖ " + G.lastAlert.msg + "</button>";
+     While any toast is live, this chip hides: the pill and this stack
+     share the 118px bottom band on desktop, and a long retained chip
+     stretches the whole stack wide, so a later long pill runs under the
+     chip and under the group row the wide stack stretches. The chip
+     returns the moment the live toast expires or is skipped, which is
+     its job: a return after expiry, never a second message beside a
+     live one. The chip carries alert-chip so the container's
+     pointer-events rule keeps it tappable, like the idle chips. */
+  var liveToast = G.ui && G.ui.toast && Date.now() < G.ui.toast.until;
+  if(G.lastAlert && !liveToast) ahtml += "<button class='alert-chip last-alert-chip' onclick='__lastAlertFocus()'>⌖ " + G.lastAlert.msg + "</button>";
   /* Camera bookmark return: each player-chosen saved view reads as its own
      chip beside the system-chosen last-alert chip, so saving is visibly
      kept and returning costs one tap. Chips show whenever marks exist,
@@ -6836,7 +6840,7 @@ function giveWant(a, station, fromSync, fromId){
   });
   if(adopters.length >= 2){
     var who = adopters.length === 2 ? adopters.join(" and ") : (adopters.slice(0, 2).join(", ") + " and " + (adopters.length - 2) + " more");
-    showToast("💭 " + a.name.split(" ")[0] + "'s want for " + artName(station) + " spread to " + who);
+    showToast("💭 " + a.name.split(" ")[0] + "'s want for " + artName(station) + " spread to " + who, {ids: [a.id]}); /* Focus only, no ping: a spread names its source and a group, like the copy toast names its pair, so the live toast renders a view chip and lastAlert retains the return after expiry. The focus names the source alone, deliberately: adopters scatter across the map (followers adopt at any distance), so a centroid of the whole group would land on empty ground between them, while the source id resolves live and follows the resident whose want spread. */
   }
   /* Household synchronization: a want one member takes up is offered
      to their partner as a pending want, marked so it cannot bounce
