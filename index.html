@@ -7281,17 +7281,21 @@ function pickAt(cx, cy){
     var d = Math.hypot(cx - b.x, cy - (b.y - b.hh / 2));
     if(d < boD){ boD = d; bo = a.id; }
   });
-  if(bo) return {agent: bo};
-  // CF-REF: tap-grace.md [20]
+  // CF-REF: tap-grace.md [32]
   /* Tap grace: a box that jumped (a de-overlap sidestep teleports a
      box up to ~77px in one frame) or vanished (a bubble expiring hides
      it outright) between the player's aim and the tap still answers
      for 800ms, so a tap on a name that was there a moment ago selects
      its owner instead of the ground, plot, or station under the point.
-     Current boxes win first (above), so a resident who moved onto the
-     point is never stolen by a stale box, and entries stamped ahead of
+     Order: a fresh jumped box beats a covering current box, then
+     current boxes, then other recent entries. Fresh means under
+     300ms old (inside the aim-to-tap window); jumped means its owner
+     has no placed box or its current box center sits over 30px from
+     the point (a sidestep teleport, not a walk). A fresh entry whose
+     owner is still near never steals, and entries stamped ahead of
      the clock (a restored save's timestamps) never answer. */
   var _grPt = performance.now(), bo2 = null, bo2D = 1e9;
+  var jump = null, jumpD = 1e9;
   G.agents.forEach(function(a){
     var nr = a._ovlRecent; if(!nr) return;
     for(var ri = 0; ri < nr.length; ri++){
@@ -7300,8 +7304,15 @@ function pickAt(cx, cy){
       if(cx < rb.x - rb.hw - 6 || cx > rb.x + rb.hw + 6 || cy < rb.y - rb.hh - 6 || cy > rb.y + 6) continue;
       var d = Math.hypot(cx - rb.x, cy - (rb.y - rb.hh / 2));
       if(d < bo2D){ bo2D = d; bo2 = a.id; }
+      if(dt < 300){
+        var cb = a._ovlBox;
+        var cd = cb ? Math.hypot(cx - cb.x, cy - (cb.y - cb.hh / 2)) : null;
+        if((cd === null || cd > 30) && d < jumpD){ jumpD = d; jump = a.id; }
+      }
     }
   });
+  if(bo && jump) return {agent: jump};
+  if(bo) return {agent: bo};
   if(bo2) return {agent: bo2};
   var aHits = [], sHits = [];
   G.agents.forEach(function(a){ aHits.push(a.hit); });
