@@ -44,7 +44,12 @@ within 10 of the threshold (75 to 84) gets one latched warning per
 approach, on the blame/departure forecast grammar: a bubble, a
 camera-focus toast naming the threshold and the consequence, a
 minimap ping, and the warn sound, with no chronicle line (the
-crossing itself chronicles). The latch lives in G.prestigeWarn, set
+crossing itself chronicles). The forecast and crossing toasts carry
+the model id as their camera focus, so the live view chip and the
+retained last-alert return resolve to the model's live position, not
+the fire-time point (a resident walks; a site does not, so sites keep
+point foci); the forecast's warn ping still marks the fire-time spot.
+The latch lives in G.prestigeWarn, set
 in newSlice and guarded in restoreState like G.prestigeFlip; it
 clears when a.vis drops below the band or the model flips, so it
 re-arms on the next approach and never goes stale. Below Village

@@ -2904,7 +2904,7 @@ function prestigeScan(){
       if(!G.prestigeWarn[a.id]){
         G.prestigeWarn[a.id] = true;
         setBubble(a, "👀", 2.5);
-        showToast("👀 " + a.name.split(" ")[0] + " is close to being envied: at " + Math.round(a.vis) + " standing, past " + row.threshold + " followers push back instead of just copying. Point some followers elsewhere before they cross.", {x: a.x, z: a.z});
+        showToast("👀 " + a.name.split(" ")[0] + " is close to being envied: at " + Math.round(a.vis) + " standing, past " + row.threshold + " followers push back instead of just copying. Point some followers elsewhere before they cross.", {ids: [a.id]}); /* Id focus, not a snapshot point: the model walks, so a retained return must resolve live, like the copy and spread toasts, while the warn ping above still marks the fire-time spot. */
         Store.dispatch("ui/ping", {x: a.x, z: a.z, kind: "warn"});
         SND.play("warn");
       }
@@ -2914,7 +2914,7 @@ function prestigeScan(){
     if(flipped && !was){
       G.prestigeFlip[a.id] = true;
       var nn = a.name.split(" ")[0];
-      showToast("\uD83D\uDC40 " + nn + " is envied now: at " + row.threshold + " standing, followers push back instead of just copying. Point some followers elsewhere to shrink the pushback.", {x: a.x, z: a.z});
+      showToast("\uD83D\uDC40 " + nn + " is envied now: at " + row.threshold + " standing, followers push back instead of just copying. Point some followers elsewhere to shrink the pushback.", {ids: [a.id]}); /* Id focus, not a snapshot point: the model walks, so a retained return must resolve live, like the copy and spread toasts. */
       chronicle("\uD83D\uDC40 " + a.name + " passed the flip point: their shadow is so big that admirers are starting to push back.");
     } else if(!flipped && was){
       delete G.prestigeFlip[a.id];
