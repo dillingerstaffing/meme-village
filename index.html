@@ -5123,11 +5123,14 @@ function stepSim(dt){
     if(a.child){ a.loafT = 0; a.alerted = false; return; }
     var working = a.medicTask || a.order || (a.state === "act" && a.stationId && a.stationId !== "green" && a.stationId !== "home") || (a.state === "walk" && a.stationId && a.stationId !== "green" && a.stationId !== "home");
     /* An idle alert fires once per loaf episode, not once per season:
-       alerted clears wherever loafT clears, so work, sickness, or
-       childhood ends the episode and the next loaf past 15 alerts
-       again. While a resident keeps loafing, alerted stays true, so
+       alerted clears wherever loafT clears, so work, sickness, rest,
+       or childhood ends the episode and the next loaf past 15 alerts
+       again. Rest at home is not loafing: a resting resident sits to
+       recover energy, so their loaf timer clears like a worker's and
+       no idle chip or Idle finder entry names them. While a resident
+       keeps loafing, alerted stays true, so
        no duplicate chip fires for the same episode. */
-    if(working || a.sick){ a.loafT = 0; a.alerted = false; } else a.loafT = (a.loafT || 0) + dt;
+    if(working || a.sick || a.resting){ a.loafT = 0; a.alerted = false; } else a.loafT = (a.loafT || 0) + dt;
     if(a.loafT > 15 && !a.alerted && G.started && !G.over){ a.alerted = true; G.alerts.push({id:a.id, name:a.name.split(" ")[0], at:G.t}); }
   });
   // CF-REF: desires-travel-the-graph.md [19]
