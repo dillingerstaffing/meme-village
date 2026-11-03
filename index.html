@@ -2418,7 +2418,7 @@ function tierUp(st){
   if(sn) Store.dispatch("ui/ping", {x: sn.x, z: sn.z, kind: "win"});
   SND.play("objwin");
   chronicle((sn && sn.name.indexOf("The ") === 0 ? sn.name : "The " + (sn ? sn.name : st)) + " reached tier " + G.tiers[st] + ".");
-  checkLevelUp();
+  checkLevelUp(sn ? {x: sn.x, z: sn.z} : null);
 }
 function applyTierMesh(st){
   var t = tierOf(st), b = STATION_BUILD[st];
@@ -2490,8 +2490,15 @@ function villageLevel(){
    crosses (Workshop at Large Village, Town House and Village Hall at
    Town), and the Town-tier verbs (Claims, roads) from the Town level
    threshold the promotion crosses. Levels with no crossing (Village,
-   City) keep the plain toast; no unlock is ever invented. */
-function checkLevelUp(){
+   City) keep the plain toast; no unlock is ever invented.
+   The toast carries the causer's focus: each call site passes the
+   finished site, the grown station, or the done project site that
+   moved the count, so the promotion toast renders a view chip and
+   the last-alert chip keeps the return after expiry, in the
+   completion-toast grammar. Focus only, no minimap ping: the
+   completion toast queued ahead of the promotion already pinged win
+   gold at the same spot. */
+function checkLevelUp(focus){
   if(!G.started || G.over) return;
   var lv = villageLevel();
   if(G.levelSeen == null){ G.levelSeen = lv.name; return; }
@@ -2502,7 +2509,7 @@ function checkLevelUp(){
   var fresh = [];
   if(prevMin < townMin && newMin >= townMin) fresh.push("Claims", "roads");
   Object.keys(BUILD_KINDS).forEach(function(k){ var kd = BUILD_KINDS[k]; if(kd.minLevel && kd.minLevel > prevMin && kd.minLevel <= newMin) fresh.push(kd.title); });
-  showToast("🎉 The village has grown into a " + lv.name + "!" + (fresh.length ? " New: " + fresh.join(", ") + "." : ""));
+  showToast("🎉 The village has grown into a " + lv.name + "!" + (fresh.length ? " New: " + fresh.join(", ") + "." : ""), focus || null);
   SND.play("objwin");
   chronicle("The village grew into a " + lv.name + ".");
 }
@@ -4585,7 +4592,7 @@ function finishSite(site){
   Store.dispatch("ui/ping", {x: site.x, z: site.z, kind: "win"});
   SND.play("objwin");
   chronicle(kind.title + " finished.");
-  checkLevelUp();
+  checkLevelUp({x: site.x, z: site.z});
   if(!firstSiteOpen()) G.agents.forEach(function(a){ if(a.order === "build") a.order = null; if(a.buildSite === site.id) a.buildSite = null; });
   if(G.proclaim && G.proclaim.site === site.id) G.proclaim = null; /* A finished site is no longer a focus target: its build advertisement and its minimap mark already end at finish, so the focus record must end with them, or the arm toast would keep naming the finished kind as the holder and a fresh proclaim in the same week would still pay the early-shift cost for a focus that already ended. No new toast: the finish toast already announces the completion. */
 }
@@ -4602,7 +4609,7 @@ function siteTick(){
     var s = G.sites[i]; if(s.done) continue;
     var kind = BUILD_KINDS[s.kind];
     if(kind.project){
-      if(G.projDone.indexOf(s.projId) >= 0){ s.done = true; checkLevelUp(); if(G.proclaim && G.proclaim.site === s.id) G.proclaim = null; /* A project site reaches done through this direct path, never through finishSite, so its finish clear must live here too: the finished site is no longer a focus target, its build advertisement and its minimap mark already end at done, and a focus record left standing would keep naming the finished project as the holder and keep charging the early-shift cost for a focus that already ended. No new toast: the project completion toast already announces the completion. */ }
+      if(G.projDone.indexOf(s.projId) >= 0){ s.done = true; checkLevelUp({x: s.x, z: s.z}); if(G.proclaim && G.proclaim.site === s.id) G.proclaim = null; /* A project site reaches done through this direct path, never through finishSite, so its finish clear must live here too: the finished site is no longer a focus target, its build advertisement and its minimap mark already end at done, and a focus record left standing would keep naming the finished project as the holder and keep charging the early-shift cost for a focus that already ended. No new toast: the project completion toast already announces the completion. */ }
       updateSiteMesh(s);
     } else {
       var nd = kind.stages[s.stage];
