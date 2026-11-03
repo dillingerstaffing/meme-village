@@ -3543,7 +3543,9 @@ function pickProject(i){
   if(def.cost) G.project.cost = def.cost;
   G.objStation = projectStation();
   registerProjectSite(def);
-  showToast(def.icon + " Project chosen: " + def.title + ". Parts fill from driven work, in any order.");
+  var pSite = null;
+  (G.sites || []).forEach(function(s){ if(s.projId === def.id) pSite = s; });
+  showToast(def.icon + " Project chosen: " + def.title + ". Parts fill from driven work, in any order.", pSite ? {x: pSite.x, z: pSite.z} : null); /* Focus only, no ping: picking registers the project site on the map, and the completion toast already returns to that same site, so a plain chosen toast left the player with no way back to the site the pick just created. The site focus follows the founding grammar: a start carries a view chip and a last-alert return, and the win ping stays reserved for completions. No site, no focus, and the toast stays plain as before. */
   Store.commit();
 }
 function projectTick(){
