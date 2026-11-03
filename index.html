@@ -2974,7 +2974,7 @@ function prestigeScan(){
       chronicle("\uD83D\uDC40 " + a.name + " passed the flip point: their shadow is so big that admirers are starting to push back.");
     } else if(!flipped && was){
       delete G.prestigeFlip[a.id];
-      showToast("\uD83D\uDC40 " + a.name.split(" ")[0] + " is admired again");
+      showToast("\uD83D\uDC40 " + a.name.split(" ")[0] + " is admired again", {ids: [a.id]}); /* Id focus, like the forecast and crossing toasts: the model walks, so a retained return must resolve live, and a plain return left the player with no way back to the resident whose copying resumed. Focus only, no ping: a recovery, not a warning. */
       chronicle("\uD83D\uDC40 " + a.name + " fell below the flip point: their followers are copying them again.");
     }
   });
