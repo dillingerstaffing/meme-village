@@ -4952,10 +4952,10 @@ function soilTick(){
   G.soilStage = Math.min(dep.tintStages - 1, Math.floor((1 - G.soil) * dep.tintStages));
   var stageName = ["rich", "tired", "exhausted"][G.soilStage] || "worn";
   if(G.soilStage > oldStage){
-    showToast("🌱 The fields look " + stageName + ". Rest them a season, or yields will keep falling.");
+    showToast("🌱 The fields look " + stageName + ". Rest them a season, or yields will keep falling.", {x: STATION3.fields.x, z: STATION3.fields.z}); Store.dispatch("ui/ping", {x: STATION3.fields.x, z: STATION3.fields.z, kind: "warn"}); /* Fields focus and warn ping, in the winter forecast grammar: the counter-move starts at the Fields. */
     chronicle("The fields grew " + stageName + " from heavy cropping.");
   } else if(G.soilStage < oldStage){
-    showToast("🌱 The fields are recovering.");
+    showToast("🌱 The fields are recovering.", {x: STATION3.fields.x, z: STATION3.fields.z}); /* Focus only, no ping: a recovery is good news, not a warning. */
     chronicle("The fields are recovering after a rest.");
   }
   G.fieldWorkers = {};
