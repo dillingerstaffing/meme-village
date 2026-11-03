@@ -360,7 +360,13 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
   #tray{flex-direction:column;flex-wrap:nowrap;align-items:stretch;gap:6px;padding:6px 8px;max-height:56vh;max-height:56dvh;max-height:56%;overflow:hidden;transition:max-height .3s ease}
   #tray:not(.selopen){max-height:60px}
   #tray:not(.selopen) #selInfo, #tray:not(.selopen) #cmds{display:none}
-  #selInfo{order:1;min-width:0;max-width:none;position:relative;padding-right:52px}
+  /* The deselect X is absolute at 44px tall, but a short info block
+     (a single-line role line measured 36px for Jonah) is shorter than
+     it, so the X stuck out below the block, across the 6px tray gap,
+     and onto the first command row (2px over the Green button). A
+     44px floor on the block contains the X exactly, leaving the full
+     6px gap to the commands for every resident. */
+  #selInfo{order:1;min-width:0;max-width:none;position:relative;padding-right:52px;min-height:44px}
   #cmds{order:2;flex:1 1 auto;min-height:0;overflow-y:auto;align-content:flex-start}
   /* Five Influence buttons must still fit one phone row: with Visit the
      row missed by a few px, Thoughts wrapped, and the commands overflowed

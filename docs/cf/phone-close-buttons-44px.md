@@ -12,7 +12,13 @@ cannot be a 30px corner button the thumb must hunt for. The phone tray
 rule gives it a 44px square, and the info block's right padding grows
 with it, 38px to 52px, so the larger button still clears the name text
 instead of covering it. The button's verb is unchanged: it deselects
-and ends the map-targeted arms, exactly as before.
+and ends the map-targeted arms, exactly as before. The info block also
+carries a 44px min-height on phones, because the button is absolute
+at the block's top and a short block (a single-line role line measured
+36px) is shorter than the button: without the floor the X sticks out
+below the block, across the tray gap, and onto the first command row.
+The floor leaves the full 6px tray gap between the X and the commands
+for every resident.
 
 The sheet header close is sticky at the top of the sheet and is the
 sheet's immediate dismissal path, while the foot Close sits below the
