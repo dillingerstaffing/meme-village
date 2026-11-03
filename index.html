@@ -7547,7 +7547,7 @@ function tapAt(cx, cy, smart){
     G.lastTap = {id: p.agent, ms: nowMs};
     Store.dispatch("ui/select", {id: p.agent});
     SND.play("tap");
-    if(!G.hintModel){ G.hintModel = true; var ha = agent(p.agent); if(ha && ha.model){ var hm = agent(ha.model); if(hm) showToast("👁 " + ha.name.split(" ")[0] + " looks up to " + hm.name.split(" ")[0] + ": their work follows the model"); } }
+    if(!G.hintModel){ G.hintModel = true; var ha = agent(p.agent); if(ha && ha.model){ var hm = agent(ha.model); if(hm) showToast("👁 " + ha.name.split(" ")[0] + " looks up to " + hm.name.split(" ")[0] + ": their work follows the model", {ids: [ha.id, hm.id]}); /* Focus only, no ping: the hint is the first teaching moment for imitation, and the model may stand anywhere, so the pair needs a return the player can follow to watch the copying happen. The ids resolve live, as with the model-found and copy toasts. */ } }
     refreshTray(true); return;
   }
   if(p.plot !== undefined && p.plot !== null){
