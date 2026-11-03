@@ -5011,9 +5011,13 @@ function endWeek(){
        payoff is its permanent perk, named in the pick row and the
        project-complete toast, so project toasts keep their plain wording. */
     var seasBonus = o.project ? "" : " · +" + OBJ_COMPLETE_BONUS.trust + " trust and +" + OBJ_COMPLETE_BONUS.cohesion + " cohesion";
-    if(G.objComplete) showToast("✓ " + seasonName() + " done: " + o.title + " · " + G.objDone + " all time" + (seasBonus ? seasBonus + " paid" : ""));
-    else if(o.project && G.project && !G.project.done) showToast(seasonLabel() + " ends: " + projectTitle() + " carries on, parts stay filled");
-    else showToast(seasonLabel() + " ends: " + o.title + " missed at " + Math.round(clamp100(o.metric())) + "%" + (seasBonus ? seasBonus + " not earned" : ""));
+    /* The season-end receipt carries its subject as focus, in the accept and completion toast grammar: a missed commission is first reported here, so a plain receipt left a player looking elsewhere with no way back to the station the next season of work happens at, and a carries-on project receipt likewise left no way back to the site whose parts stay filled. Focus only, no ping: a receipt is a report, not a completion or a warning, and the win ping stays reserved for completions. A project receipt uses the project site, as the chosen and completion toasts do; a non-project receipt uses the station work centroid, as the accept and completion toasts do. No site or station, no focus, and the receipt stays plain as before. */
+    var seasFocus = null;
+    if(o.project && G.project){ var seasSite = null; (G.sites || []).forEach(function(s){ if(s.projId === G.project.id) seasSite = s; }); if(seasSite) seasFocus = {x: seasSite.x, z: seasSite.z}; }
+    if(!seasFocus){ var seasSt = STATION3[o.station]; if(seasSt){ var seasCx = seasSt.x, seasCz = seasSt.z, seasSx = 0, seasSz = 0; if(seasSt.work && seasSt.work.length){ for(var seasWi = 0; seasWi < seasSt.work.length; seasWi++){ seasSx += seasSt.work[seasWi][0]; seasSz += seasSt.work[seasWi][1]; } seasCx = seasSx / seasSt.work.length; seasCz = seasSz / seasSt.work.length; } seasFocus = {x: seasCx, z: seasCz}; } }
+    if(G.objComplete) showToast("✓ " + seasonName() + " done: " + o.title + " · " + G.objDone + " all time" + (seasBonus ? seasBonus + " paid" : ""), seasFocus);
+    else if(o.project && G.project && !G.project.done) showToast(seasonLabel() + " ends: " + projectTitle() + " carries on, parts stay filled", seasFocus);
+    else showToast(seasonLabel() + " ends: " + o.title + " missed at " + Math.round(clamp100(o.metric())) + "%" + (seasBonus ? seasBonus + " not earned" : ""), seasFocus);
   }
   /* an offer the player never accepted lapses here, silently: no toast, no penalty */
   /* An incident card left open across the season boundary lapses here on the same rule: the reset below already nulls curIncident for the new season, but the card and its open flag stood on, so the card's buttons went dead (chooseIncident returns early on the null record) and the roll guard refused every later season's incident. Hide the card and clear the flag with the reset; the new season rolls fresh. No new toast: the season-end toasts above already announce the turn. */
