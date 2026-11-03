@@ -5022,7 +5022,7 @@ function endWeek(){
   var earnTop = null, earnTopAmt = 0;
   var earnMap = (G.seasonEarn && typeof G.seasonEarn === "object") ? G.seasonEarn : {};
   G.agents.forEach(function(a){ if(a.child) return; var t = earnMap[a.id] || 0; if(t > earnTopAmt){ earnTopAmt = t; earnTop = a; } });
-  if(earnTop) showToast("🪙 " + earnTop.name.split(" ")[0] + " earned the most last season: " + Math.round(earnTopAmt) + "🪙.");
+  if(earnTop) showToast("🪙 " + earnTop.name.split(" ")[0] + " earned the most last season: " + Math.round(earnTopAmt) + "🪙.", {ids: [earnTop.id]}); /* Id focus, not a snapshot point: the top earner walks, and the season boundary is the busiest toast queue of the game, so a plain toast here would be gone before a player looking elsewhere could act on it. The focus gives the live pill a view chip and retains the return in the last-alert chip after expiry, so the player can jump to the village's most productive worker and consider them as a model. The settlement digest beside it names amounts, not one person, so it stays plain. */
   G.seasonEarn = {};
   if(!G.coachBank){
     if(G.banked){ G.coachBank = true; }
