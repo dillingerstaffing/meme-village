@@ -26,3 +26,5 @@ the guard is intentionally identical to the camera, group, idle,
 lens, story, thoughts, and claim keys, not to Space, P, 0, or M.
 
 Shared guard (2026-11-03): while a Story panel stands open, the shared keydown guard returns before this verb, so it never acts behind the chronicle; Escape, the pause keys, the speed keys, and M stay live. See story-panel-key-guard.md.
+
+Arm toast answers at once (2026-11-03): the arming toast jumps the toast queue, like the still-armed reminder and the other direct replies, because the toast is the only text naming the next tap and a queued instruction would let the next building tap commit the proclamation instead of sending the resident; the displaced ambient toast waits at the head of the queue instead of being erased.
