@@ -1523,7 +1523,7 @@ function stepAgents(dt){
       if(a.kneelT <= 0){
         a.medicTask = 0; a.state = "idle"; a.decideT = 0.3;
         var pat = G.medicPatient ? agent(G.medicPatient) : null; G.medicPatient = null;
-        if(pat && pat.sick){ pat.sick = false; pat.morale = 88; pat.state = "idle"; pat.decideT = 0.5; setBubble(pat, "♥", 2.5); }
+        if(pat && pat.sick){ pat.sick = false; pat.morale = 88; pat.state = "idle"; pat.decideT = 0.5; setBubble(pat, "♥", 2.5); showToast("♥ " + pat.name.split(" ")[0] + " is well again", {ids:[pat.id]}); /* Focus only, no ping: a recovery is good news, not a warning, in the fields-recovering grammar, and the ids resolve live, so the view chip follows the patient while lastAlert keeps the return after expiry. */ }
         tryDispatch();
       }
     }
