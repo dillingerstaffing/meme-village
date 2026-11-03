@@ -5027,7 +5027,7 @@ function endWeek(){
   if(!G.coachBank){
     if(G.banked){ G.coachBank = true; }
     else { var richA = null; for(var ci = 0; ci < G.agents.length; ci++){ var ca = G.agents[ci]; if(!ca.child && (ca.cash || 0) >= 20){ richA = ca; break; } }
-      if(richA){ G.coachBank = true; showToast("💰 " + richA.name.split(" ")[0] + " is carrying " + Math.floor(richA.cash) + "🪙 in cash. A bank would let residents save what they earn, and buy cover."); } }
+      if(richA){ G.coachBank = true; showToast("💰 " + richA.name.split(" ")[0] + " is carrying " + Math.floor(richA.cash) + "🪙 in cash. A bank would let residents save what they earn, and buy cover.", {ids: [richA.id]}); } } /* Id focus, not a snapshot point: the carrier walks, and this coach hint fires once ever at the season boundary, inside the busiest toast queue of the game, with the coach flag consumed on firing, so a plain toast here would be gone before a player looking elsewhere could act on it, and the hint would never repeat. The focus gives the live pill a view chip and retains the return in the last-alert chip after expiry, so the player can jump to the resident whose cash is the evidence for the bank. */
   }
   if(seasonOfYear() === 2){
     /* Failing-risk forecast, toast only: the elder closest to failing
