@@ -5822,6 +5822,32 @@ function activityText(a){
     if(!copyPlace && a.stationId === "road") copyPlace = "the road";
     if(copyName && copyPlace) return "Going to copy " + copyName + " at " + copyPlace;
   }
+  /* A joining walk names the model, not just the destination: a claim
+     initiative walks a follower to the model's station with reason
+     "Joining <model first name>" (fireInitiative sets it with the
+     goStation walk and clears the follower's social intents beside
+     it), but the walk branch read the trip as ordinary travel
+     ("Going to Mill"), the same read a villager going to work gets,
+     while the sheet carries no reason line at all (the tray's second
+     line does, the sheet does not), so a sheet reader could not tell
+     following from ordinary work on the way, only once the follower
+     arrived and the joining-act read took over. The reason stands
+     exactly for the walk: the next decide replaces it, so a gone or
+     changed reason falls back to the generic read instead of naming
+     a join that is not in flight, and a medic walk keeps its hurrying
+     read. The place grammar follows the copying-walk branch: artName
+     for stations, with the claim and road job fallbacks, and an
+     unknown station falls back to the generic read instead of naming
+     a place that is not one. A shift follower gains only a boost and
+     never walks, so this branch never fires for one. Display only:
+     reads a.reason and a.stationId, writes no state. */
+  if(a.state === "walk" && !a.medicTask && a.reason && a.reason.indexOf("Joining ") === 0){
+    var joinName = a.reason.slice(8);
+    var joinPlace = artName(a.stationId);
+    if(!joinPlace && a.stationId === "claim") joinPlace = "the claim";
+    if(!joinPlace && a.stationId === "road") joinPlace = "the road";
+    if(joinName && joinPlace) return "Going to join " + joinName + " at " + joinPlace;
+  }
   if(a.state === "walk") return a.medicTask ? "Hurrying to " + (medicPatientName() || "help") : a.stationId === "road" ? "Going to lay the road" : a.stationId === "claim" ? "Going to stake the claim" : a.stationId === "build" ? "Going to raise the building" : "Going to " + (stationW(a.stationId) ? stationW(a.stationId).name : "somewhere");
   /* A watch names where the watched resident is acting, not just
      whom: every watch starts on a resident in act state (all three
