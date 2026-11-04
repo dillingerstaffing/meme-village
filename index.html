@@ -5804,7 +5804,15 @@ function activityText(a){
      a phone reader with no place at all. The stationId is the actual
      location, so naming it cannot misstate a companion who has since
      moved; the home read stays word for word. Display only. */
-  if(a.state === "sit"){ if(a.stationId === "home") return "Resting at home"; var sitNm = artName(a.stationId); return sitNm ? "Sitting at " + sitNm : "Sitting"; }
+  /* A sit at a job names the job, not just that: a child sits beside
+     the parent they follow at the parent's station, and artName covers
+     the building site but not the claim or road pseudo-stations, so a
+     sit at either job used to read only "Sitting", the placeless read
+     the sit-at-a-station fix removed for stations. The job reads in
+     the watch-place grammar, and the home read, the building-site
+     read, and the unknown-station fallback are unchanged. Display
+     only: reads stationId, writes no state. */
+  if(a.state === "sit"){ if(a.stationId === "home") return "Resting at home"; var sitNm = artName(a.stationId); if(!sitNm && a.stationId === "claim") sitNm = "the claim"; if(!sitNm && a.stationId === "road") sitNm = "the road"; return sitNm ? "Sitting at " + sitNm : "Sitting"; }
   if(a.state === "act"){
     if(a.stationId === "clinic") return a.carrying === "plank" ? "Carrying a plank" : "🔨 Repairing the roof";
     if(a.stationId === "fields") return "🌿 Working the fields";
