@@ -5798,6 +5798,30 @@ function activityText(a){
      flight, and a medic walk keeps its hurrying read. Display only:
      reads a.reason, writes no state. */
   if(a.state === "walk" && !a.medicTask && a.reason === "Cooling a feud") return "Going to the Green to cool a feud";
+  /* A copying walk names the model, not just the destination:
+     decide() walks a watcher to the model's station with reason
+     "Copying <model first name>" after a watch completes (the
+     mimicStation path in section 17), but the walk branch read
+     the trip as ordinary travel ("Going to Mill"), the same read
+     a villager going to work gets, while the sheet carries no
+     reason line at all (the tray's second line does, the sheet
+     does not), so a sheet reader could not tell imitation from
+     ordinary work. The reason stands exactly for the walk:
+     decide() sets it with the walk and the next decide replaces
+     it, so a gone or changed reason falls back to the generic
+     read instead of naming a copy that is not in flight, and a
+     medic walk keeps its hurrying read. The place grammar follows
+     the watch-place branch: artName for stations, with the claim
+     and road job fallbacks, and an unknown station falls back to
+     the generic read instead of naming a place that is not one.
+     Display only: reads a.reason and a.stationId, writes no state. */
+  if(a.state === "walk" && !a.medicTask && a.reason && a.reason.indexOf("Copying ") === 0){
+    var copyName = a.reason.slice(8);
+    var copyPlace = artName(a.stationId);
+    if(!copyPlace && a.stationId === "claim") copyPlace = "the claim";
+    if(!copyPlace && a.stationId === "road") copyPlace = "the road";
+    if(copyName && copyPlace) return "Going to copy " + copyName + " at " + copyPlace;
+  }
   if(a.state === "walk") return a.medicTask ? "Hurrying to " + (medicPatientName() || "help") : a.stationId === "road" ? "Going to lay the road" : a.stationId === "claim" ? "Going to stake the claim" : a.stationId === "build" ? "Going to raise the building" : "Going to " + (stationW(a.stationId) ? stationW(a.stationId).name : "somewhere");
   /* A watch names where the watched resident is acting, not just
      whom: every watch starts on a resident in act state (all three
