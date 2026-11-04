@@ -72,6 +72,7 @@ canvas{display:block}
 @media (max-width:560px){#offerPick .alert-chip{flex:1 1 100%}}
 .ovl .bubble.wantb{border:2px dashed var(--gold);background:rgba(255,244,214,.97)}
 .cbtn .wb{position:absolute;top:1px;right:3px;font-size:10px;line-height:1}
+.cbtn .ob{position:absolute;top:1px;left:3px;font-size:10px;line-height:1}
 /* CF-REF: tray-passes-taps.md [2] */
 #tray{position:fixed;z-index:10;bottom:0;left:0;right:0;background:linear-gradient(180deg,rgba(14,19,26,.92),rgba(9,12,17,.97));border-top:1px solid var(--line);padding:10px 12px;display:flex;gap:12px;align-items:center;min-height:96px;pointer-events:none}
 #tray button{pointer-events:auto}
@@ -5738,8 +5739,13 @@ function refreshTray(force){
      succession pick setting one) leaves the old line on screen, and
      a follower gained through another resident's edge leaves the
      old count, until some unrelated key component happens to move. */
+  /* Objective badge: the Send to row renders the commission badge from
+     G.offerAccepted, G.offer, G.objComplete, and G.objStation, so the
+     diff key must carry that commission state too, or an accept, a
+     completion, or a station move leaves the old badge on screen until
+     some unrelated key component happens to move. */
   var folN = 0; if(a) G.agents.forEach(function(b2){ if(b2.model === a.id) folN++; });
-  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.coverLapsed ? "L" : "") + (a.sick ? "S" : "") + Math.round(a.energy) + "/" + Math.round(a.morale) + "/" + Math.round(a.vis) + (a.model || "") + "F" + folN : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + (G.ui && G.ui.lens ? "L" + G.ui.lens : "l") + "|" + (G.foundArm ? "F" : "") + (G.foundPlot == null ? "" : "FP" + G.foundPlot) + (G.claimArm ? "C" : "") + (G.lensArm ? "LA" : "") + (G.claimBearing == null ? "" : "b" + G.claimBearing) + (G.claimRing == null ? "" : "r" + G.claimRing) + (G.roadArm ? "R" : "") + (G.roadFrom || "") + (G.roadTo || "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "") + "|" + (G.modelArm ? "MA" : "") + (G.visitArm ? "VA" : "") + (G.coverArm ? "CA" : "") + (G.banked ? "BK" : "") + (medicGone() ? "MG" : "") + (a && a.bank != null ? "AC" : "") + (a && a.child ? "K" : "") + (a && a.spotUntil ? Math.ceil(Math.max(0, a.spotUntil - G.t)) : "") + (G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : "") + "|I" + idleIds + "|GR" + (G.groupArm ? "A" : "") + (Array.isArray(G.groups) ? G.groups.join(",") : "---");
+  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.coverLapsed ? "L" : "") + (a.sick ? "S" : "") + Math.round(a.energy) + "/" + Math.round(a.morale) + "/" + Math.round(a.vis) + (a.model || "") + "F" + folN : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + (G.ui && G.ui.lens ? "L" + G.ui.lens : "l") + "|" + (G.foundArm ? "F" : "") + (G.foundPlot == null ? "" : "FP" + G.foundPlot) + (G.claimArm ? "C" : "") + (G.lensArm ? "LA" : "") + (G.claimBearing == null ? "" : "b" + G.claimBearing) + (G.claimRing == null ? "" : "r" + G.claimRing) + (G.roadArm ? "R" : "") + (G.roadFrom || "") + (G.roadTo || "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "") + "|" + (G.modelArm ? "MA" : "") + (G.visitArm ? "VA" : "") + (G.coverArm ? "CA" : "") + (G.banked ? "BK" : "") + (medicGone() ? "MG" : "") + (a && a.bank != null ? "AC" : "") + (a && a.child ? "K" : "") + (a && a.spotUntil ? Math.ceil(Math.max(0, a.spotUntil - G.t)) : "") + (G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : "") + "|I" + idleIds + "|GR" + (G.groupArm ? "A" : "") + (Array.isArray(G.groups) ? G.groups.join(",") : "---") + "|OBJ" + (G.offerAccepted && G.offer && !G.objComplete ? (G.objStation || "") : "");
   if(!force && key === trayKey) return;
   trayKey = key;
   var info = document.getElementById("selInfo");
@@ -5794,8 +5800,8 @@ function refreshTray(force){
   var speakCdN = G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : 0;
   var html = "<div class='cgrp'><span class='glab'>Send to</span>" + CMDS.map(function(c){
     var on = a && ((c.id === "auto" && !a.order) || a.order === c.id);
-    var wnt = a && a.want && a.want.station === c.id;
-    return "<button class='cbtn" + (on ? " on" : "") + "' data-o='" + c.id + "'" + (!a ? " disabled" : "") + "><span class='i'>" + c.icon + "</span><span class='l'>" + c.label + "</span>" + (wnt ? "<span class='wb'>💭</span>" : "") + "</button>";
+    var wnt = a && a.want && a.want.station === c.id; var obj = G.offerAccepted && G.offer && !G.objComplete && G.objStation === c.id;
+    return "<button class='cbtn" + (on ? " on" : "") + "' data-o='" + c.id + "'" + (!a ? " disabled" : "") + "><span class='i'>" + c.icon + "</span><span class='l'>" + c.label + "</span>" + (wnt ? "<span class='wb'>💭</span>" : "") + (obj ? "<span class='ob'>📜</span>" : "") + "</button>";
   }).join("");
   html += "<button class='cbtn" + (a && a.order === "build" ? " on" : "") + "' data-o='build' title='Build (U key)'" + (!a ? " disabled" : "") + "><span class='i'>🔨</span><span class='l'>Build</span></button></div>";
   html += "<div class='cgrp sep'><span class='glab'>Influence</span>";

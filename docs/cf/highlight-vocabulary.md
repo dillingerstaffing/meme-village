@@ -19,6 +19,17 @@ treatment means exactly one thing:
   silently.
 - The 💭 badge on an order button: that station matches the
   resident's want. A badge, never a border treatment or a pulse.
+- The 📜 badge on an order button: that station is the season's
+  accepted, unfinished commission station, the one whose driven work
+  counts toward the commission. A badge, never a border treatment
+  or a pulse. It reads at the moment of choice, on the button the
+  choice is made with, instead of only on the objective card, the
+  minimap, and the in-world ring. It clears when the commission
+  completes or is set aside, and the tray diff key carries the
+  commission state so it moves or clears without a forced refresh.
+  The two badges can share one button: the want badge rides the
+  top-right corner, the commission badge the top-left, so neither
+  covers the other.
 
 Status is never a lit button: sickness, tier, childhood, and the
 watched state render as read-only chips in the info block. Sound's
