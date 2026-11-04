@@ -754,7 +754,7 @@ function renderSheet(s){
   var whSig = 0; if(a.workHist) for(var wkk in a.workHist) whSig += a.workHist[wkk];
   var cvk = convergenceRecords(a);
   var convSig = cvk.drifts.map(function(r){ return r.name + ":" + r.tension + ":" + r.yr + ":" + r.sn; }).join(",") + "|" + cvk.conv.map(function(r){ return r.station + ":" + r.names.join(","); }).join(",");
-  var key = a.id + "|" + (s.speed || 0) + "|" + (a.thought ? a.thought.at + ":" + a.thought.text : "none") + "|" + log.length + "|" + NEED_DEFS.map(function(d){ return Math.round(needVal(a, d.id)); }).join(":") + ":" + whSig + "|" + (householdOf(a) ? householdOf(a).id : "") + "|" + (a.model || "") + "|" + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + "|" + Math.round(a.age || 34) + arcOf(a).id + "|" + Math.floor(a.cash || 0) + ":" + (a.bank == null ? "x" : Math.floor(a.bank)) + "|" + (a.tier || "") + (a.coverLapsed ? "L" : "") + "|" + (prestigeFlipUnlocked() ? (prestigeFlipped(a) ? "E" : "A") : "L") + followersOf(a) + "|" + convSig + "|" + activityText(a);
+  var key = a.id + "|" + (s.speed || 0) + "|" + (a.thought ? a.thought.at + ":" + a.thought.text : "none") + "|" + log.length + "|" + NEED_DEFS.map(function(d){ return Math.round(needVal(a, d.id)); }).join(":") + ":" + whSig + "|" + (householdOf(a) ? householdOf(a).id : "") + "|" + (a.model || "") + "|" + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + "|" + Math.round(a.age || 34) + arcOf(a).id + "|" + Math.floor(a.cash || 0) + ":" + (a.bank == null ? "x" : Math.floor(a.bank)) + "|" + (a.tier || "") + (a.coverLapsed ? "L" : "") + "|" + (prestigeFlipUnlocked() ? (prestigeFlipped(a) ? "E" : "A") : "L") + followersOf(a) + "|" + convSig + "|" + activityText(a) + "|med:" + ((a.sick || a.sickWalk) ? ((G.medicPatient === a.id) ? "go" : (medicQueued(a.id) ? "q" : (medicGone() ? "gone" : "wait"))) : "-");
   if(key === sheetKey && el.style.display !== "none") return;
   sheetKey = key;
   var shirt = "#" + ("000000" + (a.shirt || 0).toString(16)).slice(-6);
@@ -796,6 +796,19 @@ function renderSheet(s){
   h += "<div class='sh-work'>Age " + Math.round(a.age || 34) + " · " + arcOf(a).label + "</div>";
   h += "<div class='sh-work'>🪙 Cash on hand: " + Math.floor(a.cash || 0) + " tokens" + (a.bank != null ? " · Bank account: " + Math.floor(a.bank) + " tokens" : "") + "</div>";
   if(a.tier && TTI[a.tier]) h += "<div class='sh-work'>🛡 Coverage: " + TTI[a.tier].name + "</div>"; else if(a.coverLapsed) h += "<div class='sh-work'>🛡 Coverage: lapsed (unpaid)</div>";
+  /* Medic status on the sheet: the sheet is the only reading surface
+     on phones, and it sits over the tray, so a sick resident's sheet
+     used to read only "Unwell, by the fire" while the tray's Care row
+     (with its Call Out button) hid underneath, leaving a phone player
+     no word on whether Jonah was coming, the resident waited in line,
+     or no medic stood at all. A sick resident waits at the green until
+     care arrives, so the answer matters. Display only, no new state:
+     the line reads the dispatch pointer, the queue, and medic presence
+     in the same words the toasts already use, and it names no tier,
+     since membership moves queue order only and never gates care. The
+     sheet key carries the status, so a dispatch or a queue join
+     re-renders the line even while the activity line stays "Unwell". */
+  if(a.sick || a.sickWalk) h += "<div class='sh-work'>🚑 " + ((G.medicPatient === a.id) ? "Jonah is on his way" : (medicQueued(a.id) ? "In the medic line, waiting for Jonah" : (medicGone() ? "No medic right now" : "Waiting for care"))) + "</div>";
   /* CF-REF: model-prestige-flip.md [1] */
   h += "<div class='sh-work'>👀 " + prestigeStanding(a) + "</div>";
   /* CF-REF: rivalry-drift.md [9] */
