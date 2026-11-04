@@ -778,7 +778,15 @@ function renderSheet(s){
   if(a.workHist) Object.keys(a.workHist).forEach(function(k){ if(a.workHist[k] > 0) went.push(k); });
   went.sort(function(x, y){ return a.workHist[y] - a.workHist[x]; });
   if(went.length){
-    h += "<div class='sh-work'>Work: " + went.map(function(k){ var sn = STATION3[k]; return (k === "green" ? "Green" : (sn ? sn.name : k)) + " " + a.workHist[k]; }).join(" \u00B7 ") + "</div>";
+    /* A work history names its jobs, not its keys: workHist is keyed
+       by stationId, and the seven stations read through STATION3, but
+       the three job stations fell through to the raw key, so a
+       builder's history read "build 4" beside "Mill 12". The jobs
+       read in the station-name grammar (Building, Claim, Road), the
+       station names and the short Green read are unchanged, and an
+       unknown key still falls back to the raw key instead of
+       blanking. Display only: reads workHist, writes no state. */
+    h += "<div class='sh-work'>Work: " + went.map(function(k){ var sn = STATION3[k]; return (k === "green" ? "Green" : (k === "build" ? "Building" : (k === "claim" ? "Claim" : (k === "road" ? "Road" : (sn ? sn.name : k))))) + " " + a.workHist[k]; }).join(" \u00B7 ") + "</div>";
   }
   var hhP = householdPartner(a);
   if(hhP) h += "<div class='sh-work'>🏠 Shares a house with " + hhP.name + "</div>";
