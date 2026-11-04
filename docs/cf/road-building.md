@@ -68,7 +68,11 @@ stale leg at the road midpoint instead of the road work. The walk-out
 also drops a telegraphed initiative plan, on the same rule as the
 order doors, blameAgent, and the visit commits, with a toast naming
 the road, so a plan left standing cannot fire at fire time and walk
-the recruited crew member away from the road midpoint. The initial lay walks the crew out
+the recruited crew member away from the road midpoint. The
+season-boundary re-recruit drop alone carries the recruited
+resident's id as camera focus, focus only with no ping, because
+the re-recruit is autonomous, not the player's tap; the lay-commit
+drop stays plain as a direct reply. The initial lay walks the crew out
 through decide() when idle, after any haul has completed on arrival,
 so the settle changes nothing there; it bites on the re-recruit
 walk-out, which walks a resident out at once whatever they were doing.

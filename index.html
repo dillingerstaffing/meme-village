@@ -3953,7 +3953,7 @@ function recruitClaimParty(c){
   c.household = h.id;
   return party;
 }
-function goClaim(a, c){
+function goClaim(a, c, season){
   var w = [[-3.4, 0], [3.4, 0], [0, -3.4], [0, 3.4], [-2.4, -2.4], [2.4, 2.4]];
   var spot = w[Math.floor(Math.random() * w.length)];
   /* A claim walk-out settles a carry the same way makeSick, blameAgent,
@@ -3971,7 +3971,7 @@ function goClaim(a, c){
      claim spot instead of the claim work. A claim walk-out also drops a telegraphed initiative plan, on the same rule as the order doors, blameAgent, and the visit commits: the walk replaces the walk in flight, so a plan left standing fired at fire time and walked the recruited resident away from the claim spot. */
   if(a.fetch === "sitecrate-back" || a.fetch === "claimcrate-back") returnStores(1);
   a.fetch = null; a.carrying = null; a.visitId = null; a.pendingWatch = null; a.watchOf = null;
-  if(a.initPend){ a.initPend = null; showToast("↩ " + a.name.split(" ")[0] + " drops the plan and goes to stake the claim"); }
+  if(a.initPend){ a.initPend = null; showToast("↩ " + a.name.split(" ")[0] + " drops the plan and goes to stake the claim", season ? {ids: [a.id]} : null); /* Season re-recruit only: the re-recruit is autonomous, not the player's tap, so its drop carries the resident id focus, focus only with no ping, on the same rule as the sick and exhaustion drops; a stake-commit drop stays plain as a direct reply. */ }
   a.slot = {x: c.x + spot[0], z: c.z + spot[1]};
   a.reason = "Staking the claim";
   goTo(a, a.slot.x, a.slot.z, "claim");
@@ -4151,7 +4151,7 @@ function recruitRoadCrew(r){
   r.party = party.map(function(a){ return a.id; });
   return party;
 }
-function goRoad(a, r){
+function goRoad(a, r, season){
   var w = [[-3.2, 0], [3.2, 0], [0, -3.2], [0, 3.2]];
   var spot = w[Math.floor(Math.random() * w.length)];
   var mid = roadMid(r);
@@ -4167,7 +4167,7 @@ function goRoad(a, r){
      and a stale watchOf clear before the walk, or arrive() fires the
      stale leg at the road midpoint instead of the road work. A road walk-out also drops a telegraphed initiative plan, on the same rule as the order doors, blameAgent, and the visit commits: the walk replaces the walk in flight, so a plan left standing fired at fire time and walked the recruited crew member away from the road midpoint. */
   if(a.fetch === "sitecrate-back" || a.fetch === "claimcrate-back") returnStores(1);
-  a.fetch = null; a.carrying = null; a.visitId = null; a.pendingWatch = null; a.watchOf = null; if(a.initPend){ a.initPend = null; showToast("↩ " + a.name.split(" ")[0] + " drops the plan and goes to lay the road"); }
+  a.fetch = null; a.carrying = null; a.visitId = null; a.pendingWatch = null; a.watchOf = null; if(a.initPend){ a.initPend = null; showToast("↩ " + a.name.split(" ")[0] + " drops the plan and goes to lay the road", season ? {ids: [a.id]} : null); /* Season re-recruit only: the re-recruit is autonomous, not the player's tap, so its drop carries the resident id focus, focus only with no ping, on the same rule as the sick and exhaustion drops; a lay-commit drop stays plain as a direct reply. */ }
   a.slot = {x: mid.x + spot[0], z: mid.z + spot[1]};
   a.reason = "Laying the road";
   goTo(a, a.slot.x, a.slot.z, "road");
@@ -4321,7 +4321,7 @@ function roadSeasonCheck(){
     chronicle("A half-laid road was abandoned when its crew scattered.");
     return;
   }
-  party.forEach(function(a){ goRoad(a, r); });
+  party.forEach(function(a){ goRoad(a, r, true); });
   showToast("🛣 A new crew walks out to finish the road.", roadMid(r)); /* Focus only, no ping: a re-recruit is a continuation, not a payoff, and the midpoint is where the new crew walks. */
 }
 /* ROAD ROUTE PREVIEW (v4 view step 5, spec section 23): the ghost of
@@ -4448,7 +4448,7 @@ function claimSeasonCheck(){
     chronicle("A claim was abandoned when its party scattered.");
     return;
   }
-  party.forEach(function(a){ goClaim(a, c); });
+  party.forEach(function(a){ goClaim(a, c, true); });
   showToast("🚩 A new party walks out to finish the claim.", {x: c.x, z: c.z}); /* Focus only, no ping: a re-recruit is a continuation, not a payoff, and the center is where the new party walks. */
 }
 // CF-REF: village-growth-gates.md [81]
