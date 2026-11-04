@@ -5885,6 +5885,32 @@ function activityText(a){
     if(!seekPlace && a.stationId === "road") seekPlace = "the road";
     if(seekName && seekPlace) return "Going to seek " + seekName + " at " + seekPlace;
   }
+  /* An extra-shift walk names the model, not just the destination:
+     fireInitiative walks a shift resident to the affinity station
+     with reason "Extra shift, following <model first name>" and an
+     8 second boost window (a.boostUntil), but the walk branch read
+     the trip as ordinary travel ("Going to Mill"), the same read
+     a villager going to work gets, while the sheet carries no
+     reason line at all (the tray's second line does, the sheet
+     does not), so a sheet reader could not tell a shift in transit
+     from ordinary work on the way, only once the resident arrived
+     and the extra-shift act read took over. The walk is the travel
+     leg of the same windowed shift, so it shares the act read's
+     gate: the boost window gates the read, not the reason alone,
+     and a walk that outlasts the window falls back to the generic
+     read exactly as the act does, instead of naming a boost that
+     is over. A changed reason falls back too, a medic walk keeps
+     its hurrying read, a load-carrying walk keeps its load read
+     through the branch order above, and an unknown station falls
+     back instead of naming a place that is not one. Display only:
+     reads a.reason, a.boostUntil, and a.stationId, writes no state. */
+  if(a.state === "walk" && !a.medicTask && a.reason && a.reason.indexOf("Extra shift, following ") === 0 && a.boostUntil && G.t < a.boostUntil){
+    var shiftName = a.reason.slice(23);
+    var shiftPlace = artName(a.stationId);
+    if(!shiftPlace && a.stationId === "claim") shiftPlace = "the claim";
+    if(!shiftPlace && a.stationId === "road") shiftPlace = "the road";
+    if(shiftName && shiftPlace) return "Going for an extra shift following " + shiftName + " at " + shiftPlace;
+  }
   if(a.state === "walk") return a.medicTask ? "Hurrying to " + (medicPatientName() || "help") : a.stationId === "road" ? "Going to lay the road" : a.stationId === "claim" ? "Going to stake the claim" : a.stationId === "build" ? "Going to raise the building" : "Going to " + (stationW(a.stationId) ? stationW(a.stationId).name : "somewhere");
   /* A watch names where the watched resident is acting, not just
      whom: every watch starts on a resident in act state (all three
