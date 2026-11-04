@@ -5798,6 +5798,20 @@ function activityText(a){
      flight, and a medic walk keeps its hurrying read. Display only:
      reads a.reason, writes no state. */
   if(a.state === "walk" && !a.medicTask && a.reason === "Cooling a feud") return "Going to the Green to cool a feud";
+  /* A company walk names its purpose, not just its destination:
+     decide() walks a resident with belonging below 35 to the green
+     with reason "Looking for company", but the walk branch read the
+     trip as ordinary travel ("Going to The Green"), the same read a
+     villager going to socialise gets, while the sheet carries no
+     reason line at all (the tray's second line does, the sheet does
+     not), so a sheet reader could not tell a belonging-driven move
+     toward company from a social call. The reason stands exactly for
+     the walk: decide() sets it with the green walk and the next decide
+     replaces it, so a changed reason or a non-green station falls back
+     to the generic read instead of naming company that is not in
+     flight, and a medic walk keeps its hurrying read. Display only:
+     reads a.reason and a.stationId, writes no state. */
+  if(a.state === "walk" && !a.medicTask && a.reason === "Looking for company" && a.stationId === "green") return "Going to the Green looking for company";
   /* A copying walk names the model, not just the destination:
      decide() walks a watcher to the model's station with reason
      "Copying <model first name>" after a watch completes (the
