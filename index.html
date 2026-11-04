@@ -5934,7 +5934,7 @@ function refreshTray(force){
   if(a){
     // CF-REF: axis-label-selected-surfaces.md [2]
     var ax = axisOf(a);
-    info.innerHTML = "<div class='rl'>" + a.role + " · <span style='color:" + DISPO3[a.disp].col + "'>" + DISPO3[a.disp].icon + " " + a.disp + "</span>" + (a.want ? " · 💭" + STATION3[a.want.station].icon + " " + stationW(a.want.station).name : "") + (a.want && a.want.from && agent(a.want.from) ? " · from " + agent(a.want.from).name.split(" ")[0] : "") + (ax ? " · " + ax.icon + " " + ax.label : "") + "</div>"
+    info.innerHTML = "<div class='rl'>" + a.role + " · <span style='color:" + DISPO3[a.disp].col + "'>" + DISPO3[a.disp].icon + " " + a.disp + "</span>" + (a.want && STATION3[a.want.station] ? " · 💭" + STATION3[a.want.station].icon + " " + stationW(a.want.station).name : "") + (a.want && a.want.from && agent(a.want.from) ? " · from " + agent(a.want.from).name.split(" ")[0] : "") + (ax ? " · " + ax.icon + " " + ax.label : "") + "</div>"
       + "<div class='nm'>" + (a.vis >= 60 ? "🔥 " : "") + a.name + "</div>"
       + "<div class='st'>" + activityText(a) + " · ⚡" + Math.round(a.energy) + " ♥" + Math.round(a.morale) + " 👀" + Math.round(a.vis) + "</div>"
       + "<div class='st'>" + (a.reason ? a.reason + " · " : "") + watchLine(a) + "</div>"
@@ -7192,7 +7192,7 @@ function pickWantStation(a){
   if(a.disp === "Selfish") c.push(["green", 2.4], ["home", 1.6]);
   if(a.disp === "Withdrawn") c.push(["home", 3]);
   var md = a.model ? agent(a.model) : null;
-  if(md){ if(md.stationId && md.stationId !== "home" && md.stationId !== "build" && md.stationId !== "claim") c.push([md.stationId, 2.6]); if(md.want) c.push([md.want.station, (hasPerk("schoolbell") && followersOf(md) >= 2) ? 3.2 : 2.2]); }
+  if(md){ if(md.stationId && md.stationId !== "home" && md.stationId !== "build" && md.stationId !== "claim" && md.stationId !== "road") c.push([md.stationId, 2.6]); if(md.want && STATION3[md.want.station]) c.push([md.want.station, (hasPerk("schoolbell") && followersOf(md) >= 2) ? 3.2 : 2.2]); }
   var tot = 0; c.forEach(function(x){ tot += x[1]; });
   var r = Math.random() * tot;
   for(var i = 0; i < c.length; i++){ r -= c[i][1]; if(r <= 0) return c[i][0]; }
@@ -7200,7 +7200,7 @@ function pickWantStation(a){
 }
 // CF-REF: desires-travel-the-graph.md [33]
 function giveWant(a, station, fromSync, fromId){
-  if(!station || a.sick || a.want || a.child) return;
+  if(!station || !STATION3[station] || a.sick || a.want || a.child) return; /* Wants are station wants: a job id (road, build, claim) has no STATION3 row, so the bubble lookup below and the tray want line would throw on it; refuse it at the door instead. */
   if(!G.mimic) G.mimic = {spread:0, converged:0, doneCopied:0, doneSelf:0, missedCopied:0};
   Store.dispatch("want/set", {id:a.id, station:station, secs: fromId ? MIM.copiedSecs : 26, from: fromId || null});
   noteEvent(a, "want", station);
