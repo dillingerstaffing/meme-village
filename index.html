@@ -5730,6 +5730,17 @@ function activityText(a){
     else if(a.stationId === "mill" && a.carrying === "crate"){ loadTxt = "🌾 Carrying grain"; destTxt = "the mill"; }
     if(loadTxt) return loadTxt + " to " + destTxt;
   }
+  /* A visit walk names the person, not the old workplace: both visit
+     commits walk the visitor to the target's spot but pass the
+     visitor's own stationId unchanged to goTo, so the generic walk
+     read named the station the visitor just left ("Going to Mill")
+     while they walked to a person standing somewhere else. The
+     person is the destination, and visitId stands exactly for the
+     walk, clearing on arrival and on removal of either side, so a
+     gone target falls back to the generic read instead of naming
+     nobody, and a medic walk keeps its hurrying read. Display only:
+     reads visitId, writes no state. */
+  if(a.state === "walk" && !a.medicTask && a.visitId){ var vm = agent(a.visitId); if(vm) return "Going to visit " + vm.name.split(" ")[0]; }
   if(a.state === "walk") return a.medicTask ? "Hurrying to " + (medicPatientName() || "help") : a.stationId === "road" ? "Going to lay the road" : a.stationId === "claim" ? "Going to stake the claim" : a.stationId === "build" ? "Going to raise the building" : "Going to " + (stationW(a.stationId) ? stationW(a.stationId).name : "somewhere");
   /* A watch names where the watched resident is acting, not just
      whom: every watch starts on a resident in act state (all three
