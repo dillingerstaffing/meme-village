@@ -6575,9 +6575,10 @@ function hudTick(dt){
   var slEl = document.getElementById("siteLine");
   if(slEl){
     var slTxt = "";
+    var slParts = [];
     if(G.sites && G.sites.length){
       var openSites = G.sites.filter(function(s){ return !s.done; });
-      if(openSites.length) slTxt = openSites.map(function(s){
+      openSites.forEach(function(s){
         var kd = BUILD_KINDS[s.kind];
         var stg = kd.project ? Math.round(siteProgressFrac(s) * 100) + "%" : (kd.stages[s.stage] ? kd.stages[s.stage].name + " " + Math.min(100, Math.round(s.stageLabor / kd.stages[s.stage].labor * 100)) + "%" : "");
         /* The persistent line names the stage bottleneck the same split
@@ -6595,10 +6596,21 @@ function hudTick(dt){
           if(nd.planks) mp.push("planks " + (s.matsIn.planks || 0) + "/" + nd.planks);
           if(mp.length) stg += ", " + mp.join(", ");
         }
-        return kd.icon + " " + kd.title + " · " + stg;
-      }).join("  ·  ");
-      else slTxt = "🏗 All founded work stands finished";
+        slParts.push(kd.icon + " " + kd.title + " · " + stg);
+      });
     }
+    /* The line covers every job out, not only founded sites: a claim
+       party or road crew out is work out too, and its only other read
+       lives behind arming the verb, so a line that names founded sites
+       alone reads "finished" while a claim or road is still out. Each
+       part uses its recall row's own progress grammar (claim stores
+       and planks against cost, road planks against cost), display only,
+       read from G.claim and G.roadBuild each tick. The finished line
+       appears only when no site, claim, or road is out. */
+    if(G.claim && !G.claim.staked) slParts.push("🚩 Claim under way · 📦" + (G.claim.matsIn.stores || 0) + "/" + G.claim.cost.stores + " 🪵" + (G.claim.matsIn.planks || 0) + "/" + G.claim.cost.planks);
+    if(G.roadBuild && !G.roadBuild.built) slParts.push("🛣 Road under way · 🪵" + (G.roadBuild.matsIn.planks || 0) + "/" + G.roadBuild.cost.planks);
+    if(slParts.length) slTxt = slParts.join("  ·  ");
+    else if(G.sites && G.sites.length) slTxt = "🏗 All founded work stands finished";
     if(slEl.textContent !== slTxt) slEl.textContent = slTxt;
     slEl.style.display = slTxt ? "block" : "none";
   }
