@@ -34,6 +34,16 @@ founded kind, never to the source.
   so the row and the ledgers share the one table and the one
   distance test; the preview reads claimClusterPlots(), the same
   rows staking appends.
+- The Found pick row previews the same rows again, for the picked
+  plot itself, before the kind chip commits: each offered kind
+  whose row applies at that plot's coordinates carries its percent,
+  stat, and source on its chip, and a kind with no row in range
+  carries nothing. The claim preview names ground a player may
+  found on seasons later; the Found preview names the ground under
+  the commit, so the bonus is never a memory the player must carry
+  from staking to founding. Both previews share adjacencyRowFor()
+  and adjacencyApplies() with the ledgers, never a second copy of
+  the numbers.
 
 Why: placement is a decision the player makes once and lives with
 for the building's life, so the yield of the ground must read

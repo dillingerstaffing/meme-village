@@ -39,7 +39,7 @@ objective, progress, project, parts, work credit, score, driven, order bonus, ho
 | village-growth-gates.md | Growth extends the boundary one plot-ring per qualifying season at Town tier, earned never labored, the price named on the receipt |
 | road-building.md | Roads are built segments between stations at Town tier, priced by distance, laid by a crew from the imitation graph, and they shorten walks only on the segment |
 | recall-in-flight.md | An in-flight claim, road, or founded site can be called off from its tray verb; carried stores come home, the party, crew, or builders walk home, and the slot or plot frees |
-| claim-adjacency.md | A workshop within 20 units of the mill builds 25 percent faster and a completed hall within 20 of the green mediates 25 percent faster, judged live, previewed in the claim pick row before Stake |
+| claim-adjacency.md | A workshop within 20 units of the mill builds 25 percent faster and a completed hall within 20 of the green mediates 25 percent faster, judged live, previewed in the claim pick row before Stake and in the Found pick row for the picked plot before its kind chip commits |
 
 ## State and Architecture
 state, store, dispatch, transact, render, dom, panel, new field, new event, chronicle, save, snapshot, ending, persistence, continue, grave
