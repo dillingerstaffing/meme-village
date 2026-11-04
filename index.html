@@ -5831,7 +5831,18 @@ function activityText(a){
     if(a.stationId === "clinic") return a.carrying === "plank" ? "Carrying a plank" : "🔨 Repairing the roof";
     if(a.stationId === "fields") return "🌿 Working the fields";
     if(a.stationId === "store") return a.carrying === "crate" ? "Carrying a crate" : "📦 Hauling stores";
-    if(a.stationId === "green") return "🌳 With the village";
+    /* An act at the green after a mediation names its purpose, not
+       just the company: the mediation walk read already names the
+       feud on the way, but arrive() leaves the reason standing
+       through the act, so the act used to fall back to the generic
+       social read ("With the village") the moment the pair arrived,
+       and the sheet reader lost the feud story at the very point
+       the cooling happens. The sheet carries no reason line, so the
+       purpose must live in the read itself, exactly as the walk
+       read does. A changed or cleared reason falls back to the
+       generic read, and every other green act keeps its read.
+       Display only: reads a.reason, writes no state. */
+    if(a.stationId === "green") return a.reason === "Cooling a feud" ? "🌳 Cooling a feud at the Green" : "🌳 With the village";
     if(a.stationId === "well") return "💧 Drawing water";
     if(a.stationId === "mill") return a.carrying === "crate" ? "Carrying grain" : "🌾 Milling grain";
     if(a.stationId === "school") return "📚 At the school";
