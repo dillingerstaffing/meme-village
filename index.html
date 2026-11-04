@@ -6032,6 +6032,20 @@ function activityText(a){
        job read, and the feud read keeps precedence through the line
        below. Display only: reads a.reason, writes no state. */
     if(a.stationId === "green" && a.reason && a.reason.indexOf("Visiting ") === 0) return "💬 Visiting " + a.reason.slice(9) + " at the Green";
+    /* A company act names its purpose, not just the company: the
+       company walk read already names the purpose on the way, but
+       arrive() leaves the reason standing through the act until
+       the next decide replaces it, so the act used to fall back
+       to the generic social read ("With the village") the moment
+       the resident arrived, and the sheet reader lost the
+       belonging story at the very point the company is found.
+       The sheet carries no reason line, so the purpose must live
+       in the read itself, exactly as the walk read does. A
+       changed or cleared reason falls back to the generic read,
+       the feud and visit reads keep precedence through the lines
+       above, and every other green act keeps its read. Display
+       only: reads a.reason, writes no state. */
+    if(a.stationId === "green" && a.reason === "Looking for company") return "🌳 Looking for company at the Green";
     if(a.stationId === "green") return a.reason === "Cooling a feud" ? "🌳 Cooling a feud at the Green" : "🌳 With the village";
     if(a.stationId === "well") return "💧 Drawing water";
     if(a.stationId === "mill") return a.carrying === "crate" ? "Carrying grain" : "🌾 Milling grain";
