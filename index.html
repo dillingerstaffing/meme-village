@@ -5887,6 +5887,20 @@ function activityText(a){
        read does. A changed or cleared reason falls back to the
        generic read, and every other green act keeps its read.
        Display only: reads a.reason, writes no state. */
+    /* A visit act names the person, not just the company: the visit
+       walk read already names the visited resident on the way, but
+       arrive() clears visitId and sets the act at the green, so the act
+       used to fall back to the generic social read ("With the village")
+       the moment the visitor arrived, and the sheet reader lost the
+       visit story at the very point the chat happens. The sheet carries
+       no reason line, so the purpose must live in the read itself,
+       exactly as the walk read does. The visit commit sets reason
+       "Visiting <first name>" and arrive() leaves it standing through
+       the act until the next decide replaces it, so a changed reason
+       falls back to the generic read, a non-green station keeps its
+       job read, and the feud read keeps precedence through the line
+       below. Display only: reads a.reason, writes no state. */
+    if(a.stationId === "green" && a.reason && a.reason.indexOf("Visiting ") === 0) return "💬 Visiting " + a.reason.slice(9) + " at the Green";
     if(a.stationId === "green") return a.reason === "Cooling a feud" ? "🌳 Cooling a feud at the Green" : "🌳 With the village";
     if(a.stationId === "well") return "💧 Drawing water";
     if(a.stationId === "mill") return a.carrying === "crate" ? "Carrying grain" : "🌾 Milling grain";
