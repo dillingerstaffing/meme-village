@@ -755,7 +755,7 @@ function renderSheet(s){
   var whSig = 0; if(a.workHist) for(var wkk in a.workHist) whSig += a.workHist[wkk];
   var cvk = convergenceRecords(a);
   var convSig = cvk.drifts.map(function(r){ return r.name + ":" + r.tension + ":" + r.yr + ":" + r.sn; }).join(",") + "|" + cvk.conv.map(function(r){ return r.station + ":" + r.names.join(","); }).join(",");
-  var key = a.id + "|" + (s.speed || 0) + "|" + (a.thought ? a.thought.at + ":" + a.thought.text : "none") + "|" + log.length + "|" + NEED_DEFS.map(function(d){ return Math.round(needVal(a, d.id)); }).join(":") + ":" + whSig + "|" + (householdOf(a) ? householdOf(a).id : "") + "|" + (a.model || "") + "|" + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + "|" + Math.round(a.age || 34) + arcOf(a).id + "|" + Math.floor(a.cash || 0) + ":" + (a.bank == null ? "x" : Math.floor(a.bank)) + "|" + (a.tier || "") + (a.coverLapsed ? "L" : "") + "|" + (prestigeFlipUnlocked() ? (prestigeFlipped(a) ? "E" : "A") : "L") + followersOf(a) + "|" + convSig + "|" + activityText(a) + "|med:" + ((a.sick || a.sickWalk) ? ((G.medicPatient === a.id) ? "go" : (medicQueued(a.id) ? "q" : (medicGone() ? "gone" : "wait"))) : "-");
+  var key = a.id + "|" + (s.speed || 0) + "|" + (a.thought ? a.thought.at + ":" + a.thought.text : "none") + "|" + log.length + "|" + NEED_DEFS.map(function(d){ return Math.round(needVal(a, d.id)); }).join(":") + ":" + whSig + "|" + (householdOf(a) ? householdOf(a).id : "") + "|" + (a.model || "") + "|" + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + "|" + Math.round(a.age || 34) + arcOf(a).id + "|" + Math.floor(a.cash || 0) + ":" + (a.bank == null ? "x" : Math.floor(a.bank)) + "|" + (a.tier || "") + (a.coverLapsed ? "L" : "") + "|" + (prestigeFlipUnlocked() ? (prestigeFlipped(a) ? "E" : "A") : "L") + followersOf(a) + "|" + convSig + "|" + activityText(a) + "|med:" + ((a.sick || a.sickWalk) ? ((G.medicPatient === a.id) ? "go" : (medicQueued(a.id) ? ("q" + medicQueuePos(a.id) + "/" + (G.medicQueue || []).length) : (medicGone() ? "gone" : "wait"))) : "-");
   if(key === sheetKey && el.style.display !== "none") return;
   sheetKey = key;
   var shirt = "#" + ("000000" + (a.shirt || 0).toString(16)).slice(-6);
@@ -806,10 +806,15 @@ function renderSheet(s){
      care arrives, so the answer matters. Display only, no new state:
      the line reads the dispatch pointer, the queue, and medic presence
      in the same words the toasts already use, and it names no tier,
-     since membership moves queue order only and never gates care. The
-     sheet key carries the status, so a dispatch or a queue join
-     re-renders the line even while the activity line stays "Unwell". */
-  if(a.sick || a.sickWalk) h += "<div class='sh-work'>🚑 " + ((G.medicPatient === a.id) ? "Jonah is on his way" : (medicQueued(a.id) ? "In the medic line, waiting for Jonah" : (medicGone() ? "No medic right now" : "Waiting for care"))) + "</div>";
+     since membership moves queue order only and never gates care. When
+     more than one patient waits, the line also names the patient's
+     dispatch standing in tryDispatch's own order (lowest tier rank,
+     then earliest entry), so the wait a Call Out would skip reads on
+     the sheet; a lone patient keeps the old line. The sheet key
+     carries the status and the standing, so a dispatch, a queue join,
+     or a standing change re-renders the line even while the activity
+     line stays "Unwell". */
+  if(a.sick || a.sickWalk) h += "<div class='sh-work'>🚑 " + ((G.medicPatient === a.id) ? "Jonah is on his way" : (medicQueued(a.id) ? ("In the medic line, waiting for Jonah" + (function(){ var qn = (G.medicQueue || []).length; if(qn < 2) return ""; var qp = medicQueuePos(a.id); return " · " + (qp <= 1 ? "next in line" : ordN(qp) + " in line"); })()) : (medicGone() ? "No medic right now" : "Waiting for care"))) + "</div>";
   /* CF-REF: model-prestige-flip.md [1] */
   h += "<div class='sh-work'>👀 " + prestigeStanding(a) + "</div>";
   /* CF-REF: rivalry-drift.md [9] */
@@ -3194,6 +3199,20 @@ function medicQueued(id){
   for(var i = 0; i < G.medicQueue.length; i++) if(G.medicQueue[i].id === id) return true;
   return false;
 }
+/* Medic dispatch standing: the position a queued patient holds in
+   tryDispatch's own order (lowest tier rank, then earliest entry), so
+   the sheet can name the wait instead of only the line. Entries
+   without a rank or seq (probe-built rows) default to the untiered
+   rank and keep array order through the stable sort, never crash.
+   Display only: it reads G.medicQueue and changes no entry, ledger,
+   graph edge, want, or tension. */
+function medicQueuePos(id){
+  var q = (G.medicQueue || []).slice();
+  q.sort(function(a, b){ var ra = (a.rank != null ? a.rank : 3), rb = (b.rank != null ? b.rank : 3); if(ra !== rb) return ra - rb; var sa = (a.seq != null ? a.seq : 1e9), sb = (b.seq != null ? b.seq : 1e9); return sa - sb; });
+  for(var i = 0; i < q.length; i++) if(q[i].id === id) return i + 1;
+  return 0;
+}
+function ordN(n){ var s = ["th", "st", "nd", "rd"], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); }
 function enqueueMedic(a, front){
   if(!a || medicQueued(a.id)) return false;
   if(!G.medicQueue) G.medicQueue = [];
