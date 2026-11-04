@@ -5723,7 +5723,14 @@ function activityText(a){
   if(a.state === "walk") return a.medicTask ? "Hurrying to " + (medicPatientName() || "help") : a.stationId === "road" ? "Going to lay the road" : a.stationId === "claim" ? "Going to stake the claim" : a.stationId === "build" ? "Going to raise the building" : "Going to " + (stationW(a.stationId) ? stationW(a.stationId).name : "somewhere");
   if(a.state === "watch") return "Watching " + (a.watchOf ? agent(a.watchOf).name.split(" ")[0] : "");
   if(a.state === "kneel") return "Treating " + (medicPatientName() || "a patient");
-  if(a.state === "sit") return a.stationId === "home" ? "Resting at home" : "Sitting";
+  /* A sit away from home reads where, not just that: in practice only
+     children sit away from home, beside the parent they follow at the
+     parent's station, and the sheet is the only reading surface on
+     phones, with no reason line beside the Now line, so "Sitting" left
+     a phone reader with no place at all. The stationId is the actual
+     location, so naming it cannot misstate a companion who has since
+     moved; the home read stays word for word. Display only. */
+  if(a.state === "sit"){ if(a.stationId === "home") return "Resting at home"; var sitNm = artName(a.stationId); return sitNm ? "Sitting at " + sitNm : "Sitting"; }
   if(a.state === "act"){
     if(a.stationId === "clinic") return a.carrying === "plank" ? "Carrying a plank" : "🔨 Repairing the roof";
     if(a.stationId === "fields") return "🌿 Working the fields";
