@@ -5784,6 +5784,20 @@ function activityText(a){
     if(a.fetch === "crate-out") return "📦 Fetching a crate for the storehouse";
     if(a.fetch === "grain-out") return "🌾 Fetching grain for the mill";
   }
+  /* A mediation walk names its purpose, not just its destination:
+     a mediate initiative walks both feud partners to the green with
+     reason "Cooling a feud", but the walk branch read the trip as
+     ordinary travel ("Going to The Green"), the same read a villager
+     going to socialise gets, while the sheet carries no reason line
+     at all (the tray's second line does, the sheet does not), so a
+     sheet reader could not tell a feud cooling from a social call.
+     The reason stands exactly for the walk: fireInitiative sets it
+     on both partners with the green walk and clears their social
+     intents beside it, so a gone or changed reason falls back to
+     the generic read instead of naming a mediation that is not in
+     flight, and a medic walk keeps its hurrying read. Display only:
+     reads a.reason, writes no state. */
+  if(a.state === "walk" && !a.medicTask && a.reason === "Cooling a feud") return "Going to the Green to cool a feud";
   if(a.state === "walk") return a.medicTask ? "Hurrying to " + (medicPatientName() || "help") : a.stationId === "road" ? "Going to lay the road" : a.stationId === "claim" ? "Going to stake the claim" : a.stationId === "build" ? "Going to raise the building" : "Going to " + (stationW(a.stationId) ? stationW(a.stationId).name : "somewhere");
   /* A watch names where the watched resident is acting, not just
      whom: every watch starts on a resident in act state (all three
