@@ -5873,6 +5873,29 @@ function activityText(a){
       if(!actCopyPlace && a.stationId === "road") actCopyPlace = "the road";
       if(actCopyName && actCopyPlace) return "Copying " + actCopyName + " at " + actCopyPlace;
     }
+    /* A joining act names the model being joined, not just the job:
+       fireInitiative gives a follower reason "Joining <model first
+       name>" (a shift follower keeps acting at the previous station
+       with only a boost, a claim follower walks to the station and
+       acts there), but the act branch read the act as ordinary work
+       ("Milling grain"), the same read a villager working that
+       station gets, while the sheet carries no reason line at all
+       (the tray's second line does, the sheet does not), so a sheet
+       reader could not tell following from ordinary work. The reason
+       stands through the act until the next decide replaces it, so a
+       changed or cleared reason falls back to the generic read, a
+       load-carrying act keeps its load read through the !a.carrying
+       guard on the same precedence as the copy branch, and an unknown
+       or home station falls back too instead of naming a place that
+       is not one. Display only: reads a.reason and a.stationId,
+       writes no state. */
+    if(!a.carrying && a.reason && a.reason.indexOf("Joining ") === 0 && a.stationId !== "home"){
+      var actJoinName = a.reason.slice(8);
+      var actJoinPlace = artName(a.stationId);
+      if(!actJoinPlace && a.stationId === "claim") actJoinPlace = "the claim";
+      if(!actJoinPlace && a.stationId === "road") actJoinPlace = "the road";
+      if(actJoinName && actJoinPlace) return "Joining " + actJoinName + " at " + actJoinPlace;
+    }
     if(a.stationId === "clinic") return a.carrying === "plank" ? "Carrying a plank" : "🔨 Repairing the roof";
     if(a.stationId === "fields") return "🌿 Working the fields";
     if(a.stationId === "store") return a.carrying === "crate" ? "Carrying a crate" : "📦 Hauling stores";
