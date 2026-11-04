@@ -6580,6 +6580,21 @@ function hudTick(dt){
       if(openSites.length) slTxt = openSites.map(function(s){
         var kd = BUILD_KINDS[s.kind];
         var stg = kd.project ? Math.round(siteProgressFrac(s) * 100) + "%" : (kd.stages[s.stage] ? kd.stages[s.stage].name + " " + Math.min(100, Math.round(s.stageLabor / kd.stages[s.stage].labor * 100)) + "%" : "");
+        /* The persistent line names the stage bottleneck the same split
+           way siteStatusText does: a stalled labor percent alone never
+           says whether the missing piece is a store from village stock
+           or a plank from the mill, two different sources the player
+           fixes in different places, and the plot-tap toast that does
+           name them is not the surface a player glances at while the
+           build stalls. Display only, same read as the recall row:
+           each material the stage actually needs with its own on-site
+           count, a material needing none left out, never 0/0. */
+        if(!kd.project && kd.stages[s.stage]){
+          var nd = kd.stages[s.stage], mp = [];
+          if(nd.stores) mp.push("stores " + (s.matsIn.stores || 0) + "/" + nd.stores);
+          if(nd.planks) mp.push("planks " + (s.matsIn.planks || 0) + "/" + nd.planks);
+          if(mp.length) stg += ", " + mp.join(", ");
+        }
         return kd.icon + " " + kd.title + " · " + stg;
       }).join("  ·  ");
       else slTxt = "🏗 All founded work stands finished";
