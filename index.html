@@ -5848,6 +5848,29 @@ function activityText(a){
     if(!joinPlace && a.stationId === "road") joinPlace = "the road";
     if(joinName && joinPlace) return "Going to join " + joinName + " at " + joinPlace;
   }
+  /* A seeking walk names the model, not just the destination:
+     decide() walks a resident with belonging below 35 to their
+     model's station with reason "Seeking <model first name>", but
+     the walk branch read the trip as ordinary travel ("Going to
+     Mill"), the same read a villager going to work gets, while the
+     sheet carries no reason line at all (the tray's second line
+     does, the sheet does not), so a sheet reader could not tell a
+     belonging-driven move toward the model from ordinary work. The
+     reason stands exactly for the walk: the next decide replaces
+     it, so a gone or changed reason falls back to the generic read
+     instead of naming a seek that is not in flight, and a medic
+     walk keeps its hurrying read. The place grammar follows the
+     joining-walk branch: artName for stations, with the claim and
+     road job fallbacks, and an unknown station falls back to the
+     generic read instead of naming a place that is not one. Display
+     only: reads a.reason and a.stationId, writes no state. */
+  if(a.state === "walk" && !a.medicTask && a.reason && a.reason.indexOf("Seeking ") === 0){
+    var seekName = a.reason.slice(8);
+    var seekPlace = artName(a.stationId);
+    if(!seekPlace && a.stationId === "claim") seekPlace = "the claim";
+    if(!seekPlace && a.stationId === "road") seekPlace = "the road";
+    if(seekName && seekPlace) return "Going to seek " + seekName + " at " + seekPlace;
+  }
   if(a.state === "walk") return a.medicTask ? "Hurrying to " + (medicPatientName() || "help") : a.stationId === "road" ? "Going to lay the road" : a.stationId === "claim" ? "Going to stake the claim" : a.stationId === "build" ? "Going to raise the building" : "Going to " + (stationW(a.stationId) ? stationW(a.stationId).name : "somewhere");
   /* A watch names where the watched resident is acting, not just
      whom: every watch starts on a resident in act state (all three
