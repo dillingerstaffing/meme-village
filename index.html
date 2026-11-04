@@ -5945,6 +5945,28 @@ function activityText(a){
       if(!actJoinPlace && a.stationId === "road") actJoinPlace = "the road";
       if(actJoinName && actJoinPlace) return "Joining " + actJoinName + " at " + actJoinPlace;
     }
+    /* A seeking act names the model, not just the job: the seeking
+       walk read already names the model on the way, but arrive()
+       leaves the reason standing through the act until the next
+       decide replaces it, so the act used to fall back to the
+       generic job read ("Milling grain") the moment the resident
+       arrived, and the sheet reader lost the belonging story at
+       the very point the resident reaches the model. The sheet
+       carries no reason line, so the purpose must live in the read
+       itself, exactly as the walk read does. A load-carrying act
+       keeps its load read through the !a.carrying guard, on the
+       same precedence as the copy and join branches; a changed or
+       cleared reason falls back to the generic read, and an unknown
+       or home station falls back too instead of naming a place that
+       is not one. Display only: reads a.reason and a.stationId,
+       writes no state. */
+    if(!a.carrying && a.reason && a.reason.indexOf("Seeking ") === 0 && a.stationId !== "home"){
+      var actSeekName = a.reason.slice(8);
+      var actSeekPlace = artName(a.stationId);
+      if(!actSeekPlace && a.stationId === "claim") actSeekPlace = "the claim";
+      if(!actSeekPlace && a.stationId === "road") actSeekPlace = "the road";
+      if(actSeekName && actSeekPlace) return "Seeking " + actSeekName + " at " + actSeekPlace;
+    }
     /* An inspired act names the model, not just the job: acting at the
        same station as the model sets reason "Inspired by <model first
        name>" with a short boost window (a.inspUntil), but the act used
