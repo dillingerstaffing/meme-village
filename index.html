@@ -5922,6 +5922,29 @@ function activityText(a){
       if(!actJoinPlace && a.stationId === "road") actJoinPlace = "the road";
       if(actJoinName && actJoinPlace) return "Joining " + actJoinName + " at " + actJoinPlace;
     }
+    /* An inspired act names the model, not just the job: acting at the
+       same station as the model sets reason "Inspired by <model first
+       name>" with a short boost window (a.inspUntil), but the act used
+       to fall back to the generic job read ("Milling grain") while the
+       boost ran, and the sheet reader lost the imitation story at the
+       very point the inspiration pays off. The sheet carries no reason
+       line, so the purpose must live in the read itself, exactly as the
+       copy and join act reads do. The window gates the read, not the
+       reason alone: the reason lingers after the window ends (the next
+       decide replaces it), so a stale or expired inspiration falls back
+       to the generic read instead of naming a boost that is over, a
+       load-carrying act keeps its load read through the !a.carrying
+       guard on the same precedence as the copy branch, and an unknown
+       or home station falls back too instead of naming a place that is
+       not one. Display only: reads a.reason, a.inspUntil, and
+       a.stationId, writes no state. */
+    if(!a.carrying && a.reason && a.reason.indexOf("Inspired by ") === 0 && a.stationId !== "home" && a.inspUntil && G.t < a.inspUntil){
+      var actInspName = a.reason.slice(12);
+      var actInspPlace = artName(a.stationId);
+      if(!actInspPlace && a.stationId === "claim") actInspPlace = "the claim";
+      if(!actInspPlace && a.stationId === "road") actInspPlace = "the road";
+      if(actInspName && actInspPlace) return "Inspired by " + actInspName + " at " + actInspPlace;
+    }
     if(a.stationId === "clinic") return a.carrying === "plank" ? "Carrying a plank" : "🔨 Repairing the roof";
     if(a.stationId === "fields") return "🌿 Working the fields";
     if(a.stationId === "store") return a.carrying === "crate" ? "Carrying a crate" : "📦 Hauling stores";
@@ -6026,8 +6049,14 @@ function refreshTray(force){
      the fetch flips from an -out leg to its -back leg and the load
      appears, must flip the key too, or the tray keeps the fetching
      read until an unrelated key component happens to move. */
+  /* Inspired flag: the same line reads activityText, and the inspired
+     read is gated on the boost window, not the reason alone, so a
+     resident whose window expires mid-act, with state, station, and
+     reason all unchanged, must flip the key too, or the tray keeps
+     the inspired read after the boost ends until an unrelated key
+     component happens to move. */
   var folN = 0; if(a) G.agents.forEach(function(b2){ if(b2.model === a.id) folN++; });
-  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.coverLapsed ? "L" : "") + (a.sick ? "S" : "") + (a.sickWalk ? "SW" : "") + Math.round(a.energy) + "/" + Math.round(a.morale) + "/" + Math.round(a.vis) + (a.model || "") + (a.watchOf && agent(a.watchOf) ? "W" + agent(a.watchOf).state + (agent(a.watchOf).stationId || "") : "") + (a.pendingWatch ? "PW" + a.pendingWatch : "") + (a.fetch ? "FE" + a.fetch : "") + "F" + folN : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + (G.ui && G.ui.lens ? "L" + G.ui.lens : "l") + "|" + (G.foundArm ? "F" : "") + (G.foundPlot == null ? "" : "FP" + G.foundPlot) + (G.claimArm ? "C" : "") + (G.lensArm ? "LA" : "") + (G.claimBearing == null ? "" : "b" + G.claimBearing) + (G.claimRing == null ? "" : "r" + G.claimRing) + (G.roadArm ? "R" : "") + (G.roadFrom || "") + (G.roadTo || "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "") + "|" + (G.modelArm ? "MA" : "") + (G.visitArm ? "VA" : "") + (G.coverArm ? "CA" : "") + (G.banked ? "BK" : "") + (medicGone() ? "MG" : "") + (a && a.bank != null ? "AC" : "") + (a && a.child ? "K" : "") + (a && a.spotUntil ? Math.ceil(Math.max(0, a.spotUntil - G.t)) : "") + (G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : "") + "|I" + idleIds + "|GR" + (G.groupArm ? "A" : "") + (Array.isArray(G.groups) ? G.groups.join(",") : "---") + "|OBJ" + (G.offerAccepted && G.offer && !G.objComplete ? (G.objStation || "") : "");
+  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.inspUntil && G.t < a.inspUntil ? "INSP" : "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.coverLapsed ? "L" : "") + (a.sick ? "S" : "") + (a.sickWalk ? "SW" : "") + Math.round(a.energy) + "/" + Math.round(a.morale) + "/" + Math.round(a.vis) + (a.model || "") + (a.watchOf && agent(a.watchOf) ? "W" + agent(a.watchOf).state + (agent(a.watchOf).stationId || "") : "") + (a.pendingWatch ? "PW" + a.pendingWatch : "") + (a.fetch ? "FE" + a.fetch : "") + "F" + folN : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + (G.ui && G.ui.lens ? "L" + G.ui.lens : "l") + "|" + (G.foundArm ? "F" : "") + (G.foundPlot == null ? "" : "FP" + G.foundPlot) + (G.claimArm ? "C" : "") + (G.lensArm ? "LA" : "") + (G.claimBearing == null ? "" : "b" + G.claimBearing) + (G.claimRing == null ? "" : "r" + G.claimRing) + (G.roadArm ? "R" : "") + (G.roadFrom || "") + (G.roadTo || "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "") + "|" + (G.modelArm ? "MA" : "") + (G.visitArm ? "VA" : "") + (G.coverArm ? "CA" : "") + (G.banked ? "BK" : "") + (medicGone() ? "MG" : "") + (a && a.bank != null ? "AC" : "") + (a && a.child ? "K" : "") + (a && a.spotUntil ? Math.ceil(Math.max(0, a.spotUntil - G.t)) : "") + (G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : "") + "|I" + idleIds + "|GR" + (G.groupArm ? "A" : "") + (Array.isArray(G.groups) ? G.groups.join(",") : "---") + "|OBJ" + (G.offerAccepted && G.offer && !G.objComplete ? (G.objStation || "") : "");
   if(!force && key === trayKey) return;
   trayKey = key;
   var info = document.getElementById("selInfo");
