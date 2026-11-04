@@ -6407,13 +6407,21 @@ function hudTick(dt){
     if(!showFound && recallSite){
       /* Recall row: a site is already under way, so the row names the
          way back instead of new ground: the kind, its current stage
-         and labor, and the materials on site, then the stores that
-         come home, then the choice itself, in the claim and road
-         recall grammar. A pick in progress keeps its kind chips. */
+         and labor, and each stage material on site against its need,
+         then the stores that come home, then the choice itself, in
+         the claim and road recall grammar. A pick in progress keeps
+         its kind chips. The material read is split like siteStatusText:
+         a summed materials figure hides which of the two sources
+         (store stock versus mill planks) is holding the stage up, and
+         the recall decision weighs exactly that bottleneck. */
       var rk = BUILD_KINDS[recallSite.kind];
       var rnd = rk.stages ? rk.stages[recallSite.stage] : null;
       var rbBack = siteRefundStores(recallSite);
-      fpHtml = "<span class='pick-lab'>" + rk.icon + " " + rk.title + " under way · " + (rnd ? rnd.name.toLowerCase() : "") + ", labor " + Math.floor(recallSite.stageLabor) + "/" + (rnd ? rnd.labor : 0) + ", materials " + ((recallSite.matsIn.stores || 0) + (recallSite.matsIn.planks || 0)) + " on site</span>" + "<button class='alert-chip go' onclick='__foundRecall(\"" + recallSite.id + "\")'>🏗 Recall the build" + (rbBack ? " · 📦" + rbBack + " back" : "") + "</button>" + "<button class='alert-chip' onclick='__foundRecallCancel()'>✕ Let them finish</button>";
+      var rParts = [];
+      if(rnd && rnd.stores) rParts.push("stores " + (recallSite.matsIn.stores || 0) + "/" + rnd.stores);
+      if(rnd && rnd.planks) rParts.push("planks " + (recallSite.matsIn.planks || 0) + "/" + rnd.planks);
+      var rMats = rParts.length ? rParts.join(", ") : "materials " + ((recallSite.matsIn.stores || 0) + (recallSite.matsIn.planks || 0));
+      fpHtml = "<span class='pick-lab'>" + rk.icon + " " + rk.title + " under way · " + (rnd ? rnd.name.toLowerCase() : "") + ", labor " + Math.floor(recallSite.stageLabor) + "/" + (rnd ? rnd.labor : 0) + ", " + rMats + " on site</span>" + "<button class='alert-chip go' onclick='__foundRecall(\"" + recallSite.id + "\")'>🏗 Recall the build" + (rbBack ? " · 📦" + rbBack + " back" : "") + "</button>" + "<button class='alert-chip' onclick='__foundRecallCancel()'>✕ Let them finish</button>";
     }
     if(fpEl.innerHTML !== fpHtml) fpEl.innerHTML = fpHtml;
     fpEl.style.display = (showFound || recallSite) ? "flex" : "none";
