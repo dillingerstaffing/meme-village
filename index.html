@@ -4413,7 +4413,9 @@ function syncClaimPreview(){
 }
 /* RIVALRY DRIFT (v4 sim step 3, spec section 4): the season boundary
    cools every drift floor; when a floor has fallen low and the pair's
-   tension has too, the drift clears and the chronicle notes the quiet.
+   tension has too, the drift clears, the chronicle notes the quiet,
+   and a focus toast names the pair, so the resolution is pushed, not
+   pull-only through the Story panel.
    Time plus separation ends what the triggering want started.
    CF-REF: rivalry-drift.md [13] */
 function driftSeasonCheck(){
@@ -4425,7 +4427,7 @@ function driftSeasonCheck(){
     var ten = (G.pairs && G.pairs[k]) || 0;
     if(d.floor <= MIM.driftClearFloor && ten <= MIM.driftClearTension){
       delete G.drifts[k];
-      if(pa && pb) chronicle("The feud between " + pa.name + " and " + pb.name + " has gone quiet.");
+      if(pa && pb){ showToast("🕊 " + pa.name.split(" ")[0] + " and " + pb.name.split(" ")[0] + "'s feud has gone quiet.", {ids:[pa.id, pb.id]}); /* Focus only, no ping: a resolution is good news, not a warning, in the prestige-unflip grammar, and the ids resolve live while the pair walks, so the view chip follows them and lastAlert keeps the return after expiry. A chronicle line alone left the payoff pull-only: the player who separated or cooled the pair never learned the feud ended unless they opened the Story panel. */ chronicle("The feud between " + pa.name + " and " + pb.name + " has gone quiet."); }
     }
   });
 }

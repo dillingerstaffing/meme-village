@@ -164,451 +164,451 @@
     },
     {
       "article": "claim-adjacency.md",
-      "ref_line": 3583,
+      "ref_line": 3585,
       "lines": 18,
       "hash": "88a9246b"
     },
     {
       "article": "spec-tables-drift-gate.md",
-      "ref_line": 3618,
+      "ref_line": 3620,
       "lines": 4,
       "hash": "edc3c69c"
     },
     {
       "article": "spec-tables-drift-gate.md",
-      "ref_line": 3623,
+      "ref_line": 3625,
       "lines": 21,
       "hash": "2ac77b93"
     },
     {
       "article": "spec-tables-drift-gate.md",
-      "ref_line": 3666,
+      "ref_line": 3668,
       "lines": 3,
       "hash": "db280d3b"
     },
     {
       "article": "spec-tables-drift-gate.md",
-      "ref_line": 3677,
+      "ref_line": 3679,
       "lines": 56,
       "hash": "3b23959f"
     },
     {
       "article": "spec-tables-drift-gate.md",
-      "ref_line": 3695,
+      "ref_line": 3697,
       "lines": 3,
       "hash": "966395af"
     },
     {
       "article": "recall-in-flight.md",
-      "ref_line": 3804,
+      "ref_line": 3806,
       "lines": 53,
       "hash": "61bb87cd"
     },
     {
       "article": "recall-in-flight.md",
-      "ref_line": 4060,
+      "ref_line": 4062,
       "lines": 44,
       "hash": "833e44b4"
     },
     {
       "article": "road-building.md",
-      "ref_line": 4105,
+      "ref_line": 4107,
       "lines": 207,
       "hash": "60f2d29c"
     },
     {
       "article": "recall-in-flight.md",
-      "ref_line": 4233,
+      "ref_line": 4235,
       "lines": 24,
       "hash": "b990d95c"
     },
     {
       "article": "road-building.md",
-      "ref_line": 4336,
+      "ref_line": 4338,
       "lines": 22,
       "hash": "694bff3c"
     },
     {
       "article": "claim-preview.md",
-      "ref_line": 4374,
+      "ref_line": 4376,
       "lines": 37,
       "hash": "4c742e7a"
     },
     {
       "article": "rivalry-drift.md",
-      "ref_line": 4416,
+      "ref_line": 4420,
       "lines": 13,
-      "hash": "778e8834"
+      "hash": "cb084d57"
     },
     {
       "article": "village-growth-gates.md",
-      "ref_line": 4450,
+      "ref_line": 4454,
       "lines": 81,
       "hash": "9af53548"
     },
     {
       "article": "autonomous-founding-gates.md",
-      "ref_line": 4532,
+      "ref_line": 4536,
       "lines": 28,
       "hash": "0727e0b6"
     },
     {
       "article": "driven-work-progress.md",
-      "ref_line": 4733,
+      "ref_line": 4737,
       "lines": 14,
       "hash": "39fb637f"
     },
     {
       "article": "spec-tables-drift-gate.md",
-      "ref_line": 4734,
+      "ref_line": 4738,
       "lines": 14,
       "hash": "c77a272b"
     },
     {
       "article": "rivalry-drift.md",
-      "ref_line": 4838,
+      "ref_line": 4846,
       "lines": 11,
       "hash": "aa574fd2"
     },
     {
       "article": "departure-forecast.md",
-      "ref_line": 4897,
+      "ref_line": 4905,
       "lines": 14,
       "hash": "8623b489"
     },
     {
       "article": "soil-tints.md",
-      "ref_line": 4943,
+      "ref_line": 4951,
       "lines": 13,
       "hash": "6ad1e918"
     },
     {
       "article": "desires-travel-the-graph.md",
-      "ref_line": 5193,
+      "ref_line": 5206,
       "lines": 19,
       "hash": "23d42fdb"
     },
     {
       "article": "chronicle-and-saves.md",
-      "ref_line": 5379,
+      "ref_line": 5392,
       "lines": 143,
       "hash": "14f58f1a"
     },
     {
       "article": "follow-edge-scroll.md",
-      "ref_line": 5618,
+      "ref_line": 5631,
       "lines": 1,
       "hash": "294ed892"
     },
     {
       "article": "axis-label-selected-surfaces.md",
-      "ref_line": 5754,
+      "ref_line": 5767,
       "lines": 2,
       "hash": "6caa504a"
     },
     {
       "article": "highlight-vocabulary.md",
-      "ref_line": 5767,
+      "ref_line": 5780,
       "lines": 51,
       "hash": "6a7dd932"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 6059,
+      "ref_line": 6072,
       "lines": 39,
       "hash": "d5a4f014"
     },
     {
       "article": "claim-minimap.md",
-      "ref_line": 6125,
+      "ref_line": 6138,
       "lines": 12,
       "hash": "bb41812d"
     },
     {
       "article": "rivalry-drift.md",
-      "ref_line": 6173,
+      "ref_line": 6186,
       "lines": 8,
       "hash": "2a88a8fe"
     },
     {
       "article": "desire-lens.md",
-      "ref_line": 6191,
+      "ref_line": 6204,
       "lines": 31,
       "hash": "2eb8b88c"
     },
     {
       "article": "proclaim-minimap.md",
-      "ref_line": 6250,
+      "ref_line": 6263,
       "lines": 12,
       "hash": "8dd93f23"
     },
     {
       "article": "idle-finder.md",
-      "ref_line": 6675,
+      "ref_line": 6688,
       "lines": 1,
       "hash": "c15e1718"
     },
     {
       "article": "control-groups.md",
-      "ref_line": 6706,
+      "ref_line": 6719,
       "lines": 2,
       "hash": "a54bcfa7"
     },
     {
       "article": "phone-alerts-shed-on-collision.md",
-      "ref_line": 6731,
+      "ref_line": 6744,
       "lines": 14,
       "hash": "1a0927f2"
     },
     {
       "article": "phone-stats-compact-during-picks.md",
-      "ref_line": 6776,
+      "ref_line": 6789,
       "lines": 2,
       "hash": "4448d346"
     },
     {
       "article": "sheet-below-objective-card.md",
-      "ref_line": 6864,
+      "ref_line": 6877,
       "lines": 19,
       "hash": "b04a1082"
     },
     {
       "article": "desires-travel-the-graph.md",
-      "ref_line": 6964,
+      "ref_line": 6977,
       "lines": 33,
       "hash": "8c01a523"
     },
     {
       "article": "coach-teach-line.md",
-      "ref_line": 7054,
+      "ref_line": 7067,
       "lines": 10,
       "hash": "c762b273"
     },
     {
       "article": "idle-finder.md",
-      "ref_line": 7100,
+      "ref_line": 7113,
       "lines": 6,
       "hash": "ce6fdd68"
     },
     {
       "article": "overlay-anchor-budget.md",
-      "ref_line": 7295,
+      "ref_line": 7308,
       "lines": 102,
       "hash": "a7dc2253"
     },
     {
       "article": "tap-grace.md",
-      "ref_line": 7398,
+      "ref_line": 7411,
       "lines": 12,
       "hash": "4ca37163"
     },
     {
       "article": "tap-grace.md",
-      "ref_line": 7474,
+      "ref_line": 7487,
       "lines": 32,
       "hash": "db12ed89"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 7776,
+      "ref_line": 7789,
       "lines": 12,
       "hash": "b5deb1c9"
     },
     {
       "article": "pointercancel-never-a-tap.md",
-      "ref_line": 7790,
+      "ref_line": 7803,
       "lines": 4,
       "hash": "3471fc97"
     },
     {
       "article": "camera-key-follow.md",
-      "ref_line": 7797,
+      "ref_line": 7810,
       "lines": 6,
       "hash": "885bcc6e"
     },
     {
       "article": "keyboard-space-pause.md",
-      "ref_line": 7832,
+      "ref_line": 7845,
       "lines": 1,
       "hash": "72f09793"
     },
     {
       "article": "keyboard-p-pause.md",
-      "ref_line": 7842,
+      "ref_line": 7855,
       "lines": 1,
       "hash": "27e58082"
     },
     {
       "article": "keyboard-0-pause.md",
-      "ref_line": 7853,
+      "ref_line": 7866,
       "lines": 1,
       "hash": "d107aa16"
     },
     {
       "article": "keyboard-m-mute.md",
-      "ref_line": 7865,
+      "ref_line": 7878,
       "lines": 1,
       "hash": "e50981cd"
     },
     {
       "article": "keyboard-i-idle.md",
-      "ref_line": 7879,
+      "ref_line": 7892,
       "lines": 1,
       "hash": "0919d9e5"
     },
     {
       "article": "keyboard-t-thoughts.md",
-      "ref_line": 7893,
+      "ref_line": 7906,
       "lines": 1,
       "hash": "0cbeb0b2"
     },
     {
       "article": "keyboard-l-lens.md",
-      "ref_line": 7907,
+      "ref_line": 7920,
       "lines": 1,
       "hash": "04649d96"
     },
     {
       "article": "keyboard-j-story.md",
-      "ref_line": 7922,
+      "ref_line": 7935,
       "lines": 1,
       "hash": "e1656b9d"
     },
     {
       "article": "keyboard-c-claim.md",
-      "ref_line": 7941,
+      "ref_line": 7954,
       "lines": 1,
       "hash": "dff92739"
     },
     {
       "article": "keyboard-b-proclaim.md",
-      "ref_line": 7956,
+      "ref_line": 7969,
       "lines": 1,
       "hash": "fbc11d50"
     },
     {
       "article": "keyboard-n-found.md",
-      "ref_line": 7970,
+      "ref_line": 7983,
       "lines": 1,
       "hash": "ed8f9bcf"
     },
     {
       "article": "keyboard-h-road.md",
-      "ref_line": 7986,
+      "ref_line": 7999,
       "lines": 1,
       "hash": "9285aca6"
     },
     {
       "article": "keyboard-v-visit.md",
-      "ref_line": 8001,
+      "ref_line": 8014,
       "lines": 1,
       "hash": "0af2d5ec"
     },
     {
       "article": "keyboard-o-model.md",
-      "ref_line": 8016,
+      "ref_line": 8029,
       "lines": 1,
       "hash": "c952bf93"
     },
     {
       "article": "keyboard-g-spotlight.md",
-      "ref_line": 8035,
+      "ref_line": 8048,
       "lines": 1,
       "hash": "2db33807"
     },
     {
       "article": "keyboard-u-build.md",
-      "ref_line": 8051,
+      "ref_line": 8064,
       "lines": 1,
       "hash": "4d5d2a03"
     },
     {
       "article": "keyboard-k-speak.md",
-      "ref_line": 8079,
+      "ref_line": 8092,
       "lines": 1,
       "hash": "58a67c87"
     },
     {
       "article": "keyboard-shiftc-cover.md",
-      "ref_line": 8099,
+      "ref_line": 8112,
       "lines": 1,
       "hash": "da8c2dd8"
     },
     {
       "article": "keyboard-shifto-callout.md",
-      "ref_line": 8122,
+      "ref_line": 8135,
       "lines": 1,
       "hash": "594eabc1"
     },
     {
       "article": "keyboard-escape-close.md",
-      "ref_line": 8131,
+      "ref_line": 8144,
       "lines": 5,
       "hash": "6edb933c"
     },
     {
       "article": "camera-key-rotate.md",
-      "ref_line": 8153,
+      "ref_line": 8166,
       "lines": 3,
       "hash": "e531be86"
     },
     {
       "article": "camera-key-pan.md",
-      "ref_line": 8162,
+      "ref_line": 8175,
       "lines": 9,
       "hash": "efb11f60"
     },
     {
       "article": "camera-key-zoom.md",
-      "ref_line": 8176,
+      "ref_line": 8189,
       "lines": 4,
       "hash": "aa847be7"
     },
     {
       "article": "camera-key-follow.md",
-      "ref_line": 8185,
+      "ref_line": 8198,
       "lines": 4,
       "hash": "ee9904ca"
     },
     {
       "article": "camera-key-reset.md",
-      "ref_line": 8194,
+      "ref_line": 8207,
       "lines": 3,
       "hash": "61098559"
     },
     {
       "article": "keyboard-x-mark.md",
-      "ref_line": 8199,
+      "ref_line": 8212,
       "lines": 1,
       "hash": "01173d48"
     },
     {
       "article": "keyboard-comma-period-speed.md",
-      "ref_line": 8202,
+      "ref_line": 8215,
       "lines": 2,
       "hash": "c48ee2d5"
     },
     {
       "article": "camera-rotate-buttons.md",
-      "ref_line": 8227,
+      "ref_line": 8240,
       "lines": 2,
       "hash": "2c372e98"
     },
     {
       "article": "camera-zoom-buttons.md",
-      "ref_line": 8234,
+      "ref_line": 8247,
       "lines": 2,
       "hash": "c38034d2"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 8320,
+      "ref_line": 8333,
       "lines": 4,
       "hash": "ce66959f"
     },
     {
       "article": "paused-toast-holds.md",
-      "ref_line": 8345,
+      "ref_line": 8358,
       "lines": 8,
       "hash": "6df5975d"
     }

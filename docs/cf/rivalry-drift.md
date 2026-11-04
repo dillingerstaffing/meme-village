@@ -41,7 +41,11 @@ MIM.driftFloorDecay (6), floored at MIM.driftFloorMin (10). When a
 floor is at or below MIM.driftClearFloor (15) and the pair's tension
 is at or below MIM.driftClearTension (20), the drift clears and the
 chronicle records the quiet ("The feud between X and Y has gone
-quiet."). Ordering either member relieves all their pair tension by
+quiet."), and a focus toast names the pair at the same boundary
+("X and Y's feud has gone quiet.", ids focus, no ping: a resolution
+is good news, not a warning, in the prestige-unflip grammar, so the
+view chip follows the pair and lastAlert keeps the return after
+expiry). Ordering either member relieves all their pair tension by
 22, which can end a drift. Removing an agent deletes their drift
 keys, the same discipline as the tension ledger.
 
