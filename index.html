@@ -5065,7 +5065,8 @@ function endWeek(){
     if(settleSwept > 0) settleBits.push(Math.round(settleSwept) + "🪙 banked");
     if(settlePrem.members > 0) settleBits.push("cover took " + Math.round(settlePrem.paid) + "🪙 from " + settlePrem.members + (settlePrem.members === 1 ? " member" : " members"));
     if(settlePrem.enrolled.length > 0) settleBits.push(settlePrem.enrolled.join(", ") + " joined Silver cover");
-    showToast("🏦 The bank settled the season: " + settleBits.join(", ") + ".");
+    var bankFocus = null; (G.sites || []).forEach(function(s){ if(s.kind === "bank" && s.done) bankFocus = {x: s.x, z: s.z}; });
+    showToast("🏦 The bank settled the season: " + settleBits.join(", ") + ".", bankFocus); /* Focus only, no ping, in the season-end receipt grammar: a receipt is a report, not a completion or a warning, and the win ping stays reserved for completions. The amounts settle in the bank building, so the digest carries the completed bank site's focus and the view chip rides the live toast while lastAlert keeps the return after expiry. No completed bank site, no focus, and the digest stays plain as before. */
   }
   /* Season top earner, toast only: pay lands per work event with no
      per-earner signal (the sheet balance reads only while that resident
@@ -5078,7 +5079,7 @@ function endWeek(){
   var earnTop = null, earnTopAmt = 0;
   var earnMap = (G.seasonEarn && typeof G.seasonEarn === "object") ? G.seasonEarn : {};
   G.agents.forEach(function(a){ if(a.child) return; var t = earnMap[a.id] || 0; if(t > earnTopAmt){ earnTopAmt = t; earnTop = a; } });
-  if(earnTop) showToast("🪙 " + earnTop.name.split(" ")[0] + " earned the most last season: " + Math.round(earnTopAmt) + "🪙.", {ids: [earnTop.id]}); /* Id focus, not a snapshot point: the top earner walks, and the season boundary is the busiest toast queue of the game, so a plain toast here would be gone before a player looking elsewhere could act on it. The focus gives the live pill a view chip and retains the return in the last-alert chip after expiry, so the player can jump to the village's most productive worker and consider them as a model. The settlement digest beside it names amounts, not one person, so it stays plain. */
+  if(earnTop) showToast("🪙 " + earnTop.name.split(" ")[0] + " earned the most last season: " + Math.round(earnTopAmt) + "🪙.", {ids: [earnTop.id]}); /* Id focus, not a snapshot point: the top earner walks, and the season boundary is the busiest toast queue of the game, so a plain toast here would be gone before a player looking elsewhere could act on it. The focus gives the live pill a view chip and retains the return in the last-alert chip after expiry, so the player can jump to the village's most productive worker and consider them as a model. The settlement digest beside it names amounts, and carries the completed bank site as its focus, so it jumps to the building the amounts settled in. */
   G.seasonEarn = {};
   if(!G.coachBank){
     if(G.banked){ G.coachBank = true; }
