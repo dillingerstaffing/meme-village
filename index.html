@@ -5698,6 +5698,20 @@ function activityText(a){
   /* Pseudo-stations are jobs, not places in STATION3: a walk to one used
      to read "Going to somewhere", because stationW returns nothing for
      build, claim, or road. Name the job the resident is walking to. */
+  /* A haul walk names its load, not only its job: the outbound walk
+     carries nothing, so it keeps the "Going to" job read, but the return
+     walk already carries a crate or a plank in state (the 3D prop shows
+     it, the sheet and tray text did not), and a stalled build reads
+     differently when the load in flight is a store from village stock
+     versus a plank from the mill, the same split the site line, the
+     recall row, and the status toast already make. Display only: the
+     branch reads a.carrying and a.stationId, never state, and the road
+     leg stays plank-only, since a road crew never hauls a crate. */
+  if(a.state === "walk" && a.carrying && (a.stationId === "build" || a.stationId === "claim" || (a.stationId === "road" && a.carrying === "plank"))){
+    var loadTxt = a.carrying === "crate" ? "📦 Carrying a store crate" : "🪵 Carrying a plank";
+    var destTxt = a.stationId === "build" ? "the building" : a.stationId === "claim" ? "the claim" : "the road";
+    return loadTxt + " to " + destTxt;
+  }
   if(a.state === "walk") return a.medicTask ? "Hurrying to " + (medicPatientName() || "help") : a.stationId === "road" ? "Going to lay the road" : a.stationId === "claim" ? "Going to stake the claim" : a.stationId === "build" ? "Going to raise the building" : "Going to " + (stationW(a.stationId) ? stationW(a.stationId).name : "somewhere");
   if(a.state === "watch") return "Watching " + (a.watchOf ? agent(a.watchOf).name.split(" ")[0] : "");
   if(a.state === "kneel") return "Treating " + (medicPatientName() || "a patient");
@@ -5710,8 +5724,8 @@ function activityText(a){
     if(a.stationId === "well") return "💧 Drawing water";
     if(a.stationId === "mill") return a.carrying === "crate" ? "Carrying grain" : "🌾 Milling grain";
     if(a.stationId === "school") return "📚 At the school";
-    if(a.stationId === "build") return a.carrying ? "🪵 Hauling materials" : "🔨 Raising a building";
-    if(a.stationId === "claim") return a.carrying ? "🚩 Hauling claim materials" : "🚩 Staking the claim";
+    if(a.stationId === "build") return a.carrying === "crate" ? "📦 Carrying a store crate" : a.carrying ? "🪵 Carrying a plank" : "🔨 Raising a building";
+    if(a.stationId === "claim") return a.carrying === "crate" ? "📦 Carrying a store crate" : a.carrying ? "🪵 Carrying a plank" : "🚩 Staking the claim";
     if(a.stationId === "road") return a.carrying ? "🛣 Carrying a plank to the road" : "🛣 Laying the road";
     return "Working";
   }
