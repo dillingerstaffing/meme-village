@@ -5704,13 +5704,21 @@ function activityText(a){
      it, the sheet and tray text did not), and a stalled build reads
      differently when the load in flight is a store from village stock
      versus a plank from the mill, the same split the site line, the
-     recall row, and the status toast already make. Display only: the
-     branch reads a.carrying and a.stationId, never state, and the road
-     leg stays plank-only, since a road crew never hauls a crate. */
-  if(a.state === "walk" && a.carrying && (a.stationId === "build" || a.stationId === "claim" || (a.stationId === "road" && a.carrying === "plank"))){
-    var loadTxt = a.carrying === "crate" ? "📦 Carrying a store crate" : "🪵 Carrying a plank";
-    var destTxt = a.stationId === "build" ? "the building" : a.stationId === "claim" ? "the claim" : "the road";
-    return loadTxt + " to " + destTxt;
+     recall row, and the status toast already make. The station hauls
+     read the same way: a clinic worker returns with a plank for the
+     roof, a store worker returns with a crate for the storehouse, and
+     a mill worker returns with a crate of grain, and each used to read
+     only "Going to" its station. Display only: the branch reads
+     a.carrying and a.stationId, never state, and the road leg stays
+     plank-only, since a road crew never hauls a crate. */
+  if(a.state === "walk" && a.carrying){
+    var loadTxt = null, destTxt = null;
+    if(a.stationId === "build" || a.stationId === "claim"){ loadTxt = a.carrying === "crate" ? "📦 Carrying a store crate" : "🪵 Carrying a plank"; destTxt = a.stationId === "build" ? "the building" : "the claim"; }
+    else if(a.stationId === "road" && a.carrying === "plank"){ loadTxt = "🪵 Carrying a plank"; destTxt = "the road"; }
+    else if(a.stationId === "clinic" && a.carrying === "plank"){ loadTxt = "🪵 Carrying a plank"; destTxt = "the clinic"; }
+    else if(a.stationId === "store" && a.carrying === "crate"){ loadTxt = "📦 Carrying a crate"; destTxt = "the storehouse"; }
+    else if(a.stationId === "mill" && a.carrying === "crate"){ loadTxt = "🌾 Carrying grain"; destTxt = "the mill"; }
+    if(loadTxt) return loadTxt + " to " + destTxt;
   }
   if(a.state === "walk") return a.medicTask ? "Hurrying to " + (medicPatientName() || "help") : a.stationId === "road" ? "Going to lay the road" : a.stationId === "claim" ? "Going to stake the claim" : a.stationId === "build" ? "Going to raise the building" : "Going to " + (stationW(a.stationId) ? stationW(a.stationId).name : "somewhere");
   if(a.state === "watch") return "Watching " + (a.watchOf ? agent(a.watchOf).name.split(" ")[0] : "");
