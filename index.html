@@ -4652,7 +4652,11 @@ function siteStatusText(site){
   if(site.done) return kind.icon + " " + kind.title + ": finished and standing.";
   if(kind.project) return kind.icon + " " + kind.title + ": its parts fill from driven work at the " + STATION3[site.station].name + ", and builders here keep the site rising.";
   var nd = kind.stages[site.stage];
-  return kind.icon + " " + kind.title + ": " + nd.name.toLowerCase() + " under way, labor " + Math.floor(site.stageLabor) + "/" + nd.labor + ", materials " + (site.matsIn.stores + site.matsIn.planks) + "/" + (nd.stores + nd.planks) + " on site.";
+  /* Split the material read: stores and planks come from different places (the store stock versus the mill planks), so a single summed "materials" figure hides which one is holding the stage up. Name each material the stage actually needs, with its own on-site count, so the bottleneck reads where the building stands, in the Factorio readable-factory grammar. A material the stage needs none of is left out, never shown as 0/0. Display only: siteStatusText is read by one plot-tap toast, and writes no state. */
+  var matParts = [];
+  if(nd.stores) matParts.push("stores " + site.matsIn.stores + "/" + nd.stores);
+  if(nd.planks) matParts.push("planks " + site.matsIn.planks + "/" + nd.planks);
+  return kind.icon + " " + kind.title + ": " + nd.name.toLowerCase() + " under way, labor " + Math.floor(site.stageLabor) + "/" + nd.labor + ", " + (matParts.length ? matParts.join(", ") : "materials 0/0") + " on site.";
 }
 /* Staged meshes: three layers (base, frame, top) plus a finish layer,
    following the roofPlanks precedent that a structure shows its own
