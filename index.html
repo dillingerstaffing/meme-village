@@ -5911,6 +5911,18 @@ function activityText(a){
     if(!shiftPlace && a.stationId === "road") shiftPlace = "the road";
     if(shiftName && shiftPlace) return "Going for an extra shift following " + shiftName + " at " + shiftPlace;
   }
+  /* A home walk names the rest it ends in, not just the place:
+     every walk to home ends in a sit, and the sit already reads
+     "Resting at home", but the walk branch read the trip as
+     ordinary travel ("Going to Home"), the same read a villager
+     going to work gets, while the sheet carries no reason line
+     at all. Home has no work slots, so a home walk is a rest walk
+     on every path that sends one (exhaustion, low energy, an
+     ordered Rest, a sent-home patient, a tired child, a worker
+     sent home after a refusal), and a medic walk keeps its
+     hurrying read through the branch order above. Display only:
+     reads a.stationId, writes no state. */
+  if(a.state === "walk" && !a.medicTask && a.stationId === "home") return "Going home to rest";
   if(a.state === "walk") return a.medicTask ? "Hurrying to " + (medicPatientName() || "help") : a.stationId === "road" ? "Going to lay the road" : a.stationId === "claim" ? "Going to stake the claim" : a.stationId === "build" ? "Going to raise the building" : "Going to " + (stationW(a.stationId) ? stationW(a.stationId).name : "somewhere");
   /* A watch names where the watched resident is acting, not just
      whom: every watch starts on a resident in act state (all three
