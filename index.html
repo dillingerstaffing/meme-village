@@ -6167,6 +6167,19 @@ function drawMinimap(){
     c.beginPath(); c.arc(X(G.claim.x), Y(G.claim.z), 6, 0, 6.29); c.stroke();
     c.setLineDash([]);
   }
+  /* Minimap building layer: a plot square alone cannot say whether its
+     ground is empty, rising, or built, so a founded site draws over its
+     own plot at a larger size: a finished site as a bordered cream
+     square, an unfinished site as a dashed gold outline. Project sites
+     are skipped: they sit at station marks already drawn above. Display
+     only: this block reads G.sites and writes the canvas, never state. */
+  // CF-REF: building-minimap.md [6]
+  (G.sites || []).forEach(function(s){
+    if(s.plot == null || s.plot < 0) return;
+    var bx = X(s.x), by = Y(s.z);
+    if(s.done){ c.fillStyle = "rgba(240,235,220,0.95)"; c.fillRect(bx - 3, by - 3, 7, 7); c.strokeStyle = "rgba(40,50,35,0.9)"; c.lineWidth = 1; c.strokeRect(bx - 3, by - 3, 7, 7); }
+    else { c.strokeStyle = "rgba(245,200,106,0.95)"; c.lineWidth = 1.5; c.setLineDash([2, 2]); c.strokeRect(bx - 3, by - 3, 7, 7); c.setLineDash([]); }
+  });
   G.agents.forEach(function(a){ c.fillStyle = a.sick ? "#e85a3c" : (a.id === G.selected ? "#ffd75e" : "rgba(255,255,255,0.92)"); c.beginPath(); c.arc(X(a.x), Y(a.z), a.id === G.selected ? 3 : 2, 0, 6.29); c.fill();
     /* Minimap sick ring: a sick or sick-walking resident's dot is red
        only while sick, and red at 2px on white is color alone, against
