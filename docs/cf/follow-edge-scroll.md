@@ -16,7 +16,9 @@ orbit the followed resident instead of dropping them, and it leaves the
 explicit follow releases untouched: drag pan, minimap jump, selection,
 alert focus, camera reset, and bookmark return all still clear follow
 on purpose, because the player asked for a different view with a gesture
-or a tap. A passive mouse position never counts as asking.
+or a tap. Deselect clears follow too: the tray X and the empty-ground
+tap both release it, so a follow never survives with no selection,
+when the Follow button is disabled and no follow state shows. A passive mouse position never counts as asking.
 
 Removing the `!cam.follow` term reintroduces the fight, and replacing it
 with a follow clear would silently drop an armed mode on a passive
