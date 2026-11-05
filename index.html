@@ -5987,7 +5987,20 @@ function activityText(a){
      read instead of naming a refusal that is not in flight, and a
      sick sit keeps its unwell read through the branch above.
      Display only: reads a.reason and a.stationId, writes no state. */
-  if(a.state === "sit"){ if(a.stationId === "home"){ if(a.reason === "Refusing, after the blame") return "Sitting at home after refusing work"; return "Resting at home"; } var sitNm = artName(a.stationId); if(!sitNm && a.stationId === "claim") sitNm = "the claim"; if(!sitNm && a.stationId === "road") sitNm = "the road"; return sitNm ? "Sitting at " + sitNm : "Sitting"; }
+  /* A with-parent sit names the parent, not just the place:
+     childDecide sits a child beside the parent they follow with
+     reason "With <parent first name>", and arrive() leaves that
+     reason standing through the sit, but the sit branch read only
+     the place ("Sitting at the Mill"), the same read any sitter
+     gets, while the sheet carries no reason line at all, so a
+     sheet reader lost the following story at arrival after the
+     walk read named it on the way. The reason gates the read
+     exactly: a changed reason falls back to the generic sit read,
+     an unknown station falls back too instead of naming a place
+     that is not one, and the home, refusal, and rest reads are
+     unchanged for residents without a With reason. Display only:
+     reads a.reason and a.stationId, writes no state. */
+  if(a.state === "sit"){ if(a.reason && a.reason.indexOf("With ") === 0){ var sitWithName = a.reason.slice(5); var sitWithPlace = artName(a.stationId); if(!sitWithPlace && a.stationId === "claim") sitWithPlace = "the claim"; if(!sitWithPlace && a.stationId === "road") sitWithPlace = "the road"; if(sitWithName && sitWithPlace) return "Sitting with " + sitWithName + " at " + sitWithPlace; } if(a.stationId === "home"){ if(a.reason === "Refusing, after the blame") return "Sitting at home after refusing work"; return "Resting at home"; } var sitNm = artName(a.stationId); if(!sitNm && a.stationId === "claim") sitNm = "the claim"; if(!sitNm && a.stationId === "road") sitNm = "the road"; return sitNm ? "Sitting at " + sitNm : "Sitting"; }
   if(a.state === "act"){
     /* A copy act names the model, not just the job: the copying walk
        read already names the copy on the way, but arrive() leaves
