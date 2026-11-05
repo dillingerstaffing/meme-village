@@ -5261,10 +5261,10 @@ function stepSim(dt){
   G.agents.forEach(function(a){
     if(a.wantPend && G.t >= a.wantPend.at && !a.sick){ var wp = a.wantPend; a.wantPend = null; giveWant(a, wp.station, wp.sync, wp.from); }
     if(a.want){
-      if(G.t > a.want.until){ var wmiss = a.want.station; var wFromM = a.want.from; a.morale = Math.max(0, a.morale - 3); setBubble(a, "💔", 1.6); a.want = null; a.wantCd = 8; if(wFromM && wFromM !== a.id){ var srcM = agent(wFromM); if(srcM){ if(!G.mimic) G.mimic = {spread:0, converged:0, doneCopied:0, doneSelf:0, missedCopied:0}; addTension(a, srcM, MIM.resentTension); G.mimic.missedCopied++; } } noteEvent(a, "wantMissed", wmiss); }
+      if(G.t > a.want.until){ var wmiss = a.want.station; var wFromM = a.want.from; a.morale = Math.max(0, a.morale - 3); setBubble(a, "💔", 1.6); SND.play("wantmiss"); a.want = null; a.wantCd = 8; if(wFromM && wFromM !== a.id){ var srcM = agent(wFromM); if(srcM){ if(!G.mimic) G.mimic = {spread:0, converged:0, doneCopied:0, doneSelf:0, missedCopied:0}; addTension(a, srcM, MIM.resentTension); G.mimic.missedCopied++; } } noteEvent(a, "wantMissed", wmiss); }
       else if(a.state === "act" && a.stationId === a.want.station){
         var wFrom = a.want.from;
-        a.morale = Math.min(100, a.morale + 9); setBubble(a, "♥", 1.6);
+        a.morale = Math.min(100, a.morale + 9); setBubble(a, "♥", 1.6); SND.play("want");
         if(a.order === a.want.station) applyStatMods({trust:1.5, cohesion:1});
         if(!G.mimic) G.mimic = {spread:0, converged:0, doneCopied:0, doneSelf:0, missedCopied:0};
         if(wFrom && wFrom !== a.id && agent(wFrom)){ var gk = pairKey(a.id, wFrom); G.pairs[gk] = Math.max(0, (G.pairs[gk] || 0) - MIM.gratitudeTension); if(!a.watchHist) a.watchHist = {}; a.watchHist[wFrom] = (a.watchHist[wFrom] || 0) + 1; applyStatMods({cohesion: MIM.fulfillCohesion}); G.mimic.doneCopied++; }
@@ -6696,6 +6696,13 @@ var SND = {
     objwin:  [[523, 0.09, "sine", 0.12], [659, 0.09, "sine", 0.12, 0.09], [784, 0.09, "sine", 0.12, 0.18], [1047, 0.14, "sine", 0.12, 0.27]],
     incident:[[196, 0.20, "triangle", 0.14]],
     decide:  [[330, 0.08, "sine", 0.12], [262, 0.10, "sine", 0.12, 0.08]],
+    /* Want pair: fulfillment rises warm, a miss falls low, so success
+       and failure carry different shapes instead of differing only in
+       volume. Both sit quieter than objwin (0.08 peak against 0.12)
+       because wants complete often across the village; the chime is
+       the payoff the heart bubble alone cannot carry off-screen. */
+    want:    [[784, 0.07, "sine", 0.08], [1047, 0.09, "sine", 0.08, 0.07]],
+    wantmiss:[[262, 0.12, "sine", 0.08], [196, 0.14, "sine", 0.08, 0.10]],
     warn:    [[880, 0.09, "triangle", 0.12], [880, 0.09, "triangle", 0.12, 0.12]],
     feud:    [[440, 0.12, "sawtooth", 0.07], [180, 0.22, "sawtooth", 0.07, 0.12]],
     blame:   [[140, 0.40, "sine", 0.12]],
