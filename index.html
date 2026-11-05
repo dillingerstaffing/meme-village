@@ -6224,6 +6224,23 @@ function activityText(a){
     if(a.stationId === "well") return "💧 Drawing water";
     if(a.stationId === "mill") return a.carrying === "crate" ? "Carrying grain" : "🌾 Milling grain";
     if(a.stationId === "school") return "📚 At the school";
+    /* A build act names the kind being raised, not just the job:
+       the build walk read already names the kind on the way, but
+       arrive() leaves buildSite standing through the act until
+       the next decide replaces it, so the act used to fall back
+       to the generic job read ("Raising a building") the moment
+       the resident arrived, and the sheet reader lost the kind
+       story at the very point the building goes up. The sheet
+       carries no site-kind line, so the kind must live in the
+       read itself, exactly as the walk read does. A load-carrying
+       act keeps its load read through the !a.carrying guard, a
+       finished site, an unknown site, or no site at all falls
+       back to the generic build read instead of naming a kind
+       that is not being raised, and the title already carries
+       its own article where it has one ("The Bank"), so the read
+       uses it verbatim there and adds "the" otherwise. Display
+       only: reads a.buildSite and the site row, writes no state. */
+    if(a.stationId === "build" && !a.carrying && a.buildSite){ var bsA = siteById(a.buildSite); var kdA = bsA && !bsA.done && BUILD_KINDS[bsA.kind] ? BUILD_KINDS[bsA.kind] : null; if(kdA) return "🔨 Raising " + (kdA.title.indexOf("The ") === 0 ? kdA.title : "the " + kdA.title); }
     if(a.stationId === "build") return a.carrying === "crate" ? "📦 Carrying a store crate" : a.carrying ? "🪵 Carrying a plank" : "🔨 Raising a building";
     if(a.stationId === "claim") return a.carrying === "crate" ? "📦 Carrying a store crate" : a.carrying ? "🪵 Carrying a plank" : "🚩 Staking the claim";
     if(a.stationId === "road") return a.carrying ? "🛣 Carrying a plank to the road" : "🛣 Laying the road";
