@@ -6568,7 +6568,7 @@ function refreshTray(force){
     b.addEventListener("click", function(){
       var o = b.getAttribute("data-o");
       /* Follow acts on the tray's resident: dashed means the camera follows the selected resident, so tapping Follow on another resident's tray follows them instead of silently dropping the current follow. */
-      if(o === "follow"){ cam.follow = (cam.follow === G.selected) ? null : G.selected; refreshTray(true); return; }
+      if(o === "follow"){ cam.follow = (cam.follow === G.selected) ? null : G.selected; SND.play("toggle"); /* Follow is a mode toggle, like the armed verbs: the only other answer is the small Follow/Following label flip, so the blip is the tap's answer, on and off. */ refreshTray(true); return; }
       /* Idle finder: cycle one loafer at a time, navigation only. The
          list is computed fresh on every tap; the tap selects the next
          loafer after the current selection (or the first, when the
@@ -6746,12 +6746,12 @@ var SND = {
     feud:    [[440, 0.12, "sawtooth", 0.07], [180, 0.22, "sawtooth", 0.07, 0.12]],
     blame:   [[140, 0.40, "sine", 0.12]],
     week:    [[392, 0.12, "sine", 0.08]],
-    /* Toggle: the tray's mode-switch blip, shared by the mute button
-       and every armed-verb toggle, pick-row cancel, and lens pick:
-       one short blip for any tap that changes only a mode, never a
-       commit, so a mode tap answers the same way everywhere. The
-       pending picks inside a mode use the lighter tap instead: a
-       staged pick is not a mode change and not a commit. */
+    /* Toggle: the tray's mode-switch blip, shared by the mute button,
+       every armed-verb toggle, pick-row cancel, lens pick, and the
+       Follow toggle: one short blip for any tap that changes only a
+       mode, never a commit, so a mode tap answers the same way
+       everywhere. The pending picks inside a mode use the lighter tap
+       instead: a staged pick is not a mode change and not a commit. */
     toggle:  [[700, 0.04, "sine", 0.10]]
   },
   init: function(){
@@ -8036,7 +8036,7 @@ window.__cycleIdle = function(){
   for(var ii = 0; ii < idleNow.length; ii++) if(idleNow[ii].id === G.selected) idleIx = ii;
   var idleNext = idleNow[(idleIx + 1) % idleNow.length];
   G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.foundArm = false; G.groupArm = false;
-  Store.dispatch("ui/select", {id: idleNext.id}); cam.follow = null; cam.target.x = idleNext.x; cam.target.z = idleNext.z;
+  Store.dispatch("ui/select", {id: idleNext.id}); cam.follow = null; cam.target.x = idleNext.x; cam.target.z = idleNext.z; SND.play("tap"); /* Idle selects a resident, and every other selection path answers with the tap blip, so the cycle does too; the no-loafer branch keeps its jump toast as its only answer. */
   refreshTray(true); return true;
 };
 window.__pickProject = function(i){ pickProject(i); };
@@ -9058,9 +9058,10 @@ function bindInput(){
        so a desktop player need not reach for the mouse to follow the
        selected resident. F toggles exactly the button's verb, and with
        no selection it does nothing, like the disabled button. */
-    /* CF-REF: camera-key-follow.md [4] */
+    /* CF-REF: camera-key-follow.md [5] */
     if((e.key === "f" || e.key === "F") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) && G.selected){
       cam.follow = (cam.follow === G.selected) ? null : G.selected;
+      SND.play("toggle");
       refreshTray(true);
     }
     /* Camera key reset: the keyboard twin of the camera button, so a
