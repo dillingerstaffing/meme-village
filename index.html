@@ -5057,27 +5057,34 @@ function applySoilTint(){
   G.soilCropScale = scale;
   G.growthApplied = -1;
 }
-/* SEASON TINTS (view, spec section 10): winter reads on the map
+/* SEASON TINTS (view, spec section 10): every season reads on the map
    itself, the Stardew standard that each season carries a distinctive
-   visual style: in winter the ground pales toward snow, the foliage
-   and hills mute, and the sky and fog turn cold, so the season with
+   visual style: spring vivid green, summer deeper yellow-green, autumn
+   umber foliage over dry ground, winter pale toward snow with a cold
+   sky and fog, so no season ever looks like another and the season with
    the scarcity bill and the death roll never looks like spring.
-   Display only, no sim change. CF-REF: season-tints.md [19] */
+   Display only, no sim change. CF-REF: season-tints.md [25] */
+var SEASON_PALETTES = {
+  1: {ground: 0xffffff, foliage: 0x557f42, hills: 0x6d9153, fog: 0xcfe9f2, hemi: 0x5d7a45, sky: ["#6fb6e6", "#a8d8f0", "#e8f6ee"]},
+  2: {ground: 0xfbfbe8, foliage: 0x4e7d33, hills: 0x688a4a, fog: 0xd6e9e6, hemi: 0x6b8a48, sky: ["#5fb0e8", "#a2d6f2", "#eef8f0"]},
+  3: {ground: 0xf3e6c8, foliage: 0xc07f2e, hills: 0xa8895a, fog: 0xe6dcc4, hemi: 0x8a7a4a, sky: ["#d8a86a", "#e8c890", "#f4ead8"]},
+  4: {ground: 0xe6edf2, foliage: 0x8ba08f, hills: 0x9aa892, fog: 0xdde8f0, hemi: 0x8b9aa0, sky: ["#a8c4d8", "#c8dcea", "#e8f0f4"]}
+};
 function applySeasonTint(){
-  var win = seasonOfYear() === 4;
-  var key = win ? "winter" : "other";
+  var s = seasonOfYear();
+  var key = ["spring", "summer", "autumn", "winter"][s - 1] || "spring";
   if(G.seasonTintApplied === key) return;
   G.seasonTintApplied = key;
+  var p = SEASON_PALETTES[s] || SEASON_PALETTES[1];
   var r = seasonTintRefs;
-  if(r.ground && r.ground.color) r.ground.color.setHex(win ? 0xe6edf2 : 0xffffff);
-  if(r.foliage && r.foliage.material) r.foliage.material.color.setHex(win ? 0x8ba08f : 0x557f42);
-  r.hills.forEach(function(m){ if(m && m.material) m.material.color.setHex(win ? 0x9aa892 : 0x6d9153); });
-  if(scene.fog) scene.fog.color.setHex(win ? 0xdde8f0 : 0xcfe9f2);
-  if(r.hemi && r.hemi.groundColor) r.hemi.groundColor.setHex(win ? 0x8b9aa0 : 0x5d7a45);
+  if(r.ground && r.ground.color) r.ground.color.setHex(p.ground);
+  if(r.foliage && r.foliage.material) r.foliage.material.color.setHex(p.foliage);
+  r.hills.forEach(function(m){ if(m && m.material) m.material.color.setHex(p.hills); });
+  if(scene.fog) scene.fog.color.setHex(p.fog);
+  if(r.hemi && r.hemi.groundColor) r.hemi.groundColor.setHex(p.hemi);
   if(r.skyCtx && r.skyTex && r.skyTex.isCanvasTexture){
     var grd = r.skyCtx.createLinearGradient(0, 0, 0, 256);
-    if(win){ grd.addColorStop(0, "#a8c4d8"); grd.addColorStop(0.55, "#c8dcea"); grd.addColorStop(1, "#e8f0f4"); }
-    else { grd.addColorStop(0, "#6fb6e6"); grd.addColorStop(0.55, "#a8d8f0"); grd.addColorStop(1, "#e8f6ee"); }
+    grd.addColorStop(0, p.sky[0]); grd.addColorStop(0.55, p.sky[1]); grd.addColorStop(1, p.sky[2]);
     r.skyCtx.fillStyle = grd; r.skyCtx.fillRect(0, 0, 2, 256);
     r.skyTex.needsUpdate = true;
   }
