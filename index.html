@@ -7462,11 +7462,18 @@ function hudTick(dt){
      (rich, tired, exhausted), from G.soilStage, so the row, the toast,
      and the tint can never disagree; a tired or exhausted row is the
      prompt to rest the fields a season before yields fall further.
-     Display only: the row renders G.soilStage and changes no gate,
-     ledger, graph edge, want, or tension. Guarded element write keeps
-     the node harness working with its stubbed document. */
+     The stage word alone never said how close the clock was to the next
+     stage, so the row also carries the live soil percent beside it
+     (rich 67 to 100, tired 34 to 66, exhausted 0 to 33), read from
+     G.soil with the null guard soilTick uses, so the distance to the
+     next boundary reads every frame. The percent is a pure read of the
+     live value, never a forecast: it assumes nothing about next
+     season's field work. Display only: the row renders G.soilStage and
+     G.soil and changes no gate, ledger, graph edge, want, or tension.
+     Guarded element write keeps the node harness working with its
+     stubbed document. */
   var soilLbl = document.getElementById("soilLbl");
-  if(soilLbl) soilLbl.textContent = "🌱 Soil " + (["rich", "tired", "exhausted"][G.soilStage || 0] || "worn");
+  if(soilLbl) soilLbl.textContent = "🌱 Soil " + (["rich", "tired", "exhausted"][G.soilStage || 0] || "worn") + " · " + Math.round((G.soil == null ? 1 : G.soil) * 100) + "%";
   /* An idle chip is a live claim, not a record: it ends the frame its
      resident stops loafing, beside its 9 second expiry and the removal
      filter, because loafT resets the moment work starts, so a chip
