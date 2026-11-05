@@ -8,6 +8,7 @@ overlay, marker, bubble, name tag, hud, camera move, collision, anchor, hide, de
 | overlay-anchor-budget.md | Markers stay within 56px up and 110px sideways of their resident, or hide; the selected resident's card may sidestep past the sideways cap when the west-edge nudge clears the HUD column |
 | desire-lens.md | The desire lens draws model-to-follower edges from live a.model edges, thickness by follower count, one lens active at a time, view only; the Lens button names its active mode persistently |
 | soil-tints.md | The field soil boxes and crop cones render the soil clock stage on the map itself: recolor plus stunted height per stage, display only |
+| season-tints.md | Winter reads on the map itself: pale ground, muted foliage and hills, cold sky and fog, restored in spring; display only |
 | claim-minimap.md | Surveyed plots read on the minimap: original plots as gold outline squares, CLAIM/GROW plots filled solid, an in-flight claim as a dashed gold ring, display only |
 | building-minimap.md | Founded sites read on the minimap over their own plot: finished sites as bordered cream squares, unfinished sites as dashed gold outlines, project sites skipped, display only |
 | proclaim-minimap.md | The season focus reads on the minimap for exactly the week it holds: the tray megaphone glyph above the focus station or site plot, ringed dashed in gold, display only |
