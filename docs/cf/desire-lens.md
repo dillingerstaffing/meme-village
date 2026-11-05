@@ -33,7 +33,11 @@ question the map answers):
   gets a red ring, so the admiration-to-rivalry flip stays legible on
   the lens. Shape plus line, never color alone.
 - The canvas carries a "DESIRE LENS" caption plus a legend line naming
-  the read, so the layer is identified on the map itself.
+  the read, so the layer is identified on the map itself. The legend
+  type scales with the minimap (the canvas is always 192 wide but
+  displays at 118 on phones), so it keeps its CSS size on both; on
+  phones the long second line splits in two rather than running past
+  the canvas edge.
 - The lens is display only: it never writes sim state, never commits,
   and never reads DOM to decide anything.
 

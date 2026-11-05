@@ -6825,6 +6825,13 @@ function minimapJump(x, y){
 function drawMinimap(){
   if(!mmCtx) return;
   var W = 192, H = 144, c = mmCtx;
+  /* The canvas is always 192 wide but displays at 118 on phones, so a
+     fixed canvas size reads smaller there; the pings and the proclaim
+     glyph already divide by mmScale for the same reason. Legend type
+     uses it too, so it keeps its CSS size on both: legF is 8px on
+     desktop and 13px on phones, reading 8 CSS px either way. */
+  var mmScale = (typeof window === "undefined" || window.innerWidth > 560) ? 1 : 118 / 192;
+  var legF = Math.round(8 / mmScale);
   var X = function(x){ return (x + 60) / 120 * W; }, Y = function(z){ return (z + 45) / 90 * H; };
   c.fillStyle = "#2a3d24"; c.fillRect(0, 0, W, H);
   c.fillStyle = "rgba(119,167,94,0.55)"; c.fillRect(0, 0, W, H);
@@ -6918,16 +6925,16 @@ function drawMinimap(){
       c.beginPath(); c.moveTo(X(d1.x), Y(d1.z)); c.lineTo(X(d2.x), Y(d2.z)); c.stroke();
       c.setLineDash([]);
     });
-    c.fillStyle = "rgba(255,255,255,0.9)"; c.font = "8px monospace";
-    c.fillText("TENSION LENS", 4, 10);
-    c.fillText("--- feud drift", 4, 20);
+    c.fillStyle = "rgba(255,255,255,0.9)"; c.font = legF + "px monospace";
+    c.fillText("TENSION LENS", 4, mmScale < 1 ? 12 : 10);
+    c.fillText("--- feud drift", 4, mmScale < 1 ? 28 : 20);
   }
-  /* DESIRE lens (v4 view step 4, spec section 15): model-to-follower edges
+  /* DESIRE lens (v4 view step 4, section 22's view): model-to-follower edges
      from the live imitation graph, edge thickness by follower count (copy
      number), the model's dot enlarged, the fashion's object named by the
      dominant want station among the followers, and envied models ringed in
      the tension red. Shape plus line, never color alone. Display only,
-     no sim change. CF-REF: desire-lens.md [31] */
+     no sim change. CF-REF: desire-lens.md [34] */
   if(G.ui && G.ui.lens === "desire"){
     G.agents.forEach(function(m){
       var fol = []; G.agents.forEach(function(b){ if(b.model === m.id) fol.push(b); });
@@ -6949,9 +6956,12 @@ function drawMinimap(){
       if(os && STATION3[os]){ c.font = "9px monospace"; c.fillText(STATION3[os].icon, X(m.x) - 4, Y(m.z) - 7); }
       if(prestigeFlipped(m)){ c.strokeStyle = "rgba(232,106,60,0.95)"; c.lineWidth = 2; c.beginPath(); c.arc(X(m.x), Y(m.z), 6, 0, 6.29); c.stroke(); }
     });
-    c.fillStyle = "rgba(255,255,255,0.9)"; c.font = "8px monospace";
-    c.fillText("DESIRE LENS", 4, 10);
-    c.fillText("model->follower, thick = copied", 4, 20);
+    c.fillStyle = "rgba(255,255,255,0.9)"; c.font = legF + "px monospace";
+    c.fillText("DESIRE LENS", 4, mmScale < 1 ? 12 : 10);
+    /* On phones the scaled second line would run past the canvas edge
+       (31 chars at 13px), so it splits in two; desktop is unchanged. */
+    if(mmScale < 1){ c.fillText("model->follower", 4, 28); c.fillText("thick = copied", 4, 42); }
+    else c.fillText("model->follower, thick = copied", 4, 20);
   }
   /* Minimap event pings: high-stakes alerts (feud warn/erupt, blame turn,
      death) and the project payoff ping the strategic channel at the event
@@ -6961,7 +6971,7 @@ function drawMinimap(){
      the trouble amber, so a payoff never reads as trouble. 4 sim-seconds,
      then gone; display only, drawn from state, never committed. */
   var PINGC = {warn:"#e8b34b", feud:"#e86a3c", blame:"#b48ce8", death:"#9aa0a6", win:"#ffd75e"};
-  var pgs = G.pings || [], pgi, pgg, pga, pcol, mmScale = (typeof window === "undefined" || window.innerWidth > 560) ? 1 : 118 / 192;
+  var pgs = G.pings || [], pgi, pgg, pga, pcol;
   for(pgi = 0; pgi < pgs.length; pgi++){
     pgg = pgs[pgi]; pga = G.t - pgg.t;
     if(pga < 0 || pga > 4) continue;
