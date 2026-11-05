@@ -774,7 +774,7 @@ function renderSheet(s){
   var whSig = 0; if(a.workHist) for(var wkk in a.workHist) whSig += a.workHist[wkk];
   var cvk = convergenceRecords(a);
   var convSig = cvk.drifts.map(function(r){ return r.name + ":" + r.tension + ":" + r.yr + ":" + r.sn; }).join(",") + "|" + cvk.conv.map(function(r){ return r.station + ":" + r.names.join(","); }).join(",");
-  var key = a.id + "|" + (s.speed || 0) + "|" + (a.thought ? a.thought.at + ":" + a.thought.text : "none") + "|" + log.length + "|" + NEED_DEFS.map(function(d){ return Math.round(needVal(a, d.id)); }).join(":") + ":" + whSig + "|" + (householdOf(a) ? householdOf(a).id : "") + "|" + (a.model || "") + "|" + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + "|" + Math.round(a.age || 34) + arcOf(a).id + "|" + Math.floor(a.cash || 0) + ":" + (a.bank == null ? "x" : Math.floor(a.bank)) + "|" + (a.tier || "") + (a.coverLapsed ? "L" : "") + "|" + (prestigeFlipUnlocked() ? (prestigeFlipped(a) ? "E" : "A") : "L") + followersOf(a) + "|" + convSig + "|" + activityText(a) + "|med:" + ((a.sick || a.sickWalk) ? ((G.medicPatient === a.id) ? "go" : (medicQueued(a.id) ? ("q" + medicQueuePos(a.id) + "/" + (G.medicQueue || []).length) : (medicGone() ? "gone" : "wait"))) : "-");
+  var key = a.id + "|" + (s.speed || 0) + "|" + (a.thought ? a.thought.at + ":" + a.thought.text : "none") + "|" + log.length + "|" + NEED_DEFS.map(function(d){ return Math.round(needVal(a, d.id)); }).join(":") + ":" + whSig + "|" + (householdOf(a) ? householdOf(a).id : "") + "|" + (a.model || "") + "|" + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + "|" + Math.round(a.age || 34) + arcOf(a).id + "|" + Math.floor(a.cash || 0) + ":" + (a.bank == null ? "x" : Math.floor(a.bank)) + "|" + (a.tier || "") + (a.coverLapsed ? "L" : "") + "|" + (prestigeFlipUnlocked() ? (prestigeFlipped(a) ? "E" : "A") : "L") + G.agents.filter(function(b){ return b.model === a.id; }).map(function(b){ return b.id; }).join(",") + "|" + convSig + "|" + activityText(a) + "|med:" + ((a.sick || a.sickWalk) ? ((G.medicPatient === a.id) ? "go" : (medicQueued(a.id) ? ("q" + medicQueuePos(a.id) + "/" + (G.medicQueue || []).length) : (medicGone() ? "gone" : "wait"))) : "-");
   if(key === sheetKey && el.style.display !== "none") return;
   sheetKey = key;
   var shirt = "#" + ("000000" + (a.shirt || 0).toString(16)).slice(-6);
@@ -812,6 +812,17 @@ function renderSheet(s){
   if(a.parents && a.parentNames && a.parentNames.length) h += "<div class='sh-work'>🧒 Child of " + a.parentNames.join(" and ") + "</div>";
   var mdl = a.model ? agent(a.model) : null;
   if(mdl) h += "<div class='sh-work'>👁 Looks up to " + mdl.name.split(" ")[0] + "</div>";
+  /* The sheet names the followers beside the model, the mirror of the
+     "Looks up to" line: the model line names the one edge out, this
+     line names the edges in, first names in roster order, so a player
+     reading a model can see who copies them without tracing lens edges
+     or opening every other sheet. A fact line only, no trait or cause
+     wording, in the model line's own grammar. The sheet key carries
+     the follower ids, not just the count, so a count-neutral swap (one
+     follower leaves, another joins) re-renders the line. Display only:
+     reads a.model edges, writes no state. */
+  var flw = G.agents.filter(function(b){ return b.model === a.id; }).map(function(b){ return b.name.split(" ")[0]; });
+  if(flw.length) h += "<div class='sh-work'>👥 Followed by " + flw.join(", ") + "</div>";
   /* The sheet carries the same want line as the tray, in the tray's own
      form (station, plus the origin first name when the want was copied):
      on phones the sheet is a bottom sheet over the tray, so while it
