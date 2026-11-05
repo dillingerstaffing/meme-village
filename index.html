@@ -231,7 +231,25 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
 .srow .sb{flex:1;height:6px;background:#05080b;border:1px solid #263449;border-radius:2px;overflow:hidden}
 .srow .sb i{display:block;height:100%;width:50%}
 .srow b{width:22px;text-align:right;font-family:ui-monospace,Menlo,monospace;font-size:10.5px}
+/* Text rows wrap instead of overflowing the panel: the tier, growth,
+   claim, home, and population rows carry sentences (Growth unlocks
+   at Town, 0/4 rings; Claims and roads unlock at Town), and the
+   156px content width cannot hold their longest states on one line,
+   so they painted past the panel border. Wrapping keeps the spec'd
+   text whole; the anchor and collision rules re-measure the panel
+   every tick, so a taller panel stays clear. Meter rows keep nowrap. */
+/* CF-REF: desktop-stats-compact-on-collision.md [1] */
+#tierRow .sl,#growRow .sl,#claimRow .sl,#homeRow .sl,#popRow .sl{white-space:normal}
 #statsStrip{display:none}
+/* The compact strip works at every width, not only on phones: the
+   desktop collision rule in hudTick adds the same class, so these
+   four rules are the desktop enabler, identical to the phone copy
+   below (which stays as the phone article's protected block). */
+/* CF-REF: desktop-stats-compact-on-collision.md [4] */
+#stats.compact .sh,#stats.compact .srow{display:none}
+#stats.compact #statsStrip{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;font-size:11px;padding:2px 0}
+#stats.compact #statsStrip span{white-space:nowrap;color:var(--ink2)}
+#stats.compact #statsStrip b{font-family:ui-monospace,Menlo,monospace;font-weight:700;color:var(--ink);margin-left:3px}
 .seg{display:flex;gap:6px;margin:6px 0 12px}
 .segbtn{flex:1;background:#0c1219;border:1px solid var(--line);color:var(--ink2);border-radius:8px;padding:9px 6px;cursor:pointer;font-weight:700;font-size:13px}
 .segbtn.on{border-color:var(--gold);color:var(--gold);background:rgba(232,179,75,.1)}
@@ -7739,7 +7757,26 @@ function hudTick(dt){
         var stTop = Math.max(146, Math.ceil(cardBottom) + 8) + "px";
         if(stEl.style.top !== stTop) stEl.style.top = stTop;
         if(stEl.style.bottom) stEl.style.bottom = "";
+        /* Desktop stats collision (2026-11-05): the anchor below the
+           card has no bottom constraint, so with a tall card (an
+           arrival pending) over a full alerts stack the panel's
+           bottom rows slide under the stack's chips. The phone
+           STATSCLEAR grammar, measured the same way: compact to the
+           meter strip first, and when even the strip cannot fit
+           between card and stack hide the panel with visibility, so
+           its rect stays measurable and it returns on its own when
+           the card shortens or the stack sheds. A sliver of 12px or
+           less is border and padding, not a meter row. Display only:
+           no state, no dispatch, no meter value changes. The class
+           lifts for one layout read per tick, so a cleared collision
+           restores the full rows instead of sticking on the strip. */
+        // CF-REF: desktop-stats-compact-on-collision.md [6]
+        var alTopD = alEl ? alEl.getBoundingClientRect().top : Infinity;
         if(stEl.classList.contains("compact")) stEl.classList.remove("compact");
+        var stBotD = stEl.getBoundingClientRect().bottom;
+        if(stBotD > alTopD + 12){ stEl.classList.add("compact"); stBotD = stEl.getBoundingClientRect().bottom; }
+        var hideStatsD = stBotD > alTopD + 12;
+        if(stEl.style.visibility !== (hideStatsD ? "hidden" : "")) stEl.style.visibility = hideStatsD ? "hidden" : "";
         /* Desktop never collapses the tray for a pick row: clear the
            phone-only class and any measured row cap on leaving phone
            width, so neither survives a resize into desktop. */
