@@ -3918,6 +3918,7 @@ function cancelFoundSite(site){
   if(!firstSiteOpen()) G.agents.forEach(function(a){ if(a.order === "build") a.order = null; });
   showToast(kind.icon + " " + kind.title + " called off: the builders walk home" + (back ? ", 📦" + back + " stores back." : "."), {x: site.x, z: site.z}); /* Focus only, no ping: a recall is the player's own call, not a completion or a warning, and the snapshot point is the freed plot, so the view chip and the last-alert return resolve to ground the player can found on again. */
   chronicle(kind.title + " called off; the builders walked home" + (back ? " with 📦" + back + " stores returned." : "."));
+  SND.play("decide");
   Store.commit();
   return true;
 }
@@ -4165,6 +4166,7 @@ function cancelClaim(){
   G.claim = null;
   showToast("🚩 Claim called off: the party walks home" + (back ? ", 📦" + back + " stores back." : "."), {x: c.x, z: c.z}); /* Focus only, no ping: a recall is the player's own call, not a completion or a warning, and the snapshot point is the claim center, so the view chip and the last-alert return resolve to ground the player can stake on again. */
   chronicle("A claim was called off; the party walked home" + (back ? " with 📦" + back + " stores returned." : "."));
+  SND.play("decide");
   Store.commit();
   return true;
 }
@@ -4271,6 +4273,7 @@ function layRoad(stA, stB){
   var mid = roadMid(r);
   showToast("🛣 The crew is laying a road from " + STATION3[stA].name + " to " + STATION3[stB].name + ": 🪵" + c.planks + " planks.", {x: mid.x, z: mid.z});
   chronicle("Road crew laying " + STATION3[stA].name + " to " + STATION3[stB].name + " (🪵" + c.planks + ").");
+  SND.play("decide");
   Store.commit();
   return r;
 }
@@ -4318,6 +4321,7 @@ function cancelRoad(){
   G.roadBuild = null;
   showToast("🛣 Road called off: the crew walks home.", roadMid(r)); /* Focus only, no ping: a recall is the player's own call, not a completion or a warning, and the midpoint is the surveyed line, so the view chip and the last-alert return resolve to ground the player can lay on again. */
   chronicle("A road was called off; the crew walked home.");
+  SND.play("decide");
   Store.commit();
   return true;
 }
@@ -6717,6 +6721,9 @@ var SND = {
     order:   [[523, 0.06, "sine", 0.10], [784, 0.07, "sine", 0.10, 0.07]],
     objwin:  [[523, 0.09, "sine", 0.12], [659, 0.09, "sine", 0.12, 0.09], [784, 0.09, "sine", 0.12, 0.18], [1047, 0.14, "sine", 0.12, 0.27]],
     incident:[[196, 0.20, "triangle", 0.14]],
+    /* Decide: the commit sound for a decision that changes the sim
+       (incident picks, project picks, recall and lay commits), distinct
+       from the mode toggle and from the objwin completion. */
     decide:  [[330, 0.08, "sine", 0.12], [262, 0.10, "sine", 0.12, 0.08]],
     /* Want pair: fulfillment rises warm, a miss falls low, so success
        and failure carry different shapes instead of differing only in
