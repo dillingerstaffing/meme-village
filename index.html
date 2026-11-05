@@ -5972,6 +5972,23 @@ function activityText(a){
      hurrying read through the branch order above. Display only:
      reads a.stationId, writes no state. */
   if(a.state === "walk" && !a.medicTask && a.stationId === "home") return "Going home to rest";
+  /* A build walk names the kind being raised, not just the job:
+     goSite sets a.buildSite for the whole walk and act, for an
+     autonomous pick and for an ordered build alike, but the walk
+     branch read every builder's trip as "Going to raise the
+     building", the same read a Cottage builder and a Bank builder
+     get, while the sheet carries no reason line and no site-kind
+     line at all, so a sheet reader could not tell which building
+     was going up. The site stands exactly for the walk: a finished
+     site, an unknown site, or no site at all falls back to the
+     generic build read instead of naming a kind that is not being
+     raised, a load-carrying or fetch walk keeps its own read
+     through the branch order above, and a medic walk keeps its
+     hurrying read. The title already carries its own article
+     where it has one ("The Bank"), so the read uses it verbatim
+     there and adds "the" otherwise. Display only: reads
+     a.buildSite and the site row, writes no state. */
+  if(a.state === "walk" && !a.medicTask && a.stationId === "build" && a.buildSite){ var bsW = siteById(a.buildSite); var kdW = bsW && !bsW.done && BUILD_KINDS[bsW.kind] ? BUILD_KINDS[bsW.kind] : null; if(kdW) return "Going to raise " + (kdW.title.indexOf("The ") === 0 ? kdW.title : "the " + kdW.title); }
   if(a.state === "walk") return a.medicTask ? "Hurrying to " + (medicPatientName() || "help") : a.stationId === "road" ? "Going to lay the road" : a.stationId === "claim" ? "Going to stake the claim" : a.stationId === "build" ? "Going to raise the building" : "Going to " + (stationW(a.stationId) ? stationW(a.stationId).name : "somewhere");
   /* A watch names where the watched resident is acting, not just
      whom: every watch starts on a resident in act state (all three
@@ -6285,8 +6302,13 @@ function refreshTray(force){
      reason all unchanged, must flip the key too, or the tray keeps
      the inspired read after the boost ends until an unrelated key
      component happens to move. */
+  /* Build-site flag: the same line reads activityText, and the build
+     walk read names the kind from buildSite, so a resident retargeted
+     to another site mid-walk, with state, station, and reason all
+     unchanged, must flip the key too, or the tray keeps the old kind
+     until an unrelated key component happens to move. */
   var folN = 0; if(a) G.agents.forEach(function(b2){ if(b2.model === a.id) folN++; });
-  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.inspUntil && G.t < a.inspUntil ? "INSP" : "") + (a.boostUntil && G.t < a.boostUntil ? "SHIFT" : "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.coverLapsed ? "L" : "") + (a.sick ? "S" : "") + (a.sickWalk ? "SW" : "") + Math.round(a.energy) + "/" + Math.round(a.morale) + "/" + Math.round(a.vis) + (a.model || "") + (a.watchOf && agent(a.watchOf) ? "W" + agent(a.watchOf).state + (agent(a.watchOf).stationId || "") : "") + (a.pendingWatch ? "PW" + a.pendingWatch : "") + (a.fetch ? "FE" + a.fetch : "") + "F" + folN : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + (G.ui && G.ui.lens ? "L" + G.ui.lens : "l") + "|" + (G.foundArm ? "F" : "") + (G.foundPlot == null ? "" : "FP" + G.foundPlot) + (G.claimArm ? "C" : "") + (G.lensArm ? "LA" : "") + (G.claimBearing == null ? "" : "b" + G.claimBearing) + (G.claimRing == null ? "" : "r" + G.claimRing) + (G.roadArm ? "R" : "") + (G.roadFrom || "") + (G.roadTo || "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "") + "|" + (G.modelArm ? "MA" : "") + (G.visitArm ? "VA" : "") + (G.coverArm ? "CA" : "") + (G.banked ? "BK" : "") + (medicGone() ? "MG" : "") + (a && a.bank != null ? "AC" : "") + (a && a.child ? "K" : "") + (a && a.spotUntil ? Math.ceil(Math.max(0, a.spotUntil - G.t)) : "") + (G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : "") + "|I" + idleIds + "|GR" + (G.groupArm ? "A" : "") + (Array.isArray(G.groups) ? G.groups.join(",") : "---") + "|OBJ" + (G.offerAccepted && G.offer && !G.objComplete ? (G.objStation || "") : "");
+  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.inspUntil && G.t < a.inspUntil ? "INSP" : "") + (a.boostUntil && G.t < a.boostUntil ? "SHIFT" : "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.coverLapsed ? "L" : "") + (a.sick ? "S" : "") + (a.sickWalk ? "SW" : "") + Math.round(a.energy) + "/" + Math.round(a.morale) + "/" + Math.round(a.vis) + (a.model || "") + (a.watchOf && agent(a.watchOf) ? "W" + agent(a.watchOf).state + (agent(a.watchOf).stationId || "") : "") + (a.pendingWatch ? "PW" + a.pendingWatch : "") + (a.fetch ? "FE" + a.fetch : "") + (a.buildSite ? "BS" + a.buildSite : "") + "F" + folN : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + (G.ui && G.ui.lens ? "L" + G.ui.lens : "l") + "|" + (G.foundArm ? "F" : "") + (G.foundPlot == null ? "" : "FP" + G.foundPlot) + (G.claimArm ? "C" : "") + (G.lensArm ? "LA" : "") + (G.claimBearing == null ? "" : "b" + G.claimBearing) + (G.claimRing == null ? "" : "r" + G.claimRing) + (G.roadArm ? "R" : "") + (G.roadFrom || "") + (G.roadTo || "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "") + "|" + (G.modelArm ? "MA" : "") + (G.visitArm ? "VA" : "") + (G.coverArm ? "CA" : "") + (G.banked ? "BK" : "") + (medicGone() ? "MG" : "") + (a && a.bank != null ? "AC" : "") + (a && a.child ? "K" : "") + (a && a.spotUntil ? Math.ceil(Math.max(0, a.spotUntil - G.t)) : "") + (G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : "") + "|I" + idleIds + "|GR" + (G.groupArm ? "A" : "") + (Array.isArray(G.groups) ? G.groups.join(",") : "---") + "|OBJ" + (G.offerAccepted && G.offer && !G.objComplete ? (G.objStation || "") : "");
   if(!force && key === trayKey) return;
   trayKey = key;
   var info = document.getElementById("selInfo");
