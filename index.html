@@ -3608,6 +3608,8 @@ function pickProject(i){
   var pSite = null;
   (G.sites || []).forEach(function(s){ if(s.projId === def.id) pSite = s; });
   showToast(def.icon + " Project chosen: " + def.title + ". Parts fill from driven work, in any order.", pSite ? {x: pSite.x, z: pSite.z} : null); /* Focus only, no ping: picking registers the project site on the map, and the completion toast already returns to that same site, so a plain chosen toast left the player with no way back to the site the pick just created. The site focus follows the founding grammar: a start carries a view chip and a last-alert return, and the win ping stays reserved for completions. No site, no focus, and the toast stays plain as before. */
+  /* The pick is a decision commit, so it answers with the same "decide" pair as Accept, an incident option, and Speak For: the toast alone may sit queued behind others. */
+  SND.play("decide");
   Store.commit();
 }
 function projectTick(){
@@ -4859,6 +4861,8 @@ function acceptOffer(){
   var accCx = 0, accCz = 0, accWi = 0, accSx = 0, accSz = 0;
   if(accSt){ accCx = accSt.x; accCz = accSt.z; if(accSt.work && accSt.work.length){ for(accWi = 0; accWi < accSt.work.length; accWi++){ accSx += accSt.work[accWi][0]; accSz += accSt.work[accWi][1]; } accCx = accSx / accSt.work.length; accCz = accSz / accSt.work.length; } }
   showToast("📜 Commission accepted: " + (o.titleDyn ? o.titleDyn() : o.title), accSt ? {x: accCx, z: accCz} : null);
+  /* A commit answers in sound, like every other decision commit (an incident option, a turned-away arrival, Speak For): the toast alone may sit queued behind others, so the "decide" pair confirms the season is committed. The win ping stays reserved for completions. */
+  SND.play("decide");
   Store.commit();
 }
 function ignoreOffer(){
@@ -4869,6 +4873,8 @@ function ignoreOffer(){
   /* The Ignore tap commits for the season, so it confirms like Accept
      does, in the card's own words: set aside now, a new offer next season. */
   showToast("📜 Commission set aside. A new offer comes with the next season.");
+  /* The same "decide" answer as Accept: setting an offer aside is a decision commit, not a win, and the toast alone may sit queued. */
+  SND.play("decide");
   Store.commit();
 }
 function objectiveTick(){
