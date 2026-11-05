@@ -5995,9 +5995,13 @@ function activityText(a){
      through the branch order above, and a medic walk keeps its
      hurrying read. The title already carries its own article
      where it has one ("The Bank"), so the read uses it verbatim
-     there and adds "the" otherwise. Display only: reads
+     there and adds "the" otherwise. When the build itself is the
+     standing order, the kind read carries the order suffix, exactly
+     as the ordered build act does, so the walk and the act agree
+     about whose build it is; an autonomous build keeps the bare
+     kind read. Display only: reads
      a.buildSite and the site row, writes no state. */
-  if(a.state === "walk" && !a.medicTask && a.stationId === "build" && a.buildSite){ var bsW = siteById(a.buildSite); var kdW = bsW && !bsW.done && BUILD_KINDS[bsW.kind] ? BUILD_KINDS[bsW.kind] : null; if(kdW) return "Going to raise " + (kdW.title.indexOf("The ") === 0 ? kdW.title : "the " + kdW.title); }
+  if(a.state === "walk" && !a.medicTask && a.stationId === "build" && a.buildSite){ var bsW = siteById(a.buildSite); var kdW = bsW && !bsW.done && BUILD_KINDS[bsW.kind] ? BUILD_KINDS[bsW.kind] : null; if(kdW) return "Going to raise " + (kdW.title.indexOf("The ") === 0 ? kdW.title : "the " + kdW.title) + (a.order === "build" ? " on your order" : ""); }
   /* A road walk names both ends, not just the job: a road is the
      only job whose destination is a pair of stations, not a place,
      so the walk branch read every crew member's trip as "Going to
@@ -6030,7 +6034,8 @@ function activityText(a){
      standing. The guard is stationId === order, not the order
      alone: an ordered resident diverted elsewhere (resting at home
      while the order stands) keeps the generic read, and a home
-     walk keeps its rest read, a build walk keeps its kind read, a
+     walk keeps its rest read, a build walk keeps its kind read with the order
+     suffix when the build itself is the order, a
      purpose walk keeps its own read, and a medic walk keeps its
      hurrying read, all through the branch order above. Display
      only: reads a.order and a.stationId, writes no state. */
