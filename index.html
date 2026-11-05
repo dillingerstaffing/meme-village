@@ -5934,6 +5934,31 @@ function activityText(a){
     if(!withPlace && a.stationId === "road") withPlace = "the road";
     if(withName && withPlace) return "Going to stay with " + withName + " at " + withPlace;
   }
+  /* A claim walk names the spot, not just the destination:
+     fireInitiative walks a resident to a work spot with reason
+     "Claiming a spot", drawn by a model, displacing the
+     least-followed worker there and adding tension to that pair,
+     but the walk branch read the trip as ordinary travel
+     ("Going to Mill"), the same read a routine worker gets,
+     while the sheet carries no reason line at all, so a sheet
+     reader could not tell a mimetic claim for a work spot from
+     ordinary work, and the tension the claim adds arrived with
+     no visible cause. The reason stands exactly for the walk:
+     fireInitiative sets it with the goStation walk and the
+     next decide replaces it, so a changed reason falls back to
+     the generic read instead of naming a claim that is not in
+     flight, and a medic walk keeps its hurrying read. The place
+     grammar follows the copying-walk branch: artName for
+     stations, and an unknown station falls back to the generic
+     read instead of naming a place that is not one. A claim
+     never targets home, so a home station falls through to the
+     home walk read below instead of naming a claim at home.
+     Display only: reads a.reason and a.stationId, writes no
+     state. */
+  if(a.state === "walk" && !a.medicTask && a.reason === "Claiming a spot" && a.stationId !== "home"){
+    var claimPlace = artName(a.stationId);
+    if(claimPlace) return "Going to claim a spot at " + claimPlace;
+  }
   /* A home walk names the rest it ends in, not just the place:
      every walk to home ends in a sit, and the sit already reads
      "Resting at home", but the walk branch read the trip as
