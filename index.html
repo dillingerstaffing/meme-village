@@ -5989,6 +5989,24 @@ function activityText(a){
      there and adds "the" otherwise. Display only: reads
      a.buildSite and the site row, writes no state. */
   if(a.state === "walk" && !a.medicTask && a.stationId === "build" && a.buildSite){ var bsW = siteById(a.buildSite); var kdW = bsW && !bsW.done && BUILD_KINDS[bsW.kind] ? BUILD_KINDS[bsW.kind] : null; if(kdW) return "Going to raise " + (kdW.title.indexOf("The ") === 0 ? kdW.title : "the " + kdW.title); }
+  /* A road walk names both ends, not just the job: a road is the
+     only job whose destination is a pair of stations, not a place,
+     so the walk branch read every crew member's trip as "Going to
+     lay the road", the same read a Mill to Fields crew and a Clinic
+     to Storehouse crew get, while the sheet carries no road line at
+     all, so a sheet reader could not tell which connection was
+     going in. The crew flag stands exactly for the walk: goRoad
+     sets roadCrew with the walk and recall or completion clears
+     it, so a finished road, an unknown road, or no crew at all
+     falls back to the generic road read instead of naming a road
+     that is not being laid, a load-carrying or fetch walk keeps
+     its own read through the branch order above, and a medic walk
+     keeps its hurrying read. The place grammar follows the
+     copying-walk branch: artName for stations, and an unknown
+     station falls back instead of naming a place that is not one.
+     Display only: reads roadCrew and the road row, writes no
+     state. */
+  if(a.state === "walk" && !a.medicTask && a.stationId === "road" && a.roadCrew){ var rdW = roadById(a.roadCrew); var stAW = rdW && !rdW.built ? artName(rdW.stA) : null; var stBW = rdW && !rdW.built ? artName(rdW.stB) : null; if(stAW && stBW) return "Going to lay the road from " + stAW + " to " + stBW; }
   if(a.state === "walk") return a.medicTask ? "Hurrying to " + (medicPatientName() || "help") : a.stationId === "road" ? "Going to lay the road" : a.stationId === "claim" ? "Going to stake the claim" : a.stationId === "build" ? "Going to raise the building" : "Going to " + (stationW(a.stationId) ? stationW(a.stationId).name : "somewhere");
   /* A watch names where the watched resident is acting, not just
      whom: every watch starts on a resident in act state (all three
@@ -6243,6 +6261,21 @@ function activityText(a){
     if(a.stationId === "build" && !a.carrying && a.buildSite){ var bsA = siteById(a.buildSite); var kdA = bsA && !bsA.done && BUILD_KINDS[bsA.kind] ? BUILD_KINDS[bsA.kind] : null; if(kdA) return "🔨 Raising " + (kdA.title.indexOf("The ") === 0 ? kdA.title : "the " + kdA.title); }
     if(a.stationId === "build") return a.carrying === "crate" ? "📦 Carrying a store crate" : a.carrying ? "🪵 Carrying a plank" : "🔨 Raising a building";
     if(a.stationId === "claim") return a.carrying === "crate" ? "📦 Carrying a store crate" : a.carrying ? "🪵 Carrying a plank" : "🚩 Staking the claim";
+    /* A road act names both ends, not just the job: the road walk
+       read already names the connection on the way, but arrive()
+       leaves roadCrew standing through the act until completion
+       or recall replaces it, so the act used to fall back to the
+       generic road read ("Laying the road") the moment the crew
+       arrived, and the sheet reader lost the connection story at
+       the very point the road is laid. The sheet carries no road
+       line, so the ends must live in the read itself, exactly as
+       the walk read does. A load-carrying act keeps its plank
+       read through the !a.carrying guard, on the same precedence
+       as the build act, and a finished road, an unknown road, or
+       no crew at all falls back to the generic read instead of
+       naming a road that is not being laid. Display only: reads
+       roadCrew and the road row, writes no state. */
+    if(a.stationId === "road" && !a.carrying && a.roadCrew){ var rdA = roadById(a.roadCrew); var stAA = rdA && !rdA.built ? artName(rdA.stA) : null; var stBA = rdA && !rdA.built ? artName(rdA.stB) : null; if(stAA && stBA) return "🛣 Laying the road from " + stAA + " to " + stBA; }
     if(a.stationId === "road") return a.carrying ? "🛣 Carrying a plank to the road" : "🛣 Laying the road";
     return "Working";
   }
@@ -6325,7 +6358,7 @@ function refreshTray(force){
      unchanged, must flip the key too, or the tray keeps the old kind
      until an unrelated key component happens to move. */
   var folN = 0; if(a) G.agents.forEach(function(b2){ if(b2.model === a.id) folN++; });
-  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.inspUntil && G.t < a.inspUntil ? "INSP" : "") + (a.boostUntil && G.t < a.boostUntil ? "SHIFT" : "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.coverLapsed ? "L" : "") + (a.sick ? "S" : "") + (a.sickWalk ? "SW" : "") + Math.round(a.energy) + "/" + Math.round(a.morale) + "/" + Math.round(a.vis) + (a.model || "") + (a.watchOf && agent(a.watchOf) ? "W" + agent(a.watchOf).state + (agent(a.watchOf).stationId || "") : "") + (a.pendingWatch ? "PW" + a.pendingWatch : "") + (a.fetch ? "FE" + a.fetch : "") + (a.buildSite ? "BS" + a.buildSite : "") + "F" + folN : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + (G.ui && G.ui.lens ? "L" + G.ui.lens : "l") + "|" + (G.foundArm ? "F" : "") + (G.foundPlot == null ? "" : "FP" + G.foundPlot) + (G.claimArm ? "C" : "") + (G.lensArm ? "LA" : "") + (G.claimBearing == null ? "" : "b" + G.claimBearing) + (G.claimRing == null ? "" : "r" + G.claimRing) + (G.roadArm ? "R" : "") + (G.roadFrom || "") + (G.roadTo || "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "") + "|" + (G.modelArm ? "MA" : "") + (G.visitArm ? "VA" : "") + (G.coverArm ? "CA" : "") + (G.banked ? "BK" : "") + (medicGone() ? "MG" : "") + (a && a.bank != null ? "AC" : "") + (a && a.child ? "K" : "") + (a && a.spotUntil ? Math.ceil(Math.max(0, a.spotUntil - G.t)) : "") + (G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : "") + "|I" + idleIds + "|GR" + (G.groupArm ? "A" : "") + (Array.isArray(G.groups) ? G.groups.join(",") : "---") + "|OBJ" + (G.offerAccepted && G.offer && !G.objComplete ? (G.objStation || "") : "");
+  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.inspUntil && G.t < a.inspUntil ? "INSP" : "") + (a.boostUntil && G.t < a.boostUntil ? "SHIFT" : "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.coverLapsed ? "L" : "") + (a.sick ? "S" : "") + (a.sickWalk ? "SW" : "") + Math.round(a.energy) + "/" + Math.round(a.morale) + "/" + Math.round(a.vis) + (a.model || "") + (a.watchOf && agent(a.watchOf) ? "W" + agent(a.watchOf).state + (agent(a.watchOf).stationId || "") : "") + (a.pendingWatch ? "PW" + a.pendingWatch : "") + (a.fetch ? "FE" + a.fetch : "") + (a.buildSite ? "BS" + a.buildSite : "") + (a.roadCrew ? "RC" + a.roadCrew : "") + "F" + folN : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + (G.ui && G.ui.lens ? "L" + G.ui.lens : "l") + "|" + (G.foundArm ? "F" : "") + (G.foundPlot == null ? "" : "FP" + G.foundPlot) + (G.claimArm ? "C" : "") + (G.lensArm ? "LA" : "") + (G.claimBearing == null ? "" : "b" + G.claimBearing) + (G.claimRing == null ? "" : "r" + G.claimRing) + (G.roadArm ? "R" : "") + (G.roadFrom || "") + (G.roadTo || "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "") + "|" + (G.modelArm ? "MA" : "") + (G.visitArm ? "VA" : "") + (G.coverArm ? "CA" : "") + (G.banked ? "BK" : "") + (medicGone() ? "MG" : "") + (a && a.bank != null ? "AC" : "") + (a && a.child ? "K" : "") + (a && a.spotUntil ? Math.ceil(Math.max(0, a.spotUntil - G.t)) : "") + (G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : "") + "|I" + idleIds + "|GR" + (G.groupArm ? "A" : "") + (Array.isArray(G.groups) ? G.groups.join(",") : "---") + "|OBJ" + (G.offerAccepted && G.offer && !G.objComplete ? (G.objStation || "") : "");
   if(!force && key === trayKey) return;
   trayKey = key;
   var info = document.getElementById("selInfo");
