@@ -5926,6 +5926,14 @@ function activityText(a){
      its hurrying read. Display only: reads a.reason and a.stationId,
      writes no state. */
   if(a.state === "walk" && !a.medicTask && a.reason === "Refusing, after the blame" && a.stationId === "home") return "Going home after refusing work";
+  /* A with-parent walk names the parent, not just the job: childDecide walks a child to the parent's station with reason "With <parent first name>", but the walk branch read the trip as ordinary travel ("Going to Mill") or, at a job station, as the job itself ("Going to raise the building"), the same reads an adult worker gets, while the sheet carries no reason line at all, so a sheet reader could not tell a child going to stay beside a parent from a worker going to work. The reason stands exactly for the walk: childDecide sets it with the walk and the next decide replaces it, so a changed reason falls back to the generic read instead of naming a stay that is not in flight, and a medic walk keeps its hurrying read. The place grammar follows the copying-walk branch: artName for stations, with the claim and road job fallbacks, and an unknown station falls back to the generic read instead of naming a place that is not one. A refusal walk keeps its own read through the branch above, since blame, not a parent, sends it home. Display only: reads a.reason and a.stationId, writes no state. */
+  if(a.state === "walk" && !a.medicTask && a.reason && a.reason.indexOf("With ") === 0){
+    var withName = a.reason.slice(5);
+    var withPlace = artName(a.stationId);
+    if(!withPlace && a.stationId === "claim") withPlace = "the claim";
+    if(!withPlace && a.stationId === "road") withPlace = "the road";
+    if(withName && withPlace) return "Going to stay with " + withName + " at " + withPlace;
+  }
   /* A home walk names the rest it ends in, not just the place:
      every walk to home ends in a sit, and the sit already reads
      "Resting at home", but the walk branch read the trip as
