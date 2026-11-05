@@ -7971,7 +7971,7 @@ function fxTick(dt){
 }
 window.__pickAlert = function(id){ var a = agent(id); /* A chip tap ends a pending map-targeted verb, in the order-ends-arm grammar: the verb belonged to the selection the tap replaces, so a still-armed verb would act for the alerted resident the player never armed it for, and the next resident tap would assign instead of selecting. The gold clearing beside the new selection is the signal; button-local and pick-row modes keep their own grammar. */
   G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.foundArm = false;
-  Store.dispatch("ui/select", {id: id}); cam.follow = null; if(a){ cam.target.x = a.x; cam.target.z = a.z; } refreshTray(true); };
+  Store.dispatch("ui/select", {id: id}); SND.play("tap"); /* A chip tap is a selection change plus a camera jump, and every other selection path answers with the tap blip (map tap, double-tap follow, group recall, Idle cycle); the chip used to answer with a tray change and a camera move only, so a tap that landed while the player watched elsewhere read like a tap that missed. */ cam.follow = null; if(a){ cam.target.x = a.x; cam.target.z = a.z; } refreshTray(true); };
 // CF-REF: idle-finder.md [6]
 function idleResidents(){
   if(!G.agents) return [];
