@@ -5967,7 +5967,19 @@ function activityText(a){
      the watch-place grammar, and the home read, the building-site
      read, and the unknown-station fallback are unchanged. Display
      only: reads stationId, writes no state. */
-  if(a.state === "sit"){ if(a.stationId === "home") return "Resting at home"; var sitNm = artName(a.stationId); if(!sitNm && a.stationId === "claim") sitNm = "the claim"; if(!sitNm && a.stationId === "road") sitNm = "the road"; return sitNm ? "Sitting at " + sitNm : "Sitting"; }
+  /* A refusal sit names the refusal, not the rest it looks like:
+     arrive() leaves the refusal reason standing through the home
+     sit until the next decide replaces it, and the sit lasts until
+     energy recovers, so a resident sitting out a protest read
+     "Resting at home", the same read an exhausted resident gets,
+     while the sheet carries no reason line at all, and the blame
+     story vanished again at arrival after the walk read named it
+     on the way. The reason gates the read exactly: a changed reason
+     or a non-home station falls back to the rest or generic sit
+     read instead of naming a refusal that is not in flight, and a
+     sick sit keeps its unwell read through the branch above.
+     Display only: reads a.reason and a.stationId, writes no state. */
+  if(a.state === "sit"){ if(a.stationId === "home"){ if(a.reason === "Refusing, after the blame") return "Sitting at home after refusing work"; return "Resting at home"; } var sitNm = artName(a.stationId); if(!sitNm && a.stationId === "claim") sitNm = "the claim"; if(!sitNm && a.stationId === "road") sitNm = "the road"; return sitNm ? "Sitting at " + sitNm : "Sitting"; }
   if(a.state === "act"){
     /* A copy act names the model, not just the job: the copying walk
        read already names the copy on the way, but arrive() leaves
