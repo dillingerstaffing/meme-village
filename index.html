@@ -6016,6 +6016,25 @@ function activityText(a){
      Display only: reads roadCrew and the road row, writes no
      state. */
   if(a.state === "walk" && !a.medicTask && a.stationId === "road" && a.roadCrew){ var rdW = roadById(a.roadCrew); var stAW = rdW && !rdW.built ? artName(rdW.stA) : null; var stBW = rdW && !rdW.built ? artName(rdW.stB) : null; if(stAW && stBW) return "Going to lay the road from " + stAW + " to " + stBW; }
+  /* An ordered walk names the order, not just the destination:
+     a resident walking under a standing player order used to read
+     the trip as ordinary travel ("Going to Mill"), the same read an
+     autonomous worker gets, while the commit feedback (the order
+     ping, the toast, the lit teal button) expires and the sheet
+     carries no order line at all, so a player returning to the
+     resident could not tell an ordered trip from an autonomous one.
+     The order stands exactly for the walk: setOrder3 sets it with
+     the walk, and blame, sickness, the medic dispatch, a visit, and
+     a free-will re-tap clear it, so a cleared order falls back to
+     the generic read instead of naming an order that is not
+     standing. The guard is stationId === order, not the order
+     alone: an ordered resident diverted elsewhere (resting at home
+     while the order stands) keeps the generic read, and a home
+     walk keeps its rest read, a build walk keeps its kind read, a
+     purpose walk keeps its own read, and a medic walk keeps its
+     hurrying read, all through the branch order above. Display
+     only: reads a.order and a.stationId, writes no state. */
+  if(a.state === "walk" && !a.medicTask && a.order && a.stationId === a.order){ var ordPlace = artName(a.stationId); if(ordPlace) return "Going to " + ordPlace + " on your order"; }
   if(a.state === "walk") return a.medicTask ? "Hurrying to " + (medicPatientName() || "help") : a.stationId === "road" ? "Going to lay the road" : a.stationId === "claim" ? "Going to stake the claim" : a.stationId === "build" ? "Going to raise the building" : "Going to " + (stationW(a.stationId) ? stationW(a.stationId).name : "somewhere");
   /* A watch names where the watched resident is acting, not just
      whom: every watch starts on a resident in act state (all three
