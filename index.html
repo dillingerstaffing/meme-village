@@ -6224,6 +6224,47 @@ function activityText(a){
       if(!actClaimPlace && a.stationId === "road") actClaimPlace = "the road";
       if(actClaimPlace) return "Claiming a spot at " + actClaimPlace;
     }
+    /* An ordered act names the order, not just the job: the ordered
+       walk read already names the order on the way, but arrive()
+       leaves the order standing through the act until blame,
+       sickness, the medic dispatch, a visit, or a free-will re-tap
+       clears it, so the act used to fall back to the generic job
+       read ("Milling grain") the moment the resident arrived, and
+       the sheet reader lost the order story at the very point the
+       ordered work happens. The sheet carries no order line, so the
+       order must live in the read itself, exactly as the walk read
+       does. The guard is stationId === order, not the order alone,
+       so an ordered resident diverted elsewhere keeps the generic
+       read; a load-carrying act keeps its load read through the
+       !a.carrying guard, a medic act keeps the generic read through
+       the !a.medicTask guard, a purpose act keeps its own read
+       through the branches above, and a green purpose act keeps
+       its read through the guard below, since visit commits clear
+       the order and cannot coexist with it in real play. A build
+       act keeps its kind read and a road act keeps its ends read,
+       each with the order suffix, instead of falling to the generic
+       job read, and an unknown station falls through to the generic
+       read instead of naming a job that is not one. Display only:
+       reads a.order, a.stationId, a.buildSite, and a.roadCrew,
+       writes no state. */
+    if(!a.carrying && !a.medicTask && a.order && a.stationId === a.order && a.stationId !== "home" && !(a.stationId === "green" && ((a.reason && a.reason.indexOf("Visiting ") === 0) || a.reason === "Looking for company" || a.reason === "Cooling a feud"))){
+      var ordAct = null;
+      if(a.stationId === "build" && a.buildSite){ var bsO = siteById(a.buildSite); var kdO = bsO && !bsO.done && BUILD_KINDS[bsO.kind] ? BUILD_KINDS[bsO.kind] : null; if(kdO) ordAct = "🔨 Raising " + (kdO.title.indexOf("The ") === 0 ? kdO.title : "the " + kdO.title); }
+      else if(a.stationId === "road" && a.roadCrew){ var rdO = roadById(a.roadCrew); var stAO = rdO && !rdO.built ? artName(rdO.stA) : null; var stBO = rdO && !rdO.built ? artName(rdO.stB) : null; if(stAO && stBO) ordAct = "🛣 Laying the road from " + stAO + " to " + stBO; }
+      if(!ordAct){
+        if(a.stationId === "clinic") ordAct = "🔨 Repairing the roof";
+        else if(a.stationId === "fields") ordAct = "🌿 Working the fields";
+        else if(a.stationId === "store") ordAct = "📦 Hauling stores";
+        else if(a.stationId === "green") ordAct = "🌳 With the village";
+        else if(a.stationId === "well") ordAct = "💧 Drawing water";
+        else if(a.stationId === "mill") ordAct = "🌾 Milling grain";
+        else if(a.stationId === "school") ordAct = "📚 At the school";
+        else if(a.stationId === "build") ordAct = "🔨 Raising a building";
+        else if(a.stationId === "claim") ordAct = "🚩 Staking the claim";
+        else if(a.stationId === "road") ordAct = "🛣 Laying the road";
+      }
+      if(ordAct) return ordAct + " on your order";
+    }
     if(a.stationId === "clinic") return a.carrying === "plank" ? "Carrying a plank" : "🔨 Repairing the roof";
     if(a.stationId === "fields") return "🌿 Working the fields";
     if(a.stationId === "store") return a.carrying === "crate" ? "Carrying a crate" : "📦 Hauling stores";
