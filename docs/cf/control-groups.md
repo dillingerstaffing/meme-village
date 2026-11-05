@@ -26,7 +26,8 @@ Invariants:
   the removed resident, and a recall of a gone resident clears the
   slot and answers, changing nothing else.
 - Recall never follows: it centers once and clears any camera
-  follow. Recall of an empty slot answers how to fill it and
+  follow. A successful recall plays tap, in the selection grammar,
+  beside its selection and camera center. Recall of an empty slot answers how to fill it and
   changes nothing. Both recall answers jump the toast queue, on
   the direct-reply rule: a recall that changes nothing has no
   other visible effect, so a queued answer reads as a dead chip
@@ -37,8 +38,11 @@ Invariants:
   digit with nothing selected answers that no resident is selected,
   and that answer jumps the toast queue on the same direct-reply
   rule: the keypress changes nothing visible, so a queued answer
-  reads as a dead key. The successful assign is untouched: its
-  toast names the occupant and the chip row visibly changes.
+  reads as a dead key. The successful assign plays decide beside
+  its toast: its toast names the occupant and the chip row visibly
+  changes, and the blip answers the tap itself, so the binding lands
+  even when the player is watching elsewhere. The no-selection
+  assign stays silent, its jump toast being its own answer.
 - The digit keys carry the same guard as every other keyboard
   verb: only once started, never while over or an incident panel
   is open, never with a Ctrl, Meta, or Alt modifier, never while

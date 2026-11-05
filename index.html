@@ -6723,7 +6723,7 @@ var SND = {
     incident:[[196, 0.20, "triangle", 0.14]],
     /* Decide: the commit sound for a decision that changes the sim
        (incident picks, project picks, recall and lay commits, tier
-       commits), distinct from the mode toggle and from the objwin
+       commits, group assigns), distinct from the mode toggle and from the objwin
        completion. */
     decide:  [[330, 0.08, "sine", 0.12], [262, 0.10, "sine", 0.12, 0.08]],
     /* Want pair: fulfillment rises warm, a miss falls low, so success
@@ -8009,7 +8009,7 @@ window.__saveCamMark = function(){ var before = (G.camMarks || []).length; Store
    follow. A chip tap assigns while the Groups arm stands and
    recalls otherwise; the keyboard twin is Shift plus digit to
    assign, digit alone to recall. */
-window.__groupAssign = function(slot){ var a = G.selected ? agent(G.selected) : null; if(!a){ showToast("👥 Select a resident first, then tap Groups", null, true); return false; } /* The no-selection answer jumps the toast queue, on the direct-reply rule the recall answers already follow: the keyboard assign bypasses the tray button (disabled with no selection), so Shift plus a digit with nothing selected is a keypress whose only feedback is this answer, and queued behind a live toast it reads as a dead key. The successful assign is untouched: its toast names the occupant and the chip row visibly changes, so it is never the tap's only feedback. */ Store.dispatch("ui/group/set", {slot: slot, id: a.id}); G.groupArm = false; showToast("👥 Group " + (slot + 1) + ": " + a.name.split(" ")[0]); refreshTray(true); return true; };
+window.__groupAssign = function(slot){ var a = G.selected ? agent(G.selected) : null; if(!a){ showToast("👥 Select a resident first, then tap Groups", null, true); return false; } /* The no-selection answer jumps the toast queue, on the direct-reply rule the recall answers already follow: the keyboard assign bypasses the tray button (disabled with no selection), so Shift plus a digit with nothing selected is a keypress whose only feedback is this answer, and queued behind a live toast it reads as a dead key. The successful assign plays decide beside its toast: its toast names the occupant and the chip row visibly changes, and the blip answers the tap itself, so the binding lands even when the player is watching elsewhere. */ Store.dispatch("ui/group/set", {slot: slot, id: a.id}); G.groupArm = false; SND.play("decide"); showToast("👥 Group " + (slot + 1) + ": " + a.name.split(" ")[0]); refreshTray(true); return true; };
 /* A recall answer jumps the toast queue, on the direct-reply rule the
    live toast view answer and the sick/child order answers already
    follow: a recall that changes nothing (empty slot, gone resident)
@@ -8017,7 +8017,7 @@ window.__groupAssign = function(slot){ var a = G.selected ? agent(G.selected) : 
    chip tap, and the displaced toast waits at the head of the queue
    instead of being erased. A successful recall toasts nothing, so
    its selection and camera center are untouched by this. */
-window.__groupRecall = function(slot){ var gr = Array.isArray(G.groups) ? G.groups : [null, null, null]; var id = gr[slot]; if(!id){ showToast("👥 Group " + (slot + 1) + " is empty. Select a resident, tap Groups, then tap this chip.", null, true); return false; } var a = agent(id); if(!a){ Store.dispatch("ui/group/clear", {slot: slot}); showToast("👥 That resident is no longer in the village, so group " + (slot + 1) + " is cleared.", null, true); refreshTray(true); return false; } Store.dispatch("ui/select", {id: a.id}); cam.follow = null; cam.target.x = a.x; cam.target.z = a.z; refreshTray(true); return true; };
+window.__groupRecall = function(slot){ var gr = Array.isArray(G.groups) ? G.groups : [null, null, null]; var id = gr[slot]; if(!id){ showToast("👥 Group " + (slot + 1) + " is empty. Select a resident, tap Groups, then tap this chip.", null, true); return false; } var a = agent(id); if(!a){ Store.dispatch("ui/group/clear", {slot: slot}); showToast("👥 That resident is no longer in the village, so group " + (slot + 1) + " is cleared.", null, true); refreshTray(true); return false; } Store.dispatch("ui/select", {id: a.id}); cam.follow = null; cam.target.x = a.x; cam.target.z = a.z; SND.play("tap"); refreshTray(true); return true; };
 window.__groupChip = function(slot){ if(G.groupArm) return __groupAssign(slot); return __groupRecall(slot); };
 /* Idle finder, shared by the tray button and the I key so the two can
    never disagree: cycle one loafer at a time, navigation only. The
