@@ -5911,6 +5911,21 @@ function activityText(a){
     if(!shiftPlace && a.stationId === "road") shiftPlace = "the road";
     if(shiftName && shiftPlace) return "Going for an extra shift following " + shiftName + " at " + shiftPlace;
   }
+  /* A refusal walk names the refusal, not the rest it ends in:
+     fireInitiative sends a resident worn down by blame home with
+     reason "Refusing, after the blame", but the home walk branch
+     below read the trip as rest ("Going home to rest"), the same
+     read an exhausted resident gets, while the sheet carries no
+     reason line at all, so a sheet reader could not tell a protest
+     walk home from exhaustion, and the blame story vanished at the
+     very point the refusal is walked out. The reason stands exactly
+     for the walk: fireInitiative sets it with the home walk and the
+     next decide replaces it, so a changed reason or a non-home
+     station falls back to the rest or generic read instead of
+     naming a refusal that is not in flight, and a medic walk keeps
+     its hurrying read. Display only: reads a.reason and a.stationId,
+     writes no state. */
+  if(a.state === "walk" && !a.medicTask && a.reason === "Refusing, after the blame" && a.stationId === "home") return "Going home after refusing work";
   /* A home walk names the rest it ends in, not just the place:
      every walk to home ends in a sit, and the sit already reads
      "Resting at home", but the walk branch read the trip as
@@ -5918,8 +5933,9 @@ function activityText(a){
      going to work gets, while the sheet carries no reason line
      at all. Home has no work slots, so a home walk is a rest walk
      on every path that sends one (exhaustion, low energy, an
-     ordered Rest, a sent-home patient, a tired child, a worker
-     sent home after a refusal), and a medic walk keeps its
+     ordered Rest, a sent-home patient, a tired child); a refusal
+     walk keeps its own read through the branch above, since blame,
+     not tiredness, sends it home, and a medic walk keeps its
      hurrying read through the branch order above. Display only:
      reads a.stationId, writes no state. */
   if(a.state === "walk" && !a.medicTask && a.stationId === "home") return "Going home to rest";
