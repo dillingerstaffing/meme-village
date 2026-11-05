@@ -2287,6 +2287,7 @@ function spawnChild(h){
   G.births = (G.births || 0) + 1;
   setBubble(a, "🌱", 2.5);
   showToast("🌱 " + p1.name.split(" ")[0] + " and " + p2.name.split(" ")[0] + " have a young one: " + first + ".", {ids: [p1.id, p2.id, a.id]});
+  SND.play("born");
   noteEvent(p1, "child", a.id); noteEvent(p2, "child", a.id);
   chronicle("A young one, " + a.name + ", was born to " + p1.name + " and " + p2.name + ".");
   refreshThought(a, "start");
@@ -2390,6 +2391,7 @@ function matureChild(a){
   a.state = "idle"; a.decideT = 0.5;
   setBubble(a, "🌱", 2.5);
   showToast("🌱 " + a.name + " has grown up in the village" + (watchedParent ? ", still looking up to " + watchedParent.name.split(" ")[0] : "") + ".", {ids: [a.id]});
+  SND.play("born");
   noteEvent(a, "grown", watchedParent ? watchedParent.id : "");
   chronicle(a.name + " came of age" + (watchedParent ? ", following " + watchedParent.name : "") + ".");
 }
@@ -6703,6 +6705,15 @@ var SND = {
        the payoff the heart bubble alone cannot carry off-screen. */
     want:    [[784, 0.07, "sine", 0.08], [1047, 0.09, "sine", 0.08, 0.07]],
     wantmiss:[[262, 0.12, "sine", 0.08], [196, 0.14, "sine", 0.08, 0.10]],
+    /* Born: one warm rise for both life events that add a villager, a
+       birth and a coming of age, so the palette stays small and the two
+       events read as the same beat. Quieter than objwin (0.08 peak)
+       because a birth is a small beat beside a promotion, and lower
+       than the want chime (392/523 against 784/1047) so the two never
+       collide; the death tone stays the low note, this stays the warm
+       one. No ping: the toast already carries the focus, on the
+       arrival grammar, and the win ping stays reserved for completions. */
+    born:    [[392, 0.10, "sine", 0.08], [523, 0.14, "sine", 0.08, 0.09]],
     warn:    [[880, 0.09, "triangle", 0.12], [880, 0.09, "triangle", 0.12, 0.12]],
     feud:    [[440, 0.12, "sawtooth", 0.07], [180, 0.22, "sawtooth", 0.07, 0.12]],
     blame:   [[140, 0.40, "sine", 0.12]],
