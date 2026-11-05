@@ -31,6 +31,16 @@ treatment means exactly one thing:
   top-right corner, the commission badge the top-left, so neither
   covers the other.
 
+- The NEW badge (.nb): a verb the latest promotion just unlocked.
+  A small gold NEW tag in the button's top-right corner, in the
+  want/commission badge grammar, on the Claim and Road buttons from
+  the Town promotion until the first tap on each verb (tray button
+  or keyboard twin). A badge, never a border treatment or a pulse.
+  The promotion toast names the unlock too, but a toast is transient
+  and the promotion lands in the busiest toast queue of the game, so
+  the badge is the persistent half of the teaching: the verb itself
+  marks its arrival until the player has seen it.
+
 Status is never a lit button: sickness, tier, childhood, and the
 watched state render as read-only chips in the info block. Sound's
 face also names its state: Muted while muted, Sound while sounding,

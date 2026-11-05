@@ -73,6 +73,7 @@ canvas{display:block}
 .ovl .bubble.wantb{border:2px dashed var(--gold);background:rgba(255,244,214,.97)}
 .cbtn .wb{position:absolute;top:1px;right:3px;font-size:10px;line-height:1}
 .cbtn .ob{position:absolute;top:1px;left:3px;font-size:10px;line-height:1}
+.cbtn .nb{position:absolute;top:1px;right:3px;font-size:9px;font-weight:800;letter-spacing:.06em;color:#131a23;background:var(--gold);border-radius:3px;padding:2px 4px;line-height:1}
 /* CF-REF: tray-passes-taps.md [2] */
 #tray{position:fixed;z-index:10;bottom:0;left:0;right:0;background:linear-gradient(180deg,rgba(14,19,26,.92),rgba(9,12,17,.97));border-top:1px solid var(--line);padding:10px 12px;display:flex;gap:12px;align-items:center;min-height:96px;pointer-events:none}
 #tray button{pointer-events:auto}
@@ -1218,7 +1219,7 @@ function newSlice(){
     claimArm:false, claimBearing:null, claimRing:null, claim:null, claimPlots:[], claimSeq:0,
     roadArm:false, roadFrom:null, roadTo:null, roadBuild:null, roads:[], roadSeq:0, lensArm:false,
     growRings:0, growPlots:[],
-    bonds:{}, households:[], householdSeq:0, soloHoused:0, departed:0, arrival:null, speakCd:0, speakArm:false, coverArm:false, chronCloseArm:false, coachBank:false, coachSick:false, coachPing:false, levelSeen:null, newSeq:0, kidSeq:0, births:0,
+    bonds:{}, households:[], householdSeq:0, soloHoused:0, departed:0, arrival:null, speakCd:0, speakArm:false, coverArm:false, chronCloseArm:false, coachBank:false, coachSick:false, coachPing:false, levelSeen:null, unlockNew:{}, newSeq:0, kidSeq:0, births:0,
     tiers:{clinic:1, fields:1, store:1, green:1, mill:1, school:1, well:1}, tierProg:{}, tierWorkers:{}, builtWealth:0, deaths:[], proclaim:null, proclaimArm:false, lastHarmWeek:null, lastIncidentWeek:null, incidentRollWeek:null,
     stats:{prod:45, trust:55, cohesion:55, rivalry:18, scarcity:52, autonomy:60},
     objStation:"clinic", objComplete:false, objDone:0, scapegoats:0, delays:[],
@@ -2538,6 +2539,15 @@ function checkLevelUp(focus){
   G.levelSeen = lv.name;
   var fresh = [];
   if(prevMin < townMin && newMin >= townMin) fresh.push("Claims", "roads");
+  /* The toast names the unlock, but a toast is transient and the
+     promotion lands in the busiest toast queue of the game, so the
+     newly unlocked verbs also carry a NEW badge on their own tray
+     buttons until the first tap on each verb: the verb itself teaches
+     its arrival, in the tray's badge grammar, instead of the toast
+     alone. G.unlockNew maps verb id to true; the button and keyboard
+     paths clear their own flag on first use. */
+  if(fresh.indexOf("Claims") >= 0){ if(!G.unlockNew || typeof G.unlockNew !== "object") G.unlockNew = {}; G.unlockNew.claim = true; }
+  if(fresh.indexOf("roads") >= 0){ if(!G.unlockNew || typeof G.unlockNew !== "object") G.unlockNew = {}; G.unlockNew.road = true; }
   Object.keys(BUILD_KINDS).forEach(function(k){ var kd = BUILD_KINDS[k]; if(kd.minLevel && kd.minLevel > prevMin && kd.minLevel <= newMin) fresh.push(kd.title); });
   showToast("🎉 The village has grown into a " + lv.name + "!" + (fresh.length ? " New: " + fresh.join(", ") + "." : ""), focus || null);
   SND.play("objwin");
@@ -5445,7 +5455,7 @@ window.__closeChronicle = function(){
   storySoFar(false);
 };
 
-/* CF-REF: chronicle-and-saves.md [143] */
+/* CF-REF: chronicle-and-saves.md [144] */
 /* Stage 8: persistence. One localStorage snapshot lets a village
    survive a reload. The save is the Store state as JSON with the
    transient render objects stripped by key (figures, overlay
@@ -5555,6 +5565,7 @@ function restoreState(st){
   if(typeof st.coachBank !== "boolean") st.coachBank = false;
   if(typeof st.coachSick !== "boolean") st.coachSick = false;
   if(typeof st.coachPing !== "boolean") st.coachPing = false;
+  if(!st.unlockNew || typeof st.unlockNew !== "object") st.unlockNew = {};
   if(typeof st.blameWarn !== "boolean") st.blameWarn = false;
   if(typeof st.ttiPaid !== "number") st.ttiPaid = 0;
   if(typeof st.ttiSavesUsed !== "number") st.ttiSavesUsed = 0;
@@ -6434,7 +6445,7 @@ function refreshTray(force){
      unchanged, must flip the key too, or the tray keeps the old kind
      until an unrelated key component happens to move. */
   var folN = 0; if(a) G.agents.forEach(function(b2){ if(b2.model === a.id) folN++; });
-  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.inspUntil && G.t < a.inspUntil ? "INSP" : "") + (a.boostUntil && G.t < a.boostUntil ? "SHIFT" : "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.coverLapsed ? "L" : "") + (a.sick ? "S" : "") + (a.sickWalk ? "SW" : "") + Math.round(a.energy) + "/" + Math.round(a.morale) + "/" + Math.round(a.vis) + (a.model || "") + (a.watchOf && agent(a.watchOf) ? "W" + agent(a.watchOf).state + (agent(a.watchOf).stationId || "") : "") + (a.pendingWatch ? "PW" + a.pendingWatch : "") + (a.fetch ? "FE" + a.fetch : "") + (a.buildSite ? "BS" + a.buildSite : "") + (a.roadCrew ? "RC" + a.roadCrew : "") + "F" + folN : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + (G.ui && G.ui.lens ? "L" + G.ui.lens : "l") + "|" + (G.foundArm ? "F" : "") + (G.foundPlot == null ? "" : "FP" + G.foundPlot) + (G.claimArm ? "C" : "") + (G.lensArm ? "LA" : "") + (G.claimBearing == null ? "" : "b" + G.claimBearing) + (G.claimRing == null ? "" : "r" + G.claimRing) + (G.roadArm ? "R" : "") + (G.roadFrom || "") + (G.roadTo || "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "") + "|" + (G.modelArm ? "MA" : "") + (G.visitArm ? "VA" : "") + (G.coverArm ? "CA" : "") + (G.banked ? "BK" : "") + (medicGone() ? "MG" : "") + (a && a.bank != null ? "AC" : "") + (a && a.child ? "K" : "") + (a && a.spotUntil ? Math.ceil(Math.max(0, a.spotUntil - G.t)) : "") + (G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : "") + "|I" + idleIds + "|GR" + (G.groupArm ? "A" : "") + (Array.isArray(G.groups) ? G.groups.join(",") : "---") + "|OBJ" + (G.offerAccepted && G.offer && !G.objComplete ? (G.objStation || "") : "");
+  var key = (G.selected || "") + "|" + (a ? (a.order || "auto") + a.state + a.stationId + a.disp + (a.reason || "") + (a.inspUntil && G.t < a.inspUntil ? "INSP" : "") + (a.boostUntil && G.t < a.boostUntil ? "SHIFT" : "") + (a.axis || "") + (a.want ? a.want.station + ":" + (a.want.from || "") : "") + (a.tier || "") + (a.coverLapsed ? "L" : "") + (a.sick ? "S" : "") + (a.sickWalk ? "SW" : "") + Math.round(a.energy) + "/" + Math.round(a.morale) + "/" + Math.round(a.vis) + (a.model || "") + (a.watchOf && agent(a.watchOf) ? "W" + agent(a.watchOf).state + (agent(a.watchOf).stationId || "") : "") + (a.pendingWatch ? "PW" + a.pendingWatch : "") + (a.fetch ? "FE" + a.fetch : "") + (a.buildSite ? "BS" + a.buildSite : "") + (a.roadCrew ? "RC" + a.roadCrew : "") + "F" + folN : "") + "|" + (cam.follow || "") + "|" + (spotOnCd ? "cd" + spotCdN : "rdy" + (spotFresh ? "f" : "")) + "|" + G.armed + "|" + (G.ui && G.ui.muted ? "m" : "u") + (G.ui && G.ui.lens ? "L" + G.ui.lens : "l") + "|" + (G.foundArm ? "F" : "") + (G.foundPlot == null ? "" : "FP" + G.foundPlot) + (G.claimArm ? "C" : "") + (G.lensArm ? "LA" : "") + (G.claimBearing == null ? "" : "b" + G.claimBearing) + (G.claimRing == null ? "" : "r" + G.claimRing) + (G.roadArm ? "R" : "") + (G.roadFrom || "") + (G.roadTo || "") + "|" + (G.sites ? G.sites.length + ":" + G.sites.filter(function(s2){ return s2.done; }).length : "-") + "|" + ((G.blame || 0) >= HH.speakBlameMin ? "B1" : "B0") + (G.speakCd > G.t ? "SC" : "SR") + (G.speakArm ? "SP" : "") + ((G.arrival ? G.arrival.names.join("+") : "")) + "|" + (G.proclaimArm ? "PA" : "") + (G.proclaim && G.proclaim.week === G.week ? (G.proclaim.station || G.proclaim.site || "") : "") + "|" + (G.modelArm ? "MA" : "") + (G.visitArm ? "VA" : "") + (G.coverArm ? "CA" : "") + (G.banked ? "BK" : "") + (medicGone() ? "MG" : "") + (a && a.bank != null ? "AC" : "") + (a && a.child ? "K" : "") + (a && a.spotUntil ? Math.ceil(Math.max(0, a.spotUntil - G.t)) : "") + (G.speakCd > G.t ? Math.ceil(G.speakCd - G.t) : "") + "|I" + idleIds + "|GR" + (G.groupArm ? "A" : "") + (Array.isArray(G.groups) ? G.groups.join(",") : "---") + "|OBJ" + (G.offerAccepted && G.offer && !G.objComplete ? (G.objStation || "") : "") + (G.unlockNew && G.unlockNew.claim ? "|UC" : "") + (G.unlockNew && G.unlockNew.road ? "|UR" : "");
   if(!force && key === trayKey) return;
   trayKey = key;
   var info = document.getElementById("selInfo");
@@ -6536,8 +6547,8 @@ function refreshTray(force){
   html += "<button class='cbtn" + (G.groupArm ? " armed" : "") + "' data-o='group' title='Groups (1, 2, 3 keys recall a slot; Shift plus a digit assigns the selected resident)'" + (!a ? " disabled" : "") + "><span class='i'>👥</span><span class='l'>Groups</span></button>";
   html += "<button class='cbtn" + (G.proclaimArm ? " armed" : "") + "' data-o='proclaim' title='Proclaim (B key)'><span class='i'>📣</span><span class='l'>Proclaim</span></button>";
   html += "<button class='cbtn" + (G.foundArm ? " armed" : "") + "' data-o='found' title='Found (N key)'><span class='i'>🏗</span><span class='l'>Found</span></button>";
-  html += "<button class='cbtn" + (G.claimArm ? " armed" : "") + "' data-o='claim' title='Claim (C key)'><span class='i'>🚩</span><span class='l'>Claim</span></button>";
-  html += "<button class='cbtn" + (G.roadArm ? " armed" : "") + "' data-o='road' title='Road (H key)'><span class='i'>🛣</span><span class='l'>Road</span></button>";
+  html += "<button class='cbtn" + (G.claimArm ? " armed" : "") + "' data-o='claim' title='Claim (C key)'><span class='i'>🚩</span><span class='l'>Claim</span>" + ((G.unlockNew && G.unlockNew.claim) ? "<span class='nb'>NEW</span>" : "") + "</button>";
+  html += "<button class='cbtn" + (G.roadArm ? " armed" : "") + "' data-o='road' title='Road (H key)'><span class='i'>🛣</span><span class='l'>Road</span>" + ((G.unlockNew && G.unlockNew.road) ? "<span class='nb'>NEW</span>" : "") + "</button>";
   html += "<button class='cbtn' data-o='story' title='Story (J key)'><span class='i'>📖</span><span class='l'>Story</span></button>";
   html += "<button class='cbtn' data-o='mute' title='Sound (M key)'><span class='i'>" + (G.ui && G.ui.muted ? "🔇" : "🔊") + "</span><span class='l'>" + (G.ui && G.ui.muted ? "Muted" : "Sound") + "</span></button>"; /* Sound's face names its state beside the icon swap, in the Follow face grammar. Display only. */
   html += "<button class='cbtn' data-o='lens' title='Lens (L key)'><span class='i'>" + ((G.ui && G.ui.lens === "desire") ? "👁" : (G.ui && G.ui.lens ? "⚔" : "🗺")) + "</span><span class='l'>" + ((G.ui && G.ui.lens === "desire") ? "Desire" : (G.ui && G.ui.lens ? "Tension" : "Lens")) + "</span></button></div>";
@@ -6615,6 +6626,7 @@ function refreshTray(force){
          row below; the gold armed vocabulary matches the other verbs. */
       if(o === "claim"){
         if(!claimUnlocked()){ showToast("🚩 Claims unlock when the village grows into a Town.", null, true); refreshTray(true); return; }
+        if(G.unlockNew) G.unlockNew.claim = false;
         G.claimArm = !G.claimArm; G.claimBearing = null; G.claimRing = null;
         G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.groupArm = false;
         if(G.claimArm) showToast((G.claim && !G.claim.staked) ? "🚩 The claim party is still out: recall them, or let them finish" : "🚩 Pick a bearing and a ring: the founding party stakes the claim and carries the materials");
@@ -6622,6 +6634,7 @@ function refreshTray(force){
       }
       if(o === "road"){
         if(!roadUnlocked()){ showToast("🛣 Roads unlock when the village grows into a Town.", null, true); refreshTray(true); return; }
+        if(G.unlockNew) G.unlockNew.road = false;
         G.roadArm = !G.roadArm; G.roadFrom = null; G.roadTo = null;
         G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.claimArm = false; G.groupArm = false;
         if(G.roadArm) showToast((G.roadBuild && !G.roadBuild.built) ? "🛣 The road crew is still out: recall them, or let them finish" : "🛣 Tap one station, then another: the crew lays a road between them");
@@ -8781,7 +8794,7 @@ function bindInput(){
        aside while Shift is held, exactly as a digit stands aside for
        its Shift assign. */
     /* CF-REF: keyboard-c-claim.md [1] */
-    if((e.key === "c" || e.key === "C") && !e.shiftKey && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ if(!claimUnlocked()){ showToast("🚩 Claims unlock when the village grows into a Town.", null, true); refreshTray(true); } else { G.claimArm = !G.claimArm; G.claimBearing = null; G.claimRing = null; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.groupArm = false; if(G.claimArm) showToast((G.claim && !G.claim.staked) ? "🚩 The claim party is still out: recall them, or let them finish" : "🚩 Pick a bearing and a ring: the founding party stakes the claim and carries the materials"); refreshTray(true); } }
+    if((e.key === "c" || e.key === "C") && !e.shiftKey && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ if(!claimUnlocked()){ showToast("🚩 Claims unlock when the village grows into a Town.", null, true); refreshTray(true); } else { if(G.unlockNew) G.unlockNew.claim = false; G.claimArm = !G.claimArm; G.claimBearing = null; G.claimRing = null; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.groupArm = false; if(G.claimArm) showToast((G.claim && !G.claim.staked) ? "🚩 The claim party is still out: recall them, or let them finish" : "🚩 Pick a bearing and a ring: the founding party stakes the claim and carries the materials"); refreshTray(true); } }
     /* B proclaim arm: the keyboard twin of the tray Proclaim button,
        so a desktop player need not reach for the mouse to arm the
        season-focus verb. P is taken (pause, the Sims twin), so B
@@ -8826,7 +8839,7 @@ function bindInput(){
        crew-out wording when a road is under way, else the
        tap-two-stations wording). */
     /* CF-REF: keyboard-h-road.md [1] */
-    if((e.key === "h" || e.key === "H") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ if(!roadUnlocked()){ showToast("🛣 Roads unlock when the village grows into a Town.", null, true); refreshTray(true); } else { G.roadArm = !G.roadArm; G.roadFrom = null; G.roadTo = null; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.claimArm = false; G.groupArm = false; if(G.roadArm) showToast((G.roadBuild && !G.roadBuild.built) ? "🛣 The road crew is still out: recall them, or let them finish" : "🛣 Tap one station, then another: the crew lays a road between them"); refreshTray(true); } }
+    if((e.key === "h" || e.key === "H") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ if(!roadUnlocked()){ showToast("🛣 Roads unlock when the village grows into a Town.", null, true); refreshTray(true); } else { if(G.unlockNew) G.unlockNew.road = false; G.roadArm = !G.roadArm; G.roadFrom = null; G.roadTo = null; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.claimArm = false; G.groupArm = false; if(G.roadArm) showToast((G.roadBuild && !G.roadBuild.built) ? "🛣 The road crew is still out: recall them, or let them finish" : "🛣 Tap one station, then another: the crew lays a road between them"); refreshTray(true); } }
     /* V visit: the keyboard twin of the tray Visit button, the first
        resident-targeted armed verb to gain a key (Model's initial M
        is the Sound mute key, so Model waits for its own letter).

@@ -16,7 +16,10 @@ button's own armed-verb clear list (the generic arm flag, Model,
 Visit, Proclaim, Speak, Cover, Found, Claim, Groups) and toasts
 on arming, with the crew-out wording when a road is under way,
 else the tap-two-stations wording ("Tap one station, then
-another: the crew lays a road between them"). It deliberately
+another: the crew lays a road between them"). The first H press
+at Town also clears the Road button's NEW badge, exactly like the
+button's first tap: the badge marks the verb from its promotion
+until the player has used it once, on either path. It deliberately
 does not clear the other state the button leaves alone: the lens
 arm keeps the button's own grammar, so the key mirrors the
 button instead of inventing a wider clear.

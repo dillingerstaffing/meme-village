@@ -19,7 +19,10 @@ it explains the unlock ("Claims unlock when the village grows into
 a Town") instead of arming, and at Town it toggles claimArm, clears
 the bearing and ring picks and the button's own armed-verb clear
 list (including Found), and toasts on arming, with the in-flight
-recall wording when a claim party is already out.
+recall wording when a claim party is already out. The first C press
+at Town also clears the Claim button's NEW badge, exactly like the
+button's first tap: the badge marks the verb from its promotion
+until the player has used it once, on either path.
 
 C is guarded like a panel key, not like the display-only pause and
 mute keys: it fires only once the game has started, never while
