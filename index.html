@@ -6141,6 +6141,26 @@ function activityText(a){
       if(!actShiftPlace && a.stationId === "road") actShiftPlace = "the road";
       if(actShiftName && actShiftPlace) return "Extra shift following " + actShiftName + " at " + actShiftPlace;
     }
+    /* A claim act names the spot, not just the job: the claim walk
+       read already names the claim on the way, but arrive() leaves
+       the reason standing through the act until the next decide
+       replaces it, so the act used to fall back to the generic job
+       read ("Milling grain") the moment the resident arrived, and
+       the sheet reader lost the imitation story at the very point
+       the claim is worked. The sheet carries no reason line, so the
+       purpose must live in the read itself, exactly as the walk read
+       does. A load-carrying act keeps its load read through the
+       !a.carrying guard, on the same precedence as the copy branch;
+       a changed or cleared reason falls back to the generic read,
+       and an unknown or home station falls back too instead of
+       naming a place that is not one. Display only: reads a.reason
+       and a.stationId, writes no state. */
+    if(!a.carrying && a.reason === "Claiming a spot" && a.stationId !== "home"){
+      var actClaimPlace = artName(a.stationId);
+      if(!actClaimPlace && a.stationId === "claim") actClaimPlace = "the claim";
+      if(!actClaimPlace && a.stationId === "road") actClaimPlace = "the road";
+      if(actClaimPlace) return "Claiming a spot at " + actClaimPlace;
+    }
     if(a.stationId === "clinic") return a.carrying === "plank" ? "Carrying a plank" : "🔨 Repairing the roof";
     if(a.stationId === "fields") return "🌿 Working the fields";
     if(a.stationId === "store") return a.carrying === "crate" ? "Carrying a crate" : "📦 Hauling stores";
