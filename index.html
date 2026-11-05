@@ -7024,21 +7024,29 @@ function hudTick(dt){
   var o = curObjective();
   var accepted = !!(G.offerAccepted && G.offer);
   var pct = accepted ? Math.max(0, Math.min(100, Math.round(o.metric()))) : 0;
+  /* Season clock on the card, in the week chip's own grammar: the card
+     is the player's answer to how long the goal takes, and the clock
+     lived only as an unlabeled sun percent in the opposite corner, so a
+     player judging pace had to find and decode it elsewhere; an offer
+     left unaccepted lapses silently at the boundary, so the offer and
+     no-commission states carry the same clock beside the dash. Display
+     only, derived each frame in the HUD renderer, no new state. */
+  var clkPct = Math.round(G.weekTime / WEEK_LEN * 100);
   if(accepted){
     document.getElementById("objK").textContent = "COMMISSION · " + seasonName().toUpperCase() + (G.objComplete ? " · ✓ DONE" : "");
     document.getElementById("objT").textContent = o.icon + " " + (o.titleDyn ? o.titleDyn() : o.title);
     document.getElementById("objHint").textContent = G.objComplete ? "Done. A new offer comes with the next season." : (o.hintDyn ? o.hintDyn() : o.hint);
-    document.getElementById("objPct").textContent = pct + "% · 👥" + countHands(G.objStation);
+    document.getElementById("objPct").textContent = pct + "% · 👥" + countHands(G.objStation) + " · ☀ " + clkPct + "%";
   } else if(G.offer){
     document.getElementById("objK").textContent = "OFFER · " + seasonName().toUpperCase();
     document.getElementById("objT").textContent = o.icon + " " + (o.titleDyn ? o.titleDyn() : o.title);
     document.getElementById("objHint").textContent = (o.hintDyn ? o.hintDyn() : o.hint) + (o.project ? "" : " Completing it pays +" + OBJ_COMPLETE_BONUS.trust + " trust and +" + OBJ_COMPLETE_BONUS.cohesion + " cohesion.");
-    document.getElementById("objPct").textContent = "-";
+    document.getElementById("objPct").textContent = "- · ☀ " + clkPct + "%";
   } else {
     document.getElementById("objK").textContent = "SEASON · " + seasonName().toUpperCase();
     document.getElementById("objT").textContent = "No commission";
     document.getElementById("objHint").textContent = "The village runs itself. A new offer comes with the next season.";
-    document.getElementById("objPct").textContent = "-";
+    document.getElementById("objPct").textContent = "- · ☀ " + clkPct + "%";
   }
   document.getElementById("objBar").style.width = pct + "%";
   var offEl = document.getElementById("offerPick");
