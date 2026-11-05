@@ -6580,9 +6580,10 @@ function refreshTray(force){
       /* Armed-verb toggle: re-tapping the gold button leaves the mode,
          mirroring the Proclaim, Found, Claim, and Road toggles, so the
          button itself is the exit from an armed mode instead of forcing
-         a commit or a miss. Silent on disarm, matching the siblings;
-         the gold treatment clearing is the signal. */
-      if(o === "group"){ if(!a){ showToast("👥 Select a resident first, then tap Groups"); refreshTray(true); return; } G.groupArm = !G.groupArm; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.claimArm = false; G.roadArm = false; if(G.groupArm) showToast("👥 Tap a group chip to save " + a.name.split(" ")[0] + " to it"); refreshTray(true); return; }
+         a commit or a miss. Arm and disarm both play the toggle blip,
+         beside the gold treatment clearing, like every other armed
+         verb: a mode tap answers in sound either way. */
+      if(o === "group"){ if(!a){ showToast("👥 Select a resident first, then tap Groups"); refreshTray(true); return; } G.groupArm = !G.groupArm; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.claimArm = false; G.roadArm = false; SND.play("toggle"); if(G.groupArm) showToast("👥 Tap a group chip to save " + a.name.split(" ")[0] + " to it"); refreshTray(true); return; }
       /* Resident-targeted and building-targeted arm toasts answer at
          once (jump), on the direct-reply rule the group-recall, idle,
          and cancel answers already follow: Spotlight, Model, Visit,
@@ -6597,10 +6598,10 @@ function refreshTray(force){
          Speak commits from its button, not from a world tap. The
          keyboard twins carry the same jump, so key and button can
          never disagree. */
-      if(o === "spot"){ G.armed = !G.armed; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.armed) showToast("✨ Tap a resident to spotlight them: a 20s shield, then a 45s cooldown", null, true); refreshTray(true); return; }
-      if(o === "model"){ G.modelArm = !G.modelArm; G.armed = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.modelArm){ var mm0 = (a && a.model) ? agent(a.model) : null; showToast("👁 Tap who " + (a ? a.name.split(" ")[0] : "they") + " should look up to: they copy them until you pick again" + (mm0 ? "; " + a.name.split(" ")[0] + " looks up to " + mm0.name.split(" ")[0] + " now" : ""), null, true); } refreshTray(true); return; }
-      if(o === "visit"){ G.visitArm = !G.visitArm; G.armed = false; G.modelArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.visitArm) showToast("💬 Tap who " + (a ? a.name.split(" ")[0] : "they") + " should visit: they walk over for a chat", null, true); refreshTray(true); return; }
-      if(o === "proclaim"){ G.proclaimArm = !G.proclaimArm; G.armed = false; G.modelArm = false; G.visitArm = false; G.foundArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.proclaimArm){ var pcEarly = !!(G.proclaim && G.proclaim.week === G.week); var pcNm = "the village"; if(pcEarly){ if(G.proclaim.site){ var pcSk = siteById(G.proclaim.site); var pcKd = pcSk ? BUILD_KINDS[pcSk.kind] : null; pcNm = pcKd ? pcKd.title : "the building site"; } else if(G.proclaim.station && STATION3[G.proclaim.station]) pcNm = artName(G.proclaim.station); } showToast("📣 Tap a building, or a building site, to proclaim the village's focus for the season, drawing more residents to work there" + (pcEarly ? "; " + pcNm + " holds the focus now. Shifting the focus early costs " + LIFE.proclaimRecost + " cohesion" : ""), null, true); } refreshTray(true); return; }
+      if(o === "spot"){ G.armed = !G.armed; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.armed) showToast("✨ Tap a resident to spotlight them: a 20s shield, then a 45s cooldown", null, true); SND.play("toggle"); refreshTray(true); return; }
+      if(o === "model"){ G.modelArm = !G.modelArm; G.armed = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.modelArm){ var mm0 = (a && a.model) ? agent(a.model) : null; showToast("👁 Tap who " + (a ? a.name.split(" ")[0] : "they") + " should look up to: they copy them until you pick again" + (mm0 ? "; " + a.name.split(" ")[0] + " looks up to " + mm0.name.split(" ")[0] + " now" : ""), null, true); } SND.play("toggle"); refreshTray(true); return; }
+      if(o === "visit"){ G.visitArm = !G.visitArm; G.armed = false; G.modelArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.visitArm) showToast("💬 Tap who " + (a ? a.name.split(" ")[0] : "they") + " should visit: they walk over for a chat", null, true); SND.play("toggle"); refreshTray(true); return; }
+      if(o === "proclaim"){ G.proclaimArm = !G.proclaimArm; G.armed = false; G.modelArm = false; G.visitArm = false; G.foundArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.proclaimArm){ var pcEarly = !!(G.proclaim && G.proclaim.week === G.week); var pcNm = "the village"; if(pcEarly){ if(G.proclaim.site){ var pcSk = siteById(G.proclaim.site); var pcKd = pcSk ? BUILD_KINDS[pcSk.kind] : null; pcNm = pcKd ? pcKd.title : "the building site"; } else if(G.proclaim.station && STATION3[G.proclaim.station]) pcNm = artName(G.proclaim.station); } showToast("📣 Tap a building, or a building site, to proclaim the village's focus for the season, drawing more residents to work there" + (pcEarly ? "; " + pcNm + " holds the focus now. Shifting the focus early costs " + LIFE.proclaimRecost + " cohesion" : ""), null, true); } SND.play("toggle"); refreshTray(true); return; }
       if(o === "thoughts"){ if(G.selected) Store.dispatch("ui/sheet", {id:G.selected}); return; }
       if(o === "speak"){
         G.coverArm = false;
@@ -6611,23 +6612,23 @@ function refreshTray(force){
         if((G.blame || 0) < HH.speakBlameMin || (G.speakCd && G.t < G.speakCd)){ speakFor(); refreshTray(true); return; }
         var splan = speakPlan();
         if(splan && !splan.fail){
-          G.speakArm = true; G.groupArm = false;
+          G.speakArm = true; G.groupArm = false; SND.play("toggle");
           var svn = splan.voucher.name.split(" ")[0], stn = splan.target.name.split(" ")[0];
           showToast("🕊 " + svn + " would speak for " + stn + " (" + splan.vf + " followers, trust " + Math.round(G.stats.trust) + ", needs " + HH.speakStrength + "). If the village is not ready, " + svn + " loses standing. Tap the button again to commit.", {ids: [splan.voucher.id, splan.target.id]});
         } else { speakFor(); }
         refreshTray(true); return;
       }
-      if(o === "cover"){ if(a && !a.child && G.banked && a.bank != null){ G.coverArm = true; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.foundArm = false; G.groupArm = false; showToast("🛡 Cover for " + a.name.split(" ")[0] + " is " + (a.tier ? TTI[a.tier].name : "none") + " now. Premiums come out of the bank account each season. Each tier button names what it buys."); } refreshTray(true); return; }
+      if(o === "cover"){ if(a && !a.child && G.banked && a.bank != null){ G.coverArm = true; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.foundArm = false; G.groupArm = false; showToast("🛡 Cover for " + a.name.split(" ")[0] + " is " + (a.tier ? TTI[a.tier].name : "none") + " now. Premiums come out of the bank account each season. Each tier button names what it buys."); SND.play("toggle"); } refreshTray(true); return; }
       if(o === "covertier"){ if(a){ var tid2 = b.getAttribute("data-t") || null; G.coverArm = false; if((a.tier || null) !== tid2 && setTier(a, tid2)) showToast("🛡 " + a.name.split(" ")[0] + ": " + (tid2 ? TTI[tid2].name + " cover, " + TTI[tid2].premium + "🪙 a season" : "no cover")); /* Tapping the tier already held used to close the chooser with no word at all: the check-marked button read as a commit that never confirmed, and the player could not tell a tap that landed from one that missed. Answer the standing state instead, in the same-target re-proclaim grammar, and change nothing. */ else if((a.tier || null) === tid2) showToast("🛡 " + a.name.split(" ")[0] + " already has " + (tid2 ? TTI[tid2].name + " cover" : "no cover"), null, true); } refreshTray(true); return; }
       if(o === "callout"){ if(a) callOut(a); refreshTray(true); return; }
       if(o === "mute"){ Store.dispatch("ui/mute"); try { if(typeof localStorage !== "undefined") localStorage.setItem("mv_muted", (G.ui && G.ui.muted) ? "1" : "0"); } catch(e){} SND.play("toggle"); refreshTray(true); return; }
       /* Lens direct pick: a view switch in the Village cluster, the mute
          button's precedent (icon swap plus a persistent mode label, never a lit verb treatment).
          Tapping Lens opens the pick row naming every layer; tapping it again closes the row. */
-      if(o === "lens"){ G.lensArm = !G.lensArm; refreshTray(true); return; }
+      if(o === "lens"){ G.lensArm = !G.lensArm; SND.play("toggle"); refreshTray(true); return; }
       if(o === "story"){ storySoFar(false); return; }
       if(o === "build"){ if(a && !firstSiteOpen()){ showToast("🔨 No building site is open right now. Found a building first, or let the current one finish.", null, true); return; } setOrder3("build"); return; }
-      if(o === "found"){ G.foundArm = !G.foundArm; G.foundPlot = null; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.foundArm){ /* Found next-rung read (spec section 21): the arm toast names the locked kinds behind the next kind-bearing rung, via foundNextRungText, so growth reads ahead of any plot tap. Display only: no state, gate, or cost changes. */ showToast("🏗 Tap a surveyed plot (gold ring) to found a building" + foundNextRungText()); } refreshTray(true); return; }
+      if(o === "found"){ G.foundArm = !G.foundArm; G.foundPlot = null; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.foundArm){ /* Found next-rung read (spec section 21): the arm toast names the locked kinds behind the next kind-bearing rung, via foundNextRungText, so growth reads ahead of any plot tap. Display only: no state, gate, or cost changes. */ showToast("🏗 Tap a surveyed plot (gold ring) to found a building" + foundNextRungText()); } SND.play("toggle"); refreshTray(true); return; }
       /* Claim (v4): a Town-tier BUILD verb. Arms the bearing-plus-ring pick
          row below; the gold armed vocabulary matches the other verbs. */
       if(o === "claim"){
@@ -6636,7 +6637,7 @@ function refreshTray(force){
         G.claimArm = !G.claimArm; G.claimBearing = null; G.claimRing = null;
         G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.groupArm = false;
         if(G.claimArm) showToast((G.claim && !G.claim.staked) ? "🚩 The claim party is still out: recall them, or let them finish" : "🚩 Pick a bearing and a ring: the founding party stakes the claim and carries the materials");
-        refreshTray(true); return;
+        SND.play("toggle"); refreshTray(true); return;
       }
       if(o === "road"){
         if(!roadUnlocked()){ showToast("🛣 Roads unlock when the village grows into a Town.", null, true); refreshTray(true); return; }
@@ -6644,7 +6645,7 @@ function refreshTray(force){
         G.roadArm = !G.roadArm; G.roadFrom = null; G.roadTo = null;
         G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.claimArm = false; G.groupArm = false;
         if(G.roadArm) showToast((G.roadBuild && !G.roadBuild.built) ? "🛣 The road crew is still out: recall them, or let them finish" : "🛣 Tap one station, then another: the crew lays a road between them");
-        refreshTray(true); return;
+        SND.play("toggle"); refreshTray(true); return;
       }
       setOrder3(o);
     });
@@ -6737,6 +6738,12 @@ var SND = {
     feud:    [[440, 0.12, "sawtooth", 0.07], [180, 0.22, "sawtooth", 0.07, 0.12]],
     blame:   [[140, 0.40, "sine", 0.12]],
     week:    [[392, 0.12, "sine", 0.08]],
+    /* Toggle: the tray's mode-switch blip, shared by the mute button
+       and every armed-verb toggle, pick-row cancel, and lens pick:
+       one short blip for any tap that changes only a mode, never a
+       commit, so a mode tap answers the same way everywhere. The
+       pending picks inside a mode use the lighter tap instead: a
+       staged pick is not a mode change and not a commit. */
     toggle:  [[700, 0.04, "sine", 0.10]]
   },
   init: function(){
@@ -8028,21 +8035,21 @@ window.__pickProject = function(i){ pickProject(i); };
 window.__acceptOffer = function(){ acceptOffer(); };
 window.__ignoreOffer = function(){ ignoreOffer(); };
 window.__foundPick = function(ix){ var pk = foundableKinds(); if(G.foundPlot !== null && G.foundPlot !== undefined && pk[ix]) foundSite(G.foundPlot, pk[ix]); G.foundPlot = null; refreshTray(true); };
-window.__claimPickB = function(ix){ G.claimBearing = ix; refreshTray(true); };
-window.__claimPickR = function(ix){ G.claimRing = ix; refreshTray(true); };
+window.__claimPickB = function(ix){ G.claimBearing = ix; SND.play("tap"); refreshTray(true); };
+window.__claimPickR = function(ix){ G.claimRing = ix; SND.play("tap"); refreshTray(true); };
 window.__claimStake = function(){ var b = G.claimBearing, r = G.claimRing; G.claimArm = false; G.claimBearing = null; G.claimRing = null; if(b != null && r != null) stakeClaim(b, r); refreshTray(true); };
-window.__claimCancel = function(){ G.claimArm = false; G.claimBearing = null; G.claimRing = null; refreshTray(true); };
+window.__claimCancel = function(){ G.claimArm = false; G.claimBearing = null; G.claimRing = null; SND.play("toggle"); refreshTray(true); };
 window.__claimRecall = function(){ G.claimArm = false; G.claimBearing = null; G.claimRing = null; cancelClaim(); refreshTray(true); };
-window.__roadPick = function(k){ G.roadFrom = k; G.roadTo = null; refreshTray(true); };
-window.__roadPick2 = function(k){ if(k !== G.roadFrom) G.roadTo = k; refreshTray(true); };
+window.__roadPick = function(k){ G.roadFrom = k; G.roadTo = null; SND.play("tap"); refreshTray(true); };
+window.__roadPick2 = function(k){ if(k !== G.roadFrom){ G.roadTo = k; SND.play("tap"); } refreshTray(true); };
 window.__roadLay = function(){ var a = G.roadFrom, b = G.roadTo; G.roadArm = false; G.roadFrom = null; G.roadTo = null; if(a && b) layRoad(a, b); refreshTray(true); };
-window.__roadCancel = function(){ G.roadArm = false; G.roadFrom = null; G.roadTo = null; refreshTray(true); };
+window.__roadCancel = function(){ G.roadArm = false; G.roadFrom = null; G.roadTo = null; SND.play("toggle"); refreshTray(true); };
 window.__roadRecall = function(){ G.roadArm = false; G.roadFrom = null; G.roadTo = null; cancelRoad(); refreshTray(true); };
-window.__lensPick = function(m){ G.lensArm = false; Store.dispatch("ui/lens", {mode: m}); var lm = (G.ui && G.ui.lens) || null; showToast(lm === "tension" ? "⚔ Tension lens: lines join residents heating toward a feud. Separate them or cool them on the green." : (lm === "desire" ? "👁 Desire lens: lines flow model to follower, thicker means more followers. Watch what the village is copying." : "🗺 Lenses off")); refreshTray(true); };
-window.__lensCancel = function(){ G.lensArm = false; refreshTray(true); };
-window.__foundCancel = function(){ G.foundPlot = null; refreshTray(true); };
+window.__lensPick = function(m){ G.lensArm = false; Store.dispatch("ui/lens", {mode: m}); SND.play("toggle"); var lm = (G.ui && G.ui.lens) || null; showToast(lm === "tension" ? "⚔ Tension lens: lines join residents heating toward a feud. Separate them or cool them on the green." : (lm === "desire" ? "👁 Desire lens: lines flow model to follower, thicker means more followers. Watch what the village is copying." : "🗺 Lenses off")); refreshTray(true); };
+window.__lensCancel = function(){ G.lensArm = false; SND.play("toggle"); refreshTray(true); };
+window.__foundCancel = function(){ G.foundPlot = null; SND.play("toggle"); refreshTray(true); };
 window.__foundRecall = function(id){ var s = id ? siteById(id) : foundSiteOpen(); G.foundArm = false; G.foundPlot = null; if(s) cancelFoundSite(s); refreshTray(true); };
-window.__foundRecallCancel = function(){ G.foundArm = false; G.foundPlot = null; refreshTray(true); };
+window.__foundRecallCancel = function(){ G.foundArm = false; G.foundPlot = null; SND.play("toggle"); refreshTray(true); };
 window.__arrivalChoice = function(w){ arrivalChoice(w === 1 || w === true); };
 var projV = null;
 function leftHudRect(){
@@ -8766,7 +8773,7 @@ function bindInput(){
        because a pick row over a modal decision would hide the
        decision it needs. */
     /* CF-REF: keyboard-l-lens.md [1] */
-    if((e.key === "l" || e.key === "L") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ G.lensArm = !G.lensArm; refreshTray(true); }
+    if((e.key === "l" || e.key === "L") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ G.lensArm = !G.lensArm; SND.play("toggle"); refreshTray(true); }
     /* J story panel: the keyboard twin of the tray Story button, so a
        desktop player need not reach for the mouse to read the village
        chronicle, and Escape already closes the panel, so J completes
@@ -8800,7 +8807,7 @@ function bindInput(){
        aside while Shift is held, exactly as a digit stands aside for
        its Shift assign. */
     /* CF-REF: keyboard-c-claim.md [1] */
-    if((e.key === "c" || e.key === "C") && !e.shiftKey && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ if(!claimUnlocked()){ showToast("🚩 Claims unlock when the village grows into a Town.", null, true); refreshTray(true); } else { if(G.unlockNew) G.unlockNew.claim = false; G.claimArm = !G.claimArm; G.claimBearing = null; G.claimRing = null; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.groupArm = false; if(G.claimArm) showToast((G.claim && !G.claim.staked) ? "🚩 The claim party is still out: recall them, or let them finish" : "🚩 Pick a bearing and a ring: the founding party stakes the claim and carries the materials"); refreshTray(true); } }
+    if((e.key === "c" || e.key === "C") && !e.shiftKey && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ if(!claimUnlocked()){ showToast("🚩 Claims unlock when the village grows into a Town.", null, true); refreshTray(true); } else { if(G.unlockNew) G.unlockNew.claim = false; G.claimArm = !G.claimArm; G.claimBearing = null; G.claimRing = null; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.groupArm = false; if(G.claimArm) showToast((G.claim && !G.claim.staked) ? "🚩 The claim party is still out: recall them, or let them finish" : "🚩 Pick a bearing and a ring: the founding party stakes the claim and carries the materials"); SND.play("toggle"); refreshTray(true); } }
     /* B proclaim arm: the keyboard twin of the tray Proclaim button,
        so a desktop player need not reach for the mouse to arm the
        season-focus verb. P is taken (pause, the Sims twin), so B
@@ -8815,7 +8822,7 @@ function bindInput(){
        never with a modifier, never while typing, because an armed
        verb over a modal decision would hide the decision it needs. */
     /* CF-REF: keyboard-b-proclaim.md [1] */
-    if((e.key === "b" || e.key === "B") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ G.proclaimArm = !G.proclaimArm; G.armed = false; G.modelArm = false; G.visitArm = false; G.foundArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.proclaimArm){ var pbEarly = !!(G.proclaim && G.proclaim.week === G.week); var pbNm = "the village"; if(pbEarly){ if(G.proclaim.site){ var pbSk = siteById(G.proclaim.site); var pbKd = pbSk ? BUILD_KINDS[pbSk.kind] : null; pbNm = pbKd ? pbKd.title : "the building site"; } else if(G.proclaim.station && STATION3[G.proclaim.station]) pbNm = artName(G.proclaim.station); } showToast("📣 Tap a building, or a building site, to proclaim the village's focus for the season, drawing more residents to work there" + (pbEarly ? "; " + pbNm + " holds the focus now. Shifting the focus early costs " + LIFE.proclaimRecost + " cohesion" : ""), null, true); } refreshTray(true); }
+    if((e.key === "b" || e.key === "B") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ G.proclaimArm = !G.proclaimArm; G.armed = false; G.modelArm = false; G.visitArm = false; G.foundArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.proclaimArm){ var pbEarly = !!(G.proclaim && G.proclaim.week === G.week); var pbNm = "the village"; if(pbEarly){ if(G.proclaim.site){ var pbSk = siteById(G.proclaim.site); var pbKd = pbSk ? BUILD_KINDS[pbSk.kind] : null; pbNm = pbKd ? pbKd.title : "the building site"; } else if(G.proclaim.station && STATION3[G.proclaim.station]) pbNm = artName(G.proclaim.station); } showToast("📣 Tap a building, or a building site, to proclaim the village's focus for the season, drawing more residents to work there" + (pbEarly ? "; " + pbNm + " holds the focus now. Shifting the focus early costs " + LIFE.proclaimRecost + " cohesion" : ""), null, true); } SND.play("toggle"); refreshTray(true); }
     /* N found: the keyboard twin of the tray Found button, so a
        desktop player need not reach for the mouse to arm the
        building verb. F is taken (Follow), so N stands for New:
@@ -8829,7 +8836,7 @@ function bindInput(){
        over a modal decision would hide the decision it needs. It
        needs no selection, like the button, which is never disabled. */
     /* CF-REF: keyboard-n-found.md [1] */
-    if((e.key === "n" || e.key === "N") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ G.foundArm = !G.foundArm; G.foundPlot = null; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.foundArm){ showToast("🏗 Tap a surveyed plot (gold ring) to found a building" + foundNextRungText()); } refreshTray(true); }
+    if((e.key === "n" || e.key === "N") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ G.foundArm = !G.foundArm; G.foundPlot = null; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.foundArm){ showToast("🏗 Tap a surveyed plot (gold ring) to found a building" + foundNextRungText()); } SND.play("toggle"); refreshTray(true); }
     /* H road: the keyboard twin of the tray Road button, the
        Town-tier CONNECT verb. R is taken (camera reset, with Home
        as its twin), so H stands for Highway: the road network
@@ -8845,7 +8852,7 @@ function bindInput(){
        crew-out wording when a road is under way, else the
        tap-two-stations wording). */
     /* CF-REF: keyboard-h-road.md [1] */
-    if((e.key === "h" || e.key === "H") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ if(!roadUnlocked()){ showToast("🛣 Roads unlock when the village grows into a Town.", null, true); refreshTray(true); } else { if(G.unlockNew) G.unlockNew.road = false; G.roadArm = !G.roadArm; G.roadFrom = null; G.roadTo = null; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.claimArm = false; G.groupArm = false; if(G.roadArm) showToast((G.roadBuild && !G.roadBuild.built) ? "🛣 The road crew is still out: recall them, or let them finish" : "🛣 Tap one station, then another: the crew lays a road between them"); refreshTray(true); } }
+    if((e.key === "h" || e.key === "H") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ if(!roadUnlocked()){ showToast("🛣 Roads unlock when the village grows into a Town.", null, true); refreshTray(true); } else { if(G.unlockNew) G.unlockNew.road = false; G.roadArm = !G.roadArm; G.roadFrom = null; G.roadTo = null; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.foundArm = false; G.claimArm = false; G.groupArm = false; if(G.roadArm) showToast((G.roadBuild && !G.roadBuild.built) ? "🛣 The road crew is still out: recall them, or let them finish" : "🛣 Tap one station, then another: the crew lays a road between them"); SND.play("toggle"); refreshTray(true); } }
     /* V visit: the keyboard twin of the tray Visit button, the first
        resident-targeted armed verb to gain a key (Model's initial M
        is the Sound mute key, so Model waits for its own letter).
@@ -8860,7 +8867,7 @@ function bindInput(){
        modifier, never while typing, because an armed verb over a
        modal decision would hide the decision it needs. */
     /* CF-REF: keyboard-v-visit.md [1] */
-    if((e.key === "v" || e.key === "V") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) && G.selected){ G.visitArm = !G.visitArm; G.armed = false; G.modelArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.visitArm){ var vvA = agent(G.selected); showToast("💬 Tap who " + (vvA ? vvA.name.split(" ")[0] : "they") + " should visit: they walk over for a chat", null, true); } refreshTray(true); }
+    if((e.key === "v" || e.key === "V") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) && G.selected){ G.visitArm = !G.visitArm; G.armed = false; G.modelArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.visitArm){ var vvA = agent(G.selected); showToast("💬 Tap who " + (vvA ? vvA.name.split(" ")[0] : "they") + " should visit: they walk over for a chat", null, true); } SND.play("toggle"); refreshTray(true); }
     /* O model: the keyboard twin of the tray Model button, the second
        resident-targeted armed verb to gain a key. Model's initial M
        is the Sound mute key, so O, the button's second letter,
@@ -8875,7 +8882,7 @@ function bindInput(){
        with a modifier, never while typing, because an armed verb
        over a modal decision would hide the decision it needs. */
     /* CF-REF: keyboard-o-model.md [1] */
-    if((e.key === "o" || e.key === "O") && !e.shiftKey && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) && G.selected){ G.modelArm = !G.modelArm; G.armed = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.modelArm){ var moA = agent(G.selected); var mo0 = (moA && moA.model) ? agent(moA.model) : null; showToast("👁 Tap who " + (moA ? moA.name.split(" ")[0] : "they") + " should look up to: they copy them until you pick again" + (mo0 ? "; " + moA.name.split(" ")[0] + " looks up to " + mo0.name.split(" ")[0] + " now" : ""), null, true); } refreshTray(true); }
+    if((e.key === "o" || e.key === "O") && !e.shiftKey && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) && G.selected){ G.modelArm = !G.modelArm; G.armed = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.modelArm){ var moA = agent(G.selected); var mo0 = (moA && moA.model) ? agent(moA.model) : null; showToast("👁 Tap who " + (moA ? moA.name.split(" ")[0] : "they") + " should look up to: they copy them until you pick again" + (mo0 ? "; " + moA.name.split(" ")[0] + " looks up to " + mo0.name.split(" ")[0] + " now" : ""), null, true); } SND.play("toggle"); refreshTray(true); }
     /* G spotlight: the keyboard twin of the tray Spotlight button, the third
        resident-targeted armed verb to gain a key, after Visit and Model.
        Spotlight's initial S pans the camera down in WASD, P is the pause
@@ -8894,7 +8901,7 @@ function bindInput(){
        armed verb over a modal decision would hide the decision it
        needs. */
     /* CF-REF: keyboard-g-spotlight.md [1] */
-    if((e.key === "g" || e.key === "G") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) && G.selected && G.spotCd <= G.t){ G.armed = !G.armed; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.armed) showToast("✨ Tap a resident to spotlight them: a 20s shield, then a 45s cooldown", null, true); refreshTray(true); }
+    if((e.key === "g" || e.key === "G") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) && G.selected && G.spotCd <= G.t){ G.armed = !G.armed; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.coverArm = false; G.groupArm = false; if(G.armed) showToast("✨ Tap a resident to spotlight them: a 20s shield, then a 45s cooldown", null, true); SND.play("toggle"); refreshTray(true); }
     /* U build: the keyboard twin of the tray Build button, so a desktop
        player need not reach for the mouse to send the selected resident
        to the open building site. Build's initial B arms the Proclaim
@@ -8938,7 +8945,7 @@ function bindInput(){
        key path and the button path cannot disagree about what the
        second press commits. */
     /* CF-REF: keyboard-k-speak.md [1] */
-    if((e.key === "k" || e.key === "K") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ G.coverArm = false; if(G.speakArm){ G.speakArm = false; speakFor(); refreshTray(true); } else if((G.blame || 0) < HH.speakBlameMin || (G.speakCd && G.t < G.speakCd)){ speakFor(); refreshTray(true); } else { var kplan = speakPlan(); if(kplan && !kplan.fail){ G.speakArm = true; G.groupArm = false; var ksvn = kplan.voucher.name.split(" ")[0], kstn = kplan.target.name.split(" ")[0]; showToast("🕊 " + ksvn + " would speak for " + kstn + " (" + kplan.vf + " followers, trust " + Math.round(G.stats.trust) + ", needs " + HH.speakStrength + "). If the village is not ready, " + ksvn + " loses standing. Tap the button again to commit.", {ids: [kplan.voucher.id, kplan.target.id]}); } else { speakFor(); } refreshTray(true); } }
+    if((e.key === "k" || e.key === "K") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ G.coverArm = false; if(G.speakArm){ G.speakArm = false; speakFor(); refreshTray(true); } else if((G.blame || 0) < HH.speakBlameMin || (G.speakCd && G.t < G.speakCd)){ speakFor(); refreshTray(true); } else { var kplan = speakPlan(); if(kplan && !kplan.fail){ G.speakArm = true; G.groupArm = false; SND.play("toggle"); var ksvn = kplan.voucher.name.split(" ")[0], kstn = kplan.target.name.split(" ")[0]; showToast("🕊 " + ksvn + " would speak for " + kstn + " (" + kplan.vf + " followers, trust " + Math.round(G.stats.trust) + ", needs " + HH.speakStrength + "). If the village is not ready, " + ksvn + " loses standing. Tap the button again to commit.", {ids: [kplan.voucher.id, kplan.target.id]}); } else { speakFor(); } refreshTray(true); } }
     /* Shift+C cover chooser: the keyboard twin of the tray Cover
        button, the first modifier chord in the tray grammar. Every
        letter in Cover is already taken (C claims Claim, O is Model,
@@ -8958,7 +8965,7 @@ function bindInput(){
        only for the selected resident, and it is guarded like a panel
        key, so it never opens a chooser over an incident panel. */
     /* CF-REF: keyboard-shiftc-cover.md [1] */
-    if((e.key === "c" || e.key === "C") && e.shiftKey && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) && G.selected){ var scA = agent(G.selected); if(scA && !scA.child && G.banked && scA.bank != null){ if(G.coverArm){ G.coverArm = false; } else { G.coverArm = true; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.foundArm = false; G.groupArm = false; showToast("🛡 Cover for " + scA.name.split(" ")[0] + " is " + (scA.tier ? TTI[scA.tier].name : "none") + " now. Premiums come out of the bank account each season. Each tier button names what it buys."); } refreshTray(true); } }
+    if((e.key === "c" || e.key === "C") && e.shiftKey && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) && G.selected){ var scA = agent(G.selected); if(scA && !scA.child && G.banked && scA.bank != null){ if(G.coverArm){ G.coverArm = false; } else { G.coverArm = true; G.armed = false; G.modelArm = false; G.visitArm = false; G.proclaimArm = false; G.speakArm = false; G.foundArm = false; G.groupArm = false; showToast("🛡 Cover for " + scA.name.split(" ")[0] + " is " + (scA.tier ? TTI[scA.tier].name : "none") + " now. Premiums come out of the bank account each season. Each tier button names what it buys."); } SND.play("toggle"); refreshTray(true); } }
     /* Shift+O call out: the keyboard twin of the tray Call Out button,
        the second modifier chord in the tray grammar, after Shift+C.
        Every letter in Call Out is already taken (C claims Claim, A
