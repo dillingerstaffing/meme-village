@@ -8354,7 +8354,7 @@ function renderOverlay(s){
     if(m.bubble) a.bubbleEl.style.opacity = m.bubble.kind === "want" ? m.bubble.opacity.toFixed(2) : "1";
     placed.push(a);
   });
-  // CF-REF: overlay-anchor-budget.md [102]
+  // CF-REF: overlay-anchor-budget.md [133]
   // Anchor discipline: an overlay belongs to its resident, and position
   // is identity. A marker may shift only within a small budget (LIFT_MAX
   // up, DX_MAX sideways; the screen clamps and a short HUD nudge count
@@ -8387,6 +8387,13 @@ function renderOverlay(s){
   var mmEl = document.getElementById("minimap");
   var mmRect = null;
   if(mmEl && typeof mmEl.getBoundingClientRect === "function"){ var _mr = mmEl.getBoundingClientRect(); if(_mr.width >= 4 && _mr.height >= 4) mmRect = _mr; }
+  var trayEl = document.getElementById("tray");
+  var trayRect = null;
+  if(trayEl && typeof trayEl.getBoundingClientRect === "function"){ var _tr = trayEl.getBoundingClientRect(); if(_tr.width >= 4 && _tr.height >= 4) trayRect = _tr; }
+  function ovlHitsTray(x, y, hw, hh){
+    if(!trayRect) return false;
+    return x + hw > trayRect.left && x - hw < trayRect.right && y > trayRect.top && y - hh < trayRect.bottom;
+  }
   function ovlHitsMm(x, y, hw, hh){
     if(!mmRect) return false;
     return x + hw > mmRect.left && x - hw < mmRect.right && y > mmRect.top && y - hh < mmRect.bottom;
@@ -8420,6 +8427,21 @@ function renderOverlay(s){
       if(mx !== null) x = mx;
       else { el.style.display = "none"; a._ovlSig = ""; a._ovlBox = null; return; }
     }
+    /* Tray clearance, same discipline as the minimap: the tray is opaque
+       chrome (z-index 10 over the overlays at 9), so a marker under it is
+       invisible, not merely overlapping, and the tray spans the full
+       width, so no sideways shift can clear it. Lift the box so its
+       bottom sits on the tray's top edge when the lift stays inside
+       LIFT_MAX; past the budget hide for the frame rather than rendering
+       under chrome or floating away from the resident. No exemption for
+       the selected resident: the lift cap is absolute, and the tray
+       header already names them. Like the minimap clearance, this stands
+       down while the camera moves. */
+    if(!camMoving && trayRect && ovlHitsTray(x, y, hw, hh)){
+      var ty = trayRect.top;
+      if(m.y - ty <= LIFT_MAX) y = ty;
+      else { el.style.display = "none"; a._ovlSig = ""; a._ovlBox = null; return; }
+    }
     var hit = camMoving ? null : ovlHit(x, y, hw, hh);
     if(hit){
       var cands = [hit.x - hit.hw - hw - 6, hit.x + hit.hw + hw + 6];
@@ -8451,6 +8473,15 @@ function renderOverlay(s){
     if(!camMoving && mmRect && ovlHitsMm(x, y, hw, hh)){
       var mx2 = ovlMmShift(y, hw, hh, m, a);
       if(mx2 !== null && !ovlHit(mx2, y, hw, hh)) x = mx2;
+      else { el.style.display = "none"; a._ovlSig = ""; a._ovlBox = null; return; }
+    }
+    /* Final tray guard: a de-overlap lift or top clamp above can land a
+       box under the tray after the pre-pass ran. A lift that collides
+       with an already placed box is no placement at all, so that case
+       hides for the frame like a past-budget lift. */
+    if(!camMoving && trayRect && ovlHitsTray(x, y, hw, hh)){
+      var ty2 = trayRect.top;
+      if(m.y - ty2 <= LIFT_MAX && !ovlHit(x, ty2, hw, hh)) y = ty2;
       else { el.style.display = "none"; a._ovlSig = ""; a._ovlBox = null; return; }
     }
     el.style.left = x + "px"; el.style.top = y + "px";

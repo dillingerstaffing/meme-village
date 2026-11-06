@@ -39,3 +39,18 @@ nudge); a de-overlap sidestep candidate that would land under the
 minimap is skipped; and a final guard after lifting and clamping
 re-shifts or hides for the frame. Like the HUD nudge, minimap
 clearance stands down while the camera moves.
+
+Resident overlays follow the same rule against the tray: the tray is
+opaque chrome (z-index 10 over the overlays at 9), so a marker under
+it is invisible, not merely overlapping, and the tray spans the full
+width, so no sideways shift can clear it. Placement lifts a
+tray-overlapping box so its bottom sits on the tray's top edge when
+the lift stays inside the 56px budget; past the budget the box hides
+for the frame. A final guard after de-overlap re-lifts or hides, and
+a lift that would collide with an already placed box hides instead.
+There is no exemption for the selected resident on the lift: the 56px
+cap is absolute, and the tray header already names the selected
+resident, so hiding their card costs no identity. Like the minimap
+clearance, tray clearance stands down while the camera moves, and the
+tray rect is measured live every frame, so the rule follows the tray
+as it grows from its slim height to its full selected height.
