@@ -41,6 +41,10 @@ true endings, and the localStorage snapshot.
 - Restore happens only through the title screen Continue button
   (continueGame, gated on the boot-time pendingSave). #play and #ff
   auto-begins start fresh and never read or clear the snapshot.
+  Continue re-frames the camera on the tracked commission's site (the
+  offered one while the offer is still pending), the same re-orientation
+  a new village gets; the title screen's slow yaw drift otherwise leaves
+  the default green framing, with the work off-screen on a phone.
   Begin from the title button starts a new village and clears the
   snapshot; an ending clears it too.
 - Saves happen at each season boundary (end of endWeek) and on

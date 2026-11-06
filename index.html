@@ -5733,6 +5733,14 @@ function continueGame(){
   resetBeginArm();
   var st = pendingSave; pendingSave = null;
   restoreState(st);
+  /* A resumed village opens framed on the tracked commission's site (or
+     the offered one while the offer is still pending), the same
+     re-orientation beginGame gives a new village: a returning player may
+     have forgotten where the week's work is, and the camera, not a line
+     of text, says it. The title screen's slow yaw drift leaves the
+     default green framing otherwise, with the work off-screen on a phone. */
+  var rst = STATION3[G.objStation || (G.offer && G.offer.station)];
+  if(rst){ cam.target.x = Math.max(-62, Math.min(62, rst.x)); cam.target.z = Math.max(-48, Math.min(48, rst.z)); cam.follow = null; }
   /* A save restores its speed, so the lights must follow it: a village
      saved paused or at 2x used to resume under a lit 1x, reading as a
      frozen sim at the first and a wrong rate at the second. */
