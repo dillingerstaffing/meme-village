@@ -6843,11 +6843,12 @@ var SND = {
     blame:   [[140, 0.40, "sine", 0.12]],
     week:    [[392, 0.12, "sine", 0.08]],
     /* Toggle: the tray's mode-switch blip, shared by the mute button,
-       every armed-verb toggle, pick-row cancel, lens pick, and the
-       Follow toggle: one short blip for any tap that changes only a
-       mode, never a commit, so a mode tap answers the same way
-       everywhere. The pending picks inside a mode use the lighter tap
-       instead: a staged pick is not a mode change and not a commit. */
+       every armed-verb toggle, pick-row cancel, lens pick, the
+       Follow toggle, and the pause/speed switch: one short blip for
+       any tap that changes only a mode, never a commit, so a mode tap
+       answers the same way everywhere. The pending picks inside a mode
+       use the lighter tap instead: a staged pick is not a mode change
+       and not a commit. */
     toggle:  [[700, 0.04, "sine", 0.10]]
   },
   init: function(){
@@ -9260,6 +9261,18 @@ function bindInput(){
   });
 }
 function setSpeed(n){
+  /* A pace change answers with the toggle blip, like every other
+     tray mode switch (mute, Follow, the armed verbs): a pause tap
+     used to answer with a small button light only, and a frozen sim
+     is often invisible when nothing was visibly moving, or while the
+     player reads the Story panel or the sheet. The blip plays only
+     on a real change, so a re-tap of the lit speed stays silent
+     because it changes nothing, and the continueGame restore stays
+     silent because it passes the speed the save already holds.
+     Every pause and speed path runs through setSpeed (the three
+     tray buttons, the sheet and Story header pause buttons, Space,
+     P, 0, comma, period), so key and button can never disagree. */
+  if(n !== G.speed) SND.play("toggle");
   G.speed = n;
   [0, 1, 2].forEach(function(s){ document.getElementById("sp" + s).classList.toggle("on", s === n); });
   /* The Story header pause button, when it stands, is the same verb's
