@@ -1790,7 +1790,7 @@ function householdOf(a){
   return null;
 }
 function householdPartner(a){ var h = householdOf(a); if(!h) return null; return agent(h.members[0] === a.id ? h.members[1] : h.members[0]); }
-// CF-REF: household-capacity-ledger.md [88]
+// CF-REF: household-capacity-ledger.md [89]
 function housingFree(){ return (G.houseCapacity || 0) - (G.households ? G.households.length : 0) - (G.soloHoused || 0); }
 function housingKind(kindId){ var kd = BUILD_KINDS[kindId]; return !!(kd && kd.effect && kd.effect.householdCapacity); }
 function formHousehold(a, b){
@@ -1870,7 +1870,7 @@ function departHousehold(h){
         var sc = ((f.watchHist && f.watchHist[c.id]) || 0) * 2 + visEff(c) / 25;
         if(sc > bs){ bs = sc; best = c; }
       });
-      if(best) f.successionPick = best.id;
+      if(best){ f.successionPick = best.id; noteEvent(f, "succession", mm.id); }
     });
   });
   /* A departure settles a carry the same way death settles one: a site or claim crate carry returns one store through returnStores, every other carry drops with nothing owed, so a carrier who departs mid-haul takes no village store out of the valley with them. The settle runs before any removal, for members and for the children who leave with them. */
@@ -2922,6 +2922,7 @@ function composeThought(a, cause){
   function setStation(nm){ F.station = nm; F.Station = nm ? nm.charAt(0).toUpperCase() + nm.slice(1) : nm; }
   if(a.sick){ cat = "sick"; main = ["I feel rotten. Everything else can wait until this passes.", "Being sick shrinks the world to one chair. Let it."][vi]; why = "because I am unwell"; }
   else if(a.failing){ cat = "failing"; main = ["My strength is going, a little more each week. What I cannot carry now, I will not carry again.", "Everything takes longer now. Even the walk to the green is a negotiation."][vi]; why = "because my strength is failing"; }
+  else if(cause === "succession" && (((a.successionPick && agent(a.successionPick)) || (a.model && agent(a.model))))){ var pk = (a.successionPick && agent(a.successionPick)) || (a.model && agent(a.model)); cat = "succession"; F.model = pk.name.split(" ")[0]; main = ["I am watching " + F.model + " now. That is where I learn the work.", F.model + " is the one I watch now. The work goes on, and so do I."][vi]; why = "because " + F.model + " is the one I follow now"; }
   else if(ten && ten.v >= 50){ var pn = ten.who.name.split(" ")[0]; cat = "rivalryHigh"; F.partner = pn; main = [pn + " and I keep circling the same work, and it is getting sharp between us.", "Every time " + pn + " is near, the same job turns into a contest."][vi]; why = "because the rivalry with " + pn + " is heating up"; }
   else if((a.blamed || 0) >= 2){ cat = "blamed"; main = "People look at me sideways now. Blamed " + a.blamed + " times does that to a person."; why = "because blame keeps landing on me"; }
   else if((a.blamed || 0) >= 1){ cat = "blamed"; main = "Being blamed once sits in the chest longer than people think."; why = "because blame landed on me"; }
@@ -2953,20 +2954,22 @@ function refreshThought(a, cause){
   Store.dispatch("thought/set", {id:a.id, text:c.text, cause:cause || "ambient", why:c.why, cat:c.cat});
   return true;
 }
-// CF-REF: thoughts-local-inference-only.md [31]
+// CF-REF: thoughts-local-inference-only.md [33]
 /* ThoughtService (stage 2): one paced queue for every thought in the game.
-   Event requests carry priority (major events first); ambient fills only
-   when nothing eventful is waiting. At most one generation per 4
+   Event requests carry priority (major events first); a higher-priority
+   event replaces the kind of a request already queued for that resident,
+   so the event thought is the one served, and ambient fills only when
+   nothing eventful is waiting. At most one generation per 4
    sim-seconds globally and 15 per resident, so thoughts announce
    themselves one at a time and never double up. */
 var ThoughtService = {
   prio: function(kind){
-    return (kind === "blamed" || kind === "rivalry" || kind === "wantMissed" || kind === "initiative" || kind === "inspired") ? 3 : 1;
+    return (kind === "blamed" || kind === "rivalry" || kind === "wantMissed" || kind === "initiative" || kind === "inspired" || kind === "succession") ? 3 : 1;
   },
   request: function(a, kind, prio){
     if(!a || !a.persona || !G.started || G.over) return;
     var q = G.thoughtQ || (G.thoughtQ = []), i;
-    for(i = 0; i < q.length; i++) if(q[i].id === a.id){ var np = (prio || this.prio(kind)); if(np > q[i].p) q[i].p = np; return; }
+    for(i = 0; i < q.length; i++) if(q[i].id === a.id){ var np = (prio || this.prio(kind)); if(np > q[i].p){ q[i].p = np; if(kind !== "ambient") q[i].kind = kind; } return; }
     q.push({id:a.id, kind:kind, p:(prio || this.prio(kind))});
   },
   tick: function(s){
