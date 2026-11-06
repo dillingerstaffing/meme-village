@@ -24,6 +24,8 @@ is not a discrete tap.
 
 A hidden minimap takes no jumps. When hudTick hides the minimap
 (visibility hidden) because the selected tray leaves no slot for it,
+whether with no toast live (the tray pin) or with a toast live (the
+toast pin stands down and the tray overlaps the minimap's home rect),
 the element keeps its rect, so a tap on the tray area over it would
 otherwise jump the camera to a map point the player cannot see.
 minimapJump refuses the jump when the element's inline visibility is

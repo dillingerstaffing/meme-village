@@ -7821,6 +7821,28 @@ function hudTick(dt){
           var wantTop2 = Math.ceil(toastB2) + 12;
           var capTop2 = Math.floor(trayTop2) - mmH2 - 12;
           if(wantTop2 > 202 && capTop2 >= 202) mmTop = Math.min(wantTop2, capTop2) + "px";
+          /* While a toast is live the tray pin stands down, so when the
+             toast pin also stands down (the tray cap binds below the CSS
+             top, or the toast is short) the minimap sits at its CSS home
+             and a tall selected tray can rise over that home rect,
+             covering the tray's top row (the role line and the 44px
+             deselect X) for the toast's whole life. Measured 2026-11-06:
+             at 375px the minimap covered the selInfo row by 1534 px^2
+             and the deselect X by 546 px^2 at 844 tall, 7552 px^2 at 800
+             (the whole deselect X), and 10384 px^2 at 720 (the whole
+             selInfo row, the whole deselect X, and the first command
+             row); at 390 the toast pin works and nothing is covered.
+             Relocating above the tray is not a slot while the toast is
+             live: the toast occupies 114 to its bottom and the tray
+             starts at its top, leaving under 88px between them, so a
+             relocated minimap would paint under the toast with only a
+             sliver showing. Hide the minimap while the toast is live
+             when the tray overlaps its home rect, on the tray pin's own
+             hide rule: the tray pin re-applies when the toast dies, so
+             it returns on its own, and a hidden minimap takes no
+             tap-to-jump. Display only: no state, no dispatch, no RNG
+             stream change, and every write is diff-guarded. */
+          else if(trayTop2 < 202 + mmH2) mmHide = true;
         }
         else if(trayTop2 < 202 + mmH2 + 12){
           /* Phone tray vs minimap: with no toast live, a selected tray
