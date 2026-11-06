@@ -10,6 +10,7 @@ overlay, marker, bubble, name tag, hud, camera move, collision, anchor, hide, de
 | soil-tints.md | The field soil boxes and crop cones render the soil clock stage on the map itself: recolor plus stunted height per stage, display only |
 | season-tints.md | Every season reads on the map itself: spring vivid green, summer deeper yellow-green, autumn umber foliage over dry ground, winter pale with a cold sky and fog; display only |
 | claim-minimap.md | Surveyed plots read on the minimap: original plots as gold outline squares, CLAIM/GROW plots filled solid, an in-flight claim as a dashed gold ring, display only |
+| minimap-feud-heat.md | Pairs at or past the feud-warning threshold (tension 50) read on the minimap without the tension lens: edge between the pair, gold below 60 and red at or above 60, gold ring on each member, display only |
 | building-minimap.md | Founded sites read on the minimap over their own plot: finished sites as bordered cream squares, unfinished sites as dashed gold outlines, project sites skipped, display only |
 | proclaim-minimap.md | The season focus reads on the minimap for exactly the week it holds: the tray megaphone glyph above the focus station or site plot, ringed dashed in gold, display only |
 | claim-preview.md | The pending claim reads on the map before staking: a gold ring at the picked center plus three dots at the pending cluster, no pole or flag; a blocked center breaks the ring, hollows the dots, and crosses the center, display only |

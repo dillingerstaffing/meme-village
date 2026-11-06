@@ -7012,6 +7012,34 @@ function drawMinimap(){
        channel at phone minimap scale and not only as the 3D stethoscope
        marker. Display only: reads a.sick and a.sickWalk, changes nothing. */
     if(a.sick || a.sickWalk){ c.strokeStyle = "rgba(232,90,60,0.95)"; c.lineWidth = 1.5; c.beginPath(); c.arc(X(a.x), Y(a.z), 5, 0, 6.29); c.stroke(); } });
+  /* Minimap feud heat (SC2 alarm grammar): a pair at or past the feud
+     warning threshold (tension 50) reads on the strategic channel
+     without the tension lens, because the 4-second ping and the toast
+     both expire while the heat persists for minutes at the drift and
+     base cooling rates. The edge and rings reuse the tension lens's
+     own grammar (gold below 60, red at or above 60, a gold ring on
+     each member), so the lens adds only the sub-50 pairs, the drift
+     dashes, and the legend. Pairs below 50 draw nothing here. Display
+     only: reads G.pairs, writes the canvas, never state. */
+  // CF-REF: minimap-feud-heat.md [18]
+  if(!G.ui || G.ui.lens !== "tension"){
+    var idH = {}; G.agents.forEach(function(a3){ idH[a3.id] = a3; });
+    var hotH = {};
+    Object.keys(G.pairs || {}).forEach(function(k){
+      var v = G.pairs[k]; if(v < 50) return;
+      var ids = k.split("|"), h1 = idH[ids[0]], h2 = idH[ids[1]];
+      if(!h1 || !h2) return;
+      hotH[ids[0]] = 1; hotH[ids[1]] = 1;
+      c.strokeStyle = v >= 60 ? "rgba(232,106,60,0.9)" : "rgba(232,179,75,0.9)";
+      c.lineWidth = v >= 60 ? 2 : 1.5;
+      c.beginPath(); c.moveTo(X(h1.x), Y(h1.z)); c.lineTo(X(h2.x), Y(h2.z)); c.stroke();
+    });
+    c.strokeStyle = "#ffd75e"; c.lineWidth = 1.5;
+    Object.keys(hotH).forEach(function(id){
+      var ha = idH[id]; if(!ha) return;
+      c.beginPath(); c.arc(X(ha.x), Y(ha.z), 5, 0, 6.29); c.stroke();
+    });
+  }
   /* Tension lens (SimCity data-map read): pairs with tension at or past 40,
      the same threshold the want strip marks hot, get a drawn edge between
      the two residents' dots, and each heated resident gets a gold ring.
