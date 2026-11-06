@@ -30,7 +30,15 @@ current selection (speakPlan picks its target from the selection),
 so a preview read for one selection cannot commit for another, and
 the gold clearing beside the new selection is the signal. The loafer list is computed fresh on
 every tap from the live loafT values, never cached, so a resident
-who starts working between taps is never selected as idle.
+who starts working between taps is never selected as idle. Home time
+never accrues loafT: a walk home ends in a rest sit (home has no work
+slots) and a sit at home recovers energy, so rest at home is not
+loafing whether or not the resting flag stands. A mediation never
+accrues loafT either: a walk to the green, or an act there, with
+reason "Cooling a feud" is feud work the imitation graph caused, so
+neither mediator is named idle mid-mediation. Every other green walk
+or act still loafs, so time spent at the green with friends keeps its
+idle chip.
 
 Why: the idle alert chips fire once per loaf episode and expire
 after 9 seconds, and they show at most two loafers, so a resident

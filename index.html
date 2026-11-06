@@ -5341,7 +5341,20 @@ function stepSim(dt){
   ttiQueueWatch();
   G.agents.forEach(function(a){
     if(a.child){ a.loafT = 0; a.alerted = false; return; }
-    var working = a.medicTask || a.order || (a.state === "act" && a.stationId && a.stationId !== "green" && a.stationId !== "home") || (a.state === "walk" && a.stationId && a.stationId !== "green" && a.stationId !== "home");
+    /* Home time is rest, not loafing: a walk home ends in a rest sit
+       (home has no work slots) and a sit at home recovers energy, so
+       the timer clears whether or not the resting flag stands. The flag
+       is only set by the two exhaustion doors for ordered residents,
+       while decide() itself sends residents home to rest, blame and
+       refusal walk residents home, and restPatient sends a cured
+       patient home, all without it. A walk to the green, or an act
+       there, with reason "Cooling a feud" is a mediation, not loafing:
+       the pair is walking to cool a feud the imitation graph caused.
+       Every other green walk or act still loafs, so time spent at the
+       green with friends keeps its idle chip. */
+    var restingHome = a.stationId === "home" && (a.state === "walk" || a.state === "sit");
+    var mediating = a.stationId === "green" && a.reason === "Cooling a feud" && (a.state === "walk" || a.state === "act");
+    var working = a.medicTask || a.order || restingHome || mediating || (a.state === "act" && a.stationId && a.stationId !== "green" && a.stationId !== "home") || (a.state === "walk" && a.stationId && a.stationId !== "green" && a.stationId !== "home");
     /* An idle alert fires once per loaf episode, not once per season:
        alerted clears wherever loafT clears, so work, sickness, rest,
        or childhood ends the episode and the next loaf past 15 alerts
