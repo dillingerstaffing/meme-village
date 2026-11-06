@@ -7708,7 +7708,7 @@ function hudTick(dt){
      live one. The chip carries alert-chip so the container's
      pointer-events rule keeps it tappable, like the idle chips. */
   var liveToast = G.ui && G.ui.toast && Date.now() < G.ui.toast.until;
-  if(G.lastAlert && !liveToast) ahtml += "<button class='alert-chip last-alert-chip' onclick='__lastAlertFocus()'>⌖ " + G.lastAlert.msg + "</button>";
+  if(G.lastAlert && !liveToast) ahtml += "<button class='alert-chip last-alert-chip' title='Return to the last alert (Y)' onclick='__lastAlertFocus()'>⌖ " + G.lastAlert.msg + "</button>";
   /* Camera bookmark return: each player-chosen saved view reads as its own
      chip beside the system-chosen last-alert chip, so saving is visibly
      kept and returning costs one tap. Chips show whenever marks exist,
@@ -9251,9 +9251,21 @@ function bindInput(){
     if((e.key === "r" || e.key === "R" || e.key === "Home") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){
       e.preventDefault(); cam.target.set(0, 0, 4); cam.yaw = 0; cam.dist = 38; cam.follow = null; refreshTray(true);
     }
-    /* Camera key mark: X is the keyboard twin of the pin button, so a desktop player need not reach for the mouse to mark a spot. X marks the spot, and X is the one free letter: A, S, D, and W pan, Q and E rotate, R resets, F follows, and every other letter is a tray or speed key. It runs the shared __saveCamMark verb, exactly the button's verb, so the key and the button can never disagree. It needs no selection and never changes one, like the reset button, and it clears no arm, because saving a view is camera only, never sim state. Guarded like every other camera key: only once started, never while over or an incident panel is open, never with a modifier, never while typing. */
+    /* Camera key mark: X is the keyboard twin of the pin button, so a desktop player need not reach for the mouse to mark a spot. X marks the spot, and X is a free letter: A, S, D, and W pan, Q and E rotate, R resets, F follows, Y returns to the last alert, and every other letter is a tray or speed key. It runs the shared __saveCamMark verb, exactly the button's verb, so the key and the button can never disagree. It needs no selection and never changes one, like the reset button, and it clears no arm, because saving a view is camera only, never sim state. Guarded like every other camera key: only once started, never while over or an incident panel is open, never with a modifier, never while typing. */
     /* CF-REF: keyboard-x-mark.md [1] */
     if((e.key === "x" || e.key === "X") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ __saveCamMark(); }
+    /* Keyboard Y last alert: the keyboard twin of the last-alert chip,
+       so a desktop player need not reach for the mouse to return to
+       the last alert after its toast dies. Y runs exactly the chip's
+       verb, __lastAlertFocus, so the key and the chip can never
+       disagree: the jump, the tap blip, and the dead-focus toast with
+       its clear all come from the one function. It needs no selection
+       and never changes one, and with no last alert it does nothing,
+       like F with no selection. Guarded like every other camera key:
+       only once started, never while over or an incident panel is
+       open, never with a modifier, never while typing. */
+    /* CF-REF: keyboard-y-lastalert.md [1] */
+    if((e.key === "y" || e.key === "Y") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ __lastAlertFocus(); }
     /* Speed keys: comma and period are the keyboard twins of the 1x and 2x buttons, so a desktop player need not reach for the mouse to change pace. The Sims names 1, 2, and 3 for regular, fast, and ultra speed, but 1, 2, and 3 recall control group slots here, and 0 already pauses, so the direct digits are taken. Comma sits left of period as 1x sits left of 2x, and the shifted forms (< and >) do the same, so the pair reads as slower and faster in button order. Each key runs exactly the button's verb, setSpeed with the button's rate, so the key and the button can never disagree. They need no selection, like the pause keys, and they clear no arm, because changing pace is sim rate only, never a sim order. Guarded like a panel key: only once started, never while over or an incident panel is open, never with a modifier, never while typing. */
     /* CF-REF: keyboard-comma-period-speed.md [2] */
     if((e.key === "," || e.key === "<") && G && G.started && !G.over && !G.incidentOpen && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable))){ setSpeed(1); }

@@ -9,15 +9,15 @@ saved), and on a fifth save names the drop (View 4 saved, oldest
 view replaced), then refreshes the tray. The return chips recall a
 slot's pose exactly; the key itself only saves, never recalls.
 
-X marks the spot, and X is the one free letter. A, S, D, and W pan
+X marks the spot, and X is a free letter. A, S, D, and W pan
 the camera, Q and E rotate it, R resets it, F follows the selected
-resident, and every other letter is a tray verb (B proclaim, C
-claim, G spotlight, H road, I idle, J story, K speak, L lens, M
-mute, N found, O model, P pause, T thoughts, U build, V visit) or
-a speed key. No bare letter in Save or View is free (S pans, V is
-Visit, A pans, E rotates), so the save takes the free letter that
-names pinning a place, in the same first-free-letter grammar as G
-for Spotlight and K for Speak For.
+resident, Y returns to the last alert, and every other letter is a
+tray verb (B proclaim, C claim, G spotlight, H road, I idle, J
+story, K speak, L lens, M mute, N found, O model, P pause, T
+thoughts, U build, V visit) or a speed key. No bare letter in Save
+or View is free (S pans, V is Visit, A pans, E rotates), so the
+save takes the free letter that names pinning a place, in the same
+first-free-letter grammar as G for Spotlight and K for Speak For.
 
 X is a camera verb, not a resident verb: it needs no selection and
 never changes one, like the reset button, and it clears no arm,
