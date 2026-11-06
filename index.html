@@ -2958,10 +2958,10 @@ function refreshThought(a, cause){
 /* ThoughtService (stage 2): one paced queue for every thought in the game.
    Event requests carry priority (major events first); a higher-priority
    event replaces the kind of a request already queued for that resident,
-   so the event thought is the one served, and ambient fills only when
-   nothing eventful is waiting. At most one generation per 4
-   sim-seconds globally and 15 per resident, so thoughts announce
-   themselves one at a time and never double up. */
+   and at equal priority the later major event replaces the earlier one,
+   so the newest event is the thought served; the earlier one stays in
+   recentEvents. Ambient fills only when nothing eventful is waiting. At
+   most one generation per 4 sim-seconds globally and 15 per resident. */
 var ThoughtService = {
   prio: function(kind){
     return (kind === "blamed" || kind === "rivalry" || kind === "wantMissed" || kind === "initiative" || kind === "inspired" || kind === "succession") ? 3 : 1;
@@ -2969,7 +2969,7 @@ var ThoughtService = {
   request: function(a, kind, prio){
     if(!a || !a.persona || !G.started || G.over) return;
     var q = G.thoughtQ || (G.thoughtQ = []), i;
-    for(i = 0; i < q.length; i++) if(q[i].id === a.id){ var np = (prio || this.prio(kind)); if(np > q[i].p){ q[i].p = np; if(kind !== "ambient") q[i].kind = kind; } return; }
+    for(i = 0; i < q.length; i++) if(q[i].id === a.id){ var np = (prio || this.prio(kind)); if(np > q[i].p){ q[i].p = np; if(kind !== "ambient") q[i].kind = kind; } else if(np === q[i].p && kind !== "ambient" && q[i].kind !== "ambient"){ q[i].kind = kind; } return; }
     q.push({id:a.id, kind:kind, p:(prio || this.prio(kind))});
   },
   tick: function(s){
