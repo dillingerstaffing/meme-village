@@ -6890,7 +6890,7 @@ function announceArmedStill(){
 var hudAcc = 0;
 var mmCtx = null;
 try { var mmEl0 = document.getElementById("minimap"); if(mmEl0 && mmEl0.getContext){ mmCtx = mmEl0.getContext("2d"); } } catch(e) { mmCtx = null; }
-// CF-REF: minimap-canvas-tap.md [39]
+// CF-REF: minimap-canvas-tap.md [40]
 /* Minimap tap-to-jump, restored after the scroll fix. The minimap canvas is
    pointer-events:none so camera drags pass through to the game canvas, which
    means its old on-element click listener could never fire. The jump is
@@ -6928,6 +6928,7 @@ function minimapJump(x, y){
   cam.target.x = Math.max(-62, Math.min(62, wx));
   cam.target.z = Math.max(-48, Math.min(48, wz));
   cam.follow = null;
+  SND.play("tap"); /* A minimap tap is a camera jump, and every other camera-return path answers with the tap blip (idle alert chip, group recall, Idle cycle, last-alert return, cammark return, toast view chip), so the jump used to answer with a camera move only, and a tap that landed while the player watched elsewhere read like a tap that missed. A drag that starts on the minimap pans instead of jumping and stays silent, because a continuous pan is not a discrete tap. */
   return true;
 }
 function drawMinimap(){

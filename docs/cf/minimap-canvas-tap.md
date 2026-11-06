@@ -15,3 +15,9 @@ so the binding looks correct and silently does nothing. Taps then fall
 through to the canvas and deselect instead of jumping. This shipped
 once as a regression after a scroll fix and was caught only by a tap
 probe, not by reading the code.
+
+A successful jump answers with the tap blip, in the camera-return
+grammar: every other camera jump answers aloud, so a silent minimap
+tap read like a tap that missed. A drag that starts on the minimap
+pans instead of jumping and stays silent, because a continuous pan
+is not a discrete tap.
