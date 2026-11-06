@@ -21,3 +21,12 @@ grammar: every other camera jump answers aloud, so a silent minimap
 tap read like a tap that missed. A drag that starts on the minimap
 pans instead of jumping and stays silent, because a continuous pan
 is not a discrete tap.
+
+A hidden minimap takes no jumps. When hudTick hides the minimap
+(visibility hidden) because the selected tray leaves no slot for it,
+the element keeps its rect, so a tap on the tray area over it would
+otherwise jump the camera to a map point the player cannot see.
+minimapJump refuses the jump when the element's inline visibility is
+hidden, and the tap falls through to tapAt instead. The inline style
+is the signal: hudTick sets visibility hidden inline, nothing else
+hides the minimap.
