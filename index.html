@@ -302,8 +302,13 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
      now sits in the one slot that is free in every phone state, below
      the top chips and above the minimap, right anchored so its left
      edge never reaches the offer card, with its width capped so it
-     cannot stretch left over the stats panel either. */
-  #toast{bottom:auto;top:114px;left:auto;right:10px;transform:none;max-width:calc(100vw - 192px);font-size:12.5px;padding:7px 13px;z-index:10}
+     cannot stretch left over the stats panel either. The pill's height
+     is content-driven, so a long focused toast (a view chip plus the
+     44px skip) reaches past the minimap's top at 202px; the pill
+     therefore paints above the minimap (z 12, the desktop value) so its
+     buttons stay visible and tappable, and hudTick pins the minimap
+     below a live pill when the tray leaves room. */
+  #toast{bottom:auto;top:114px;left:auto;right:10px;transform:none;max-width:calc(100vw - 192px);font-size:12.5px;padding:7px 13px;z-index:12}
   #stats{bottom:262px;width:140px}
   .srow .sb{width:36px}
   /* Phone meter bars hide: the 140px panel leaves the bar 10px wide,
@@ -7777,8 +7782,44 @@ function hudTick(dt){
        the minimap's top-anchored position, so the inline value is cleared. */
     var mmEl = document.getElementById("minimap");
     if(mmEl){
-      if(window.innerWidth <= 560){ if(mmEl.style.bottom) mmEl.style.bottom = ""; }
-      else if(mmEl.style.bottom !== tb) mmEl.style.bottom = tb;
+      if(window.innerWidth <= 560){
+        if(mmEl.style.bottom) mmEl.style.bottom = "";
+        /* Phone toast vs minimap: the pill is top-anchored at 114px and
+           its height is content-driven, so a long focused toast (a view
+           chip plus a 44px skip) reaches past the minimap's CSS top at
+           202px, and the minimap, opaque at z 11 over the pill's old
+           z 10, covered the pill's skip button for the toast's whole
+           life (measured 2026-11-06: the Commission toast covers the
+           minimap by 3068 px^2, the first-imitation hint by 5310 px^2,
+           and the skip's rect in both). Pin the minimap below a live
+           pill, top equals the pill's bottom plus 12, capped so the
+           pinned minimap never covers the tray (the tray's top is live;
+           the selected sheet rises over the minimap's CSS bottom at
+           375px, so the cap binds there and the pin stands down, and
+           the pill's z 12 keeps its buttons visible above the minimap
+           instead). The pin clears when the pill dies, so the minimap
+           returns to its CSS top on its own. Display only: no state,
+           no dispatch, no RNG stream change, and every write is
+           diff-guarded. The minimap's height is read live (88px on
+           phones), so the cap follows a resize; the 202 is the phone
+           CSS top this pin mirrors. */
+        var toastEl2 = document.getElementById("toast");
+        var mmTop = "";
+        if(toastEl2 && toastEl2.style.display === "block"){
+          var toastB2 = toastEl2.getBoundingClientRect().bottom;
+          var mmH2 = mmEl.getBoundingClientRect().height;
+          var trayEl2 = document.getElementById("tray");
+          var trayTop2 = trayEl2 ? trayEl2.getBoundingClientRect().top : Infinity;
+          var wantTop2 = Math.ceil(toastB2) + 12;
+          var capTop2 = Math.floor(trayTop2) - mmH2 - 12;
+          if(wantTop2 > 202 && capTop2 >= 202) mmTop = Math.min(wantTop2, capTop2) + "px";
+        }
+        if(mmEl.style.top !== mmTop) mmEl.style.top = mmTop;
+      }
+      else {
+        if(mmEl.style.top) mmEl.style.top = "";
+        if(mmEl.style.bottom !== tb) mmEl.style.bottom = tb;
+      }
     }
     /* Desktop toast: pin its bottom above the real tray height on the
        same rule as the alerts and the minimap, instead of the old
