@@ -11,8 +11,12 @@ strategic channel after the flash, unless the player opened the lens.
 
 - drawMinimap draws every G.pairs entry at or past 50 as an edge
   between the two residents' dots, gold below 60 and red at or above
-  60, with a gold ring on each member, in the tension lens's own
-  grammar. Pairs below 50 draw nothing in this layer.
+  60, thin below 60 and thick at or above 60, with a gold ring on
+  each member, in the tension lens's own grammar. The 60 threshold
+  reads in thickness as well as hue, so it survives in grayscale and
+  for a red-green colorblind eye: the old 2 vs 1.5 width step measured
+  2px wide on both sides of the threshold at minimap scale, which was
+  hue alone in practice. Pairs below 50 draw nothing in this layer.
 - The layer is skipped while the tension lens stands open, because
   the lens already draws every pair at or past 40 with the same
   geometry; the lens adds the sub-50 pairs, the drift dashes, and
