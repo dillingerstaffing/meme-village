@@ -25,10 +25,21 @@ ring and the card names them. Non-selected overlays have no exemption;
 past the budget they hide for the frame.
 
 The station aggregate bubble (#pressure, "N all want the <station>") follows
-the same rule against opaque chrome: it clears the minimap and the offer
-card within the same 110px sideways budget measured from its clamped
-station anchor, or hides for the frame, never rendering clipped under
-either panel.
+the same rule against opaque chrome: it clears the minimap, the offer card,
+the alerts stack, and a live toast. Sidestep first within the same 110px
+sideways budget measured from its clamped station anchor (minimap-left,
+offer-card-right, stack-right, toast-left then toast-right), accepting only
+a shift that clears every panel; then lift so its bottom sits on the top
+edge of a panel it hits when the lift stays inside the 56px budget and the
+lifted bubble clears every panel; past both it hides for the frame, never
+rendering clipped under any panel. The stack (z 29) and a live toast (z 12)
+both paint over the bubble (z 11), so a bubble under either reads as no
+convergence at all. Measured 2026-11-07: at 390px the bubble sat under the
+standing stack by 2668 px^2 and under a live toast by 5400 px^2, its center
+covered by an alert chip and a toast chip; at 1440px by 2603 px^2 under the
+stack and 3266 px^2 under the toast. Guarded by pwtest_pressure.py in the
+loop's hidden_files (pre-fix FAIL on exactly the stack and toast invariant
+legs at 390 and 1440, ALL PASS post-fix).
 
 Resident overlays follow the same rule against the minimap specifically:
 the minimap is opaque (z-index 11 over the overlays at 9), so a marker
