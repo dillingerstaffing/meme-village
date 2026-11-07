@@ -8315,16 +8315,24 @@ function fxTick(dt){
     /* The teach cone marks the loafer the first tap should land on, so
        it must be on screen with the station cone: among residents
        within 2 sim-seconds of the longest loaf, take the one nearest
-       the destination station, so both ends of the loop stay in the
-       opening frame instead of the cone pointing at a loafer idling
-       off-screen. The band keeps the pick among the genuinely idlest;
-       with no station the longest loafer stands, as before. Display
-       only: loafT, the idle alerts, and the Idle cycle are untouched. */
+       the destination station whose cone projects inside the viewport
+       (32px margin), so both ends of the loop stay in the opening
+       frame instead of the cone pointing at a loafer idling off-screen.
+       World distance alone does not promise that: at phone widths the
+       nearest loafer's cone sat 34px past the right edge while the
+       station cone sat centered, so a phone player saw half a loop.
+       When no band loafer is on screen the nearest pick stands, so
+       the teach never goes empty for a camera the player dragged away.
+       The band keeps the pick among the genuinely idlest; with no
+       station the longest loafer stands, as before. Display only:
+       loafT, the idle alerts, and the Idle cycle are untouched. */
     var loafer = null, lt = 5, maxLoaf = 5;
     G.agents.forEach(function(a){ if(!a.sick && (a.loafT || 0) > maxLoaf) maxLoaf = a.loafT; });
+    /* CF-REF: coach-teach-line.md [7] */
     if(st){
-      var bestD = Infinity;
-      G.agents.forEach(function(a){ if(!a.sick && (a.loafT || 0) > 5 && (a.loafT || 0) >= maxLoaf - 2){ var dx = a.x - st.x, dz = a.z - st.z, d = dx * dx + dz * dz; if(d < bestD){ bestD = d; loafer = a; } } });
+      var bestD = Infinity, bestOn = null, bestOnD = Infinity;
+      G.agents.forEach(function(a){ if(!a.sick && (a.loafT || 0) > 5 && (a.loafT || 0) >= maxLoaf - 2){ var dx = a.x - st.x, dz = a.z - st.z, d = dx * dx + dz * dz; if(d < bestD){ bestD = d; loafer = a; } if(projV){ projV.set(a.x, 5.4, a.z).project(camera); var px = (projV.x + 1) / 2 * window.innerWidth, py = (1 - projV.y) / 2 * window.innerHeight; if(projV.z < 1 && px >= 32 && px <= window.innerWidth - 32 && py >= 32 && py <= window.innerHeight - 32 && d < bestOnD){ bestOnD = d; bestOn = a; } } } });
+      if(bestOn) loafer = bestOn;
     } else {
       G.agents.forEach(function(a){ if((a.loafT || 0) > lt && !a.sick){ lt = a.loafT; loafer = a; } });
     }

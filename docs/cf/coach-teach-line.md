@@ -3,11 +3,14 @@
 Before the first order, the world teaches with no text: one gold cone
 over the teach loafer and one over the objective station. The teach
 loafer is the resident nearest the destination station among those
-within 2 sim-seconds of the longest loaf, so both ends of the loop stay
-in the opening frame with the station cone instead of the cone pointing
-at a loafer idling off-screen; the band keeps the pick among the
-genuinely idlest, and with no destination station the longest loafer
-stands. Two separate markers do not say they belong together, so a first
+within 2 sim-seconds of the longest loaf whose cone projects inside the
+viewport (32px margin), so both ends of the loop stay in the opening frame
+with the station cone instead of the cone pointing at a loafer idling
+off-screen; the band keeps the pick among the genuinely idlest, and with no
+destination station the longest loafer stands. When no band loafer is on
+screen the nearest pick stands, so the teach never goes empty for a camera
+the player dragged away. The screen test reads the camera the overlay
+already projects with, one frame stale like the overlays. Two separate markers do not say they belong together, so a first
 player can see both ends of the loop without seeing the loop: the
 loafer, and the station, but not that the loafer is meant to go
 there. A gold line joins the two cones while the teach window holds,
