@@ -24,6 +24,13 @@ canvas{display:block}
 #objCard .bar{height:10px;background:#05080b;border:1px solid var(--line);border-radius:3px;overflow:hidden}
 #objCard .bar i{display:block;height:100%;background:linear-gradient(90deg,#b57f22,#f5c86a);width:0%}
 #objCard .s{font-size:11.5px;color:var(--ink2);margin-top:4px;display:flex;justify-content:space-between}
+/* The right-hand read (percent, hands, season clock) is one read per
+   spec section 10: it never wraps, so it keeps its full width and the
+   hint wraps in what is left. Without the guard the flex row squeezed
+   the read to a 14px sliver on phones and it wrapped into stray "-"
+   and "2%" fragments at the card edge. */
+#objCard .s #objHint{flex:1 1 auto;min-width:0}
+#objCard .s #objPct{flex:none;white-space:nowrap}
 #topRight{top:10px;right:10px;display:flex;flex-direction:column;gap:6px;align-items:flex-end}
 .chip{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:6px 11px;font-family:ui-monospace,Menlo,monospace;font-size:13px;font-weight:700}
 .chip b{color:var(--gold)}
@@ -7241,7 +7248,12 @@ function hudTick(dt){
   } else if(G.offer){
     document.getElementById("objK").textContent = "OFFER · " + seasonName().toUpperCase();
     document.getElementById("objT").textContent = o.icon + " " + (o.titleDyn ? o.titleDyn() : o.title);
-    document.getElementById("objHint").textContent = (o.hintDyn ? o.hintDyn() : o.hint) + (o.project ? "" : " Completing it pays +" + OBJ_COMPLETE_BONUS.trust + " trust and +" + OBJ_COMPLETE_BONUS.cohesion + " cohesion.");
+    /* The payoff sentence needs its own period: every objective hint
+       ends without terminal punctuation, so appending " Completing..."
+       ran the two sentences together ("works Completing"). End the
+       hint sentence first, unless a hint already ends in . ! or ?. */
+    var h0 = o.hintDyn ? o.hintDyn() : o.hint;
+    document.getElementById("objHint").textContent = h0 + (o.project ? "" : (/[.!?]$/.test(h0) ? "" : ".") + " Completing it pays +" + OBJ_COMPLETE_BONUS.trust + " trust and +" + OBJ_COMPLETE_BONUS.cohesion + " cohesion.");
     document.getElementById("objPct").textContent = "- · ☀ " + clkPct + "%";
   } else {
     document.getElementById("objK").textContent = "SEASON · " + seasonName().toUpperCase();
