@@ -7949,18 +7949,62 @@ function hudTick(dt){
            including the arming button itself and the speeds row,
            while the pick stood open (measured at 390x844: card
            bottom 791 against a tray top of 332, with the left column
-           fully covered). Short rows (offer Accept/Ignore, arrival
-           chips, lens modes) never reach the tray, so they keep the
-           tray as-is. While a long row is open, the tray collapses
-           to its speeds-only height through the pickopen class above
-           (the row itself carries the commit and the cancel chip, so
-           no exit is lost), and the row's own cap is tightened by
-           measurement so the card bottom, site line included, clears
-           the collapsed tray top by 8px; the row still scrolls
-           internally for the chips below the cap. Display only: no
-           state, no dispatch, and every write is diff-guarded. */
+           fully covered). Short rows (arrival chips, lens modes)
+           never reach the tray, so they keep it as-is. The offer row
+           is short too, but at 375px a long offer's hint wraps the
+           card tall enough to reach the selected tray (2026-11-07:
+           card bottom 302 against a tray top of 270 at 375x844, the
+           Ignore button covered by 3576 px2 and the role line by
+           1232 px2; card bottom 318 against a tray top of 202 at
+           375x720, the whole offer row and the first command row
+           covered; clean at 390x844, card bottom 318 against a tray
+           top of 332). So the offer row collapses the tray as well,
+           but only when measured: while the offer stands open and
+           the offer row's bottom would pass the tray's top content
+           row (the selInfo role line when a resident is selected,
+           else the tray top), the tray collapses the same way, and
+           the offer row carries Accept and Ignore, so no exit is
+           lost. The measurement is the offer row's bottom, not the
+           card's: the card bottom includes any long pick row
+           standing open, so measuring the card latched the marker
+           off another verb's row (arming Claim with the week-1 offer
+           up set the marker at 390, where the offer never reaches
+           the tray, and the tray stayed collapsed after the cancel;
+           caught by pickrowtray L4). The offer row sits above every
+           long row in the card, so when it clears the tray,
+           everything above it clears too. The
+           collapse latches on its own marker class, pickopen-offer,
+           while the offer stands: the collapsed tray top no longer
+           measures the overlap, so a per-tick re-measure would
+           un-collapse on the next dispatch and flicker the tray; the
+           tray restores the moment the offer is answered. The marker
+           is the latch, not pickopen itself: latching on pickopen
+           held the collapse for ANY offer standing open, including
+           at 390 where the offer never overlaps, so a long pick
+           cancelled with the week-1 offer still up left the tray
+           collapsed (caught by pickrowtray L4 in the battery). A tray
+           collapsed for a long pick never sets the marker: the
+           measurement then reads the collapsed tray top, which the
+           capped row always clears, so the offer cannot latch off
+           another verb's collapse; the next tick after the long pick
+           closes re-measures the expanded tray and latches then if
+           the offer genuinely overlaps. Display only: no state, no
+           dispatch, and every write is diff-guarded. */
         var longPick = ["projPick","foundPick","claimPick","roadPick"].some(function(pid){ var pe = document.getElementById(pid); return pe && pe.style.display !== "none"; });
-        if(trayEl && trayEl.classList.contains("pickopen") !== longPick) trayEl.classList.toggle("pickopen", longPick);
+        var offerEl = document.getElementById("offerPick");
+        var offerOpen = offerEl && offerEl.style.display !== "none";
+        var offerCollapse = false;
+        if(offerOpen && trayEl){
+          if(trayEl.classList.contains("pickopen-offer")) offerCollapse = true;
+          else {
+            var selEl = document.getElementById("selInfo");
+            var selTop = (selEl && selEl.getBoundingClientRect().height > 0) ? selEl.getBoundingClientRect().top : trayEl.getBoundingClientRect().top;
+            if(offerEl.getBoundingClientRect().bottom > selTop) offerCollapse = true;
+          }
+        }
+        var wantPickopen = longPick || offerCollapse;
+        if(trayEl && trayEl.classList.contains("pickopen") !== wantPickopen) trayEl.classList.toggle("pickopen", wantPickopen);
+        if(trayEl && trayEl.classList.contains("pickopen-offer") !== offerCollapse) trayEl.classList.toggle("pickopen-offer", offerCollapse);
         ["projPick","foundPick","claimPick","roadPick"].forEach(function(pid){
           var pe = document.getElementById(pid); if(!pe) return;
           if(!longPick){ if(pe.style.maxHeight) pe.style.maxHeight = ""; return; }
@@ -8016,6 +8060,7 @@ function hudTick(dt){
            phone-only class and any measured row cap on leaving phone
            width, so neither survives a resize into desktop. */
         if(trayEl && trayEl.classList.contains("pickopen")) trayEl.classList.remove("pickopen");
+        if(trayEl && trayEl.classList.contains("pickopen-offer")) trayEl.classList.remove("pickopen-offer");
         ["projPick","foundPick","claimPick","roadPick"].forEach(function(pid){ var pe = document.getElementById(pid); if(pe && pe.style.maxHeight) pe.style.maxHeight = ""; });
       }
     }
