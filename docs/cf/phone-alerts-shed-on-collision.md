@@ -25,6 +25,17 @@ pixels of alert-height wobble would flicker chips away at the decision
 moment. On wider screens the rule does not run: the column has room,
 and the stack never reaches the card.
 
+A live toast is a second clearance target on the same rule. The pill is
+top-anchored at 114px on phones and a long toast reaches past the stack's
+top when a selected tray pins the stack high, so the stack's chips
+covered the toast's left strip (measured 2026-11-06: 2256 px^2 at 375px,
+the message's start, for the toast's whole 3.6s life). The shed loop
+therefore also breaks only once the stack top clears the live pill's
+bottom edge, on the same 12px sliver and the same priority order, so the
+idle chips hide while the toast is live and return on their own when it
+dies. With no toast live the toast target is absent and the rule reduces
+to the card rule alone.
+
 Phone chip height: on screens 560px and under the stack's chips carry
 min-height 44px, the thumb target the game's pick-row chips already
 meet. The stack chips were 33px tall from the shared .alert-chip

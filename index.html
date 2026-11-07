@@ -7767,8 +7767,18 @@ function hudTick(dt){
        a verb), camera bookmark chips, the last-alert chip, the group
        row, and idle chips last, since idle chips are the time-sensitive
        verb. A sliver of 12px or less is border and padding, not a chip,
-       so it does not shed, on the same rule as the stats collision. */
-    // CF-REF: phone-alerts-shed-on-collision.md [14]
+       so it does not shed, on the same rule as the stats collision.
+       A live toast is a second clearance target on the same rule: the
+       pill is top-anchored at 114px and a long toast reaches past the
+       stack's top when a selected tray pins the stack high, so the
+       stack's chips covered the toast's left strip (measured
+       2026-11-06: 2256 px^2 at 375px, the message's start, for the
+       toast's whole 3.6s life). The shed loop therefore also breaks
+       only once the stack top clears the live pill's bottom edge, on
+       the same 12px sliver and the same priority order, so the idle
+       chips hide while the toast is live and return on their own
+       when it dies. */
+    // CF-REF: phone-alerts-shed-on-collision.md [16]
     if(window.innerWidth <= 560){
       var ocAl = document.getElementById("objCard");
       if(ocAl && alEl){
@@ -7780,7 +7790,9 @@ function hudTick(dt){
         for(var alLi = 0; alLi < alKids.length; alLi++){ if((" " + alKids[alLi].className + " ").indexOf(" last-alert-chip ") >= 0) alShed.push(alKids[alLi]); }
         for(var alGi = 0; alGi < alKids.length; alGi++){ if((" " + alKids[alGi].className + " ").indexOf(" group-row ") >= 0) alShed.push(alKids[alGi]); }
         for(var alIi = 0; alIi < alKids.length; alIi++){ var alCls = " " + alKids[alIi].className + " "; if(alCls.indexOf(" alert-chip ") >= 0 && alCls.indexOf(" cammark-chip ") < 0 && alCls.indexOf(" last-alert-chip ") < 0 && alCls.indexOf(" group-chip ") < 0) alShed.push(alKids[alIi]); }
-        for(var alHi = 0; alHi < alShed.length; alHi++){ if(ocAl.getBoundingClientRect().bottom - 12 <= alEl.getBoundingClientRect().top) break; alShed[alHi].style.display = "none"; }
+        var toastAl = document.getElementById("toast");
+        var toastBAl = (toastAl && toastAl.style.display === "block") ? toastAl.getBoundingClientRect().bottom : -Infinity;
+        for(var alHi = 0; alHi < alShed.length; alHi++){ var alTop = alEl.getBoundingClientRect().top; if(ocAl.getBoundingClientRect().bottom - 12 <= alTop && toastBAl - 12 <= alTop) break; alShed[alHi].style.display = "none"; }
       }
     }
     /* Desktop minimap: pin its bottom above the tray's real height instead of
