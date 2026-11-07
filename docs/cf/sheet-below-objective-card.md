@@ -17,4 +17,10 @@ the minimap's bottom edge plus 8px. Without the floor a sheet top
 inside the minimap's strip covered its bottom edge and swallowed taps
 there, leaving the minimap's south strip dead while the sheet stood.
 Above 560px the minimap is bottom-anchored and the sheet covers that
-corner by design, so the floor applies only at 560px and under.
+corner by design, so the floor applies only at 560px and under. A
+hidden minimap takes no floor (2026-11-07): hudTick hides it with
+visibility hidden when the tray overlaps its home rect while a toast
+is live, and visibility hidden keeps the rect, so the floor reads the
+inline style and stands down while the minimap is hidden; otherwise
+the sheet would start below a panel that paints nothing. Guarded by
+pwtest_hiddenmm.py in the loop's hidden_files.

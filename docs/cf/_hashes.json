@@ -412,7 +412,7 @@
       "article": "sheet-below-objective-card.md",
       "ref_line": 8023,
       "lines": 19,
-      "hash": "b04a1082"
+      "hash": "d3e7f532"
     },
     {
       "article": "desires-travel-the-graph.md",
@@ -435,234 +435,234 @@
     {
       "article": "overlay-anchor-budget.md",
       "ref_line": 8469,
-      "lines": 243,
-      "hash": "eb396879"
+      "lines": 251,
+      "hash": "5e8e31ca"
     },
     {
       "article": "tap-grace.md",
-      "ref_line": 8713,
+      "ref_line": 8721,
       "lines": 12,
       "hash": "4ca37163"
     },
     {
       "article": "overlay-anchor-budget.md",
-      "ref_line": 8737,
-      "lines": 49,
-      "hash": "27bb49a7"
+      "ref_line": 8745,
+      "lines": 55,
+      "hash": "20b96b18"
     },
     {
       "article": "tap-grace.md",
-      "ref_line": 8810,
+      "ref_line": 8824,
       "lines": 32,
       "hash": "db12ed89"
     },
     {
       "article": "minimap-canvas-tap.md",
-      "ref_line": 9113,
+      "ref_line": 9127,
       "lines": 12,
       "hash": "b5deb1c9"
     },
     {
       "article": "pointercancel-never-a-tap.md",
-      "ref_line": 9127,
+      "ref_line": 9141,
       "lines": 4,
       "hash": "3471fc97"
     },
     {
       "article": "camera-key-follow.md",
-      "ref_line": 9134,
+      "ref_line": 9148,
       "lines": 6,
       "hash": "885bcc6e"
     },
     {
       "article": "keyboard-space-pause.md",
-      "ref_line": 9169,
+      "ref_line": 9183,
       "lines": 1,
       "hash": "72f09793"
     },
     {
       "article": "keyboard-p-pause.md",
-      "ref_line": 9179,
+      "ref_line": 9193,
       "lines": 1,
       "hash": "27e58082"
     },
     {
       "article": "keyboard-0-pause.md",
-      "ref_line": 9190,
+      "ref_line": 9204,
       "lines": 1,
       "hash": "d107aa16"
     },
     {
       "article": "keyboard-m-mute.md",
-      "ref_line": 9202,
+      "ref_line": 9216,
       "lines": 1,
       "hash": "e50981cd"
     },
     {
       "article": "keyboard-i-idle.md",
-      "ref_line": 9216,
+      "ref_line": 9230,
       "lines": 1,
       "hash": "0919d9e5"
     },
     {
       "article": "keyboard-t-thoughts.md",
-      "ref_line": 9230,
+      "ref_line": 9244,
       "lines": 1,
       "hash": "0cbeb0b2"
     },
     {
       "article": "keyboard-l-lens.md",
-      "ref_line": 9244,
+      "ref_line": 9258,
       "lines": 1,
       "hash": "1c5082de"
     },
     {
       "article": "keyboard-j-story.md",
-      "ref_line": 9259,
+      "ref_line": 9273,
       "lines": 1,
       "hash": "e1656b9d"
     },
     {
       "article": "keyboard-c-claim.md",
-      "ref_line": 9278,
+      "ref_line": 9292,
       "lines": 1,
       "hash": "abfc28ad"
     },
     {
       "article": "keyboard-b-proclaim.md",
-      "ref_line": 9293,
+      "ref_line": 9307,
       "lines": 1,
       "hash": "d432a7cf"
     },
     {
       "article": "keyboard-n-found.md",
-      "ref_line": 9307,
+      "ref_line": 9321,
       "lines": 1,
       "hash": "ed8b3132"
     },
     {
       "article": "keyboard-h-road.md",
-      "ref_line": 9323,
+      "ref_line": 9337,
       "lines": 1,
       "hash": "e509a495"
     },
     {
       "article": "keyboard-v-visit.md",
-      "ref_line": 9338,
+      "ref_line": 9352,
       "lines": 1,
       "hash": "12573091"
     },
     {
       "article": "keyboard-o-model.md",
-      "ref_line": 9353,
+      "ref_line": 9367,
       "lines": 1,
       "hash": "52f5dbec"
     },
     {
       "article": "keyboard-g-spotlight.md",
-      "ref_line": 9372,
+      "ref_line": 9386,
       "lines": 1,
       "hash": "d75c0df1"
     },
     {
       "article": "keyboard-u-build.md",
-      "ref_line": 9388,
+      "ref_line": 9402,
       "lines": 1,
       "hash": "4d5d2a03"
     },
     {
       "article": "keyboard-k-speak.md",
-      "ref_line": 9416,
+      "ref_line": 9430,
       "lines": 1,
       "hash": "06400e05"
     },
     {
       "article": "keyboard-shiftc-cover.md",
-      "ref_line": 9436,
+      "ref_line": 9450,
       "lines": 1,
       "hash": "2ab1c2af"
     },
     {
       "article": "keyboard-shifto-callout.md",
-      "ref_line": 9459,
+      "ref_line": 9473,
       "lines": 1,
       "hash": "594eabc1"
     },
     {
       "article": "keyboard-escape-close.md",
-      "ref_line": 9468,
+      "ref_line": 9482,
       "lines": 5,
       "hash": "6edb933c"
     },
     {
       "article": "camera-key-rotate.md",
-      "ref_line": 9490,
+      "ref_line": 9504,
       "lines": 3,
       "hash": "e531be86"
     },
     {
       "article": "camera-key-pan.md",
-      "ref_line": 9499,
+      "ref_line": 9513,
       "lines": 9,
       "hash": "efb11f60"
     },
     {
       "article": "camera-key-zoom.md",
-      "ref_line": 9513,
+      "ref_line": 9527,
       "lines": 4,
       "hash": "aa847be7"
     },
     {
       "article": "camera-key-follow.md",
-      "ref_line": 9522,
+      "ref_line": 9536,
       "lines": 5,
       "hash": "7a4ca7d8"
     },
     {
       "article": "camera-key-reset.md",
-      "ref_line": 9532,
+      "ref_line": 9546,
       "lines": 3,
       "hash": "61098559"
     },
     {
       "article": "keyboard-x-mark.md",
-      "ref_line": 9537,
+      "ref_line": 9551,
       "lines": 1,
       "hash": "01173d48"
     },
     {
       "article": "keyboard-y-lastalert.md",
-      "ref_line": 9549,
+      "ref_line": 9563,
       "lines": 1,
       "hash": "398b12f9"
     },
     {
       "article": "keyboard-comma-period-speed.md",
-      "ref_line": 9552,
+      "ref_line": 9566,
       "lines": 2,
       "hash": "c48ee2d5"
     },
     {
       "article": "camera-rotate-buttons.md",
-      "ref_line": 9589,
+      "ref_line": 9603,
       "lines": 2,
       "hash": "2c372e98"
     },
     {
       "article": "camera-zoom-buttons.md",
-      "ref_line": 9596,
+      "ref_line": 9610,
       "lines": 2,
       "hash": "c38034d2"
     },
     {
       "article": "store-single-source.md",
-      "ref_line": 9682,
+      "ref_line": 9696,
       "lines": 4,
       "hash": "ce66959f"
     },
     {
       "article": "paused-toast-holds.md",
-      "ref_line": 9707,
+      "ref_line": 9721,
       "lines": 8,
       "hash": "6df5975d"
     }

@@ -51,6 +51,20 @@ minimap is skipped; and a final guard after lifting and clamping
 re-shifts or hides for the frame. Like the HUD nudge, minimap
 clearance stands down while the camera moves.
 
+A minimap hudTick hid with visibility hidden takes no clearance at
+all: visibility hidden keeps the rect (MDN: the box is not drawn but
+still affects layout), so a rect alone cannot tell a visible panel
+from an invisible one. The inline style is the signal: hudTick sets
+visibility hidden inline and nothing else hides the minimap, the same
+signal minimapJump reads. renderOverlay nulls mmRect when the minimap
+is hidden, so markers under its rect stay at their anchors instead of
+sidestepping or hiding for a panel that paints nothing; the pressure
+bubble's pRect read and the phone sheet floor do the same. Measured
+2026-11-07: at 375px a marker whose anchor sat inside the hidden
+minimap rect hid for the frame (anchor 350,251 inside rect
+247-365,202-290, the sidestep past budget at 139px). Guarded by
+pwtest_hiddenmm.py in the loop's hidden_files.
+
 Resident overlays follow the same rule against the alerts stack: the
 stack is opaque chrome (z-index 29 over the overlays at 9), so a marker
 under it is invisible, not merely overlapping. Placement sidesteps a

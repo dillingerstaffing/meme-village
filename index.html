@@ -8030,8 +8030,8 @@ function hudTick(dt){
     if(window.innerWidth <= 720 && shEl2.style.display === "block"){
       var ocEl = document.getElementById("objCard");
       var sTopN = (ocEl ? ocEl.offsetHeight : 150) + 20;
-      /* Phone minimap floor: at 560px and under the minimap sits top-anchored at 202px, and a sheet top inside its strip covered its bottom edge, swallowing taps there, so the minimap's south strip read as dead while the sheet stood. Above 560px the minimap is bottom-anchored and the sheet covers that corner by design, so the floor applies only here. */
-      if(window.innerWidth <= 560){ var mmEl2 = document.getElementById("minimap"); if(mmEl2){ var mmB = Math.ceil(mmEl2.getBoundingClientRect().bottom); if(mmB + 8 > sTopN) sTopN = mmB + 8; } }
+      /* Phone minimap floor: at 560px and under the minimap sits top-anchored at 202px, and a sheet top inside its strip covered its bottom edge, swallowing taps there, so the minimap's south strip read as dead while the sheet stood. Above 560px the minimap is bottom-anchored and the sheet covers that corner by design, so the floor applies only here. A hidden minimap takes no floor: visibility hidden keeps its rect, so the floor stands down when hudTick hid it, or the sheet would start below a panel that paints nothing. */
+      if(window.innerWidth <= 560){ var mmEl2 = document.getElementById("minimap"); if(mmEl2 && mmEl2.style.visibility !== "hidden"){ var mmB = Math.ceil(mmEl2.getBoundingClientRect().bottom); if(mmB + 8 > sTopN) sTopN = mmB + 8; } }
       var sTop = sTopN + "px";
       if(shEl2.style.top !== sTop) shEl2.style.top = sTop;
       if(shEl2.style.height !== "auto") shEl2.style.height = "auto";
@@ -8466,7 +8466,7 @@ function renderOverlay(s){
     if(m.bubble) a.bubbleEl.style.opacity = m.bubble.kind === "want" ? m.bubble.opacity.toFixed(2) : "1";
     placed.push(a);
   });
-  // CF-REF: overlay-anchor-budget.md [243]
+  // CF-REF: overlay-anchor-budget.md [251]
   // Anchor discipline: an overlay belongs to its resident, and position
   // is identity. A marker may shift only within a small budget (LIFT_MAX
   // up, DX_MAX sideways; the screen clamps and a short HUD nudge count
@@ -8496,9 +8496,17 @@ function renderOverlay(s){
     }
     return null;
   }
+  /* A minimap hudTick hid (visibility hidden) keeps its rect: the box
+     is not drawn but still affects layout (MDN visibility), so a rect
+     alone cannot tell a visible panel from an invisible one. A hidden
+     minimap paints nothing, so it takes no clearance: markers under
+     its rect stay at their anchors instead of sidestepping or hiding
+     for a panel the player cannot see. The inline style is the signal,
+     the same one minimapJump reads: hudTick sets visibility hidden
+     inline, nothing else hides the minimap. */
   var mmEl = document.getElementById("minimap");
   var mmRect = null;
-  if(mmEl && typeof mmEl.getBoundingClientRect === "function"){ var _mr = mmEl.getBoundingClientRect(); if(_mr.width >= 4 && _mr.height >= 4) mmRect = _mr; }
+  if(mmEl && typeof mmEl.getBoundingClientRect === "function"){ var _mr = mmEl.getBoundingClientRect(); if(_mr.width >= 4 && _mr.height >= 4 && mmEl.style.visibility !== "hidden") mmRect = _mr; }
   var trayEl = document.getElementById("tray");
   var trayRect = null;
   if(trayEl && typeof trayEl.getBoundingClientRect === "function"){ var _tr = trayEl.getBoundingClientRect(); if(_tr.width >= 4 && _tr.height >= 4) trayRect = _tr; }
@@ -8734,7 +8742,7 @@ function renderOverlay(s){
     if(projV.z <= 1){
       var ptxt = "\u2694\u00d7" + pressN + " all want the " + pst.name; if(pEl.textContent !== ptxt) pEl.textContent = ptxt;
       pEl.style.display = "block";
-      // CF-REF: overlay-anchor-budget.md [49]
+      // CF-REF: overlay-anchor-budget.md [55]
       // Centered on the station via translate(-50%,-100%): keep the whole bubble
       // on screen and clear of the minimap, the offer card, the alerts stack,
       // and a live toast, staying near its station (the 110px sideways budget
@@ -8756,7 +8764,13 @@ function renderOverlay(s){
       if(pcy - pbh < 4) pcy = pbh + 4;
       var pcx0 = pcx, pcy0 = pcy;
       var pRect = function(el){ if(!el) return null; var r = el.getBoundingClientRect(); if(r.width < 4 || r.height < 4) return null; return r; };
-      var pmr = pRect(document.getElementById("minimap")), por = pRect(document.getElementById("objCard"));
+      /* A hidden minimap takes no clearance here either: hudTick hides
+         it with visibility hidden, which keeps its rect, so the rect
+         alone would sidestep or hide the bubble for a panel that paints
+         nothing. The inline style is the signal, as in renderOverlay. */
+      var _mmElP = document.getElementById("minimap");
+      var pmr = (_mmElP && _mmElP.style.visibility === "hidden") ? null : pRect(_mmElP);
+      var por = pRect(document.getElementById("objCard"));
       var pal = pRect(document.getElementById("alerts"));
       var ptoEl = document.getElementById("toast");
       var pto = (ptoEl && ptoEl.style.display === "block") ? pRect(ptoEl) : null;
