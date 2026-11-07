@@ -77,6 +77,15 @@ canvas{display:block}
 #siteLine{font-size:11.5px;color:var(--ink2);margin-top:5px;display:none}
 #offerPick .alert-chip{min-height:44px;padding:10px 12px;font-size:13px;display:flex;align-items:center;gap:6px}
 @media (max-width:560px){#offerPick .alert-chip{flex:1 1 100%}}
+/* Desktop pick rows scroll when hudTick caps them: the phone rule caps
+   rows inside the 560px media query, but a tall card grows past the
+   desktop tray top too (measured 2026-11-07: card bottom 687 against a
+   tray top of 642 at 1440x900), so the desktop cap in hudTick sets the
+   same inline max-height there. The rows need overflow-y auto at every
+   width for the cap to scroll instead of clip, and it is a no-op while
+   uncapped. */
+/* CF-REF: pick-rows-scroll.md [1] */
+#projPick,#offerPick,#foundPick,#claimPick,#roadPick,#lensPick,#arrPick{overflow-y:auto}
 .ovl .bubble.wantb{border:2px dashed var(--gold);background:rgba(255,244,214,.97)}
 .cbtn .wb{position:absolute;top:1px;right:3px;font-size:10px;line-height:1}
 .cbtn .ob{position:absolute;top:1px;left:3px;font-size:10px;line-height:1}
@@ -280,7 +289,7 @@ body.pre .hud, body.pre #topRight, body.pre #tray, body.pre #minimap, body.pre #
      the no-dvh fallback rule; pointer-events auto on the row itself
      so the scroll gesture lands on it (the card stays pass-through
      everywhere else, and only the row's own buttons captured before). */
-  /* CF-REF: pick-rows-scroll-on-phones.md [2] */
+  /* CF-REF: pick-rows-scroll.md [2] */
   #projPick,#offerPick,#foundPick,#claimPick,#roadPick,#lensPick,#arrPick{max-height:calc(100vh - 360px);max-height:calc(100dvh - 360px);overflow-y:auto;pointer-events:auto}
   #projPick .alert-chip,#offerPick .alert-chip,#foundPick .alert-chip,#claimPick .alert-chip,#roadPick .alert-chip,#lensPick .alert-chip,#arrPick .alert-chip{flex-wrap:wrap;min-width:0}
   /* Phone: the offer card (with its Accept/Ignore and project pick buttons)
@@ -8082,11 +8091,39 @@ function hudTick(dt){
         var hideStatsD = stBotD > alTopD + 12;
         if(stEl.style.visibility !== (hideStatsD ? "hidden" : "")) stEl.style.visibility = hideStatsD ? "hidden" : "";
         /* Desktop never collapses the tray for a pick row: clear the
-           phone-only class and any measured row cap on leaving phone
-           width, so neither survives a resize into desktop. */
+           phone-only class on leaving phone width, so it never
+           survives a resize into desktop. The row cap below replaces
+           the old unconditional clear of any measured row cap: a tall
+           card grew past the desktop tray top instead (measured
+           2026-11-07: card bottom 687 against a tray top of 642 at
+           1440x900, 11250 px^2, the tray's opaque gradient painting
+           over the card's bottom pick rows, the Not yet exit chip
+           half under it). The phone grammar, measured the same way:
+           cap the open long row so the card bottom clears the tray
+           top by 8px, and the row scrolls internally. The cap reads
+           the tray's measured top, not an analytic bound: the tray
+           does not collapse on desktop, so the measured top is stable
+           on the arming dispatch itself, and the cap changes the card
+           bottom, never the tray top, so no latch is needed. The offer
+           row takes no cap: it is a single decision, and it sits above
+           every long row, so when the long row clears the tray the
+           offer clears too. Display only: no state, no dispatch,
+           every write diff-guarded. */
+        // CF-REF: pick-rows-scroll.md [14]
         if(trayEl && trayEl.classList.contains("pickopen")) trayEl.classList.remove("pickopen");
         if(trayEl && trayEl.classList.contains("pickopen-offer")) trayEl.classList.remove("pickopen-offer");
-        ["projPick","foundPick","claimPick","roadPick"].forEach(function(pid){ var pe = document.getElementById(pid); if(pe && pe.style.maxHeight) pe.style.maxHeight = ""; });
+        var longPickD = ["projPick","foundPick","claimPick","roadPick"].some(function(pid){ var pe = document.getElementById(pid); return pe && pe.style.display !== "none"; });
+        var trayTopD = trayEl ? Math.floor(trayEl.getBoundingClientRect().top) : window.innerHeight;
+        ["projPick","foundPick","claimPick","roadPick"].forEach(function(pid){
+          var pe = document.getElementById(pid); if(!pe) return;
+          if(!longPickD){ if(pe.style.maxHeight) pe.style.maxHeight = ""; return; }
+          var ocElD = document.getElementById("objCard"); if(!ocElD) return;
+          var rowR = pe.getBoundingClientRect(), cardR = ocElD.getBoundingClientRect();
+          var belowRow = cardR.bottom - rowR.bottom;
+          var allowRow = Math.floor(trayTopD - 8 - rowR.top - belowRow);
+          if(allowRow >= pe.scrollHeight - 1){ if(pe.style.maxHeight) pe.style.maxHeight = ""; }
+          else { var wantRow = Math.max(88, allowRow) + "px"; if(pe.style.maxHeight !== wantRow) pe.style.maxHeight = wantRow; }
+        });
       }
     }
   }

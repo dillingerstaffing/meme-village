@@ -1,4 +1,4 @@
-# Pick Rows Scroll Inside the Objective Card on Phones
+# Pick Rows Scroll Inside the Objective Card
 
 On screens 560px and under, every decision pick row inside the
 objective card (project, offer, found, claim, road, lens, arrival)
@@ -27,8 +27,29 @@ The cap is on the row, not the card, so the objective text above the
 row stays visible as context while the choices scroll beneath it.
 The rule covers all seven rows because they share one CSS pattern;
 a future long row (a many-option offer, a new pick family) is capped
-from day one rather than re-discovering the fold failure. On wider
-screens the rule does not apply and rows lay out uncapped as before.
+from day one rather than re-discovering the fold failure. On phones
+the cap is the viewport height minus 360px, tightened by measurement
+against the collapsed tray top while a long row stands; the rows need
+overflow-y auto at every width for the cap to scroll instead of clip,
+and it is a no-op while uncapped.
+
+Desktop cap (2026-11-07): the desktop tray never collapses for a pick
+row, so a tall card grew past the tray top instead (measured at
+1440x900: card bottom 687 against a tray top of 642, 11250 px^2, the
+tray's opaque gradient painting over the card's bottom pick rows, the
+Not yet exit chip half under it). The same grammar, measured the same
+way: hudTick caps the open long row (project, found, claim, road) so
+the card bottom clears the tray's measured top by 8px, and the row
+scrolls internally. The cap reads the tray's measured top, not an
+analytic bound: the tray does not collapse on desktop, so the measured
+top is stable on the arming dispatch itself, and the cap changes the
+card bottom, never the tray top, so no latch is needed. The offer row
+takes no cap: it is a single decision, and it sits above every long
+row, so when the long row clears the tray the offer clears too.
+Guarded by pwtest_cardtray.py in the loop's hidden_files at 1440 and
+390 (plus 1440x700 in the battery): the probe fails pre-fix on
+exactly the clearance and scroll legs at 1440, and passes post-fix at
+all three sizes.
 
 Guarded by pwtest_pickrows.py at 390px and 375px: every chip's right
 edge inside the row, the row's bottom inside the viewport, the first
