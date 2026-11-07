@@ -7772,43 +7772,53 @@ function hudTick(dt){
   var trayEl = document.getElementById("tray");
   if(trayEl){
     var tb = (trayEl.offsetHeight + 12) + "px"; if(alEl.style.bottom !== tb) alEl.style.bottom = tb;
-    /* Phone alerts collision: the alerts stack is bottom-pinned above the
-       tray, so on a short phone a full stack grows up over the objective
-       card and its tappable chips capture taps meant for the card's pick
-       buttons. The stats panel already sheds by measurement; the stack
-       now does the same, display only, re-evaluated every tick so a shed
-       chip returns on its own when the card shortens or the tray closes.
-       Shed order is lowest priority first: the save receipt (status, not
-       a verb), camera bookmark chips, the last-alert chip, the group
-       row, and idle chips last, since idle chips are the time-sensitive
-       verb. A sliver of 12px or less is border and padding, not a chip,
-       so it does not shed, on the same rule as the stats collision.
-       A live toast is a second clearance target on the same rule: the
-       pill is top-anchored at 114px and a long toast reaches past the
-       stack's top when a selected tray pins the stack high, so the
+    /* Alerts collision: the alerts stack is bottom-pinned above the
+       tray, so a full stack grows up over the objective card when the
+       card is tall (a decision pick row open, a resident selected on a
+       short phone) and its tappable chips capture taps meant for the
+       card's pick buttons. The stats panel already sheds by measurement;
+       the stack now does the same, display only, re-evaluated every tick
+       so a shed chip returns on its own when the card shortens or the
+       tray closes. Shed order is lowest priority first: the save receipt
+       (status, not a verb), camera bookmark chips, the last-alert chip,
+       the group row, and idle chips last, since idle chips are the
+       time-sensitive verb. A sliver of 12px or less is border and
+       padding, not a chip, so it does not shed, on the same rule as the
+       stats collision. The rule used to run on phones only, on the
+       assumption the desktop column had room; measured 2026-11-07 it
+       does not: at 1440x900 a full stack with the Found pick row open
+       met the card by 65376 px^2 (card bottom 687, stack top 342), every
+       chip in the stack under the card, the stack painting at z 29 over
+       the card at z 10, so it now runs at every width. A live toast is a
+       second clearance target on the same rule, phones only: the pill
+       is top-anchored at 114px on phones and a long toast reaches past
+       the stack's top when a selected tray pins the stack high, so the
        stack's chips covered the toast's left strip (measured
        2026-11-06: 2256 px^2 at 375px, the message's start, for the
-       toast's whole 3.6s life). The shed loop therefore also breaks
-       only once the stack top clears the live pill's bottom edge, on
-       the same 12px sliver and the same priority order, so the idle
-       chips hide while the toast is live and return on their own
-       when it dies. */
-    // CF-REF: phone-alerts-shed-on-collision.md [16]
-    if(window.innerWidth <= 560){
-      var ocAl = document.getElementById("objCard");
-      if(ocAl && alEl){
-        var alKids = alEl.children;
-        for(var alRi = 0; alRi < alKids.length; alRi++){ if(alKids[alRi].style.display === "none") alKids[alRi].style.display = ""; }
-        var alShed = [];
-        for(var alSi = 0; alSi < alKids.length; alSi++){ if(alKids[alSi].tagName === "SPAN") alShed.push(alKids[alSi]); }
-        for(var alCi = 0; alCi < alKids.length; alCi++){ if((" " + alKids[alCi].className + " ").indexOf(" cammark-chip ") >= 0) alShed.push(alKids[alCi]); }
-        for(var alLi = 0; alLi < alKids.length; alLi++){ if((" " + alKids[alLi].className + " ").indexOf(" last-alert-chip ") >= 0) alShed.push(alKids[alLi]); }
-        for(var alGi = 0; alGi < alKids.length; alGi++){ if((" " + alKids[alGi].className + " ").indexOf(" group-row ") >= 0) alShed.push(alKids[alGi]); }
-        for(var alIi = 0; alIi < alKids.length; alIi++){ var alCls = " " + alKids[alIi].className + " "; if(alCls.indexOf(" alert-chip ") >= 0 && alCls.indexOf(" cammark-chip ") < 0 && alCls.indexOf(" last-alert-chip ") < 0 && alCls.indexOf(" group-chip ") < 0) alShed.push(alKids[alIi]); }
-        var toastAl = document.getElementById("toast");
-        var toastBAl = (toastAl && toastAl.style.display === "block") ? toastAl.getBoundingClientRect().bottom : -Infinity;
-        for(var alHi = 0; alHi < alShed.length; alHi++){ var alTop = alEl.getBoundingClientRect().top; if(ocAl.getBoundingClientRect().bottom - 12 <= alTop && toastBAl - 12 <= alTop) break; alShed[alHi].style.display = "none"; }
+       toast's whole 3.6s life), and the shed loop breaks only once the
+       stack top clears the live pill's bottom edge, on the same 12px
+       sliver and the same priority order, so the idle chips hide while
+       the toast is live and return on their own when it dies. On
+       desktop the pill is bottom-anchored at 118px, below the stack's
+       bottom band, and would need to be over 152px tall to reach the
+       stack, so the toast target stands down there and the rule reduces
+       to the card rule alone. */
+    // CF-REF: alerts-shed-on-collision.md [16]
+    var ocAl = document.getElementById("objCard");
+    if(ocAl && alEl){
+      var alKids = alEl.children;
+      for(var alRi = 0; alRi < alKids.length; alRi++){
+        if(alKids[alRi].style.display === "none") alKids[alRi].style.display = "";
       }
+      var alShed = [];
+      for(var alSi = 0; alSi < alKids.length; alSi++){ if(alKids[alSi].tagName === "SPAN") alShed.push(alKids[alSi]); }
+      for(var alCi = 0; alCi < alKids.length; alCi++){ if((" " + alKids[alCi].className + " ").indexOf(" cammark-chip ") >= 0) alShed.push(alKids[alCi]); }
+      for(var alLi = 0; alLi < alKids.length; alLi++){ if((" " + alKids[alLi].className + " ").indexOf(" last-alert-chip ") >= 0) alShed.push(alKids[alLi]); }
+      for(var alGi = 0; alGi < alKids.length; alGi++){ if((" " + alKids[alGi].className + " ").indexOf(" group-row ") >= 0) alShed.push(alKids[alGi]); }
+      for(var alIi = 0; alIi < alKids.length; alIi++){ var alCls = " " + alKids[alIi].className + " "; if(alCls.indexOf(" alert-chip ") >= 0 && alCls.indexOf(" cammark-chip ") < 0 && alCls.indexOf(" last-alert-chip ") < 0 && alCls.indexOf(" group-chip ") < 0) alShed.push(alKids[alIi]); }
+      var toastAl = document.getElementById("toast");
+      var toastBAl = (window.innerWidth <= 560 && toastAl && toastAl.style.display === "block") ? toastAl.getBoundingClientRect().bottom : -Infinity;
+      for(var alHi = 0; alHi < alShed.length; alHi++){ var alTop = alEl.getBoundingClientRect().top; if(ocAl.getBoundingClientRect().bottom - 12 <= alTop && toastBAl - 12 <= alTop) break; alShed[alHi].style.display = "none"; }
     }
     /* Desktop minimap: pin its bottom above the tray's real height instead of
        the old 150px constant (the selection-UX tray grew past it, so the

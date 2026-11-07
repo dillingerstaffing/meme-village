@@ -98,7 +98,7 @@ sheet, character panel, objective card, project pick, mobile, phone, layout, ove
 | phone-stats-compact-during-picks.md | On phones an open decision pick row compacts the stats panel to a meter strip; a panel that would sit behind the objective card compacts on collision, or hides until it fits |
 | desktop-stats-compact-on-collision.md | On desktop the stats panel compacts to the meter strip when it would slide under the alerts stack, or hides until it fits; never partly under the stack |
 | pick-rows-scroll-on-phones.md | On phones every objective-card pick row caps below the card content and scrolls internally, with wrapping chips, so the commit chip is always reachable |
-| phone-alerts-shed-on-collision.md | On phones the alerts stack sheds lowest priority first when it would cover the objective card, and the shed chips return when space returns |
+| alerts-shed-on-collision.md | The alerts stack sheds lowest priority first when it would cover the objective card, at every width, and the shed chips return when space returns |
 | phone-close-buttons-44px.md | On phones the tray deselect X and the sticky sheet header close meet the 44px thumb target, since the X is the only reliable deselect and arm-cancel and the header close is the sheet's immediate dismissal path |
 | phone-title-segments-44px.md | On phones the title season and posting segments meet the 44px thumb target, since they are the first controls a phone player touches and a mis-tap starts the village under the wrong difficulty or posting rule |
 
