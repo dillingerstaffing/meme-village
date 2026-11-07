@@ -27,3 +27,17 @@ order. It is never a tap target: tap picking intersects only the
 agent, plot, and station hit meshes, never the scene, so the line
 cannot capture or block a tap. No state is added and no dispatch
 runs for it.
+
+When the band itself is empty (no one has loafed past 5) the
+fallback marks a resident who can take the order anyway, so the
+teach never goes dark while the first order still stands. With a
+destination station the fallback takes the nearest resident who can
+take the order, preferring one whose cone is on screen; with no
+station it takes the idlest resident whose cone is on screen, else
+the idlest overall. Membership is exactly setOrder3's refusal set:
+no sick, no sick-walking, no children. Ordering a busy resident
+commits a real first order and drops their current activity.
+Measured 2026-11-07 at 390, the band was empty for 24.9 of the
+first 52 sim-seconds, including a 15.8s stretch with all 9 adults
+busy, so before this fallback the cones and the line vanished for
+nearly half the opening minute.
