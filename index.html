@@ -8454,7 +8454,7 @@ function renderOverlay(s){
     if(m.bubble) a.bubbleEl.style.opacity = m.bubble.kind === "want" ? m.bubble.opacity.toFixed(2) : "1";
     placed.push(a);
   });
-  // CF-REF: overlay-anchor-budget.md [133]
+  // CF-REF: overlay-anchor-budget.md [243]
   // Anchor discipline: an overlay belongs to its resident, and position
   // is identity. A marker may shift only within a small budget (LIFT_MAX
   // up, DX_MAX sideways; the screen clamps and a short HUD nudge count
@@ -8490,6 +8490,12 @@ function renderOverlay(s){
   var trayEl = document.getElementById("tray");
   var trayRect = null;
   if(trayEl && typeof trayEl.getBoundingClientRect === "function"){ var _tr = trayEl.getBoundingClientRect(); if(_tr.width >= 4 && _tr.height >= 4) trayRect = _tr; }
+  var alEl = document.getElementById("alerts");
+  var alRect = null;
+  if(alEl && typeof alEl.getBoundingClientRect === "function"){ var _ar = alEl.getBoundingClientRect(); if(_ar.width >= 4 && _ar.height >= 4) alRect = _ar; }
+  var toastEl = document.getElementById("toast");
+  var toastRect = null;
+  if(toastEl && toastEl.style.display === "block" && typeof toastEl.getBoundingClientRect === "function"){ var _tor = toastEl.getBoundingClientRect(); if(_tor.width >= 4 && _tor.height >= 4) toastRect = _tor; }
   function ovlHitsTray(x, y, hw, hh){
     if(!trayRect) return false;
     return x + hw > trayRect.left && x - hw < trayRect.right && y > trayRect.top && y - hh < trayRect.bottom;
@@ -8505,6 +8511,58 @@ function renderOverlay(s){
     if(hud && y > hud.top - 40 && y - hh < hud.bottom + 12 && cx - hw < hud.right + 6) return null;
     return cx;
   }
+  function ovlHitsAlerts(x, y, hw, hh){
+    if(!alRect) return false;
+    return x + hw > alRect.left && x - hw < alRect.right && y > alRect.top && y - hh < alRect.bottom;
+  }
+  function ovlHitsToast(x, y, hw, hh){
+    if(!toastRect) return false;
+    return x + hw > toastRect.left && x - hw < toastRect.right && y > toastRect.top && y - hh < toastRect.bottom;
+  }
+  /* Alerts-stack clearance, same discipline as the minimap: the stack
+     is opaque chrome (z-index 29 over the overlays at 9), so a marker
+     under it is invisible, not merely overlapping. The stack sits at
+     the left edge, so the sidestep goes right of it within the same
+     110px sideways budget (selected resident exempt, as with the
+     west-edge nudge and the minimap shift). A shift that would land
+     under the HUD column, the minimap, or a live toast is no clearance
+     at all, so it returns null and the caller lifts or hides. Like the
+     minimap clearance, this stands down while the camera moves. */
+  function ovlAlertsShift(y, hw, hh, m, a){
+    if(!alRect) return null;
+    var cx = alRect.right + 6 + hw;
+    if(cx + hw > window.innerWidth - 4) return null;
+    if(Math.abs(cx - m.x) > DX_MAX && s.selected !== a.id) return null;
+    if(hud && y > hud.top - 40 && y - hh < hud.bottom + 12 && cx - hw < hud.right + 6) return null;
+    if(mmRect && ovlHitsMm(cx, y, hw, hh)) return null;
+    if(toastRect && ovlHitsToast(cx, y, hw, hh)) return null;
+    return cx;
+  }
+  /* Toast clearance, same discipline as the alerts stack: a live toast
+     is opaque chrome (z-index 12 over the overlays at 9), so a marker
+     under it is invisible, not merely overlapping. The toast is
+     top-right on phones and bottom-center on desktop, so the sidestep
+     tries left of it first, then right, within the same 110px sideways
+     budget (selected resident exempt); a shift that would land under
+     the HUD column, the minimap, or the alerts stack is no clearance
+     at all, so it returns null and the caller lifts or hides. The toast
+     is transient, so a hide lasts only its remaining life and the marker
+     returns on its own when the toast dies. Like the other clearances,
+     this stands down while the camera moves. */
+  function ovlToastShift(y, hw, hh, m, a){
+    if(!toastRect) return null;
+    var cands = [toastRect.left - 6 - hw, toastRect.right + 6 + hw];
+    for(var ti = 0; ti < cands.length; ti++){
+      var cx = cands[ti];
+      if(cx - hw < 4 || cx + hw > window.innerWidth - 4) continue;
+      if(Math.abs(cx - m.x) > DX_MAX && s.selected !== a.id) continue;
+      if(hud && y > hud.top - 40 && y - hh < hud.bottom + 12 && cx - hw < hud.right + 6) continue;
+      if(mmRect && ovlHitsMm(cx, y, hw, hh)) continue;
+      if(alRect && ovlHitsAlerts(cx, y, hw, hh)) continue;
+      return cx;
+    }
+    return null;
+  }
   placed.forEach(function(a){
     var el = a.ovlEl, m = a._ovlModel;
     var hw = (el.offsetWidth || 46) / 2, hh = el.offsetHeight || 56;
@@ -8513,6 +8571,38 @@ function renderOverlay(s){
     if(!camMoving && hud && y > hud.top - 40 && y - hh < hud.bottom + 12 && x - hw < hud.right + 6){
       var hx = hud.right + 6 + hw;
       if(hx - m.x <= DX_MAX || s.selected === a.id) x = hx;
+      else { el.style.display = "none"; a._ovlSig = ""; a._ovlBox = null; return; }
+    }
+    /* Alerts-stack clearance: the stack was the one opaque chrome the
+       placement pass never cleared (the HUD column, the minimap, and
+       the tray each have their own rule), so a marker whose anchor
+       falls in the stack's band rendered under its opaque chips, the
+       name fragment that survived reading as no resident at all.
+       Sidestep right of the stack first, then lift so the box bottom
+       sits on the stack's top edge when the lift stays inside
+       LIFT_MAX and the lifted box clears the HUD column and a live
+       toast; past both, hide for the frame rather than rendering
+       under chrome. Like the other clearances, this stands down while
+       the camera moves. */
+    if(!camMoving && alRect && ovlHitsAlerts(x, y, hw, hh)){
+      var ax = ovlAlertsShift(y, hw, hh, m, a);
+      if(ax !== null) x = ax;
+      else if(m.y - alRect.top <= LIFT_MAX && !(hud && alRect.top > hud.top - 40 && alRect.top - hh < hud.bottom + 12 && x - hw < hud.right + 6) && !(toastRect && ovlHitsToast(x, alRect.top, hw, hh))) y = alRect.top;
+      else { el.style.display = "none"; a._ovlSig = ""; a._ovlBox = null; return; }
+    }
+    /* Toast clearance: a live toast is opaque chrome over the overlays,
+       so a marker under it reads as no resident at all, exactly like
+       the stack case above. Sidestep left or right of the toast first,
+       then lift so the box bottom sits on the toast's top edge when the
+       lift stays inside LIFT_MAX and the lifted box clears the HUD
+       column, the minimap, and the alerts stack; past both, hide for
+       the frame. The toast dies on its own in seconds, so the hide is
+       brief and the marker returns without any action. Like the other
+       clearances, this stands down while the camera moves. */
+    if(!camMoving && toastRect && ovlHitsToast(x, y, hw, hh)){
+      var tx = ovlToastShift(y, hw, hh, m, a);
+      if(tx !== null) x = tx;
+      else if(m.y - toastRect.top <= LIFT_MAX && !(hud && toastRect.top > hud.top - 40 && toastRect.top - hh < hud.bottom + 12 && x - hw < hud.right + 6) && !(mmRect && ovlHitsMm(x, toastRect.top, hw, hh)) && !(alRect && ovlHitsAlerts(x, toastRect.top, hw, hh))) y = toastRect.top;
       else { el.style.display = "none"; a._ovlSig = ""; a._ovlBox = null; return; }
     }
     /* Minimap clearance, same discipline as the left-HUD nudge and the
@@ -8551,6 +8641,8 @@ function renderOverlay(s){
         if(Math.abs(cx - m.x) > DX_MAX) continue;
         if(hud && y > hud.top - 40 && y - hh < hud.bottom + 12 && cx - hw < hud.right + 6) continue;
         if(mmRect && ovlHitsMm(cx, y, hw, hh)) continue;
+        if(alRect && ovlHitsAlerts(cx, y, hw, hh)) continue;
+        if(toastRect && ovlHitsToast(cx, y, hw, hh)) continue;
         if(!ovlHit(cx, y, hw, hh)){ x = cx; sided = true; break; }
       }
       if(!sided){
@@ -8582,6 +8674,24 @@ function renderOverlay(s){
     if(!camMoving && trayRect && ovlHitsTray(x, y, hw, hh)){
       var ty2 = trayRect.top;
       if(m.y - ty2 <= LIFT_MAX && !ovlHit(x, ty2, hw, hh)) y = ty2;
+      else { el.style.display = "none"; a._ovlSig = ""; a._ovlBox = null; return; }
+    }
+    /* Final alerts guard: a lift or top clamp above can land a box
+       under the stack after the pre-pass ran. A shift that collides
+       with an already placed box is no placement at all, so that case
+       hides for the frame like a past-budget shift. */
+    if(!camMoving && alRect && ovlHitsAlerts(x, y, hw, hh)){
+      var ax2 = ovlAlertsShift(y, hw, hh, m, a);
+      if(ax2 !== null && !ovlHit(ax2, y, hw, hh)) x = ax2;
+      else { el.style.display = "none"; a._ovlSig = ""; a._ovlBox = null; return; }
+    }
+    /* Final toast guard: a lift or top clamp above can land a box
+       under a live toast after the pre-pass ran. A shift that collides
+       with an already placed box is no placement at all, so that case
+       hides for the frame like a past-budget shift. */
+    if(!camMoving && toastRect && ovlHitsToast(x, y, hw, hh)){
+      var tx2 = ovlToastShift(y, hw, hh, m, a);
+      if(tx2 !== null && !ovlHit(tx2, y, hw, hh)) x = tx2;
       else { el.style.display = "none"; a._ovlSig = ""; a._ovlBox = null; return; }
     }
     el.style.left = x + "px"; el.style.top = y + "px";

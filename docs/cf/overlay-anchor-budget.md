@@ -40,6 +40,40 @@ minimap is skipped; and a final guard after lifting and clamping
 re-shifts or hides for the frame. Like the HUD nudge, minimap
 clearance stands down while the camera moves.
 
+Resident overlays follow the same rule against the alerts stack: the
+stack is opaque chrome (z-index 29 over the overlays at 9), so a marker
+under it is invisible, not merely overlapping. Placement sidesteps a
+stack-overlapping box right of the stack within the same 110px sideways
+budget (selected resident exempt, as with the west-edge nudge and the
+minimap shift), then lifts it so its bottom sits on the stack's top
+edge when the lift stays inside the 56px budget and the lifted box
+clears the HUD column and a live toast; past both it hides for the
+frame. A sidestep that would land under the HUD column, the minimap, or
+a live toast is no clearance at all, so it is refused. A de-overlap
+sidestep candidate that would land under the stack is skipped, and a
+final guard after lifting and clamping re-shifts or hides for the frame.
+Like the minimap clearance, stack clearance stands down while the camera
+moves, and the stack rect is measured live every frame, so the rule
+follows the stack as it sheds rows against the objective card and grows
+again when space returns.
+
+Resident overlays follow the same rule against a live toast: the toast
+is opaque chrome (z-index 12 over the overlays at 9), so a marker under
+it is invisible, not merely overlapping. Placement sidesteps a
+toast-overlapping box left of the toast first, then right, within the
+same 110px sideways budget (selected resident exempt), then lifts it so
+its bottom sits on the toast's top edge when the lift stays inside the
+56px budget and the lifted box clears the HUD column, the minimap, and
+the alerts stack; past both it hides for the frame. A sidestep that
+would land under the HUD column, the minimap, or the alerts stack is no
+clearance at all, so it is refused. A de-overlap sidestep candidate that
+would land under a live toast is skipped, and a final guard after lifting
+and clamping re-shifts or hides for the frame. The toast is transient, so
+a hide lasts only its remaining life and the marker returns on its own
+when the toast dies. Like the other clearances, toast clearance stands
+down while the camera moves, and the toast rect is measured live every
+frame, only while a toast is actually showing.
+
 Resident overlays follow the same rule against the tray: the tray is
 opaque chrome (z-index 10 over the overlays at 9), so a marker under
 it is invisible, not merely overlapping, and the tray spans the full
