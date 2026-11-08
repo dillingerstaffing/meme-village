@@ -3,8 +3,9 @@
 Before the first order, the world teaches with no text: one gold cone
 over the teach loafer and one over the objective station. The teach
 loafer is the resident nearest the destination station among those
-within 2 sim-seconds of the longest loaf whose cone projects inside the
-viewport (32px margin), so both ends of the loop stay in the opening frame
+within 2 sim-seconds of the longest loaf who can take an order and
+whose cone projects inside the viewport (32px margin), so both ends
+of the loop stay in the opening frame
 with the station cone instead of the cone pointing at a loafer idling
 off-screen; the band keeps the pick among the genuinely idlest, and with no
 destination station the longest loafer stands. When no band loafer is on
@@ -41,3 +42,13 @@ Measured 2026-11-07 at 390, the band was empty for 24.9 of the
 first 52 sim-seconds, including a 15.8s stretch with all 9 adults
 busy, so before this fallback the cones and the line vanished for
 nearly half the opening minute.
+
+The band itself uses the same membership. The maxLoaf pass, the
+band pass, and the no-station longest pass all exclude the sick,
+the sick-walking, and children, exactly setOrder3's refusal set,
+so the teach never points at a resident who cannot take the order.
+Before this rule the band excluded only the sick: measured
+2026-11-07, it picked a sick-walking resident on 82 of 3750 ticks
+of a natural opening, and a player who tapped that cone and then
+a station got the refusal toast instead of an order. Guarded by
+pwtest_coachsick.py, which fails its pick legs on the parent tree.

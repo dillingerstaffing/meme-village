@@ -8324,7 +8324,14 @@ function fxTick(dt){
        When no band loafer is on screen the nearest pick stands, so
        the teach never goes empty for a camera the player dragged away.
        The band keeps the pick among the genuinely idlest; with no
-       station the longest loafer stands, as before. When the band
+       station the longest loafer stands, as before. The band, the
+       maxLoaf pass, and the no-station longest pass all use exactly
+       setOrder3's membership, no sick, no sick-walking, no children,
+       so the teach never points at a resident who cannot take the
+       order: measured 2026-11-07, the band picked a sick-walking
+       resident on 82 of 3750 ticks of a natural opening, and a player
+       who tapped that cone and then a station got the refusal toast
+       instead of an order. When the band
        itself is empty (no one has loafed past 5) the fallback marks a
        resident who can take the order anyway, so the teach never goes
        dark while the first order still stands: measured 2026-11-07 at
@@ -8340,11 +8347,11 @@ function fxTick(dt){
        current activity. Display only:
        loafT, the idle alerts, and the Idle cycle are untouched. */
     var loafer = null, lt = 5, maxLoaf = 5;
-    G.agents.forEach(function(a){ if(!a.sick && (a.loafT || 0) > maxLoaf) maxLoaf = a.loafT; });
+    G.agents.forEach(function(a){ if(!a.sick && !a.sickWalk && !a.child && (a.loafT || 0) > maxLoaf) maxLoaf = a.loafT; });
     /* CF-REF: coach-teach-line.md [27] */
     if(st){
       var bestD = Infinity, bestOn = null, bestOnD = Infinity;
-      G.agents.forEach(function(a){ if(!a.sick && (a.loafT || 0) > 5 && (a.loafT || 0) >= maxLoaf - 2){ var dx = a.x - st.x, dz = a.z - st.z, d = dx * dx + dz * dz; if(d < bestD){ bestD = d; loafer = a; } if(projV){ projV.set(a.x, 5.4, a.z).project(camera); var px = (projV.x + 1) / 2 * window.innerWidth, py = (1 - projV.y) / 2 * window.innerHeight; if(projV.z < 1 && px >= 32 && px <= window.innerWidth - 32 && py >= 32 && py <= window.innerHeight - 32 && d < bestOnD){ bestOnD = d; bestOn = a; } } } });
+      G.agents.forEach(function(a){ if(!a.sick && !a.sickWalk && !a.child && (a.loafT || 0) > 5 && (a.loafT || 0) >= maxLoaf - 2){ var dx = a.x - st.x, dz = a.z - st.z, d = dx * dx + dz * dz; if(d < bestD){ bestD = d; loafer = a; } if(projV){ projV.set(a.x, 5.4, a.z).project(camera); var px = (projV.x + 1) / 2 * window.innerWidth, py = (1 - projV.y) / 2 * window.innerHeight; if(projV.z < 1 && px >= 32 && px <= window.innerWidth - 32 && py >= 32 && py <= window.innerHeight - 32 && d < bestOnD){ bestOnD = d; bestOn = a; } } } });
       if(bestOn) loafer = bestOn;
       if(!loafer){
         var fbD = Infinity, fbOn = null, fbOnD = Infinity;
@@ -8357,7 +8364,7 @@ function fxTick(dt){
         if(fbOn) loafer = fbOn;
       }
     } else {
-      G.agents.forEach(function(a){ if((a.loafT || 0) > lt && !a.sick){ lt = a.loafT; loafer = a; } });
+      G.agents.forEach(function(a){ if((a.loafT || 0) > lt && !a.sick && !a.sickWalk && !a.child){ lt = a.loafT; loafer = a; } });
       if(!loafer){
         var fbLt = -1, fbOn2 = null, fbLt2 = -1;
         G.agents.forEach(function(a){
