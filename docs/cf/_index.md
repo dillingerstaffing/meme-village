@@ -63,6 +63,7 @@ tap, drag, scroll, touch, pointer, gesture, tray, alerts, minimap, button, click
 | idle-finder.md | The Idle button cycles one loafer at a time, orders nothing, and never carries a lit treatment; the no-loafer answer jumps the toast queue |
 | control-groups.md | Three recall slots, one resident each: Groups arm plus chip tap assigns, chip tap or digit recalls and centers, a gone resident clears the slot |
 | keyboard-escape-close.md | Escape closes the topmost closable panel first (Story overlay, then sheet), never an incident panel, never a deselect |
+| sheet-swipe-close.md | On phones a downward touch drag of at least 60px, mostly vertical, from the top of the sheet closes it through the ui/sheet dispatch; a short, sideways, button-start, or scrolled drag never closes, and the desktop side panel never drags |
 | story-panel-key-guard.md | While a Story panel stands open, no keyboard verb acts behind it except Escape, the pause keys, the speed keys, and M; the sheet and the incident panel keep their own guards |
 | keyboard-space-pause.md | Space toggles speed 0 and 1 only once started, never while over, never with a modifier, never while typing, but stays live during an incident panel as the thinking tool |
 | keyboard-p-pause.md | P is the Sims twin of Space: same toggle, same guard, same incident exception, so the canonical pause key never meets silence |

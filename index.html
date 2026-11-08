@@ -107,11 +107,18 @@ canvas{display:block}
 #sheet{position:fixed;z-index:20;display:none;background:linear-gradient(180deg,rgba(14,19,26,.97),rgba(9,12,17,.98));border:1px solid var(--line);overflow-y:auto;padding:16px 18px}
 @media (min-width:721px){#sheet{right:12px;top:76px;bottom:12px;width:380px;border-radius:11px}}
 @media (max-width:720px){#sheet{left:0;right:0;bottom:0;top:auto;height:86%;border-radius:14px 14px 0 0;border-bottom:none}}
-/* Sticky sheet header: the close button is the sheet's only dismissal path
+/* Sticky sheet header: the close button is the sheet's immediate dismissal path
    (the tray selection-close leaves the sheet open), so it must stay inside
    the sheet box while the journal scrolls. Without this, a long journal
    scrolls the header out of the clipped box and the close button is
-   unreachable until the player scrolls back up (fuzz seed 99, 390px). */
+   unreachable until the player scrolls back up (fuzz seed 99, 390px). The
+   foot Close, the Escape key, and the swipe-down gesture are the other
+   dismissal paths; none of them moves the header. */
+/* Drag handle: the thin bar at the top of the phone bottom sheet, the
+   Material and iOS affordance that says this panel drags down to close.
+   Phone only: on desktop the sheet is a side panel and never drags. */
+#sheet .sh-grab{display:none}
+@media (max-width:720px){#sheet .sh-grab{display:block;width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.28);margin:0 auto 10px;flex:none}}
 #sheet .sh-head{display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:1;background:linear-gradient(180deg,#0e131a,#090d11)}
 #sheet .sh-chip{position:relative;width:46px;height:46px;border-radius:10px;overflow:hidden;flex:none}
 #sheet .sh-hair{position:absolute;left:0;right:0;top:0;height:13px}
@@ -811,7 +818,7 @@ function renderSheet(s){
   var hair = "#" + ("000000" + (a.hairC || 0).toString(16)).slice(-6);
   // CF-REF: axis-label-selected-surfaces.md [4]
   var ax2 = axisOf(a);
-  var h = "<div class='sh-head'><div class='sh-chip' style='background:" + shirt + "'><div class='sh-hair' style='background:" + hair + "'></div><div class='sh-letter'>" + a.name.charAt(0) + "</div></div>"
+  var h = "<div class='sh-grab'></div><div class='sh-head'><div class='sh-chip' style='background:" + shirt + "'><div class='sh-hair' style='background:" + hair + "'></div><div class='sh-letter'>" + a.name.charAt(0) + "</div></div>"
     + "<div><div class='sh-name'>" + a.name + "</div><div class='sh-role'>" + a.role + (ax2 ? " · " + ax2.icon + " " + ax2.label : "") + "</div></div>"
     + "<button class='sh-pause' type='button' aria-label='" + (s.speed === 0 ? "Resume" : "Pause") + "' title='" + (s.speed === 0 ? "Resume (Space key)" : "Pause (Space key)") + "'>" + (s.speed === 0 ? "▶" : "❚❚") + "</button><button class='sh-x' type='button' aria-label='Close' title='Close (Escape key)'>✕</button></div>";
   /* Current activity first, before the needs: the tray's activity line is
@@ -9788,6 +9795,44 @@ window.addEventListener("pointerdown", function(e){ if(e.pointerType !== "mouse"
 window.addEventListener("pointerup", function(){ ptrDown = false; });
 window.addEventListener("pointercancel", function(){ ptrDown = false; });
 window.addEventListener("blur", function(){ mouseIn = false; ptrDown = false; });
+/* Sheet swipe-down close (phone bottom sheet only): a downward touch
+   drag of at least 60px, mostly vertical, starting off any button
+   while the sheet is scrolled to the top, closes through the ui/sheet
+   dispatch, the same verb as the header X, so the selection survives.
+   The drag never writes DOM mid-gesture and never blocks scrolling: a
+   drag that starts scrolled down scrolls content instead, a short or
+   sideways drag leaves the sheet open, and a second finger disarms the
+   gesture. Desktop keeps the side panel: the gate is the same 720px
+   breakpoint the sheet CSS uses. No state, no sim change. */
+/* CF-REF: sheet-swipe-close.md [28] */
+(function(){
+  var sh = document.getElementById("sheet");
+  if(!sh) return;
+  var swipeY = null, swipeX = null, swipeArmed = false;
+  function swipePhone(){ return window.matchMedia("(max-width: 720px)").matches; }
+  sh.addEventListener("touchstart", function(e){
+    if(!swipePhone()) return;
+    if(!e.touches || e.touches.length !== 1){ swipeArmed = false; return; }
+    if(e.target && e.target.closest && e.target.closest("button")) return;
+    if(sh.scrollTop > 0) return;
+    swipeY = e.touches[0].clientY; swipeX = e.touches[0].clientX; swipeArmed = true;
+  }, {passive:true});
+  sh.addEventListener("touchmove", function(e){
+    if(!swipeArmed || !e.touches || e.touches.length !== 1) return;
+    var dy = e.touches[0].clientY - swipeY, dx = e.touches[0].clientX - swipeX;
+    if(dy < 0 || Math.abs(dx) > dy) swipeArmed = false;
+  }, {passive:true});
+  sh.addEventListener("touchend", function(e){
+    if(!swipeArmed){ swipeY = null; swipeX = null; return; }
+    swipeArmed = false;
+    var t = (e.changedTouches && e.changedTouches[0]) || null;
+    if(!t || swipeY == null){ swipeY = null; swipeX = null; return; }
+    var dy = t.clientY - swipeY, dx = t.clientX - swipeX;
+    swipeY = null; swipeX = null;
+    if(dy >= 60 && dy >= Math.abs(dx)) Store.dispatch("ui/sheet", {id:null});
+  }, {passive:true});
+  sh.addEventListener("touchcancel", function(){ swipeArmed = false; swipeY = null; swipeX = null; }, {passive:true});
+})();
 var chosenDiff = "standard", chosenPolicy = "hearth";
 /* Title choice line: the SEASON and POSTING picks are the one choice the
    game used to ask blind, with no effect text anywhere, while every armed
