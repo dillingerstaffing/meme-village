@@ -5390,11 +5390,17 @@ function stepSim(dt){
     if(working || a.sick || a.resting){ a.loafT = 0; a.alerted = false; } else a.loafT = (a.loafT || 0) + dt;
     if(a.loafT > 15 && !a.alerted && G.started && !G.over){ a.alerted = true; G.alerts.push({id:a.id, name:a.name.split(" ")[0], at:G.t}); }
   });
-  // CF-REF: desires-travel-the-graph.md [19]
+  // CF-REF: desires-travel-the-graph.md [25]
   G.agents.forEach(function(a){
     if(a.wantPend && G.t >= a.wantPend.at && !a.sick){ var wp = a.wantPend; a.wantPend = null; giveWant(a, wp.station, wp.sync, wp.from); }
     if(a.want){
-      if(G.t > a.want.until){ var wmiss = a.want.station; var wFromM = a.want.from; a.morale = Math.max(0, a.morale - 3); setBubble(a, "💔", 1.6); SND.play("wantmiss"); a.want = null; a.wantCd = 8; if(wFromM && wFromM !== a.id){ var srcM = agent(wFromM); if(srcM){ if(!G.mimic) G.mimic = {spread:0, converged:0, doneCopied:0, doneSelf:0, missedCopied:0}; addTension(a, srcM, MIM.resentTension); G.mimic.missedCopied++; } } noteEvent(a, "wantMissed", wmiss); }
+      /* A want does not miss while its holder is already walking to the
+         wanted station on the player's order, or acting there on that
+         order: the clock ran out mid-errand, not the errand. The hold
+         is re-checked every tick, so if the order drops or the walk is
+         diverted the miss fires on the next tick; the want is held,
+         never extended, and the sheet still shows its 0s countdown. */
+      if(G.t > a.want.until && !(a.order === a.want.station && a.stationId === a.want.station && (a.state === "walk" || a.state === "act"))){ var wmiss = a.want.station; var wFromM = a.want.from; a.morale = Math.max(0, a.morale - 3); setBubble(a, "💔", 1.6); SND.play("wantmiss"); a.want = null; a.wantCd = 8; if(wFromM && wFromM !== a.id){ var srcM = agent(wFromM); if(srcM){ if(!G.mimic) G.mimic = {spread:0, converged:0, doneCopied:0, doneSelf:0, missedCopied:0}; addTension(a, srcM, MIM.resentTension); G.mimic.missedCopied++; } } noteEvent(a, "wantMissed", wmiss); }
       else if(a.state === "act" && a.stationId === a.want.station){
         var wFrom = a.want.from;
         a.morale = Math.min(100, a.morale + 9); setBubble(a, "♥", 1.6); SND.play("want");

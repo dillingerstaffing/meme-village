@@ -44,6 +44,16 @@ MIM.resentTension to the pair with its origin and counts in
 G.mimic.missedCopied. Keep the existing morale effects and the
 player-order bonus exactly as they are.
 
+A want does not expire while its holder is already walking to the
+wanted station on the player's order, or acting there on that order.
+The miss branch checks the order, the station, and the walk/act state
+every tick, so the hold ends the moment the order drops or the walk is
+diverted, and the miss fires on the next tick; the want is held, never
+extended, and want.until is never rewritten. A resident walking to the
+wanted station with no order, or acting there with no order, still
+misses on the clock: the hold covers only the player's order, the one
+response the player can see and has already given.
+
 Every tuning number for this system lives in the MIM table,
 with one v4 exception: the model-prestige flip threshold lives in the
 spec-registered MODEL_PRESTIGE table (spec sections 24/25, the v4 data
